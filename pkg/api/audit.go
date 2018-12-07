@@ -3,7 +3,7 @@ package api
 import (
 	"time"
 
-	"github.com/keylockerbv/secrethub/core/uuid"
+	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 )
 
 // AuditAction values.

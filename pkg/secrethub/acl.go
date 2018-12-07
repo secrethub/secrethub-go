@@ -2,8 +2,8 @@ package secrethub
 
 import (
 	"github.com/keylockerbv/secrethub-go/pkg/api"
+	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 	"github.com/keylockerbv/secrethub/core/errio"
-	"github.com/keylockerbv/secrethub/core/uuid"
 )
 
 // AccessRuleService handles operations on access rules from SecretHub.

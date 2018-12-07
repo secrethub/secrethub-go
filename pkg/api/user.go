@@ -6,8 +6,8 @@ import (
 
 	"net/http"
 
+	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 	"github.com/keylockerbv/secrethub/core/errio"
-	"github.com/keylockerbv/secrethub/core/uuid"
 )
 
 // Errors

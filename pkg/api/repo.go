@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"bitbucket.org/zombiezen/cardcpx/natsort"
-	"github.com/keylockerbv/secrethub/core/uuid"
+	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 )
 
 // Errors
