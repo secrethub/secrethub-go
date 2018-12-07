@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"bitbucket.org/zombiezen/cardcpx/natsort"
+	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub/core/errio"
 	"github.com/keylockerbv/secrethub/core/uuid"
-	"github.com/keylockerbv/secrethub/crypto"
 	logging "github.com/op/go-logging"
 )
 

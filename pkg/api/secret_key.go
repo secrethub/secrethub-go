@@ -1,9 +1,9 @@
 package api
 
 import (
+	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub/core/errio"
 	"github.com/keylockerbv/secrethub/core/uuid"
-	"github.com/keylockerbv/secrethub/crypto"
 )
 
 // SecretKey represents a secret key that is intended to be used by a specific account.

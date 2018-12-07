@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
+	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub/core/uuid"
-	"github.com/keylockerbv/secrethub/crypto"
 	"github.com/keylockerbv/secrethub/testutil"
 )
 
