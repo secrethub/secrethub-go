@@ -9,7 +9,6 @@ import (
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub/core/errio"
-	"github.com/keylockerbv/secrethub/core/httpio"
 	logging "github.com/op/go-logging"
 )
 
@@ -617,7 +616,7 @@ func (c *httpClient) do(rawURL string, method string, expectedStatus int, in int
 		return errio.Error(err)
 	}
 
-	err = httpio.EncodeRequest(req, in)
+	err = EncodeRequest(req, in)
 	if err != nil {
 		return errio.Error(err)
 	}
@@ -640,10 +639,10 @@ func (c *httpClient) do(rawURL string, method string, expectedStatus int, in int
 				"Go to `https://secrethub.io/docs/getting-started/install` to see how to update your client.")
 	} else if resp.StatusCode != expectedStatus {
 		log.Debugf("unexpected status code: %d (actual) != %d (expected)", resp.StatusCode, expectedStatus)
-		return httpio.ParseError(resp)
+		return ParseError(resp)
 	}
 
-	err = httpio.DecodeResponse(resp, out)
+	err = DecodeResponse(resp, out)
 	if err != nil {
 		return errio.StatusError(err)
 	}
