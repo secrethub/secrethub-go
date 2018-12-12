@@ -11,15 +11,25 @@ import (
 	"github.com/keylockerbv/secrethub/core/errio"
 )
 
-// EncodeRequest simplifies setting the request body and correct headers.
+// Errors
+var (
+	ErrWrongContentType = errClient.Code("wrong_content_type").Error("server returned wrong content type in header")
+)
+
+// validator is an interface that helps validate the values of arguments.
+type validator interface {
+	Validate() error
+}
+
+// encodeRequest simplifies setting the request body and correct headers.
 // If in == nil, nothing happens, else it will attempt to encode the body as json.
 // Before encoding, it will validate the input if possible.
-func EncodeRequest(req *http.Request, in interface{}) error {
+func encodeRequest(req *http.Request, in interface{}) error {
 	if in == nil {
 		return nil
 	}
 
-	validator, ok := in.(Validator)
+	validator, ok := in.(validator)
 	if ok {
 		err := validator.Validate()
 		if err != nil {
@@ -29,7 +39,7 @@ func EncodeRequest(req *http.Request, in interface{}) error {
 
 	jsonBytes, err := json.Marshal(in)
 	if err != nil {
-		return errHTTP.Code("cannot_encode_request").StatusErrorf("cannot encode request: %v", http.StatusBadRequest, err)
+		return errClient.Code("cannot_encode_request").StatusErrorf("cannot encode request: %v", http.StatusBadRequest, err)
 	}
 
 	buf := bytes.NewBuffer(jsonBytes)
@@ -42,10 +52,10 @@ func EncodeRequest(req *http.Request, in interface{}) error {
 	return nil
 }
 
-// DecodeResponse reads the response body and checks for the correct headers.
+// decodeResponse reads the response body and checks for the correct headers.
 // If out == nil, nothing happens, else it will attempt to decode the body as json.
 // After decoding, it will validate the result if possible.
-func DecodeResponse(resp *http.Response, out interface{}) error {
+func decodeResponse(resp *http.Response, out interface{}) error {
 	if out == nil {
 		return nil
 	}
@@ -54,17 +64,17 @@ func DecodeResponse(resp *http.Response, out interface{}) error {
 		return ErrWrongContentType
 	}
 
-	bytes, err := ReadBodyNoClose(&resp.Body)
+	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return errio.StatusError(err)
 	}
 
 	err = json.Unmarshal(bytes, out)
 	if err != nil {
-		return errHTTP.Code("cannot_decode_response").StatusErrorf("cannot decode response: %v", http.StatusInternalServerError, err)
+		return errClient.Code("cannot_decode_response").StatusErrorf("cannot decode response: %v", http.StatusInternalServerError, err)
 	}
 
-	validator, ok := out.(Validator)
+	validator, ok := out.(validator)
 	if ok {
 		err := validator.Validate()
 		if err != nil {
@@ -74,12 +84,12 @@ func DecodeResponse(resp *http.Response, out interface{}) error {
 	return nil
 }
 
-// ParseError parses the body of an http.Response into an errio.PublicStatusError.
+// parseError parses the body of an http.Response into an errio.PublicStatusError.
 // If unsuccessful, it simply outputs the statuscode and the bytes of the body.
-func ParseError(resp *http.Response) error {
-	bytes, err := ReadBodyNoClose(&resp.Body)
+func parseError(resp *http.Response) error {
+	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return errHTTP.Code("failed_read").Errorf("failed to read the server response: %s", err)
+		return errClient.Code("cannot_read_response").Errorf("cannot read the server response: %s", err)
 	}
 
 	// Try to unmarshal into a PublicStatusError

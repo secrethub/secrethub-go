@@ -616,7 +616,7 @@ func (c *httpClient) do(rawURL string, method string, expectedStatus int, in int
 		return errio.Error(err)
 	}
 
-	err = EncodeRequest(req, in)
+	err = encodeRequest(req, in)
 	if err != nil {
 		return errio.Error(err)
 	}
@@ -639,10 +639,10 @@ func (c *httpClient) do(rawURL string, method string, expectedStatus int, in int
 				"Go to `https://secrethub.io/docs/getting-started/install` to see how to update your client.")
 	} else if resp.StatusCode != expectedStatus {
 		log.Debugf("unexpected status code: %d (actual) != %d (expected)", resp.StatusCode, expectedStatus)
-		return ParseError(resp)
+		return parseError(resp)
 	}
 
-	err = DecodeResponse(resp, out)
+	err = decodeResponse(resp, out)
 	if err != nil {
 		return errio.StatusError(err)
 	}
