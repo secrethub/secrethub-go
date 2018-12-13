@@ -7,8 +7,8 @@ import (
 	"encoding/pem"
 	"errors"
 
+	"github.com/keylockerbv/secrethub-go/pkg/crypto/hashing"
 	"github.com/keylockerbv/secrethub/core/errio"
-	"github.com/keylockerbv/secrethub/core/hasher"
 )
 
 var (
@@ -51,7 +51,7 @@ type RSAPublicKey struct {
 
 // Encrypt encrypts the data with RSA-OAEP using the RSAKey.
 func (k *RSAPublicKey) Encrypt(data []byte) ([]byte, error) {
-	output, err := rsa.EncryptOAEP(hasher.New(), rand.Reader, k.publicKey, data, []byte{})
+	output, err := rsa.EncryptOAEP(hashing.New(), rand.Reader, k.publicKey, data, []byte{})
 	if err != nil {
 		return nil, ErrRSAEncrypt(err)
 	}
@@ -62,9 +62,9 @@ func (k *RSAPublicKey) Encrypt(data []byte) ([]byte, error) {
 // A valid signature is indicated by returning a nil error
 // A public key must be importable by importPublicKey.
 func (k *RSAPublicKey) Verify(message, signature []byte) error {
-	hashedMessage := hasher.Sum(message)
+	hashedMessage := hashing.Sum(message)
 
-	return rsa.VerifyPKCS1v15(k.publicKey, hasher.HashingAlgorithm, hashedMessage.Bytes(), signature)
+	return rsa.VerifyPKCS1v15(k.publicKey, hashing.HashingAlgorithm, hashedMessage.Bytes(), signature)
 }
 
 // Verify will verify a message using the encoded public key and the signature.
@@ -152,13 +152,13 @@ func GenerateRSAKey(length int) (*RSAKey, error) {
 
 // Sign signs a message using the RSAKey.
 func (k *RSAKey) Sign(message []byte) ([]byte, error) {
-	hashedMessage := hasher.Sum(message)
-	return rsa.SignPKCS1v15(rand.Reader, k.privateKey, hasher.HashingAlgorithm, hashedMessage.Bytes())
+	hashedMessage := hashing.Sum(message)
+	return rsa.SignPKCS1v15(rand.Reader, k.privateKey, hashing.HashingAlgorithm, hashedMessage.Bytes())
 }
 
 // Decrypt decrypts the encryptedData with RSA-OAEP using the RSAKey.
 func (k *RSAKey) Decrypt(encryptedData []byte) ([]byte, error) {
-	output, err := rsa.DecryptOAEP(hasher.New(), rand.Reader, k.privateKey, encryptedData, []byte{})
+	output, err := rsa.DecryptOAEP(hashing.New(), rand.Reader, k.privateKey, encryptedData, []byte{})
 	if err != nil {
 		return nil, ErrRSADecrypt(err)
 	}
@@ -204,7 +204,7 @@ func (k *RSAKey) Fingerprint() (string, error) {
 		return "", errio.Error(err)
 	}
 
-	return hasher.Sum(pub).Hex(), nil
+	return hashing.Sum(pub).Hex(), nil
 }
 
 // ExportPrivateKey exports the rsa private key in an PKIX pem encoded format.
