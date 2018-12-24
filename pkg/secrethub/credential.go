@@ -12,7 +12,7 @@ import (
 
 	"github.com/keylockerbv/secrethub-go/pkg/auth"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub/core/errio"
+	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
 // Errors

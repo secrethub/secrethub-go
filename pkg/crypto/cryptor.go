@@ -3,7 +3,7 @@ package crypto
 import (
 	"crypto/rand"
 
-	"github.com/keylockerbv/secrethub/core/errio"
+	"github.com/keylockerbv/secrethub-go/pkg/errio"
 	"github.com/op/go-logging"
 )
 

@@ -8,7 +8,7 @@ import (
 	"encoding/hex"
 	"hash"
 
-	"github.com/keylockerbv/secrethub/core/errio"
+	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
 // Size is the hash bit length, set to 256 bits.

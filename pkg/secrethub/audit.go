@@ -2,7 +2,7 @@ package secrethub
 
 import (
 	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub/core/errio"
+	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
 // ListAuditEventsRepo retrieves all Audit events for a given repo.

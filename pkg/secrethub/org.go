@@ -2,7 +2,7 @@ package secrethub
 
 import (
 	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub/core/errio"
+	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
 // OrgService handles operations on organisations on SecretHub.

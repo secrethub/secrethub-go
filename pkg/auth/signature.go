@@ -14,7 +14,7 @@ import (
 
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto/hashing"
-	"github.com/keylockerbv/secrethub/core/errio"
+	"github.com/keylockerbv/secrethub-go/pkg/errio"
 	"github.com/op/go-logging"
 )
 

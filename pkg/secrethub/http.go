@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub/core/errio"
+	"github.com/keylockerbv/secrethub-go/pkg/errio"
 	logging "github.com/op/go-logging"
 )
 

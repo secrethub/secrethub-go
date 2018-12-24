@@ -9,7 +9,7 @@ import (
 	"crypto/hmac"
 
 	"github.com/keylockerbv/secrethub-go/pkg/crypto/hashing"
-	"github.com/keylockerbv/secrethub/core/errio"
+	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
 // Errors
