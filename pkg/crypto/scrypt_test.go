@@ -11,7 +11,6 @@ import (
 )
 
 func TestValidateScryptKey(t *testing.T) {
-	testutil.Unit(t)
 
 	cases := map[string]struct {
 		keyLen int
@@ -171,7 +170,6 @@ func TestValidateScryptKey(t *testing.T) {
 }
 
 func TestGenerateScryptKey(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	cases := map[string]struct {
@@ -204,7 +202,6 @@ func TestGenerateScryptKey(t *testing.T) {
 }
 
 func TestDeriveScryptKey(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	cases := map[string]struct {
@@ -261,7 +258,6 @@ func TestDeriveScryptKey(t *testing.T) {
 }
 
 func TestIsPowerOfTwo(t *testing.T) {
-	testutil.Unit(t)
 
 	// Arrange
 	cases := []struct {

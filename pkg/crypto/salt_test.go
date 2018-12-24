@@ -8,7 +8,6 @@ import (
 )
 
 func TestSaltAlgoUniqueness(t *testing.T) {
-	testutil.Unit(t)
 
 	// When creating a new purpose, add it here.
 	all := map[SaltAlgo]bool{
@@ -22,7 +21,6 @@ func TestSaltAlgoUniqueness(t *testing.T) {
 }
 
 func TestSaltOperationUniqueness(t *testing.T) {
-	testutil.Unit(t)
 
 	// When creating a new purpose, add it here.
 	all := map[SaltOperation]bool{
@@ -35,7 +33,6 @@ func TestSaltOperationUniqueness(t *testing.T) {
 }
 
 func TestSaltAlgoValidate(t *testing.T) {
-	testutil.Unit(t)
 
 	// Arrange
 	cases := map[string]struct {
@@ -72,7 +69,6 @@ func TestSaltAlgoValidate(t *testing.T) {
 }
 
 func TestSaltOperationValidate(t *testing.T) {
-	testutil.Unit(t)
 
 	// Arrange
 	cases := map[string]struct {
@@ -105,7 +101,6 @@ func TestSaltOperationValidate(t *testing.T) {
 }
 
 func TestSaltPurposeValidate(t *testing.T) {
-	testutil.Unit(t)
 
 	// Arrange
 	cases := map[string]struct {
@@ -147,7 +142,6 @@ func TestSaltPurposeValidate(t *testing.T) {
 }
 
 func TestGenerateSaltValidatesPurposeParams(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	cases := map[string]struct {
@@ -188,7 +182,6 @@ func TestGenerateSaltValidatesPurposeParams(t *testing.T) {
 }
 
 func TestGenerateSaltDiff(t *testing.T) {
-	testutil.Unit(t)
 
 	n := 10
 	generated := make([]Salt, n)
@@ -220,7 +213,6 @@ func TestGenerateSaltDiff(t *testing.T) {
 }
 
 func TestValidateSalt(t *testing.T) {
-	testutil.Unit(t)
 
 	// Arrange
 	cases := map[string]struct {
@@ -265,7 +257,6 @@ func TestValidateSalt(t *testing.T) {
 }
 
 func TestVerifySaltPurpose(t *testing.T) {
-	testutil.Unit(t)
 
 	// Arrange
 	cases := map[string]struct {

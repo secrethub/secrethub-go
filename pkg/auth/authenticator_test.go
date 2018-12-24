@@ -13,7 +13,6 @@ import (
 
 func TestVerifyMultipleMethods(t *testing.T) {
 	// TODO: Check whether this test still adds value, as it no longer uses multiple methods.
-	testutil.Component(t)
 
 	// Arrange
 	key := clientKey

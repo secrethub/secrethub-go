@@ -16,7 +16,6 @@ import (
 )
 
 func TestGetMessage_Get(t *testing.T) {
-	testutil.Unit(t)
 
 	// Arrange
 	req, err := http.NewRequest("GET", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
@@ -37,7 +36,6 @@ func TestGetMessage_Get(t *testing.T) {
 }
 
 func TestGetMessage_Post(t *testing.T) {
-	testutil.Unit(t)
 
 	// Assert
 	body := bytes.NewBufferString("GRUMBYCAT")
@@ -94,7 +92,6 @@ func assertMessage(t *testing.T, expected, result string) {
 
 // ContentLength should still equal the body length
 func TestGetPayloadToSign_ContentLength(t *testing.T) {
-	testutil.Unit(t)
 
 	// Assert
 	requestBody := bytes.NewBufferString("GRUMBYCAT")
@@ -117,7 +114,6 @@ func TestGetPayloadToSign_ContentLength(t *testing.T) {
 }
 
 func TestIsTimeValid(t *testing.T) {
-	testutil.Unit(t)
 
 	// Arrange
 	now := time.Now().UTC().Round(time.Second)

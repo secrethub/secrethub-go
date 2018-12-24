@@ -18,7 +18,6 @@ func (m *fakeMethod) Tag() string {
 }
 
 func TestAuthenticator_GetMethod(t *testing.T) {
-	testutil.Unit(t)
 
 	cases := map[string]struct {
 		request http.Request

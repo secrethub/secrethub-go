@@ -8,7 +8,6 @@ import (
 )
 
 func TestAbsDirPath(t *testing.T) {
-	testutil.Unit(t)
 
 	// Tree:
 	// namespace/repo/

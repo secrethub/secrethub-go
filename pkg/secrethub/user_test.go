@@ -16,7 +16,6 @@ import (
 )
 
 func TestSignup(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	router, opts, cleanup := setup()
@@ -97,7 +96,6 @@ func TestSignup(t *testing.T) {
 }
 
 func TestSignup_AlreadyExists(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	router, opts, cleanup := setup()
@@ -126,7 +124,6 @@ func TestSignup_AlreadyExists(t *testing.T) {
 }
 
 func TestSignup_InvalidArgument(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	_, opts, cleanup := setup()
@@ -146,7 +143,6 @@ func TestSignup_InvalidArgument(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	router, opts, cleanup := setup()
@@ -189,7 +185,6 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestGetUser_NotFound(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	router, opts, cleanup := setup()
@@ -215,7 +210,6 @@ func TestGetUser_NotFound(t *testing.T) {
 }
 
 func TestGetUser_InvalidArgument(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	_, opts, cleanup := setup()
@@ -232,7 +226,6 @@ func TestGetUser_InvalidArgument(t *testing.T) {
 }
 
 func TestGetMyUser(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	router, opts, cleanup := setup()
@@ -271,7 +264,6 @@ func TestGetMyUser(t *testing.T) {
 }
 
 func TestGetMyUser_NotFound(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	router, opts, cleanup := setup()

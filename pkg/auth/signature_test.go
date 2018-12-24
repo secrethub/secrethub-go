@@ -38,8 +38,6 @@ func init() {
 }
 
 func TestVerify(t *testing.T) {
-	testutil.Component(t)
-
 	authID1, err := clientKey.GetIdentifier()
 	testutil.OK(t, err)
 
@@ -157,7 +155,6 @@ func TestVerify(t *testing.T) {
 }
 
 func TestSignRequest(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	key1 := clientKey
@@ -226,7 +223,6 @@ func TestSignRequest(t *testing.T) {
 }
 
 func TestSignRequest_CheckHeadersAreSet(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	req, err := http.NewRequest("GET", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
@@ -247,7 +243,6 @@ func TestSignRequest_CheckHeadersAreSet(t *testing.T) {
 }
 
 func TestReplayRequest(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	authID, err := clientKey.GetIdentifier()
@@ -335,7 +330,6 @@ func TestReplayRequest(t *testing.T) {
 // Make sure new users cannot be created with a colon (:) in their username.
 // Allowing colons would break the Authorization header format.
 func TestNewUser_InvalidName(t *testing.T) {
-	testutil.Integration(t)
 
 	// Arrange
 	invalidName := "John:Doe"

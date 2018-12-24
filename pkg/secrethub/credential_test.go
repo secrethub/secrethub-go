@@ -49,7 +49,6 @@ func RunArmorInterfaceTest(t *testing.T, armorer Armorer, unarmorer Unarmorer) {
 }
 
 func TestPassphraseArmoring(t *testing.T) {
-	testutil.Component(t)
 
 	pass := []byte("Password123")
 	unarmorer := NewPassphraseUnarmorer(pass)
@@ -96,7 +95,6 @@ func RunCredentialInterfaceTest(t *testing.T, credential Credential) {
 }
 
 func TestRSACredential(t *testing.T) {
-	testutil.Component(t)
 
 	credential, err := GenerateRSACredential(1024)
 	testutil.OK(t, err)
@@ -105,7 +103,6 @@ func TestRSACredential(t *testing.T) {
 }
 
 func TestParser(t *testing.T) {
-	testutil.Unit(t)
 
 	// Arrange
 	credential, err := GenerateRSACredential(1024)
@@ -246,7 +243,6 @@ func TestParser(t *testing.T) {
 }
 
 func TestEncodeCredential(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	cred, err := GenerateRSACredential(1024)
@@ -269,7 +265,6 @@ func TestEncodeCredential(t *testing.T) {
 }
 
 func TestEncodeArmoredCredential(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	cred, err := GenerateRSACredential(1024)
@@ -298,7 +293,6 @@ func TestEncodeArmoredCredential(t *testing.T) {
 }
 
 func TestEncodeCredentialPartsToString(t *testing.T) {
-	testutil.Unit(t)
 
 	// Arrange
 	cases := map[string]struct {
@@ -337,7 +331,6 @@ func TestEncodeCredentialPartsToString(t *testing.T) {
 }
 
 func TestCredentialIsEncrypted(t *testing.T) {
-	testutil.Unit(t)
 
 	// Arrange
 	cases := map[string]struct {
@@ -372,7 +365,6 @@ func TestCredentialIsEncrypted(t *testing.T) {
 // TestBase64NoPadding tests the assumption that base64 works fine
 // if you consistently disable padding and don't concatenate strings.
 func TestBase64NoPaddingAssumption(t *testing.T) {
-	testutil.Integration(t)
 
 	// Arrange
 	cases := map[string]struct {

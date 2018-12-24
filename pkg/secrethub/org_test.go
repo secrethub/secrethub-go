@@ -14,7 +14,6 @@ import (
 )
 
 func TestCreateOrg(t *testing.T) {
-	testutil.Component(t)
 
 	// Arrange
 	router, opts, cleanup := setup()
@@ -76,7 +75,6 @@ func TestCreateOrg(t *testing.T) {
 }
 
 func TestCreateOrg_InvalidArgs(t *testing.T) {
-	testutil.Component(t)
 
 	cases := map[string]struct {
 		name  string
