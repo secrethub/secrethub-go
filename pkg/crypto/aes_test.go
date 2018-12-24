@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {

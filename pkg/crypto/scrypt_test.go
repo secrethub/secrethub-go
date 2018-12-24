@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/crypto/scrypt"
 
-	"github.com/keylockerbv/secrethub/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 func TestValidateScryptKey(t *testing.T) {

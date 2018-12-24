@@ -12,7 +12,7 @@ import (
 	"io/ioutil"
 
 	"github.com/keylockerbv/secrethub-go/pkg/crypto/hashing"
-	"github.com/keylockerbv/secrethub/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 func TestGetMessage_Get(t *testing.T) {

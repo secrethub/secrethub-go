@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/keylockerbv/secrethub/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 var (

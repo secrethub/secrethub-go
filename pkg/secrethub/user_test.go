@@ -12,7 +12,7 @@ import (
 	routing "github.com/keylockerbv/secrethub/core/router"
 
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 func TestSignup(t *testing.T) {

@@ -9,6 +9,7 @@ require (
 	github.com/docker/go-units v0.3.3
 	github.com/getsentry/raven-go v0.2.0
 	github.com/google/go-querystring v1.0.0
+	github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/pkg/errors v0.8.0 // indirect
 	github.com/satori/go.uuid v1.2.0
