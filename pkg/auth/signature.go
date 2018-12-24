@@ -3,6 +3,7 @@ package auth
 import (
 	"bytes"
 	"encoding/base64"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto/hashing"
 	"github.com/keylockerbv/secrethub/core/errio"
-	"github.com/keylockerbv/secrethub/core/httpio"
 	"github.com/op/go-logging"
 )
 
@@ -183,11 +183,13 @@ func getMessage(r *http.Request) ([]byte, error) {
 		// Empty body
 		result.WriteString("\n")
 	} else {
-		// Read the whole body
-		body, err := httpio.ReadBodyNoClose(&r.Body)
+		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			return nil, errio.Error(err)
 		}
+
+		// Restore the body to its original state so that it can be read again.
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
 		hashedBody := hashing.Sum(body)
 
