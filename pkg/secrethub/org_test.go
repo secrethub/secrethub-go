@@ -9,8 +9,8 @@ import (
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	rtr "github.com/keylockerbv/secrethub/core/router"
 	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	rtr "github.com/keylockerbv/secrethub/core/router"
 )
 
 func TestCreateOrg(t *testing.T) {
