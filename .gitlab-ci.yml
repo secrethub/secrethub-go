@@ -1,0 +1,13 @@
+image: golang:latest
+
+format:
+  stage: test
+  script: make format
+
+lint:
+  stage: test
+  script: make lint
+
+test:
+  stage: test
+  script: make test
