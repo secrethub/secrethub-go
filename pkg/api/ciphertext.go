@@ -26,8 +26,8 @@ type EncryptionAlgorithm string
 // EncryptionAlgorithm definitions
 const (
 	AlgorithmRSAAES EncryptionAlgorithm = "RSA-OAEP+AES-GCM"
-	AlgorithmRSA                        = "RSA-OAEP"
-	AlgorithmAES                        = "AES-GCM"
+	AlgorithmRSA    EncryptionAlgorithm = "RSA-OAEP"
+	AlgorithmAES    EncryptionAlgorithm = "AES-GCM"
 )
 
 // EncodedCiphertextMetadata represents the metadata of an EncodedCiphertext.
