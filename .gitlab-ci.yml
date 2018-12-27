@@ -9,7 +9,9 @@ format:
 lint:
   image: mozgiii/gometalinter-docker:v2
   stage: test
-  script: gometalinter --config=metalinter.config ./...
+  script:
+    - GO111MODULE=on go mod vendor
+    - GO111MODULE=off gometalinter --vendor --config=metalinter.config ./...
 
 test:
   stage: test
