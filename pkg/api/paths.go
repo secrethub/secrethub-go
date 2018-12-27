@@ -8,7 +8,6 @@ import (
 	"bitbucket.org/zombiezen/cardcpx/natsort"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 // Errors
@@ -122,13 +121,6 @@ func (p *Path) Set(value string) error {
 	return nil
 }
 
-// ParsePath is a helper function to work with either a namespace, a repo path or secret path in kingpin cli applications.
-func ParsePath(s kingpin.Settings) *Path {
-	var target = Path("")
-	s.SetValue((*Path)(&target))
-	return &target
-}
-
 // String converts the Path to a string
 func (p Path) String() string {
 	return string(p)
@@ -236,13 +228,6 @@ func (sp *SecretPath) Set(value string) error {
 	return nil
 }
 
-// ParseSecretPath is a helper function to work with SecretPathValues in kingpin cli applications.
-func ParseSecretPath(settings kingpin.Settings) *SecretPath {
-	var target = SecretPath("")
-	settings.SetValue((*SecretPath)(&target))
-	return &target
-}
-
 func (sp SecretPath) String() string {
 	return string(sp)
 }
@@ -331,13 +316,6 @@ func (dp *DirPath) Set(value string) error {
 	}
 	*dp = path
 	return nil
-}
-
-// ParseDirPath is a helper function to work with dirPathValues in kingpin cli applications.
-func ParseDirPath(s kingpin.Settings) *DirPath {
-	var target = DirPath("")
-	s.SetValue((*DirPath)(&target))
-	return &target
 }
 
 func (dp DirPath) String() string {
@@ -449,13 +427,6 @@ func (rp *RepoPath) Set(value string) error {
 	}
 	*rp = path
 	return nil
-}
-
-// ParseRepoPath is a helper function to work with repoPathValues in kingpin cli applications.
-func ParseRepoPath(s kingpin.Settings) *RepoPath {
-	var target = RepoPath("")
-	s.SetValue((*RepoPath)(&target))
-	return &target
 }
 
 func (rp RepoPath) String() string {

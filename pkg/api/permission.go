@@ -1,7 +1,5 @@
 package api
 
-import kingpin "gopkg.in/alecthomas/kingpin.v2"
-
 // Error
 var (
 	ErrAccessLevelUnknown = errAPI.Code("access_level_unknown").Error("The access level is not known")
@@ -33,13 +31,6 @@ func (al *Permission) Set(value string) error {
 		return ErrAccessLevelUnknown
 	}
 	return nil
-}
-
-// ParsePermission is a helper function to work with SecretPermission values in kingpin cli applications.
-func ParsePermission(s kingpin.Settings) *Permission {
-	target := Permission(PermissionNone)
-	s.SetValue(&target)
-	return &target
 }
 
 func (al Permission) String() string {
