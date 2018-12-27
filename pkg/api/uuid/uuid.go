@@ -32,13 +32,3 @@ func (u *UUID) ToString() string {
 func Equal(a *UUID, b *UUID) bool {
 	return gid.Equal(a.UUID, b.UUID)
 }
-
-// IsUUID returns true if argument is uuid.
-func IsUUID(str string) bool {
-	_, err := FromString(str)
-	if err != nil {
-		return false
-	}
-
-	return true
-}
