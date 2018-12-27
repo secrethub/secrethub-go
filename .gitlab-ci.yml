@@ -9,7 +9,7 @@ format:
 lint:
   image: mozgiii/gometalinter-docker:v2
   stage: test
-  script: make lint
+  script: gometalinter --config=metalinter.config ./...
 
 test:
   stage: test
