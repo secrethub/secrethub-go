@@ -107,7 +107,7 @@ func TestValidateUsername(t *testing.T) {
 			actual := api.ValidateUsername(tc.username)
 
 			// Assert
-			testutil.CompareDescribe(t, "returned validation error not as expected", actual, tc.expected)
+			testutil.Compare(t, actual, tc.expected)
 		})
 	}
 }
@@ -154,7 +154,7 @@ func TestValidateOrgName(t *testing.T) {
 			actual := api.ValidateOrgName(tc.orgName)
 
 			// Assert
-			testutil.CompareDescribe(t, "returned validation error not as expected", actual, tc.expected)
+			testutil.Compare(t, actual, tc.expected)
 		})
 	}
 }
@@ -197,7 +197,7 @@ func TestValidateRepoName(t *testing.T) {
 			actual := api.ValidateRepoName(tc.repoName)
 
 			// Assert
-			testutil.CompareDescribe(t, "returned validation error not as expected", actual, tc.expected)
+			testutil.Compare(t, actual, tc.expected)
 		})
 	}
 }
@@ -248,7 +248,7 @@ func TestValidateSecretName(t *testing.T) {
 			actual := api.ValidateSecretName(tc.secretName)
 
 			// Assert
-			testutil.CompareDescribe(t, "returned validation error not as expected", actual, tc.expected)
+			testutil.Compare(t, actual, tc.expected)
 		})
 	}
 }

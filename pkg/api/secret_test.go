@@ -208,13 +208,12 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 func TestSecretAccessRequest_Validate_AccountIDs(t *testing.T) {
 	testAccountID := uuid.New()
 
-	tests := []struct {
+	tests := map[string]struct {
 		Description string
 		Request     api.SecretAccessRequest
 		Expected    error
 	}{
-		{
-			Description: "Every name and every key have different accountID.",
+		"Every name and every key have different accountID": {
 			Request: api.SecretAccessRequest{
 				Name: api.EncryptedNameForNodeRequest{
 					EncryptedNameRequest: api.EncryptedNameRequest{
@@ -232,8 +231,7 @@ func TestSecretAccessRequest_Validate_AccountIDs(t *testing.T) {
 			},
 			Expected: api.ErrInvalidAccountID,
 		},
-		{
-			Description: "Every name and every key has the same accountID.",
+		"Every name and every key has the same accountID": {
 			Request: api.SecretAccessRequest{
 				Name: api.EncryptedNameForNodeRequest{
 					EncryptedNameRequest: api.EncryptedNameRequest{
@@ -253,8 +251,10 @@ func TestSecretAccessRequest_Validate_AccountIDs(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		err := test.Request.Validate()
-		testutil.CompareDescribe(t, test.Description, err, test.Expected)
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tc.Request.Validate()
+			testutil.Compare(t, err, tc.Expected)
+		})
 	}
 }
