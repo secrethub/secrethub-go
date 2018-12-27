@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-chi/chi"
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 	"github.com/keylockerbv/secrethub-go/pkg/testutil"
-	rtr "github.com/keylockerbv/secrethub/core/router"
 )
 
 func TestCreateOrg(t *testing.T) {
@@ -157,7 +157,7 @@ func TestGetOrg(t *testing.T) {
 
 			router.Get("/orgs/{org_name}", func(w http.ResponseWriter, r *http.Request) {
 				// Assert
-				orgName := rtr.URLParam(r, "org_name")
+				orgName := chi.URLParam(r, "org_name")
 
 				testutil.Compare(t, orgName, tc.name)
 
@@ -295,7 +295,7 @@ func TestDeleteOrg(t *testing.T) {
 
 			router.Delete("/orgs/{org_name}", func(w http.ResponseWriter, r *http.Request) {
 				// Assert
-				orgName := rtr.URLParam(r, "org_name")
+				orgName := chi.URLParam(r, "org_name")
 
 				testutil.Compare(t, orgName, tc.name)
 
@@ -387,8 +387,8 @@ func TestGetOrgMember(t *testing.T) {
 
 			router.Get("/orgs/{org_name}/members/{username}", func(w http.ResponseWriter, r *http.Request) {
 				// Assert
-				orgName := rtr.URLParam(r, "org_name")
-				username := rtr.URLParam(r, "username")
+				orgName := chi.URLParam(r, "org_name")
+				username := chi.URLParam(r, "username")
 
 				testutil.Compare(t, orgName, tc.name)
 				testutil.Compare(t, username, tc.username)
@@ -494,7 +494,7 @@ func TestListOrgMembers(t *testing.T) {
 			testutil.OK(t, err)
 
 			router.Get("/orgs/{org_name}/members", func(w http.ResponseWriter, r *http.Request) {
-				orgName := rtr.URLParam(r, "org_name")
+				orgName := chi.URLParam(r, "org_name")
 
 				testutil.Compare(t, orgName, tc.name)
 
@@ -626,7 +626,7 @@ func TestInviteOrg(t *testing.T) {
 
 			router.Post("/orgs/{org_name}/members", func(w http.ResponseWriter, r *http.Request) {
 				// Assert
-				orgName := rtr.URLParam(r, "org_name")
+				orgName := chi.URLParam(r, "org_name")
 				testutil.Compare(t, orgName, tc.name)
 
 				req := new(api.CreateOrgMemberRequest)
@@ -764,10 +764,10 @@ func TestUpdateOrgMember(t *testing.T) {
 
 			router.Post("/orgs/{org_name}/members/{username}", func(w http.ResponseWriter, r *http.Request) {
 				// Assert
-				orgName := rtr.URLParam(r, "org_name")
+				orgName := chi.URLParam(r, "org_name")
 				testutil.Compare(t, orgName, tc.name)
 
-				username := rtr.URLParam(r, "username")
+				username := chi.URLParam(r, "username")
 				testutil.Compare(t, username, tc.username)
 
 				req := new(api.UpdateOrgMemberRequest)

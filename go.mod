@@ -8,6 +8,7 @@ require (
 	github.com/certifi/gocertifi v0.0.0-20180905225744-ee1a9a0726d2 // indirect
 	github.com/docker/go-units v0.3.3
 	github.com/getsentry/raven-go v0.2.0
+	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/google/go-querystring v1.0.0
 	github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7

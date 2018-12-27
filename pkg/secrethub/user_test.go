@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-chi/chi"
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	routing "github.com/keylockerbv/secrethub/core/router"
 
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/testutil"
@@ -167,7 +167,7 @@ func TestGetUser(t *testing.T) {
 
 	router.Get("/users/{username}", func(w http.ResponseWriter, r *http.Request) {
 		// Assert
-		usernameParam := routing.URLParam(r, "username")
+		usernameParam := chi.URLParam(r, "username")
 		testutil.Compare(t, usernameParam, username)
 
 		// Respond

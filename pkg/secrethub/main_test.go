@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/keylockerbv/secrethub/core/router"
+	"github.com/go-chi/chi"
 )
 
 var (
@@ -40,9 +40,9 @@ func init() {
 // setup starts a test server and returns a router on which tests can register handlers.
 // Tests should use the returned client options to create new Clients and should call the
 // cleanup func() when done.
-func setup() (router.Router, *ClientOptions, func()) {
+func setup() (chi.Router, *ClientOptions, func()) {
 	// router is the HTTP router used with the test server.
-	router := router.New()
+	router := chi.NewRouter()
 
 	// Strip prefixes so tests can register routes on e.g. /users instead of /v1/users.
 	handler := http.NewServeMux()
