@@ -8,7 +8,7 @@ import (
 	"bitbucket.org/zombiezen/cardcpx/natsort"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
-	"gopkg.in/alecthomas/kingpin.v2"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 // Errors

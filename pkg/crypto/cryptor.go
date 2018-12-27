@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
-	"github.com/op/go-logging"
+	logging "github.com/op/go-logging"
 )
 
 var log = logging.MustGetLogger("log")

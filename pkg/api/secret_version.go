@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/docker/go-units"
+	units "github.com/docker/go-units"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"

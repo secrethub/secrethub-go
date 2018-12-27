@@ -9,7 +9,6 @@ import (
 
 	"reflect"
 
-	"github.com/getsentry/raven-go"
 	logging "github.com/op/go-logging"
 )
 
