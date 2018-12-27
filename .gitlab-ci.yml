@@ -2,11 +2,15 @@ image: golang:latest
 
 format:
   stage: test
-  script: make format
+  script:
+    - make format-tools
+    - make format
 
 lint:
   stage: test
-  script: make lint
+  script:
+    - make lint-tools
+    - make lint
 
 test:
   stage: test
