@@ -7,10 +7,9 @@ format:
     - make format
 
 lint:
+  image: mozgiii/gometalinter-docker:v2
   stage: test
-  script:
-    - make lint-tools
-    - make lint
+  script: make lint
 
 test:
   stage: test
