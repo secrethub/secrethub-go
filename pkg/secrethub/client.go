@@ -33,7 +33,7 @@ type client struct {
 
 // NewClient configures a new client, overriding defaults with options when given.
 func NewClient(credential Credential, opts *ClientOptions) (*client, error) {
-	httpClient := newClient(credential, opts)
+	httpClient := newHTTPClient(credential, opts)
 
 	return &client{
 		httpClient:    httpClient,
