@@ -21,7 +21,7 @@ func TestSignup(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := NewClient(cred1, opts)
+	client, err := newClient(cred1, opts)
 	testutil.OK(t, err)
 
 	username := "dev1"
@@ -101,7 +101,7 @@ func TestSignup_AlreadyExists(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := NewClient(cred1, opts)
+	client, err := newClient(cred1, opts)
 	testutil.OK(t, err)
 
 	expected := api.ErrUserEmailAlreadyExists
@@ -129,7 +129,7 @@ func TestSignup_InvalidArgument(t *testing.T) {
 	_, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := NewClient(cred1, opts)
+	client, err := newClient(cred1, opts)
 	testutil.OK(t, err)
 
 	key, err := crypto.GenerateRSAKey(512)
@@ -148,7 +148,7 @@ func TestGetUser(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := NewClient(cred1, opts)
+	client, err := newClient(cred1, opts)
 	testutil.OK(t, err)
 
 	username := "dev1"
@@ -190,7 +190,7 @@ func TestGetUser_NotFound(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := NewClient(cred1, opts)
+	client, err := newClient(cred1, opts)
 	testutil.OK(t, err)
 
 	expected := api.ErrUserNotFound
@@ -215,7 +215,7 @@ func TestGetUser_InvalidArgument(t *testing.T) {
 	_, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := NewClient(cred1, opts)
+	client, err := newClient(cred1, opts)
 	testutil.OK(t, err)
 
 	// Act
@@ -231,7 +231,7 @@ func TestGetMyUser(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := NewClient(cred1, opts)
+	client, err := newClient(cred1, opts)
 	testutil.OK(t, err)
 
 	username := "dev1"
@@ -269,7 +269,7 @@ func TestGetMyUser_NotFound(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := NewClient(cred1, opts)
+	client, err := newClient(cred1, opts)
 	testutil.OK(t, err)
 
 	expected := api.ErrRequestNotAuthenticated

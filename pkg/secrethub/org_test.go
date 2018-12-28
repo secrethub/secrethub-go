@@ -19,7 +19,7 @@ func TestCreateOrg(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := NewClient(cred1, opts)
+	client, err := newClient(cred1, opts)
 	testutil.OK(t, err)
 
 	name := "myorg"
@@ -96,7 +96,7 @@ func TestCreateOrg_InvalidArgs(t *testing.T) {
 	_, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := NewClient(cred1, opts)
+	client, err := newClient(cred1, opts)
 	testutil.OK(t, err)
 
 	for name, tc := range cases {
@@ -152,7 +152,7 @@ func TestGetOrg(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client, err := NewClient(cred1, opts)
+			client, err := newClient(cred1, opts)
 			testutil.OK(t, err)
 
 			router.Get("/orgs/{org_name}", func(w http.ResponseWriter, r *http.Request) {
@@ -232,7 +232,7 @@ func TestListMyOrgs(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client, err := NewClient(cred1, opts)
+			client, err := newClient(cred1, opts)
 			testutil.OK(t, err)
 
 			router.Get("/orgs", func(w http.ResponseWriter, r *http.Request) {
@@ -290,7 +290,7 @@ func TestDeleteOrg(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client, err := NewClient(cred1, opts)
+			client, err := newClient(cred1, opts)
 			testutil.OK(t, err)
 
 			router.Delete("/orgs/{org_name}", func(w http.ResponseWriter, r *http.Request) {
@@ -382,7 +382,7 @@ func TestGetOrgMember(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client, err := NewClient(cred1, opts)
+			client, err := newClient(cred1, opts)
 			testutil.OK(t, err)
 
 			router.Get("/orgs/{org_name}/members/{username}", func(w http.ResponseWriter, r *http.Request) {
@@ -490,7 +490,7 @@ func TestListOrgMembers(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client, err := NewClient(cred1, opts)
+			client, err := newClient(cred1, opts)
 			testutil.OK(t, err)
 
 			router.Get("/orgs/{org_name}/members", func(w http.ResponseWriter, r *http.Request) {
@@ -621,7 +621,7 @@ func TestInviteOrg(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client, err := NewClient(cred1, opts)
+			client, err := newClient(cred1, opts)
 			testutil.OK(t, err)
 
 			router.Post("/orgs/{org_name}/members", func(w http.ResponseWriter, r *http.Request) {
@@ -759,7 +759,7 @@ func TestUpdateOrgMember(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client, err := NewClient(cred1, opts)
+			client, err := newClient(cred1, opts)
 			testutil.OK(t, err)
 
 			router.Post("/orgs/{org_name}/members/{username}", func(w http.ResponseWriter, r *http.Request) {

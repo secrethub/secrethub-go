@@ -31,8 +31,8 @@ type client struct {
 	repoIndexKeys map[api.RepoPath]*crypto.AESKey
 }
 
-// NewClient configures a new client, overriding defaults with options when given.
-func NewClient(credential Credential, opts *ClientOptions) (*client, error) {
+// newClient configures a new client, overriding defaults with options when given.
+func newClient(credential Credential, opts *ClientOptions) (*client, error) {
 	httpClient := newHTTPClient(credential, opts)
 
 	return &client{
