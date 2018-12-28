@@ -7,7 +7,7 @@ import (
 
 // ListAuditEventsRepo retrieves all Audit events for a given repo.
 // If subjectTypes is left empty, the server's default is used.
-func (c *Client) ListAuditEventsRepo(repoPath api.RepoPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+func (c *client) ListAuditEventsRepo(repoPath api.RepoPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	namespace, repoName := repoPath.GetNamespaceAndRepoName()
 	events, err := c.httpClient.AuditRepo(namespace, repoName, subjectTypes)
 	if err != nil {
@@ -24,7 +24,7 @@ func (c *Client) ListAuditEventsRepo(repoPath api.RepoPath, subjectTypes api.Aud
 
 // ListAuditEventsSecret retrieves all Audit events for a given secret.
 // If subjectTypes is left empty, the server's default is used.
-func (c *Client) ListAuditEventsSecret(secretPath api.SecretPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+func (c *client) ListAuditEventsSecret(secretPath api.SecretPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	blindName, err := c.convertPathToBlindName(secretPath)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -43,7 +43,7 @@ func (c *Client) ListAuditEventsSecret(secretPath api.SecretPath, subjectTypes a
 	return events, nil
 }
 
-func (c *Client) decryptAuditEvents(events ...*api.Audit) error {
+func (c *client) decryptAuditEvents(events ...*api.Audit) error {
 	accountKey, err := c.getAccountKey()
 	if err != nil {
 		return errio.Error(err)

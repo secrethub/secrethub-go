@@ -16,7 +16,7 @@ type ClientAdapter struct {
 // NewClientAdapter will become NewClient later.
 // TODO SHDEV-1027: Rename to NewClient and move the client implementations directly to the services.
 // The client argument can then be removed.
-func NewClientAdapter(client *Client) *ClientAdapter {
+func NewClientAdapter(client *client) *ClientAdapter {
 	return &ClientAdapter{
 		AccessRules: &accessRuleService{
 			client: client,

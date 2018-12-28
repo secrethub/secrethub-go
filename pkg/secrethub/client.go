@@ -11,7 +11,7 @@ var (
 )
 
 // Client is a client for the SecretHub HTTP API.
-type Client struct {
+type client struct {
 	httpClient *httpClient
 
 	// credential is the key used by a client to decrypt the account key and authenticate the requests.
@@ -32,10 +32,10 @@ type Client struct {
 }
 
 // NewClient configures a new client, overriding defaults with options when given.
-func NewClient(credential Credential, opts *ClientOptions) (*Client, error) {
+func NewClient(credential Credential, opts *ClientOptions) (*client, error) {
 	httpClient := newClient(credential, opts)
 
-	return &Client{
+	return &client{
 		httpClient:    httpClient,
 		credential:    credential,
 		repoIndexKeys: make(map[api.RepoPath]*crypto.AESKey),

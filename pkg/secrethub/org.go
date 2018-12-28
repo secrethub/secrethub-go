@@ -20,7 +20,7 @@ type OrgService interface {
 }
 
 type orgService struct {
-	client *Client
+	client *client
 }
 
 // Create creates an organization and adds the current account as an admin member.
@@ -51,7 +51,7 @@ func (s *orgService) ListMine() ([]*api.Org, error) {
 }
 
 // CreateOrg creates an organization account and adds the current account as an Admin member.
-func (c *Client) CreateOrg(name string, description string) (*api.Org, error) {
+func (c *client) CreateOrg(name string, description string) (*api.Org, error) {
 	in := &api.CreateOrgRequest{
 		Name:        name,
 		Description: description,
@@ -66,7 +66,7 @@ func (c *Client) CreateOrg(name string, description string) (*api.Org, error) {
 }
 
 // GetOrg gets an organization's details.
-func (c *Client) GetOrg(name string) (*api.Org, error) {
+func (c *client) GetOrg(name string) (*api.Org, error) {
 	err := api.ValidateOrgName(name)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -76,12 +76,12 @@ func (c *Client) GetOrg(name string) (*api.Org, error) {
 }
 
 // ListMyOrgs lists the organizations an account is a member of.
-func (c *Client) ListMyOrgs() ([]*api.Org, error) {
+func (c *client) ListMyOrgs() ([]*api.Org, error) {
 	return c.httpClient.ListMyOrgs()
 }
 
 // DeleteOrg permanently deletes an organization and all of its resources.
-func (c *Client) DeleteOrg(name string) error {
+func (c *client) DeleteOrg(name string) error {
 	err := api.ValidateOrgName(name)
 	if err != nil {
 		return errio.Error(err)
@@ -91,7 +91,7 @@ func (c *Client) DeleteOrg(name string) error {
 }
 
 // GetOrgMember gets a user's organization membership details.
-func (c *Client) GetOrgMember(name string, username string) (*api.OrgMember, error) {
+func (c *client) GetOrgMember(name string, username string) (*api.OrgMember, error) {
 	err := api.ValidateOrgName(name)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -106,7 +106,7 @@ func (c *Client) GetOrgMember(name string, username string) (*api.OrgMember, err
 }
 
 // ListOrgMembers lists all members of an organization.
-func (c *Client) ListOrgMembers(name string) ([]*api.OrgMember, error) {
+func (c *client) ListOrgMembers(name string) ([]*api.OrgMember, error) {
 	err := api.ValidateOrgName(name)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -116,7 +116,7 @@ func (c *Client) ListOrgMembers(name string) ([]*api.OrgMember, error) {
 }
 
 // InviteOrg invites a user to an organization.
-func (c *Client) InviteOrg(name string, username string, role string) (*api.OrgMember, error) {
+func (c *client) InviteOrg(name string, username string, role string) (*api.OrgMember, error) {
 	err := api.ValidateOrgName(name)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -131,7 +131,7 @@ func (c *Client) InviteOrg(name string, username string, role string) (*api.OrgM
 }
 
 // UpdateOrgMember updates a user's organization membership.
-func (c *Client) UpdateOrgMember(name string, username string, role string) (*api.OrgMember, error) {
+func (c *client) UpdateOrgMember(name string, username string, role string) (*api.OrgMember, error) {
 	err := api.ValidateOrgName(name)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -151,7 +151,7 @@ func (c *Client) UpdateOrgMember(name string, username string, role string) (*ap
 
 // RevokeOrgMember revokes a member from an organization.
 // Have a look at the opts for this call.
-func (c *Client) RevokeOrgMember(name string, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error) {
+func (c *client) RevokeOrgMember(name string, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error) {
 	err := api.ValidateOrgName(name)
 	if err != nil {
 		return nil, errio.Error(err)

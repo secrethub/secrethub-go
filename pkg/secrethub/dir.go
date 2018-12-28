@@ -19,7 +19,7 @@ type DirService interface {
 }
 
 type dirService struct {
-	client *Client
+	client *client
 }
 
 // GetTree retrieves a directory at a given path.
@@ -38,7 +38,7 @@ func (s dirService) Delete(path api.DirPath) error {
 }
 
 // CreateDir creates a directory for a repo and optional parent directory.
-func (c *Client) CreateDir(dirPath api.DirPath) (*api.Dir, error) {
+func (c *client) CreateDir(dirPath api.DirPath) (*api.Dir, error) {
 	var err error
 
 	err = dirPath.Validate()
@@ -94,7 +94,7 @@ func (c *Client) CreateDir(dirPath api.DirPath) (*api.Dir, error) {
 
 // GetDirByBlindName retrieves a directory from the API.
 // This can be RepoPath for a RootDir or a DirPath.
-func (c *Client) GetDirByBlindName(path api.DirPath, depth int, ancestors bool) (*api.Tree, error) {
+func (c *client) GetDirByBlindName(path api.DirPath, depth int, ancestors bool) (*api.Tree, error) {
 	blindName, err := c.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -132,7 +132,7 @@ func (c *Client) GetDirByBlindName(path api.DirPath, depth int, ancestors bool) 
 }
 
 // DeleteDir deletes a directory by a given path.
-func (c *Client) DeleteDir(dirPath api.DirPath) error {
+func (c *client) DeleteDir(dirPath api.DirPath) error {
 	var err error
 
 	err = dirPath.Validate()
@@ -154,7 +154,7 @@ func (c *Client) DeleteDir(dirPath api.DirPath) error {
 }
 
 // ListDirAccounts list the accounts with read permission.
-func (c *Client) ListDirAccounts(path api.BlindNamePath) ([]*api.Account, error) {
+func (c *client) ListDirAccounts(path api.BlindNamePath) ([]*api.Account, error) {
 	blindName, err := c.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)
