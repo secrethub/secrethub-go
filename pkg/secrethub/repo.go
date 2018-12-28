@@ -29,7 +29,7 @@ type RepoService interface {
 }
 
 type repoService struct {
-	client *client
+	client client
 }
 
 // Delete removes the repo with the given path.

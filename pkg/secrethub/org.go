@@ -20,7 +20,7 @@ type OrgService interface {
 }
 
 type orgService struct {
-	client *client
+	client client
 }
 
 // Create creates an organization and adds the current account as an admin member.

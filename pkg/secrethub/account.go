@@ -15,7 +15,7 @@ type AccountService interface {
 }
 
 type accountService struct {
-	client *client
+	client client
 }
 
 // Get retrieves an account.

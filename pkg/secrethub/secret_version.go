@@ -36,7 +36,7 @@ type SecretVersionService interface {
 }
 
 type secretVersionService struct {
-	client *client
+	client client
 }
 
 // Delete removes a secret version.

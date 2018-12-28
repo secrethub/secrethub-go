@@ -21,8 +21,7 @@ func TestSignup(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := newClient(cred1, opts)
-	testutil.OK(t, err)
+	client := newClient(cred1, opts)
 
 	username := "dev1"
 	fullName := "Developer Uno"
@@ -101,8 +100,7 @@ func TestSignup_AlreadyExists(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := newClient(cred1, opts)
-	testutil.OK(t, err)
+	client := newClient(cred1, opts)
 
 	expected := api.ErrUserEmailAlreadyExists
 
@@ -129,8 +127,7 @@ func TestSignup_InvalidArgument(t *testing.T) {
 	_, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := newClient(cred1, opts)
-	testutil.OK(t, err)
+	client := newClient(cred1, opts)
 
 	key, err := crypto.GenerateRSAKey(512)
 	testutil.OK(t, err)
@@ -148,8 +145,7 @@ func TestGetUser(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := newClient(cred1, opts)
-	testutil.OK(t, err)
+	client := newClient(cred1, opts)
 
 	username := "dev1"
 	fullName := "Developer Uno"
@@ -190,8 +186,7 @@ func TestGetUser_NotFound(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := newClient(cred1, opts)
-	testutil.OK(t, err)
+	client := newClient(cred1, opts)
 
 	expected := api.ErrUserNotFound
 
@@ -203,7 +198,7 @@ func TestGetUser_NotFound(t *testing.T) {
 	})
 
 	// Act
-	_, err = client.GetUser("dev1")
+	_, err := client.GetUser("dev1")
 
 	// Assert
 	testutil.Compare(t, err, expected)
@@ -215,11 +210,10 @@ func TestGetUser_InvalidArgument(t *testing.T) {
 	_, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := newClient(cred1, opts)
-	testutil.OK(t, err)
+	client := newClient(cred1, opts)
 
 	// Act
-	_, err = client.GetUser("invalidname$#@%%")
+	_, err := client.GetUser("invalidname$#@%%")
 
 	// Assert
 	testutil.Compare(t, err, api.ErrInvalidUsername)
@@ -231,8 +225,7 @@ func TestGetMyUser(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := newClient(cred1, opts)
-	testutil.OK(t, err)
+	client := newClient(cred1, opts)
 
 	username := "dev1"
 	fullName := "Developer Uno"
@@ -269,8 +262,7 @@ func TestGetMyUser_NotFound(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client, err := newClient(cred1, opts)
-	testutil.OK(t, err)
+	client := newClient(cred1, opts)
 
 	expected := api.ErrRequestNotAuthenticated
 
@@ -282,7 +274,7 @@ func TestGetMyUser_NotFound(t *testing.T) {
 	})
 
 	// Act
-	_, err = client.GetMyUser()
+	_, err := client.GetMyUser()
 
 	// Assert
 	testutil.Compare(t, err, expected)

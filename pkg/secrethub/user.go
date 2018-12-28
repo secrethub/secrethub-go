@@ -17,7 +17,7 @@ type UserService interface {
 }
 
 type userService struct {
-	client *client
+	client client
 }
 
 // Me gets the account's user if it exists.

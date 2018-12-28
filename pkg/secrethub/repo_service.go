@@ -9,7 +9,7 @@ type RepoServiceService interface {
 }
 
 type repoServiceService struct {
-	client *client
+	client client
 }
 
 // List lists the services of the given repository.

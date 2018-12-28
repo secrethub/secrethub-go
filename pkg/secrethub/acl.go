@@ -26,7 +26,7 @@ type AccessRuleService interface {
 }
 
 type accessRuleService struct {
-	client *client
+	client client
 }
 
 // Delete removes the accessrule for the given directory and account.

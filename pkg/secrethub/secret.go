@@ -31,7 +31,7 @@ type SecretService interface {
 }
 
 type secretService struct {
-	client *client
+	client client
 }
 
 // Delete removes the secret at the given path.

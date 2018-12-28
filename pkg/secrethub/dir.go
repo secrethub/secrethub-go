@@ -19,7 +19,7 @@ type DirService interface {
 }
 
 type dirService struct {
-	client *client
+	client client
 }
 
 // GetTree retrieves a directory at a given path.

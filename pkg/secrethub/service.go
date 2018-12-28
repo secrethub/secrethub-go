@@ -19,7 +19,7 @@ type ServiceService interface {
 }
 
 type serviceService struct {
-	client *client
+	client client
 }
 
 // Create creates a new service for the given repo.

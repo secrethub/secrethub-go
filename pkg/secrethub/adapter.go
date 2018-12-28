@@ -15,11 +15,7 @@ type Client struct {
 // NewClient creates a new SecretHub client.
 // It overrides the default configuration with the options when given.
 func NewClient(credential Credential, opts *ClientOptions) (*Client, error) {
-	client, err := newClient(credential, opts)
-	if err != nil {
-		return nil, err
-	}
-
+	client := newClient(credential, opts)
 	return &Client{
 		AccessRules: &accessRuleService{
 			client: client,

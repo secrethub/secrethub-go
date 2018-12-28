@@ -15,7 +15,7 @@ type OrgMemberService interface {
 }
 
 type orgMemberService struct {
-	client *client
+	client client
 }
 
 // Invite invites a user to an organization.
