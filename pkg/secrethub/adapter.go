@@ -1,8 +1,7 @@
 package secrethub
 
-// ClientAdapter will become the Client type later.
-// TODO SHDEV-1027: Move the client implementations to the services and rename this struct to client.
-type ClientAdapter struct {
+// Client is the SecretHub client.
+type Client struct {
 	AccessRules AccessRuleService
 	Accounts    AccountService
 	Dirs        DirService
@@ -15,13 +14,13 @@ type ClientAdapter struct {
 
 // NewClient creates a new SecretHub client.
 // It overrides the default configuration with the options when given.
-func NewClient(credential Credential, opts *ClientOptions) (*ClientAdapter, error) {
+func NewClient(credential Credential, opts *ClientOptions) (*Client, error) {
 	client, err := newClient(credential, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	return &ClientAdapter{
+	return &Client{
 		AccessRules: &accessRuleService{
 			client: client,
 		},
