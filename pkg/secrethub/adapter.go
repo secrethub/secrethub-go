@@ -13,10 +13,14 @@ type ClientAdapter struct {
 	Users       UserService
 }
 
-// NewClientAdapter will become NewClient later.
-// TODO SHDEV-1027: Rename to NewClient and move the client implementations directly to the services.
-// The client argument can then be removed.
-func NewClientAdapter(client *client) *ClientAdapter {
+// NewClient creates a new SecretHub client.
+// It overrides the default configuration with the options when given.
+func NewClient(credential Credential, opts *ClientOptions) (*ClientAdapter, error) {
+	client, err := newClient(credential, opts)
+	if err != nil {
+		return nil, err
+	}
+
 	return &ClientAdapter{
 		AccessRules: &accessRuleService{
 			client: client,
@@ -42,5 +46,5 @@ func NewClientAdapter(client *client) *ClientAdapter {
 		Users: &userService{
 			client: client,
 		},
-	}
+	}, nil
 }
