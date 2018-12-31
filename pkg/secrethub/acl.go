@@ -12,17 +12,18 @@ type AccessRuleService interface {
 	Delete(path api.DirPath, accountName api.AccountName) error
 	// Get retrieves the access rule for the given account on the given directory.
 	Get(path api.DirPath, accountName api.AccountName) (*api.AccessRule, error)
-	// List lists the access levels on the given directory.
-	ListLevels(apth api.DirPath) ([]*api.AccessLevel, error)
-	// Set sets an access rule with a certain permission level for an account to a path.
-	Set(path api.BlindNamePath, permission api.Permission, name api.AccountName) (*api.AccessRule, error)
-
+	// List retrieves all access rules that apply to a directory.
+	List(path api.DirPath, depth int, ancestors bool) ([]*api.AccessRule, error)
 	// ListWithPaths retrieves all access rules that apply to a directory,
 	// mapped to their respective paths, including rules that apply to its children
 	// up to a specified depth. When ancestors is set to true, it also includes rules
 	// for any parent directories. When the depth is set to -1, all children are
 	// retrieved without limit.
 	ListWithPaths(path api.DirPath, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error)
+	// List lists the access levels on the given directory.
+	ListLevels(apth api.DirPath) ([]*api.AccessLevel, error)
+	// Set sets an access rule with a certain permission level for an account to a path.
+	Set(path api.BlindNamePath, permission api.Permission, name api.AccountName) (*api.AccessRule, error)
 }
 
 type accessRuleService struct {
@@ -39,14 +40,9 @@ func (s *accessRuleService) Get(path api.DirPath, accountName api.AccountName) (
 	return s.client.GetAccessRule(path, accountName)
 }
 
-// List lists the access rules on the given directory.
-func (s *accessRuleService) ListLevels(path api.DirPath) ([]*api.AccessLevel, error) {
-	return s.client.ListAccessLevels(path)
-}
-
-// Set sets an access rule with a certain permission level for an account to a path.
-func (s *accessRuleService) Set(path api.BlindNamePath, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
-	return s.client.SetAccessRule(path, permission, name)
+// List retrieves all access rules that apply to a directory.
+func (s *accessRuleService) List(path api.DirPath, depth int, ancestors bool) ([]*api.AccessRule, error) {
+	return s.client.ListAccessRules(path, depth, ancestors)
 }
 
 // ListWithPaths retrieves all access rules that apply to a directory,
@@ -56,6 +52,16 @@ func (s *accessRuleService) Set(path api.BlindNamePath, permission api.Permissio
 // retrieved without limit.
 func (s *accessRuleService) ListWithPaths(path api.DirPath, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error) {
 	return s.client.ListAccessRulesWithPaths(path, depth, ancestors)
+}
+
+// List lists the access rules on the given directory.
+func (s *accessRuleService) ListLevels(path api.DirPath) ([]*api.AccessLevel, error) {
+	return s.client.ListAccessLevels(path)
+}
+
+// Set sets an access rule with a certain permission level for an account to a path.
+func (s *accessRuleService) Set(path api.BlindNamePath, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
+	return s.client.SetAccessRule(path, permission, name)
 }
 
 // SetAccessRule set an AccessRule for an account with a certain permission level.
