@@ -70,16 +70,12 @@ func (s repoService) Create(path api.RepoPath) (*api.Repo, error) {
 
 // Users returns a RepoUserService that handles operations on users of a repository.
 func (s repoService) Users() RepoUserService {
-	return repoUserService{
-		client: s.client,
-	}
+	return repoUserService(s)
 }
 
 // Services returns a RepoServiceService that handles operations on services of a repository.
 func (s repoService) Services() RepoServiceService {
-	return repoServiceService{
-		client: s.client,
-	}
+	return repoServiceService(s)
 }
 
 // CreateRepo creates a new repo for this owner with the name.
