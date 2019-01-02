@@ -74,8 +74,8 @@ func (c clientAdapter) Users() UserService {
 
 // NewClient creates a new SecretHub client.
 // It overrides the default configuration with the options when given.
-func NewClient(credential Credential, opts *ClientOptions) (Client, error) {
+func NewClient(credential Credential, opts *ClientOptions) Client {
 	return &clientAdapter{
 		client: newClient(credential, opts),
-	}, nil
+	}
 }
