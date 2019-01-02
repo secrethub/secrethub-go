@@ -4,14 +4,14 @@ import "github.com/keylockerbv/secrethub-go/pkg/secrethub"
 
 // Client implements the secrethub.Client interface.
 type Client struct {
-	AccessRuleService *AccessRuleService
-	AccountService    *AccountService
-	DirService        *DirService
-	OrgService        *OrgService
-	RepoService       *RepoService
-	SecretService     *SecretService
-	ServiceService    *ServiceService
-	UserService       *UserService
+	AccessRuleService AccessRuleService
+	AccountService    AccountService
+	DirService        DirService
+	OrgService        OrgService
+	RepoService       RepoService
+	SecretService     SecretService
+	ServiceService    ServiceService
+	UserService       UserService
 }
 
 // AccessRules implements the secrethub.Client interface.

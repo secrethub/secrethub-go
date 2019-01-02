@@ -9,148 +9,58 @@ import (
 
 // RepoService is a mock of the RepoService interface.
 type RepoService struct {
-	AccountLister  RepoAccountLister
-	Creater        RepoCreater
-	Deleter        RepoDeleter
-	Getter         RepoGetter
-	EventLister    RepoEventLister
-	Lister         RepoLister
-	UserService    *RepoUserService
-	ServiceService *RepoServiceService
-	MineLister     RepoMineLister
-}
-
-// List implements the RepoService interface List function.
-func (s *RepoService) List(namespace api.Namespace) ([]*api.Repo, error) {
-	return s.Lister.List(namespace)
-}
-
-// ListAccounts implements the RepoService interface ListAccounts function.
-func (s *RepoService) ListAccounts(path api.RepoPath) ([]*api.Account, error) {
-	return s.AccountLister.ListAccounts(path)
-}
-
-// ListEvents implements the RepoService interface ListEvents function.
-func (s *RepoService) ListEvents(path api.RepoPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
-	return s.EventLister.ListEvents(path, subjectTypes)
-}
-
-// ListMine implements the RepoService interface ListMine function.
-func (s *RepoService) ListMine() ([]*api.Repo, error) {
-	return s.MineLister.ListMine()
+	CreateFunc       func(path api.RepoPath) (*api.Repo, error)
+	DeleteFunc       func(path api.RepoPath) error
+	GetFunc          func(path api.RepoPath) (*api.Repo, error)
+	ListAccountsFunc func(path api.RepoPath) ([]*api.Account, error)
+	ListEventsFunc   func(path api.RepoPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
+	ListFunc         func(namespace api.Namespace) ([]*api.Repo, error)
+	ListMineFunc     func() ([]*api.Repo, error)
+	UserService      RepoUserService
+	ServiceService   RepoServiceService
 }
 
 // Create implements the RepoService interface Create function.
-func (s *RepoService) Create(path api.RepoPath) (*api.Repo, error) {
-	return s.Creater.Create(path)
+func (s RepoService) Create(path api.RepoPath) (*api.Repo, error) {
+	return s.CreateFunc(path)
 }
 
 // Delete implements the RepoService interface Delete function.
-func (s *RepoService) Delete(path api.RepoPath) error {
-	return s.Deleter.Delete(path)
+func (s RepoService) Delete(path api.RepoPath) error {
+	return s.DeleteFunc(path)
 }
 
 // Get implements the RepoService interface Get function.
-func (s *RepoService) Get(path api.RepoPath) (*api.Repo, error) {
-	return s.Getter.Get(path)
+func (s RepoService) Get(path api.RepoPath) (*api.Repo, error) {
+	return s.GetFunc(path)
+}
+
+// ListAccounts implements the RepoService interface ListAccounts function.
+func (s RepoService) ListAccounts(path api.RepoPath) ([]*api.Account, error) {
+	return s.ListAccountsFunc(path)
+}
+
+// ListEvents implements the RepoService interface ListEvents function.
+func (s RepoService) ListEvents(path api.RepoPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+	return s.ListEventsFunc(path, subjectTypes)
+}
+
+// List implements the RepoService interface List function.
+func (s RepoService) List(namespace api.Namespace) ([]*api.Repo, error) {
+	return s.ListFunc(namespace)
+}
+
+// ListMine implements the RepoService interface ListMine function.
+func (s RepoService) ListMine() ([]*api.Repo, error) {
+	return s.ListMineFunc()
 }
 
 // Users returns the mocked UserService.
-func (s *RepoService) Users() secrethub.RepoUserService {
+func (s RepoService) Users() secrethub.RepoUserService {
 	return s.UserService
 }
 
 // Services returns the mocked RepoServiceService.
-func (s *RepoService) Services() secrethub.RepoServiceService {
+func (s RepoService) Services() secrethub.RepoServiceService {
 	return s.ServiceService
-}
-
-// RepoDeleter mocks the Delete function.
-type RepoDeleter struct {
-	ArgPath api.RepoPath
-	Err     error
-}
-
-// Delete saves the arguments it was called with and returns the mocked response.
-func (d *RepoDeleter) Delete(path api.RepoPath) error {
-	d.ArgPath = path
-	return d.Err
-}
-
-// RepoGetter mocks the Get function.
-type RepoGetter struct {
-	ArgPath     api.RepoPath
-	ReturnsRepo *api.Repo
-	Err         error
-}
-
-// Get saves the arguments it was called with and returns the mocked response.
-func (g *RepoGetter) Get(path api.RepoPath) (*api.Repo, error) {
-	g.ArgPath = path
-	return g.ReturnsRepo, g.Err
-}
-
-// RepoLister mocks the List function.
-type RepoLister struct {
-	ArgNamespace api.Namespace
-	ReturnsRepos []*api.Repo
-	Err          error
-}
-
-// List saves the argument it was called with and returns the mocked response.
-func (g *RepoLister) List(namespace api.Namespace) ([]*api.Repo, error) {
-	g.ArgNamespace = namespace
-	return g.ReturnsRepos, g.Err
-}
-
-// RepoEventLister mocks the ListEvents function.
-type RepoEventLister struct {
-	ArgPath            api.RepoPath
-	ArgSubjectTypes    api.AuditSubjectTypeList
-	ReturnsAuditEvents []*api.Audit
-	Err                error
-}
-
-// ListEvents saves the arguments it was called with and returns the mocked response.
-func (el *RepoEventLister) ListEvents(path api.RepoPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
-	el.ArgPath = path
-	el.ArgSubjectTypes = subjectTypes
-	return el.ReturnsAuditEvents, el.Err
-}
-
-// RepoCreater mocks the Create function.
-type RepoCreater struct {
-	Argpath     api.RepoPath
-	ReturnsRepo *api.Repo
-	Err         error
-}
-
-// Create saves the arguments it was called with and returns the mocked response.
-func (creater *RepoCreater) Create(path api.RepoPath) (*api.Repo, error) {
-	creater.Argpath = path
-	return creater.ReturnsRepo, creater.Err
-}
-
-// RepoAccountLister mocks the ListAccounts function.
-type RepoAccountLister struct {
-	ArgPath         api.RepoPath
-	ReturnsAccounts []*api.Account
-	Err             error
-}
-
-// ListAccounts saves the arguments it was called with and returns the mocked response.
-func (l *RepoAccountLister) ListAccounts(path api.RepoPath) ([]*api.Account, error) {
-	l.ArgPath = path
-	return l.ReturnsAccounts, l.Err
-}
-
-// RepoMineLister mocks the ListMine function.
-type RepoMineLister struct {
-	ReturnsRepos []*api.Repo
-	Err          error
-}
-
-// ListMine returns the mocked response.
-func (m *RepoMineLister) ListMine() ([]*api.Repo, error) {
-	return m.ReturnsRepos, m.Err
 }
