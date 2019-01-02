@@ -10,17 +10,15 @@ lint:
   stage: test
   variables:
     REPO_NAME: github.com/keylockerbv/secrethub-go
+  image: mozgiii/gometalinter-docker
   script:
     # Setup GOPATH and vendor to use for gometalinter
     - GO111MODULE=on go mod vendor
     - mkdir -p $GOPATH/src/$REPO_NAME
     - cp -r ${CI_PROJECT_DIR}/* ${GOPATH}/src/$REPO_NAME/
     - cd $GOPATH/src/$REPO_NAME
-    # Install gometalinter
-    - GO111MODULE=off go get -u gopkg.in/alecthomas/gometalinter.v2
-    - gometalinter.v2 --install
     # Run gometalinter
-    - GO111MODULE=off gometalinter.v2 --vendor --config=metalinter.config ./...
+    - GO111MODULE=off gometalinter --vendor --config=metalinter.config ./...
 
 test:
   stage: test
