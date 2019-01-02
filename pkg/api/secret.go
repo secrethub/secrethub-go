@@ -94,7 +94,7 @@ type Secret struct {
 
 // HasName returns true when the secret version has the exact name.
 func (s *Secret) HasName(name string) bool {
-	return strings.ToLower(s.Name) == strings.ToLower(name)
+	return strings.EqualFold(s.Name, name)
 }
 
 // CreateSecretRequest contains the request fields for creating a new secret,

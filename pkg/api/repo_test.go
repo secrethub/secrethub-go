@@ -12,15 +12,11 @@ import (
 
 var (
 	accountIDUser1 = uuid.New()
-	accountIDUser2 = uuid.New()
 
 	repoMemberRequest1 = &api.CreateRepoMemberRequest{
 		RepoEncryptionKey: []byte{1, 2, 3},
 		RepoIndexKey:      []byte{1, 2, 3},
 	}
-
-	secretID1 = uuid.New()
-	secretID2 = uuid.New()
 )
 
 func TestCreateRepoRequest_Validate(t *testing.T) {

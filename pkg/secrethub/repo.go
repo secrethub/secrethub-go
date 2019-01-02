@@ -70,16 +70,12 @@ func (s repoService) Create(path api.RepoPath) (*api.Repo, error) {
 
 // Users returns a RepoUserService that handles operations on users of a repository.
 func (s repoService) Users() RepoUserService {
-	return repoUserService{
-		client: s.client,
-	}
+	return repoUserService(s)
 }
 
 // Services returns a RepoServiceService that handles operations on services of a repository.
 func (s repoService) Services() RepoServiceService {
-	return repoServiceService{
-		client: s.client,
-	}
+	return repoServiceService(s)
 }
 
 // CreateRepo creates a new repo for this owner with the name.
@@ -319,26 +315,6 @@ func (c *client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey
 		RepoEncryptionKey: accountRepoEncryptionKey,
 		RepoIndexKey:      accountRepoIndexKey,
 	}, nil
-}
-
-// getRepoEncryptionKey retrieves a repokey for a repo.
-func (c *client) getRepoEncryptionKey(repoPath api.RepoPath) (*crypto.AESKey, error) {
-	wrappedKey, err := c.httpClient.GetRepoKeys(repoPath.GetNamespaceAndRepoName())
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	accountKey, err := c.getAccountKey()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	keyData, err := accountKey.Decrypt(wrappedKey.RepoEncryptionKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return crypto.NewAESKey(keyData), nil
 }
 
 // getRepoIndexKey retrieves a RepoIndexKey for a repo.

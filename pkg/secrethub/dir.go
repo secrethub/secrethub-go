@@ -39,9 +39,7 @@ func (s dirService) Delete(path api.DirPath) error {
 
 // CreateDir creates a directory for a repo and optional parent directory.
 func (c *client) CreateDir(dirPath api.DirPath) (*api.Dir, error) {
-	var err error
-
-	err = dirPath.Validate()
+	err := dirPath.Validate()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -133,9 +131,7 @@ func (c *client) GetDirByBlindName(path api.DirPath, depth int, ancestors bool) 
 
 // DeleteDir deletes a directory by a given path.
 func (c *client) DeleteDir(dirPath api.DirPath) error {
-	var err error
-
-	err = dirPath.Validate()
+	err := dirPath.Validate()
 	if err != nil {
 		return errio.Error(err)
 	}

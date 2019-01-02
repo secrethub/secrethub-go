@@ -31,7 +31,6 @@ var (
 	whitelistServiceDescription = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s*)$`, patternServiceDescription))
 	whitelistSecretName         = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s{%d,%d})$`, patternUniformNameCharacters, 1, uniformNameMaximumLength))
 	whitelistRepoName           = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s{%d,%d})$`, patternUniformNameCharacters, 1, uniformNameMaximumLength))
-	whitelistDirName            = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s{%d,%d})$`, patternUniformNameCharacters, 1, uniformNameMaximumLength))
 	whitelistOrgName            = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s{%d,%d})$`, patternUniformNameCharacters, uniformNameMinimumLength, uniformNameMaximumLength))
 	whitelistFullName           = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s{1,128})$`, patternFullName))
 	whitelistDescription        = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s)$`, patternDescription))
