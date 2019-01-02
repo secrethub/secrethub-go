@@ -238,7 +238,7 @@ func (p *CompanyDetailsParams) Validate() error {
 		}
 
 		// Ensure the country matches the taxID given.
-		if strings.ToLower(p.TaxID.Country()) != strings.ToLower(p.Country) {
+		if !strings.EqualFold(p.TaxID.Country(), p.Country) {
 			return ErrAddressDoesNotMatchTaxCountry
 		}
 	}

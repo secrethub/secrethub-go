@@ -4,10 +4,7 @@ import (
 	"crypto/rand"
 
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
-	logging "github.com/op/go-logging"
 )
-
-var log = logging.MustGetLogger("log")
 
 // GenerateNonce generates a Nonce of a particular size.
 func GenerateNonce(size int) (*[]byte, error) {

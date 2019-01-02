@@ -288,7 +288,7 @@ func (c *Client) ListAccessLevels(path api.DirPath) ([]*api.AccessLevel, error) 
 
 	rights := make(map[uuid.UUID][]*api.AccessRule)
 	for _, rule := range rules {
-		list, _ := rights[*rule.AccountID]
+		list := rights[*rule.AccountID]
 		rights[*rule.AccountID] = append(list, rule)
 	}
 

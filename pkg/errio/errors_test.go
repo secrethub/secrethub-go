@@ -18,9 +18,6 @@ var (
 	data          = []byte(`{"error":{"code":"test","message":"some test error"}}`)
 	errorMessage  = "test_error"
 	reportedError = "not_reported"
-
-	ns        = Namespace("test")
-	errorPref = ns.Code("100").ErrorPref("This is a test formatted message, with message %s")
 )
 
 func TestMarshal(t *testing.T) {
