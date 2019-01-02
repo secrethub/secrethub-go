@@ -15,7 +15,6 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto/hashing"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
-	logging "github.com/op/go-logging"
 )
 
 const (
@@ -43,10 +42,6 @@ const (
 	MethodTagSignatureV2 = "SecretHub-Sig2"
 	// MethodTagSignature defines the method's Authorization header tag.
 	MethodTagSignature = "secrethub-sig-v1"
-)
-
-var (
-	log = logging.MustGetLogger("log")
 )
 
 // Errors
