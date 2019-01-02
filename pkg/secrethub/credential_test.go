@@ -170,7 +170,7 @@ func TestParser(t *testing.T) {
 			err: nil,
 		},
 		"header_one_segment": {
-			raw:      fmt.Sprintf("%s", DefaultCredentialEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5})),
+			raw:      DefaultCredentialEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
 			expected: nil,
 			err:      ErrInvalidNumberOfCredentialSegments(1),
 		},
