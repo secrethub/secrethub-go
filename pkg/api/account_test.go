@@ -9,9 +9,8 @@ import (
 func TestAccountName(t *testing.T) {
 
 	tests := []struct {
-		input        string
-		isService    bool
-		expectedName string
+		input     string
+		isService bool
 	}{
 		{
 			input:     "user1",
