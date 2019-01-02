@@ -123,25 +123,6 @@ func (c *Client) ExistsSecret(path api.SecretPath) (bool, error) {
 	return true, nil
 }
 
-// decryptSecrets decrypts EncryptedSecrets into a list of Secrets.
-func (c *Client) decryptSecrets(encSecrets []*api.EncryptedSecret) ([]*api.Secret, error) {
-	accountKey, err := c.getAccountKey()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	secrets := make([]*api.Secret, len(encSecrets))
-	for i, encSecret := range encSecrets {
-		secret, err := encSecret.Decrypt(accountKey)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-		secrets[i] = secret
-	}
-
-	return secrets, nil
-}
-
 // convertsToBlindName will convert a path to a blindname.
 func (c *Client) convertPathToBlindName(path api.BlindNamePath) (string, error) {
 	repoIndexKey, err := c.getRepoIndexKey(path.GetRepoPath())
