@@ -317,26 +317,6 @@ func (c *Client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey
 	}, nil
 }
 
-// getRepoEncryptionKey retrieves a repokey for a repo.
-func (c *Client) getRepoEncryptionKey(repoPath api.RepoPath) (*crypto.AESKey, error) {
-	wrappedKey, err := c.httpClient.GetRepoKeys(repoPath.GetNamespaceAndRepoName())
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	accountKey, err := c.getAccountKey()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	keyData, err := accountKey.Decrypt(wrappedKey.RepoEncryptionKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return crypto.NewAESKey(keyData), nil
-}
-
 // getRepoIndexKey retrieves a RepoIndexKey for a repo.
 // These keys are cached in the client.
 func (c *Client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.AESKey, error) {
