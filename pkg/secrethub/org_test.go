@@ -329,14 +329,6 @@ func TestGetOrgMember(t *testing.T) {
 		err        error
 		expected   *api.OrgMember
 	}{
-		"invalid name": {
-			name:       "invalid name",
-			username:   "user1",
-			response:   nil,
-			statusCode: 0,
-			err:        api.ErrInvalidOrgName,
-			expected:   nil,
-		},
 		"invalid username": {
 			name:       "myorg",
 			username:   "invalid user",

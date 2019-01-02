@@ -12,6 +12,11 @@ type OrgMemberService struct {
 	Updater OrgMemberUpdater
 }
 
+// Get implements the OrgMemberService interface Get function.
+func (s *OrgMemberService) Get(org api.OrgName, username string) (*api.OrgMember, error) {
+	return nil, nil
+}
+
 // Invite implements the OrgMemberService interface Invite function.
 func (s *OrgMemberService) Invite(org api.OrgName, username string, role string) (*api.OrgMember, error) {
 	return s.Inviter.Invite(org, username, role)

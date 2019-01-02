@@ -92,12 +92,7 @@ func (c *client) DeleteOrg(name string) error {
 
 // GetOrgMember gets a user's organization membership details.
 func (c *client) GetOrgMember(name string, username string) (*api.OrgMember, error) {
-	err := api.ValidateOrgName(name)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	err = api.ValidateUsername(username)
+	err := api.ValidateUsername(username)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
