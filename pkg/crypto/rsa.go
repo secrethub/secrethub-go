@@ -220,8 +220,8 @@ func (k RSAKey) ExportPrivateKey() ([]byte, error) {
 }
 
 // Export exports the raw rsa private key.
-func (k RSAKey) Export() ([]byte, error) {
-	return x509.MarshalPKCS1PrivateKey(k.privateKey), nil
+func (k RSAKey) Export() []byte {
+	return x509.MarshalPKCS1PrivateKey(k.privateKey)
 }
 
 // ImportRSAPrivateKey imports a rsa private key from a pem encoded format.

@@ -47,7 +47,7 @@ type Credential interface {
 	// Unwrap decrypts data, typically an account key.
 	Unwrap(ciphertext crypto.Ciphertext) ([]byte, error)
 	// Export exports the credential in a format that can be decoded by its Decoder.
-	Export() ([]byte, error)
+	Export() []byte
 	// Decoder returns a decoder that can decode an exported key back into a Credential.
 	Decoder() CredentialDecoder
 	// Type returns what type of credential this is.
@@ -111,20 +111,14 @@ func (c EncodedCredential) IsEncrypted() bool {
 
 // EncodeCredential encodes a Credential as a one line string that can be transferred.
 func EncodeCredential(credential Credential) (string, error) {
-	cred, err := newEncodedCredential(credential)
-	if err != nil {
-		return "", errio.Error(err)
-	}
+	cred := newEncodedCredential(credential)
 
 	return encodeCredentialPartsToString(cred.Header, cred.Payload)
 }
 
 // EncodeArmoredCredential armors and encodes a Credential as a one line string token that can be transferred.
 func EncodeArmoredCredential(credential Credential, armorer Armorer) (string, error) {
-	cred, err := newEncodedCredential(credential)
-	if err != nil {
-		return "", errio.Error(err)
-	}
+	cred := newEncodedCredential(credential)
 
 	// Set the `enc` header so it can be used to decrypt later.
 	cred.Header["enc"] = armorer.Name()
@@ -142,21 +136,16 @@ func EncodeArmoredCredential(credential Credential, armorer Armorer) (string, er
 }
 
 // newEncodedCredential creates exports and encodes a credential in the payload.
-func newEncodedCredential(credential Credential) (*EncodedCredential, error) {
-	payload, err := credential.Export()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
+func newEncodedCredential(credential Credential) *EncodedCredential {
 	decoder := credential.Decoder()
 
 	return &EncodedCredential{
 		Header: map[string]interface{}{
 			"type": decoder.Name(),
 		},
-		Payload: payload,
+		Payload: credential.Export(),
 		Decoder: decoder,
-	}, nil
+	}
 }
 
 // encodeCredentialPartsToString encodes an header and payload in a format string: header.payload
