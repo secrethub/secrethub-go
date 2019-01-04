@@ -96,7 +96,7 @@ func RunCredentialInterfaceTest(t *testing.T, credential Credential) {
 
 func TestRSACredential(t *testing.T) {
 
-	credential, err := GenerateRSACredential(1024)
+	credential, err := generateRSACredential(1024)
 	testutil.OK(t, err)
 
 	RunCredentialInterfaceTest(t, credential)
@@ -105,7 +105,7 @@ func TestRSACredential(t *testing.T) {
 func TestParser(t *testing.T) {
 
 	// Arrange
-	credential, err := GenerateRSACredential(1024)
+	credential, err := generateRSACredential(1024)
 	testutil.OK(t, err)
 
 	payload, err := credential.Export()
@@ -245,7 +245,7 @@ func TestParser(t *testing.T) {
 func TestEncodeCredential(t *testing.T) {
 
 	// Arrange
-	cred, err := GenerateRSACredential(1024)
+	cred, err := generateRSACredential(1024)
 	testutil.OK(t, err)
 
 	parser := NewCredentialParser(DefaultCredentialDecoders)
@@ -267,7 +267,7 @@ func TestEncodeCredential(t *testing.T) {
 func TestEncodeArmoredCredential(t *testing.T) {
 
 	// Arrange
-	cred, err := GenerateRSACredential(1024)
+	cred, err := generateRSACredential(1024)
 	testutil.OK(t, err)
 
 	parser := NewCredentialParser(DefaultCredentialDecoders)

@@ -247,8 +247,13 @@ type RSACredential struct {
 	*crypto.RSAKey
 }
 
-// GenerateRSACredential generates a new RSA credential.
-func GenerateRSACredential(keyLength int) (RSACredential, error) {
+// GenerateCredential generates a new credential to be used to
+// authenticate the account and to decrypt the account key.
+func GenerateCredential() (Credential, error) {
+	return generateRSACredential(crypto.ExternalKeyLength)
+}
+
+func generateRSACredential(keyLength int) (RSACredential, error) {
 	key, err := crypto.GenerateRSAKey(keyLength)
 	if err != nil {
 		return RSACredential{}, errio.Error(err)
