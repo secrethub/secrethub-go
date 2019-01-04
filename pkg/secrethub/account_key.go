@@ -21,11 +21,11 @@ type AccountKeyService interface {
 }
 
 type accountKeyService struct {
-	client *Client
+	client client
 }
 
 // newAccountKeyService creates a new accountKeyService
-func newAccountKeyService(client *Client) accountKeyService {
+func newAccountKeyService(client client) accountKeyService {
 	return accountKeyService{
 		client: client,
 	}

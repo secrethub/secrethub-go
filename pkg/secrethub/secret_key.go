@@ -7,7 +7,7 @@ import (
 )
 
 // GetSecretKey gets the current key for a given secret.
-func (c *Client) GetSecretKey(secretPath api.SecretPath) (*api.SecretKey, error) {
+func (c *client) GetSecretKey(secretPath api.SecretPath) (*api.SecretKey, error) {
 	blindName, err := c.convertPathToBlindName(secretPath)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -27,7 +27,7 @@ func (c *Client) GetSecretKey(secretPath api.SecretPath) (*api.SecretKey, error)
 }
 
 // CreateSecretKey creates a new secret key for a given secret.
-func (c *Client) CreateSecretKey(secretPath api.SecretPath) (*api.SecretKey, error) {
+func (c *client) CreateSecretKey(secretPath api.SecretPath) (*api.SecretKey, error) {
 	secretKey, err := crypto.GenerateAESKey()
 	if err != nil {
 		return nil, errio.Error(err)

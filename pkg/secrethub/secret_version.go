@@ -36,7 +36,7 @@ type SecretVersionService interface {
 }
 
 type secretVersionService struct {
-	client *Client
+	client client
 }
 
 // Delete removes a secret version.
@@ -74,7 +74,7 @@ func (s secretVersionService) ListWithoutData(path api.SecretPath) ([]*api.Secre
 // Write accepts any non-empty byte data that is within the size limit of MaxSecretSize.
 // Note that data is encrypted as is. Sanitizing data is the responsibility of the
 // function caller.
-func (c *Client) Write(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error) {
+func (c *client) Write(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error) {
 
 	if len(data) == 0 {
 		return nil, ErrEmptySecret
@@ -105,7 +105,7 @@ func (c *Client) Write(secretPath api.SecretPath, data []byte) (*api.SecretVersi
 
 // createSecretVersion creates a new version of an existing secret.
 // It creates a new secret key if the provided key is flagged.
-func (c *Client) createSecretVersion(secretPath api.SecretPath, data []byte, secretKey *api.SecretKey) (*api.SecretVersion, error) {
+func (c *client) createSecretVersion(secretPath api.SecretPath, data []byte, secretKey *api.SecretKey) (*api.SecretVersion, error) {
 	var err error
 	if secretKey.Status == api.StatusFlagged {
 		secretKey, err = c.CreateSecretKey(secretPath)
@@ -150,7 +150,7 @@ func (c *Client) createSecretVersion(secretPath api.SecretPath, data []byte, sec
 // createSecret creates a new secret, including its first version.
 // It generates a secret key, encrypts the key and the secret name
 // for the accounts that need access to the secret.
-func (c *Client) createSecret(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error) {
+func (c *client) createSecret(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error) {
 	parentPath, err := secretPath.GetParentPath()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -219,7 +219,7 @@ func (c *Client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 }
 
 // ListSecretVersions lists all versions of a secret by a given path, ordered oldest first.
-func (c *Client) ListSecretVersions(path api.SecretPath, withData bool) ([]*api.SecretVersion, error) {
+func (c *client) ListSecretVersions(path api.SecretPath, withData bool) ([]*api.SecretVersion, error) {
 	blindName, err := c.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -235,7 +235,7 @@ func (c *Client) ListSecretVersions(path api.SecretPath, withData bool) ([]*api.
 
 // DeleteSecretVersion deletes a specific version of a secret.
 // If the given version is :latest, it will delete the latest version.
-func (c *Client) DeleteSecretVersion(secretPath api.SecretPath) error {
+func (c *client) DeleteSecretVersion(secretPath api.SecretPath) error {
 	version, err := secretPath.GetVersion()
 	if err != nil {
 		return errio.Error(err)
@@ -260,7 +260,7 @@ func (c *Client) DeleteSecretVersion(secretPath api.SecretPath) error {
 }
 
 // ExistsSecretVersion checks if a secret version exists on SecretHub.
-func (c *Client) ExistsSecretVersion(path api.SecretPath) (bool, error) {
+func (c *client) ExistsSecretVersion(path api.SecretPath) (bool, error) {
 	_, err := c.GetSecretVersionWithoutData(path)
 	if err == api.ErrSecretVersionNotFound || err == api.ErrSecretNotFound {
 		return false, nil
@@ -271,19 +271,19 @@ func (c *Client) ExistsSecretVersion(path api.SecretPath) (bool, error) {
 }
 
 // GetSecretVersionWithData gets a secret version, with the sensitive data.
-func (c *Client) GetSecretVersionWithData(secretPath api.SecretPath) (*api.SecretVersion, error) {
+func (c *client) GetSecretVersionWithData(secretPath api.SecretPath) (*api.SecretVersion, error) {
 	return c.GetSecretVersion(secretPath, true)
 }
 
 // GetSecretVersionWithoutData gets a secret version, without the sensitive data.
 // This is useful for inspecting a secret version.
-func (c *Client) GetSecretVersionWithoutData(secretPath api.SecretPath) (*api.SecretVersion, error) {
+func (c *client) GetSecretVersionWithoutData(secretPath api.SecretPath) (*api.SecretVersion, error) {
 	return c.GetSecretVersion(secretPath, false)
 }
 
 // GetSecretVersion gets a version of a secret.
 // withData specifies whether the encrypted data should be retrieved.
-func (c *Client) GetSecretVersion(path api.SecretPath, withData bool) (*api.SecretVersion, error) {
+func (c *client) GetSecretVersion(path api.SecretPath, withData bool) (*api.SecretVersion, error) {
 	blindName, err := c.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -314,7 +314,7 @@ func (c *Client) GetSecretVersion(path api.SecretPath, withData bool) (*api.Secr
 }
 
 // decryptSecretVersions decrypts EncryptedSecretVersions to a list of SecretVersions
-func (c *Client) decryptSecretVersions(encVersions ...*api.EncryptedSecretVersion) ([]*api.SecretVersion, error) {
+func (c *client) decryptSecretVersions(encVersions ...*api.EncryptedSecretVersion) ([]*api.SecretVersion, error) {
 	accountKey, err := c.getAccountKey()
 	if err != nil {
 		return nil, errio.Error(err)

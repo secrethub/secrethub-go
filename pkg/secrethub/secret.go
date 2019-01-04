@@ -31,7 +31,7 @@ type SecretService interface {
 }
 
 type secretService struct {
-	client *Client
+	client client
 }
 
 // Delete removes the secret at the given path.
@@ -73,7 +73,7 @@ func (s *secretService) Versions() SecretVersionService {
 }
 
 // GetSecret gets a secret by a given path.
-func (c *Client) GetSecret(path api.SecretPath) (*api.Secret, error) {
+func (c *client) GetSecret(path api.SecretPath) (*api.Secret, error) {
 	blindName, err := c.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -93,7 +93,7 @@ func (c *Client) GetSecret(path api.SecretPath) (*api.Secret, error) {
 }
 
 // DeleteSecret deletes a secret by a given path.
-func (c *Client) DeleteSecret(secretPath api.SecretPath) error {
+func (c *client) DeleteSecret(secretPath api.SecretPath) error {
 	err := api.ValidateSecretName(secretPath.GetSecret())
 	if err != nil {
 		return errio.Error(err)
@@ -113,7 +113,7 @@ func (c *Client) DeleteSecret(secretPath api.SecretPath) error {
 }
 
 // ExistsSecret checks if a secret already exists on SecretHub.
-func (c *Client) ExistsSecret(path api.SecretPath) (bool, error) {
+func (c *client) ExistsSecret(path api.SecretPath) (bool, error) {
 	_, err := c.GetSecret(path)
 	if err == api.ErrSecretNotFound {
 		return false, nil
@@ -124,7 +124,7 @@ func (c *Client) ExistsSecret(path api.SecretPath) (bool, error) {
 }
 
 // convertsToBlindName will convert a path to a blindname.
-func (c *Client) convertPathToBlindName(path api.BlindNamePath) (string, error) {
+func (c *client) convertPathToBlindName(path api.BlindNamePath) (string, error) {
 	repoIndexKey, err := c.getRepoIndexKey(path.GetRepoPath())
 	if err != nil {
 		return "", errio.Error(err)

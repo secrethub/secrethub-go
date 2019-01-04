@@ -13,7 +13,7 @@ type RepoUserService interface {
 }
 
 type repoUserService struct {
-	client *Client
+	client client
 }
 
 // Invite invites the user with given username to the repository at the given path.

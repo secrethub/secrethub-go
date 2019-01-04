@@ -8,6 +8,7 @@ import "github.com/keylockerbv/secrethub-go/pkg/api"
 type AccessRuleService struct {
 	Deleter        *AccessRuleDeleter
 	Getter         *AccessRuleGetter
+	Lister         *AccessRuleLister
 	LevelLister    *AccessLevelLister
 	WithPathLister AccessRuleWithPathLister
 	Setter         AccessRuleSetter
@@ -26,6 +27,11 @@ func (s *AccessRuleService) Get(path api.DirPath, accountName api.AccountName) (
 // ListLevels implements the AccessRuleService interface ListLevels function.
 func (s *AccessRuleService) ListLevels(path api.DirPath) ([]*api.AccessLevel, error) {
 	return s.LevelLister.ListLevels(path)
+}
+
+// List implements the AccessRuleService interface List function.
+func (s *AccessRuleService) List(path api.DirPath, depth int, ancestors bool) ([]*api.AccessRule, error) {
+	return s.Lister.List(path, depth, ancestors)
 }
 
 // ListWithPaths implements the AccessRuleService interface ListWithPaths function.
@@ -95,6 +101,23 @@ func (s *AccessRuleSetter) Set(path api.BlindNamePath, permission api.Permission
 	s.ArgPermission = permission
 	s.ArgName = name
 	return s.ReturnsAccessRule, s.Err
+}
+
+// AccessRuleLister mocks the List function.
+type AccessRuleLister struct {
+	ArgPath            api.DirPath
+	ArgDepth           int
+	ArgAncestors       bool
+	ReturnsAccessRules []*api.AccessRule
+	Err                error
+}
+
+// List saves the arguments it was called with and returns the mocked response.
+func (s *AccessRuleLister) List(path api.DirPath, depth int, ancestors bool) ([]*api.AccessRule, error) {
+	s.ArgPath = path
+	s.ArgDepth = depth
+	s.ArgAncestors = ancestors
+	return s.ReturnsAccessRules, s.Err
 }
 
 // AccessRuleWithPathLister mocks the ListWithPaths function.

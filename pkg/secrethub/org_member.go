@@ -4,6 +4,8 @@ import "github.com/keylockerbv/secrethub-go/pkg/api"
 
 // OrgMemberService handles operations on organization members.
 type OrgMemberService interface {
+	// Get retrieves a users organization membership details.
+	Get(org api.OrgName, username string) (*api.OrgMember, error)
 	// Invite invites a user to an organization.
 	Invite(org api.OrgName, username string, role string) (*api.OrgMember, error)
 	// List retrieves all members of the given organization.
@@ -15,7 +17,12 @@ type OrgMemberService interface {
 }
 
 type orgMemberService struct {
-	client *Client
+	client client
+}
+
+// Get retrieves a users organization membership details.
+func (s *orgMemberService) Get(org api.OrgName, username string) (*api.OrgMember, error) {
+	return s.client.GetOrgMember(org.String(), username)
 }
 
 // Invite invites a user to an organization.

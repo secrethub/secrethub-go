@@ -29,7 +29,7 @@ type RepoService interface {
 }
 
 type repoService struct {
-	client *Client
+	client client
 }
 
 // Delete removes the repo with the given path.
@@ -79,7 +79,7 @@ func (s repoService) Services() RepoServiceService {
 }
 
 // CreateRepo creates a new repo for this owner with the name.
-func (c *Client) CreateRepo(repoPath api.RepoPath) (*api.Repo, error) {
+func (c *client) CreateRepo(repoPath api.RepoPath) (*api.Repo, error) {
 	err := repoPath.Validate()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -161,7 +161,7 @@ func (c *Client) CreateRepo(repoPath api.RepoPath) (*api.Repo, error) {
 }
 
 // DeleteRepo deletes a repo on the specified namespace with the name.
-func (c *Client) DeleteRepo(repoPath api.RepoPath) error {
+func (c *client) DeleteRepo(repoPath api.RepoPath) error {
 	err := c.httpClient.DeleteRepo(repoPath.GetNamespaceAndRepoName())
 	if err != nil {
 		return errio.Error(err)
@@ -173,7 +173,7 @@ func (c *Client) DeleteRepo(repoPath api.RepoPath) error {
 }
 
 // ListRepos lists the repos in a namespace the account has access to.
-func (c *Client) ListRepos(namespace string) ([]*api.Repo, error) {
+func (c *client) ListRepos(namespace string) ([]*api.Repo, error) {
 	err := api.ValidateNamespace(namespace)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -183,12 +183,12 @@ func (c *Client) ListRepos(namespace string) ([]*api.Repo, error) {
 }
 
 // ListMyRepos lists the repos an account has access to.
-func (c *Client) ListMyRepos() ([]*api.Repo, error) {
+func (c *client) ListMyRepos() ([]*api.Repo, error) {
 	return c.httpClient.ListMyRepos()
 }
 
 // GetRepo retrieves the Repo from SecretHub.
-func (c *Client) GetRepo(repoPath api.RepoPath) (*api.Repo, error) {
+func (c *client) GetRepo(repoPath api.RepoPath) (*api.Repo, error) {
 	repo, err := c.httpClient.GetRepo(repoPath.GetNamespaceAndRepoName())
 	if err != nil {
 		return nil, errio.Error(err)
@@ -198,7 +198,7 @@ func (c *Client) GetRepo(repoPath api.RepoPath) (*api.Repo, error) {
 }
 
 // InviteRepo adds access for a given User for a given repo.
-func (c *Client) InviteRepo(repoPath api.RepoPath, username string) (*api.RepoMember, error) {
+func (c *client) InviteRepo(repoPath api.RepoPath, username string) (*api.RepoMember, error) {
 	name := api.AccountName(username)
 	err := name.Validate()
 	if err != nil {
@@ -239,13 +239,13 @@ func (c *Client) InviteRepo(repoPath api.RepoPath, username string) (*api.RepoMe
 }
 
 // GetRepoUser retrieves a User if it has access to a repo.
-func (c *Client) GetRepoUser(repoPath api.RepoPath, username string) (*api.User, error) {
+func (c *client) GetRepoUser(repoPath api.RepoPath, username string) (*api.User, error) {
 	user, err := c.httpClient.GetRepoUser(repoPath.GetNamespace(), repoPath.GetRepo(), username)
 	return user, errio.Error(err)
 }
 
 // RemoveUser removes access for a given User for a given repo.
-func (c *Client) RemoveUser(repoPath api.RepoPath, username string) (*api.RevokeRepoResponse, error) {
+func (c *client) RemoveUser(repoPath api.RepoPath, username string) (*api.RevokeRepoResponse, error) {
 	resp, err := c.httpClient.RemoveUser(repoPath.GetNamespace(), repoPath.GetRepo(), username)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -255,7 +255,7 @@ func (c *Client) RemoveUser(repoPath api.RepoPath, username string) (*api.Revoke
 }
 
 // ListRepoAccounts lists all repo accounts in the repo.
-func (c *Client) ListRepoAccounts(repoPath api.RepoPath) ([]*api.Account, error) {
+func (c *client) ListRepoAccounts(repoPath api.RepoPath) ([]*api.Account, error) {
 	accounts, err := c.httpClient.ListRepoAccounts(repoPath.GetNamespaceAndRepoName())
 	if err != nil {
 		return nil, errio.Error(err)
@@ -265,7 +265,7 @@ func (c *Client) ListRepoAccounts(repoPath api.RepoPath) ([]*api.Account, error)
 }
 
 // ListRepoUsers lists all users with access to the Repo by RepoPath.
-func (c *Client) ListRepoUsers(repoPath api.RepoPath) ([]*api.User, error) {
+func (c *client) ListRepoUsers(repoPath api.RepoPath) ([]*api.User, error) {
 	users, err := c.httpClient.ListRepoUsers(repoPath.GetNamespaceAndRepoName())
 	if err != nil {
 		return nil, errio.Error(err)
@@ -275,7 +275,7 @@ func (c *Client) ListRepoUsers(repoPath api.RepoPath) ([]*api.User, error) {
 }
 
 // ListRepoServices lists all services with access to the Repo by RepoPath.
-func (c *Client) ListRepoServices(repoPath api.RepoPath) ([]*api.Service, error) {
+func (c *client) ListRepoServices(repoPath api.RepoPath) ([]*api.Service, error) {
 	services, err := c.httpClient.ListServices(repoPath.GetNamespaceAndRepoName())
 	if err != nil {
 		return nil, errio.Error(err)
@@ -285,7 +285,7 @@ func (c *Client) ListRepoServices(repoPath api.RepoPath) ([]*api.Service, error)
 }
 
 // Creates a new RepoMemberRequests for a given account.
-func (c *Client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey []byte) (*api.CreateRepoMemberRequest, error) {
+func (c *client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey []byte) (*api.CreateRepoMemberRequest, error) {
 	repoKey, err := c.httpClient.GetRepoKeys(repoPath.GetNamespaceAndRepoName())
 	if err != nil {
 		return nil, errio.Error(err)
@@ -319,7 +319,7 @@ func (c *Client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey
 
 // getRepoIndexKey retrieves a RepoIndexKey for a repo.
 // These keys are cached in the client.
-func (c *Client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.AESKey, error) {
+func (c *client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.AESKey, error) {
 	repoIndexKey, cached := c.repoIndexKeys[repoPath]
 	if cached {
 		return repoIndexKey, nil

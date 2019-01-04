@@ -94,9 +94,9 @@ type httpClient struct {
 	version    string
 }
 
-// newClient configures a new httpClient and overrides default values
+// newHTTPClient configures a new httpClient and overrides default values
 // when opts is not nil.
-func newClient(credential Credential, opts *ClientOptions) *httpClient {
+func newHTTPClient(credential Credential, opts *ClientOptions) *httpClient {
 	serverURL := DefaultServerURL
 	timeout := DefaultTimeout
 	if opts != nil {

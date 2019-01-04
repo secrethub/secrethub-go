@@ -19,7 +19,7 @@ type ServiceService interface {
 }
 
 type serviceService struct {
-	client *Client
+	client client
 }
 
 // Create creates a new service for the given repo.
@@ -49,7 +49,7 @@ func (s *serviceService) List(path api.RepoPath) ([]*api.Service, error) {
 }
 
 // CreateService creates a new service for the given repo.
-func (c *Client) CreateService(repoPath api.RepoPath, description string, serviceCredential Credential, accountKey *crypto.RSAKey) (*api.Service, error) {
+func (c *client) CreateService(repoPath api.RepoPath, description string, serviceCredential Credential, accountKey *crypto.RSAKey) (*api.Service, error) {
 	credentialRequest, err := c.createCredentialRequest(serviceCredential)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -86,7 +86,7 @@ func (c *Client) CreateService(repoPath api.RepoPath, description string, servic
 }
 
 // GetService returns a service.
-func (c *Client) GetService(serviceID string) (*api.Service, error) {
+func (c *client) GetService(serviceID string) (*api.Service, error) {
 	err := api.ValidateServiceID(serviceID)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -95,7 +95,7 @@ func (c *Client) GetService(serviceID string) (*api.Service, error) {
 }
 
 // DeleteService deletes a service.
-func (c *Client) DeleteService(serviceID string) (*api.RevokeRepoResponse, error) {
+func (c *client) DeleteService(serviceID string) (*api.RevokeRepoResponse, error) {
 	err := api.ValidateServiceID(serviceID)
 	if err != nil {
 		return nil, errio.Error(err)
