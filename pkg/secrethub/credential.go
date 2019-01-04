@@ -28,11 +28,6 @@ var (
 	ErrInvalidKey                        = errClient.Code("invalid_key").Error("the given key is not valid for the encryption algorithm")
 )
 
-const (
-	// DefaultRSACredentialKeyLength defines the recommended key length for RSACredentials.
-	DefaultRSACredentialKeyLength = 4098
-)
-
 var (
 	// DefaultCredentialDecoders defines the default list of supported decoders.
 	DefaultCredentialDecoders = []CredentialDecoder{RSAPrivateKeyDecoder{}}
