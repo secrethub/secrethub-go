@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/keylockerbv/secrethub-go/internal/testutil"
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 func TestCreateOrg(t *testing.T) {

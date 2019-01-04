@@ -3,7 +3,7 @@ package vat
 import (
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/internal/testutil"
 )
 
 func TestGetTaxRate(t *testing.T) {

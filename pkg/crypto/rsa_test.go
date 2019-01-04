@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/keylockerbv/secrethub-go/internal/testutil"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 // TestReEncryptionRepoKey tests to wrap a new repo key, and ReWrap this into a AESKey for another user.

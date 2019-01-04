@@ -3,8 +3,8 @@ package api_test
 import (
 	"testing"
 
+	"github.com/keylockerbv/secrethub-go/internal/testutil"
 	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 func TestPermission_Set(t *testing.T) {

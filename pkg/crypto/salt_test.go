@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/internal/testutil"
 )
 
 func TestSaltAlgoUniqueness(t *testing.T) {
