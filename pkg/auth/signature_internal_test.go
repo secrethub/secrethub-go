@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"strings"
 	"testing"
 	"time"
@@ -11,7 +13,6 @@ import (
 
 	"io/ioutil"
 
-	"github.com/keylockerbv/secrethub-go/pkg/crypto/hashing"
 	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
@@ -44,8 +45,11 @@ func TestGetMessage_Post(t *testing.T) {
 	testutil.OK(t, err)
 	req.Header.Set("Date", "Fri, 10 Mar 2017 16:25:54 CET")
 
+	bodySum := sha256.Sum256(body.Bytes())
+	encodedBody := base64.StdEncoding.EncodeToString(bodySum[:])
+
 	expected := "POST\n" +
-		(hashing.Sum(body.Bytes()).Base64()) + "\n" +
+		encodedBody + "\n" +
 		"Fri, 10 Mar 2017 16:25:54 CET\n" +
 		"/repos/jdoe/catpictures;\n" +
 		""

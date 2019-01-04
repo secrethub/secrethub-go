@@ -2,6 +2,7 @@ package auth
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/base64"
 	"io/ioutil"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 	"fmt"
 
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto/hashing"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
@@ -186,9 +186,10 @@ func getMessage(r *http.Request) ([]byte, error) {
 		// Restore the body to its original state so that it can be read again.
 		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
-		hashedBody := hashing.Sum(body)
+		sum := sha256.Sum256(body)
+		encoded := base64.StdEncoding.EncodeToString(sum[:])
 
-		result.WriteString(fmt.Sprintf("%s\n", hashedBody.Base64()))
+		result.WriteString(fmt.Sprintf("%s\n", encoded))
 	}
 	// Date \n
 	requestTime, err := time.Parse(time.RFC1123, r.Header.Get("Date"))
