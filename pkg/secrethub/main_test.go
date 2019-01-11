@@ -16,7 +16,7 @@ var (
 
 func init() {
 	var err error
-	cred1, err = GenerateRSACredential(1024)
+	cred1, err = generateRSACredential(1024)
 	if err != nil {
 		panic(err)
 	}

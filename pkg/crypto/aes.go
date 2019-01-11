@@ -4,11 +4,11 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"crypto/sha256"
 	"strings"
 
 	"crypto/hmac"
 
-	"github.com/keylockerbv/secrethub-go/pkg/crypto/hashing"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
@@ -97,7 +97,7 @@ func (k *AESKey) Encrypt(data []byte) ([]byte, []byte, error) {
 
 // HMAC creates an HMAC of the data.
 func (k AESKey) HMAC(data []byte) ([]byte, error) {
-	mac := hmac.New(hashing.New, k.key)
+	mac := hmac.New(sha256.New, k.key)
 	_, err := mac.Write(data)
 	if err != nil {
 		return nil, errio.Error(err)
