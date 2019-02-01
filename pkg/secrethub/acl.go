@@ -36,12 +36,12 @@ func (s accessRuleService) Delete(path api.DirPath, accountName api.AccountName)
 }
 
 // Get retrieves the access rule for the given account on the given directory.
-func (s *accessRuleService) Get(path api.DirPath, accountName api.AccountName) (*api.AccessRule, error) {
+func (s accessRuleService) Get(path api.DirPath, accountName api.AccountName) (*api.AccessRule, error) {
 	return s.client.GetAccessRule(path, accountName)
 }
 
 // List retrieves all access rules that apply to a directory.
-func (s *accessRuleService) List(path api.DirPath, depth int, ancestors bool) ([]*api.AccessRule, error) {
+func (s accessRuleService) List(path api.DirPath, depth int, ancestors bool) ([]*api.AccessRule, error) {
 	return s.client.ListAccessRules(path, depth, ancestors)
 }
 
@@ -50,17 +50,17 @@ func (s *accessRuleService) List(path api.DirPath, depth int, ancestors bool) ([
 // up to a specified depth. When ancestors is set to true, it also includes rules
 // for any parent directories. When the depth is set to -1, all children are
 // retrieved without limit.
-func (s *accessRuleService) ListWithPaths(path api.DirPath, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error) {
+func (s accessRuleService) ListWithPaths(path api.DirPath, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error) {
 	return s.client.ListAccessRulesWithPaths(path, depth, ancestors)
 }
 
 // List lists the access rules on the given directory.
-func (s *accessRuleService) ListLevels(path api.DirPath) ([]*api.AccessLevel, error) {
+func (s accessRuleService) ListLevels(path api.DirPath) ([]*api.AccessLevel, error) {
 	return s.client.ListAccessLevels(path)
 }
 
 // Set sets an access rule with a certain permission level for an account to a path.
-func (s *accessRuleService) Set(path api.DirPath, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
+func (s accessRuleService) Set(path api.DirPath, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
 	return s.client.SetAccessRule(path, permission, name)
 }
 
