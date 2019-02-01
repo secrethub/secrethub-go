@@ -35,12 +35,12 @@ type secretService struct {
 }
 
 // Delete removes the secret at the given path.
-func (s *secretService) Delete(path api.SecretPath) error {
+func (s secretService) Delete(path api.SecretPath) error {
 	return s.client.DeleteSecret(path)
 }
 
 // Get retrieves a Secret.
-func (s *secretService) Get(path api.SecretPath) (*api.Secret, error) {
+func (s secretService) Get(path api.SecretPath) (*api.Secret, error) {
 	return s.client.GetSecret(path)
 }
 
@@ -55,18 +55,18 @@ func (s *secretService) Get(path api.SecretPath) (*api.Secret, error) {
 // Note that data is encrypted as is. Sanitizing data is the responsibility of the
 // function caller.
 // TODO SHDEV-1027 Move client implementation here.
-func (s *secretService) Write(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error) {
+func (s secretService) Write(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error) {
 	return s.client.Write(secretPath, data)
 }
 
 // ListEvents retrieves all audit events for a given secret.
 // If subjectTypes is left empty, the server's default is used.
-func (s *secretService) ListEvents(path api.SecretPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+func (s secretService) ListEvents(path api.SecretPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	return s.client.ListAuditEventsSecret(path, subjectTypes)
 }
 
 // Versions returns a SecretVersionService.
-func (s *secretService) Versions() SecretVersionService {
+func (s secretService) Versions() SecretVersionService {
 	return &secretVersionService{
 		client: s.client,
 	}
