@@ -34,7 +34,7 @@ func TestSignup(t *testing.T) {
 		Credential: &api.CreateCredentialRequest{
 			Type:        api.CredentialTypeRSA,
 			Fingerprint: cred1AuthID,
-			Verifier:    cred1AuthData,
+			Verifier:    cred1Verifier,
 		},
 	}
 

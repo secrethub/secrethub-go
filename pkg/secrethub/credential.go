@@ -40,8 +40,8 @@ type Credential interface {
 	auth.Credential
 	// AuthID returns an identifier by which the server can identify the credential, e.g. a username of a fingerprint.
 	AuthID() (string, error)
-	// AuthData returns the data to be stored server side to verify an http request authenticated with this credential.
-	AuthData() ([]byte, error)
+	// Verifier returns the data to be stored server side to verify an http request authenticated with this credential.
+	Verifier() ([]byte, error)
 	// Wrap encrypts data, typically an account key.
 	Wrap(plaintext []byte) (crypto.Ciphertext, error)
 	// Unwrap decrypts data, typically an account key.
@@ -263,8 +263,8 @@ func (c RSACredential) AuthID() (string, error) {
 	return c.RSAKey.GetIdentifier()
 }
 
-// AuthData returns the public key to be stored server side to verify an http request authenticated with this credential.
-func (c RSACredential) AuthData() ([]byte, error) {
+// Verifier returns the public key to be stored server side to verify an http request authenticated with this credential.
+func (c RSACredential) Verifier() ([]byte, error) {
 	return c.RSAKey.ExportPublicKey()
 }
 

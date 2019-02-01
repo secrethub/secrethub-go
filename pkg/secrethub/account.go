@@ -65,14 +65,14 @@ func (c *client) createCredentialRequest(credential Credential) (*api.CreateCred
 		return nil, errio.Error(err)
 	}
 
-	authData, err := credential.AuthData()
+	verifier, err := credential.Verifier()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
 	return &api.CreateCredentialRequest{
 		Fingerprint: authID,
-		Verifier:    authData,
+		Verifier:    verifier,
 		Type:        credential.Type(),
 	}, nil
 }

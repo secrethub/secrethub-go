@@ -11,7 +11,7 @@ var (
 	cred1          RSACredential
 	cred1PublicKey []byte
 	cred1AuthID    string
-	cred1AuthData  []byte
+	cred1Verifier  []byte
 )
 
 func init() {
@@ -31,7 +31,7 @@ func init() {
 		panic(err)
 	}
 
-	cred1AuthData, err = cred1.AuthData()
+	cred1Verifier, err = cred1.Verifier()
 	if err != nil {
 		panic(err)
 	}
