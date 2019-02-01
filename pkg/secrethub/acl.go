@@ -20,7 +20,7 @@ type AccessRuleService interface {
 	// for any parent directories. When the depth is set to -1, all children are
 	// retrieved without limit.
 	ListWithPaths(path api.DirPath, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error)
-	// List lists the access levels on the given directory.
+	// ListLevels lists the access levels on the given directory.
 	ListLevels(apth api.DirPath) ([]*api.AccessLevel, error)
 	// Set sets an access rule with a certain permission level for an account to a path.
 	Set(path api.DirPath, permission api.Permission, name api.AccountName) (*api.AccessRule, error)
@@ -40,17 +40,60 @@ type accessRuleService struct {
 
 // Delete removes the accessrule for the given directory and account.
 func (s accessRuleService) Delete(path api.DirPath, accountName api.AccountName) error {
-	return s.client.DeleteAccessRule(path, accountName)
+	blindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	err = accountName.Validate()
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	err = s.client.httpClient.DeleteAccessRule(blindName, accountName)
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	return nil
 }
 
 // Get retrieves the access rule for the given account on the given directory.
 func (s accessRuleService) Get(path api.DirPath, accountName api.AccountName) (*api.AccessRule, error) {
-	return s.client.GetAccessRule(path, accountName)
+	blindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = api.ValidateAccountName(accountName)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	accessRule, err := s.client.httpClient.GetAccessRule(blindName, accountName)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return accessRule, nil
 }
 
-// List retrieves all access rules that apply to a directory.
+// List etrieves all access rules that apply to a directory, including
+// rules that apply to its children up to a specified depth. When ancestors is set
+// to true, it also includes rules for any parent directories. When the depth is
+// set to -1, all children are retrieved without limit.
 func (s accessRuleService) List(path api.DirPath, depth int, ancestors bool) ([]*api.AccessRule, error) {
-	return s.client.ListAccessRules(path, depth, ancestors)
+	blindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	rules, err := s.client.httpClient.ListAccessRules(blindName, depth, ancestors)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return rules, nil
 }
 
 // ListWithPaths retrieves all access rules that apply to a directory,
@@ -59,12 +102,87 @@ func (s accessRuleService) List(path api.DirPath, depth int, ancestors bool) ([]
 // for any parent directories. When the depth is set to -1, all children are
 // retrieved without limit.
 func (s accessRuleService) ListWithPaths(path api.DirPath, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error) {
-	return s.client.ListAccessRulesWithPaths(path, depth, ancestors)
+	rules, err := s.List(path, depth, ancestors)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	dirFS, err := s.client.GetDirByBlindName(path, depth, ancestors)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	// Separate all rules into lists of rules per directory.
+	ruleMap := make(map[uuid.UUID][]int)
+	for i, rule := range rules {
+		list := ruleMap[*rule.DirID]
+		ruleMap[*rule.DirID] = append(list, i)
+	}
+
+	// Map the directories to rule lists.
+	result := make(map[api.DirPath][]*api.AccessRule)
+	for dirID, list := range ruleMap {
+		dirPath, err := dirFS.AbsDirPath(&dirID)
+		if err != nil {
+			return nil, errio.Error(err)
+		}
+
+		dirRules := make([]*api.AccessRule, len(list))
+		for i, ruleIndex := range list {
+			dirRules[i] = rules[ruleIndex]
+		}
+
+		result[*dirPath] = dirRules
+	}
+
+	return result, nil
 }
 
 // List lists the access rules on the given directory.
 func (s accessRuleService) ListLevels(path api.DirPath) ([]*api.AccessLevel, error) {
-	return s.client.ListAccessLevels(path)
+	blindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	rules, err := s.client.httpClient.ListAccessRules(blindName, 0, true)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	dir, err := s.client.GetDirByBlindName(path, 0, false)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	rights := make(map[uuid.UUID][]*api.AccessRule)
+	for _, rule := range rules {
+		list := rights[*rule.AccountID]
+		rights[*rule.AccountID] = append(list, rule)
+	}
+
+	result := make([]*api.AccessLevel, len(rights))
+	i := 0
+	for _, list := range rights {
+		first := list[0]
+		maxPerm := first.Permission
+		for _, rule := range list {
+			if maxPerm < rule.Permission {
+				maxPerm = rule.Permission
+			}
+		}
+
+		result[i] = &api.AccessLevel{
+			Account:    first.Account,
+			AccountID:  first.AccountID,
+			DirID:      dir.RootDir.DirID, // add this for completeness
+			Permission: maxPerm,
+		}
+
+		i++
+	}
+
+	return result, nil
 }
 
 // Set sets an access rule with a certain permission level for an account to a path.
@@ -100,7 +218,7 @@ func (s accessRuleService) create(path api.BlindNamePath, permission api.Permiss
 		return nil, errio.Error(err)
 	}
 
-	currentAccessLevel, err := s.client.GetAccessLevel(path, accountName)
+	currentAccessLevel, err := s.client.getAccessLevel(path, accountName)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -177,7 +295,7 @@ func (s accessRuleService) update(path api.BlindNamePath, permission api.Permiss
 
 // GetAccessLevel retrieves the permissions of an account on a directory, defined by
 // one or more access rules on the directory itself or its parent(s).
-func (c *client) GetAccessLevel(path api.BlindNamePath, accountName api.AccountName) (*api.AccessLevel, error) {
+func (c *client) getAccessLevel(path api.BlindNamePath, accountName api.AccountName) (*api.AccessLevel, error) {
 	blindName, err := c.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -194,152 +312,4 @@ func (c *client) GetAccessLevel(path api.BlindNamePath, accountName api.AccountN
 	}
 
 	return accessLevel, nil
-}
-
-// GetAccessRule returns the AccessRule for a path and an accountName, if it exists.
-func (c *client) GetAccessRule(path api.BlindNamePath, accountName api.AccountName) (*api.AccessRule, error) {
-	blindName, err := c.convertPathToBlindName(path)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	err = api.ValidateAccountName(accountName)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	accessRule, err := c.httpClient.GetAccessRule(blindName, accountName)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return accessRule, nil
-}
-
-// ListAccessRules retrieves all access rules that apply to a directory, including
-// rules that apply to its children up to a specified depth. When ancestors is set
-// to true, it also includes rules for any parent directories. When the depth is
-// set to -1, all children are retrieved without limit.
-func (c *client) ListAccessRules(path api.DirPath, depth int, ancestors bool) ([]*api.AccessRule, error) {
-	blindName, err := c.convertPathToBlindName(path)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	rules, err := c.httpClient.ListAccessRules(blindName, depth, ancestors)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return rules, nil
-}
-
-// ListAccessRulesWithPaths retrieves all access rules that apply to a directory,
-// mapped to their respective paths, including rules that apply to its children
-// up to a specified depth. When ancestors is set to true, it also includes rules
-// for any parent directories. When the depth is set to -1, all children are
-// retrieved without limit.
-func (c *client) ListAccessRulesWithPaths(path api.DirPath, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error) {
-	rules, err := c.ListAccessRules(path, depth, ancestors)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	dirFS, err := c.GetDirByBlindName(path, depth, ancestors)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	// Separate all rules into lists of rules per directory.
-	ruleMap := make(map[uuid.UUID][]int)
-	for i, rule := range rules {
-		list := ruleMap[*rule.DirID]
-		ruleMap[*rule.DirID] = append(list, i)
-	}
-
-	// Map the directories to rule lists.
-	result := make(map[api.DirPath][]*api.AccessRule)
-	for dirID, list := range ruleMap {
-		dirPath, err := dirFS.AbsDirPath(&dirID)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		dirRules := make([]*api.AccessRule, len(list))
-		for i, ruleIndex := range list {
-			dirRules[i] = rules[ruleIndex]
-		}
-
-		result[*dirPath] = dirRules
-	}
-
-	return result, nil
-}
-
-// ListAccessLevels determines the access rights of all accounts on a directory,
-// defined by the access rules on the directory itself or on its parent(s).
-func (c *client) ListAccessLevels(path api.DirPath) ([]*api.AccessLevel, error) {
-	blindName, err := c.convertPathToBlindName(path)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	rules, err := c.httpClient.ListAccessRules(blindName, 0, true)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	dir, err := c.GetDirByBlindName(path, 0, false)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	rights := make(map[uuid.UUID][]*api.AccessRule)
-	for _, rule := range rules {
-		list := rights[*rule.AccountID]
-		rights[*rule.AccountID] = append(list, rule)
-	}
-
-	result := make([]*api.AccessLevel, len(rights))
-	i := 0
-	for _, list := range rights {
-		first := list[0]
-		maxPerm := first.Permission
-		for _, rule := range list {
-			if maxPerm < rule.Permission {
-				maxPerm = rule.Permission
-			}
-		}
-
-		result[i] = &api.AccessLevel{
-			Account:    first.Account,
-			AccountID:  first.AccountID,
-			DirID:      dir.RootDir.DirID, // add this for completeness
-			Permission: maxPerm,
-		}
-
-		i++
-	}
-
-	return result, nil
-}
-
-// DeleteAccessRule deletes the AccessRule for a path and an accountName.
-func (c *client) DeleteAccessRule(path api.BlindNamePath, accountName api.AccountName) error {
-	blindName, err := c.convertPathToBlindName(path)
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	err = accountName.Validate()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	err = c.httpClient.DeleteAccessRule(blindName, accountName)
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	return nil
 }
