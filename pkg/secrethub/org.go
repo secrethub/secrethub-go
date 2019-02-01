@@ -24,29 +24,29 @@ type orgService struct {
 }
 
 // Create creates an organization and adds the current account as an admin member.
-func (s *orgService) Create(name api.OrgName, description string) (*api.Org, error) {
+func (s orgService) Create(name api.OrgName, description string) (*api.Org, error) {
 	return s.client.CreateOrg(name.String(), description)
 }
 
 // Delete permanently deletes an organization and all of its resources.
-func (s *orgService) Delete(name api.OrgName) error {
+func (s orgService) Delete(name api.OrgName) error {
 	return s.client.DeleteOrg(name.String())
 }
 
 // Get retrieves an organization.
-func (s *orgService) Get(name api.OrgName) (*api.Org, error) {
+func (s orgService) Get(name api.OrgName) (*api.Org, error) {
 	return s.client.GetOrg(name.String())
 }
 
 // Members returns an OrgMemberService.
-func (s *orgService) Members() OrgMemberService {
+func (s orgService) Members() OrgMemberService {
 	return &orgMemberService{
 		client: s.client,
 	}
 }
 
 // ListMine returns the organizations of the current user.
-func (s *orgService) ListMine() ([]*api.Org, error) {
+func (s orgService) ListMine() ([]*api.Org, error) {
 	return s.client.ListMyOrgs()
 }
 
