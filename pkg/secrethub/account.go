@@ -8,7 +8,7 @@ import (
 
 // AccountService handles operations on SecretHub accounts.
 type AccountService interface {
-	// Get retrieves an account.
+	// Get retrieves an account by name.
 	Get(name api.AccountName) (*api.Account, error)
 	// Keys returns an account key service.
 	Keys() AccountKeyService
@@ -18,9 +18,9 @@ type accountService struct {
 	client client
 }
 
-// Get retrieves an account.
+// Get retrieves an account by name.
 func (s accountService) Get(name api.AccountName) (*api.Account, error) {
-	return s.client.GetAccount(name)
+	return s.client.httpClient.GetAccount(name)
 }
 
 // Keys returns an account key service.
@@ -75,12 +75,6 @@ func (c *client) createCredentialRequest(credential Credential) (*api.CreateCred
 		Verifier:    authData,
 		Type:        credential.Type(),
 	}, nil
-}
-
-// GetAccount returns the account retrieved by name.
-func (c *client) GetAccount(name api.AccountName) (*api.Account, error) {
-	account, err := c.httpClient.GetAccount(name)
-	return account, errio.Error(err)
 }
 
 // getAccountKey attempts to get the account key from the cache,
