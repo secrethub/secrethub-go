@@ -28,88 +28,26 @@ type dirService struct {
 	client client
 }
 
-// GetTree retrieves a directory at a given path.
+// GetTree retrieves a directory tree at a given path. The contents to the given depth
+// are returned. When depth is -1 all contents of the directory are included in the tree.
 func (s dirService) GetTree(path api.DirPath, depth int) (*api.Tree, error) {
-	return s.client.GetDirByBlindName(path, depth, false)
+	return s.getTree(path, depth, false)
 }
 
-// Create creates a directory at a given path.
-func (s dirService) Create(path api.DirPath) (*api.Dir, error) {
-	return s.client.CreateDir(path)
-}
-
-// Delete removes the directory at the given path.
-func (s dirService) Delete(path api.DirPath) error {
-	return s.client.DeleteDir(path)
-}
-
-// CreateDir creates a directory for a repo and optional parent directory.
-func (c *client) CreateDir(dirPath api.DirPath) (*api.Dir, error) {
-	err := dirPath.Validate()
+// getTree retrieves a directory tree at a given path. The contents to the given depth
+// are returned. When depth is -1 all contents of the directory are included in the tree.
+func (s dirService) getTree(path api.DirPath, depth int, ancestors bool) (*api.Tree, error) {
+	blindName, err := s.client.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	parentPath, err := dirPath.GetParentPath()
+	encTree, err := s.client.httpClient.GetTree(blindName, depth, ancestors)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	accounts, err := c.ListDirAccounts(parentPath)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	encryptedNames, err := encryptNameForAccounts(dirPath.GetDirName(), accounts...)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	blindName, err := c.convertPathToBlindName(dirPath)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	parentBlindName, err := c.convertPathToBlindName(parentPath)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	request := &api.CreateDirRequest{
-		BlindName:       blindName,
-		ParentBlindName: parentBlindName,
-
-		EncryptedNames: encryptedNames,
-	}
-
-	encryptedDir, err := c.httpClient.CreateDir(dirPath.GetNamespace(), dirPath.GetRepo(), request)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	accountKey, err := c.getAccountKey()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	dir, err := encryptedDir.Decrypt(accountKey)
-	return dir, errio.Error(err)
-}
-
-// GetDirByBlindName retrieves a directory from the API.
-// This can be RepoPath for a RootDir or a DirPath.
-func (c *client) GetDirByBlindName(path api.DirPath, depth int, ancestors bool) (*api.Tree, error) {
-	blindName, err := c.convertPathToBlindName(path)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	encTree, err := c.httpClient.GetTree(blindName, depth, ancestors)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	accountKey, err := c.getAccountKey()
+	accountKey, err := s.client.getAccountKey()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -135,19 +73,72 @@ func (c *client) GetDirByBlindName(path api.DirPath, depth int, ancestors bool) 
 	return tree, errio.Error(err)
 }
 
-// DeleteDir deletes a directory by a given path.
-func (c *client) DeleteDir(dirPath api.DirPath) error {
-	err := dirPath.Validate()
+// Create creates a directory at a given path.
+func (s dirService) Create(path api.DirPath) (*api.Dir, error) {
+	err := path.Validate()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	parentPath, err := path.GetParentPath()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	accounts, err := s.client.ListDirAccounts(parentPath)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	encryptedNames, err := encryptNameForAccounts(path.GetDirName(), accounts...)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	blindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	parentBlindName, err := s.client.convertPathToBlindName(parentPath)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	request := &api.CreateDirRequest{
+		BlindName:       blindName,
+		ParentBlindName: parentBlindName,
+
+		EncryptedNames: encryptedNames,
+	}
+
+	encryptedDir, err := s.client.httpClient.CreateDir(path.GetNamespace(), path.GetRepo(), request)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	accountKey, err := s.client.getAccountKey()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	dir, err := encryptedDir.Decrypt(accountKey)
+	return dir, errio.Error(err)
+}
+
+// Delete removes the directory at the given path.
+func (s dirService) Delete(path api.DirPath) error {
+	err := path.Validate()
 	if err != nil {
 		return errio.Error(err)
 	}
 
-	dirBlindName, err := c.convertPathToBlindName(dirPath)
+	dirBlindName, err := s.client.convertPathToBlindName(path)
 	if err != nil {
 		return errio.Error(err)
 	}
 
-	err = c.httpClient.DeleteDir(dirBlindName)
+	err = s.client.httpClient.DeleteDir(dirBlindName)
 	if err != nil {
 		return errio.Error(err)
 	}
