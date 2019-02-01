@@ -23,7 +23,7 @@ type serviceService struct {
 }
 
 // Create creates a new service for the given repo.
-func (s *serviceService) Create(path api.RepoPath, description string, credential Credential) (*api.Service, error) {
+func (s serviceService) Create(path api.RepoPath, description string, credential Credential) (*api.Service, error) {
 	accountKey, err := generateAccountKey()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -33,17 +33,17 @@ func (s *serviceService) Create(path api.RepoPath, description string, credentia
 }
 
 // Delete removes a service.
-func (s *serviceService) Delete(id string) (*api.RevokeRepoResponse, error) {
+func (s serviceService) Delete(id string) (*api.RevokeRepoResponse, error) {
 	return s.client.DeleteService(id)
 }
 
 // Get retrieves a service.
-func (s *serviceService) Get(id string) (*api.Service, error) {
+func (s serviceService) Get(id string) (*api.Service, error) {
 	return s.client.GetService(id)
 }
 
 // List is an alias of the RepoServiceService List function.
-func (s *serviceService) List(path api.RepoPath) ([]*api.Service, error) {
+func (s serviceService) List(path api.RepoPath) ([]*api.Service, error) {
 	repoServiceService := &repoServiceService{s.client}
 	return repoServiceService.List(path)
 }
