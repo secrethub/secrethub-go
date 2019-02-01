@@ -60,7 +60,7 @@ func (c *client) createAccountKeyRequest(credential Credential, accountKey *cryp
 }
 
 func (c *client) createCredentialRequest(credential Credential) (*api.CreateCredentialRequest, error) {
-	authID, err := credential.AuthID()
+	fingerprint, err := credential.Fingerprint()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -71,7 +71,7 @@ func (c *client) createCredentialRequest(credential Credential) (*api.CreateCred
 	}
 
 	return &api.CreateCredentialRequest{
-		Fingerprint: authID,
+		Fingerprint: fingerprint,
 		Verifier:    verifier,
 		Type:        credential.Type(),
 	}, nil

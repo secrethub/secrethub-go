@@ -26,7 +26,7 @@ func init() {
 		panic(err)
 	}
 
-	cred1AuthID, err = cred1.AuthID()
+	cred1AuthID, err = cred1.Fingerprint()
 	if err != nil {
 		panic(err)
 	}
