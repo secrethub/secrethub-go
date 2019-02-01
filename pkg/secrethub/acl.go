@@ -28,12 +28,14 @@ type AccessRuleService interface {
 
 func newAccessRuleService(client client) AccessRuleService {
 	return accessRuleService{
-		client: client,
+		client:         client,
+		accountService: newAccountService(client),
 	}
 }
 
 type accessRuleService struct {
-	client client
+	client         client
+	accountService AccountService
 }
 
 // Delete removes the accessrule for the given directory and account.
@@ -67,29 +69,23 @@ func (s accessRuleService) ListLevels(path api.DirPath) ([]*api.AccessLevel, err
 
 // Set sets an access rule with a certain permission level for an account to a path.
 func (s accessRuleService) Set(path api.DirPath, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
-	return s.client.SetAccessRule(path, permission, name)
-}
-
-// SetAccessRule set an AccessRule for an account with a certain permission level.
-// If the AccessRule did not exist, it is created.
-func (c *client) SetAccessRule(path api.BlindNamePath, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
 	err := api.ValidateAccountName(name)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	_, err = c.GetAccessRule(path, name)
+	_, err = s.Get(path, name)
 	if err != nil && err != api.ErrAccessRuleNotFound {
 		return nil, errio.Error(err)
 	} else if err == api.ErrAccessRuleNotFound {
-		return c.CreateAccessRule(path, permission, name)
+		return s.create(path, permission, name)
 	}
-	return c.UpdateAccessRule(path, permission, name)
+	return s.update(path, permission, name)
 }
 
 // CreateAccessRule creates a new AccessRule for an account with a certain permission level.
-func (c *client) CreateAccessRule(path api.BlindNamePath, permission api.Permission, accountName api.AccountName) (*api.AccessRule, error) {
-	blindName, err := c.convertPathToBlindName(path)
+func (s accessRuleService) create(path api.BlindNamePath, permission api.Permission, accountName api.AccountName) (*api.AccessRule, error) {
+	blindName, err := s.client.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -99,12 +95,12 @@ func (c *client) CreateAccessRule(path api.BlindNamePath, permission api.Permiss
 		return nil, errio.Error(err)
 	}
 
-	account, err := c.GetAccount(accountName)
+	account, err := s.accountService.Get(accountName)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	currentAccessLevel, err := c.GetAccessLevel(path, accountName)
+	currentAccessLevel, err := s.client.GetAccessLevel(path, accountName)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -114,12 +110,12 @@ func (c *client) CreateAccessRule(path api.BlindNamePath, permission api.Permiss
 	}
 
 	if currentAccessLevel.Permission < api.PermissionRead {
-		encryptedTree, err := c.httpClient.GetTree(blindName, -1, true)
+		encryptedTree, err := s.client.httpClient.GetTree(blindName, -1, true)
 		if err != nil {
 			return nil, errio.Error(err)
 		}
 
-		accountKey, err := c.getAccountKey()
+		accountKey, err := s.client.getAccountKey()
 		if err != nil {
 			return nil, errio.Error(err)
 		}
@@ -131,7 +127,7 @@ func (c *client) CreateAccessRule(path api.BlindNamePath, permission api.Permiss
 
 		in.EncryptedDirs = make([]api.EncryptedNameForNodeRequest, 0, len(dirs))
 		for _, dir := range dirs {
-			encryptedDirs, err := c.encryptDirFor(dir, account)
+			encryptedDirs, err := s.client.encryptDirFor(dir, account)
 			if err != nil {
 				return nil, errio.Error(err)
 			}
@@ -140,7 +136,7 @@ func (c *client) CreateAccessRule(path api.BlindNamePath, permission api.Permiss
 
 		in.EncryptedSecrets = make([]api.SecretAccessRequest, 0, len(secrets))
 		for _, secret := range secrets {
-			encryptedSecrets, err := c.encryptSecretFor(secret, account)
+			encryptedSecrets, err := s.client.encryptSecretFor(secret, account)
 			if err != nil {
 				return nil, errio.Error(err)
 			}
@@ -154,15 +150,15 @@ func (c *client) CreateAccessRule(path api.BlindNamePath, permission api.Permiss
 		return nil, err
 	}
 
-	accessRule, err := c.httpClient.CreateAccessRule(blindName, accountName, in)
+	accessRule, err := s.client.httpClient.CreateAccessRule(blindName, accountName, in)
 	return accessRule, errio.Error(err)
 
 }
 
 // UpdateAccessRule updates an AccessRule for an account with a certain permission level.
 // It fails if the AccessRule does not already exist.
-func (c *client) UpdateAccessRule(path api.BlindNamePath, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
-	blindName, err := c.convertPathToBlindName(path)
+func (s accessRuleService) update(path api.BlindNamePath, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
+	blindName, err := s.client.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -175,7 +171,7 @@ func (c *client) UpdateAccessRule(path api.BlindNamePath, permission api.Permiss
 	in := &api.UpdateAccessRuleRequest{
 		Permission: permission,
 	}
-	accessRule, err := c.httpClient.UpdateAccessRule(blindName, name, in)
+	accessRule, err := s.client.httpClient.UpdateAccessRule(blindName, name, in)
 	return accessRule, errio.Error(err)
 }
 
