@@ -12,6 +12,12 @@ type RepoUserService interface {
 	Revoke(path api.RepoPath, username string) (*api.RevokeRepoResponse, error)
 }
 
+func newRepoUserService(client client) RepoUserService {
+	return repoUserService{
+		client: client,
+	}
+}
+
 type repoUserService struct {
 	client client
 }

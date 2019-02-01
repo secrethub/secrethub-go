@@ -28,6 +28,12 @@ type RepoService interface {
 	Services() RepoServiceService
 }
 
+func newRepoService(client client) RepoService {
+	return repoService{
+		client: client,
+	}
+}
+
 type repoService struct {
 	client client
 }
@@ -70,12 +76,12 @@ func (s repoService) Create(path api.RepoPath) (*api.Repo, error) {
 
 // Users returns a RepoUserService that handles operations on users of a repository.
 func (s repoService) Users() RepoUserService {
-	return repoUserService(s)
+	return newRepoUserService(s.client)
 }
 
 // Services returns a RepoServiceService that handles operations on services of a repository.
 func (s repoService) Services() RepoServiceService {
-	return repoServiceService(s)
+	return newRepoServiceService(s.client)
 }
 
 // CreateRepo creates a new repo for this owner with the name.

@@ -14,6 +14,12 @@ type AccountService interface {
 	Keys() AccountKeyService
 }
 
+func newAccountService(client client) AccountService {
+	return &accountService{
+		client: client,
+	}
+}
+
 type accountService struct {
 	client client
 }

@@ -8,6 +8,12 @@ type RepoServiceService interface {
 	List(path api.RepoPath) ([]*api.Service, error)
 }
 
+func newRepoServiceService(client client) RepoServiceService {
+	return &repoServiceService{
+		client: client,
+	}
+}
+
 type repoServiceService struct {
 	client client
 }

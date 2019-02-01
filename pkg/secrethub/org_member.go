@@ -16,6 +16,12 @@ type OrgMemberService interface {
 	Update(name api.OrgName, username string, role string) (*api.OrgMember, error)
 }
 
+func newOrgMemberService(client client) OrgMemberService {
+	return orgMemberService{
+		client: client,
+	}
+}
+
 type orgMemberService struct {
 	client client
 }

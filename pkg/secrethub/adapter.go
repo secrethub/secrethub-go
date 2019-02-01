@@ -18,58 +18,42 @@ type clientAdapter struct {
 
 // AccessRules returns an AccessRuleService.
 func (c clientAdapter) AccessRules() AccessRuleService {
-	return &accessRuleService{
-		client: c.client,
-	}
+	return newAccessRuleService(c.client)
 }
 
 // Accounts returns an AccountService.
 func (c clientAdapter) Accounts() AccountService {
-	return &accountService{
-		client: c.client,
-	}
+	return newAccountService(c.client)
 }
 
 // Dirs returns an DirService.
 func (c clientAdapter) Dirs() DirService {
-	return &dirService{
-		client: c.client,
-	}
+	return newDirService(c.client)
 }
 
 // Orgs returns an OrgService.
 func (c clientAdapter) Orgs() OrgService {
-	return &orgService{
-		client: c.client,
-	}
+	return newOrgService(c.client)
 }
 
 // Repos returns an RepoService.
 func (c clientAdapter) Repos() RepoService {
-	return &repoService{
-		client: c.client,
-	}
+	return newRepoService(c.client)
 }
 
 // Secrets returns an SecretService.
 func (c clientAdapter) Secrets() SecretService {
-	return &secretService{
-		client: c.client,
-	}
+	return newSecretService(c.client)
 }
 
 // Services returns an ServiceService.
 func (c clientAdapter) Services() ServiceService {
-	return &serviceService{
-		client: c.client,
-	}
+	return newServiceService(c.client)
 }
 
 // Users returns an UserService.
 func (c clientAdapter) Users() UserService {
-	return &userService{
-		client: c.client,
-	}
+	return newUserService(c.client)
 }
 
 // NewClient creates a new SecretHub client.

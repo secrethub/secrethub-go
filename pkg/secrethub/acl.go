@@ -26,6 +26,12 @@ type AccessRuleService interface {
 	Set(path api.DirPath, permission api.Permission, name api.AccountName) (*api.AccessRule, error)
 }
 
+func newAccessRuleService(client client) AccessRuleService {
+	return accessRuleService{
+		client: client,
+	}
+}
+
 type accessRuleService struct {
 	client client
 }

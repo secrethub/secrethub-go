@@ -16,6 +16,12 @@ type UserService interface {
 	Get(username string) (*api.User, error)
 }
 
+func newUserService(client client) UserService {
+	return userService{
+		client: client,
+	}
+}
+
 type userService struct {
 	client client
 }

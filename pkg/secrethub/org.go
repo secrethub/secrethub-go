@@ -19,6 +19,12 @@ type OrgService interface {
 	ListMine() ([]*api.Org, error)
 }
 
+func newOrgService(client client) OrgService {
+	return orgService{
+		client: client,
+	}
+}
+
 type orgService struct {
 	client client
 }
@@ -40,9 +46,7 @@ func (s orgService) Get(name api.OrgName) (*api.Org, error) {
 
 // Members returns an OrgMemberService.
 func (s orgService) Members() OrgMemberService {
-	return &orgMemberService{
-		client: s.client,
-	}
+	return newOrgMemberService(s.client)
 }
 
 // ListMine returns the organizations of the current user.

@@ -35,6 +35,12 @@ type SecretVersionService interface {
 	ListWithoutData(path api.SecretPath) ([]*api.SecretVersion, error)
 }
 
+func newSecretVersionService(client client) SecretVersionService {
+	return secretVersionService{
+		client: client,
+	}
+}
+
 type secretVersionService struct {
 	client client
 }

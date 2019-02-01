@@ -30,6 +30,12 @@ type SecretService interface {
 	Write(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error)
 }
 
+func newSecretService(client client) SecretService {
+	return secretService{
+		client: client,
+	}
+}
+
 type secretService struct {
 	client client
 }
@@ -67,9 +73,7 @@ func (s secretService) ListEvents(path api.SecretPath, subjectTypes api.AuditSub
 
 // Versions returns a SecretVersionService.
 func (s secretService) Versions() SecretVersionService {
-	return &secretVersionService{
-		client: s.client,
-	}
+	return newSecretVersionService(s.client)
 }
 
 // GetSecret gets a secret by a given path.

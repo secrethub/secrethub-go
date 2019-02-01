@@ -18,6 +18,12 @@ type DirService interface {
 	GetTree(path api.DirPath, depth int) (*api.Tree, error)
 }
 
+func newDirService(client client) DirService {
+	return dirService{
+		client: client,
+	}
+}
+
 type dirService struct {
 	client client
 }
