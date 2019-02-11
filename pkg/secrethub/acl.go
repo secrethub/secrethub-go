@@ -23,7 +23,7 @@ type AccessRuleService interface {
 	// List lists the access levels on the given directory.
 	ListLevels(apth api.DirPath) ([]*api.AccessLevel, error)
 	// Set sets an access rule with a certain permission level for an account to a path.
-	Set(path api.BlindNamePath, permission api.Permission, name api.AccountName) (*api.AccessRule, error)
+	Set(path api.DirPath, permission api.Permission, name api.AccountName) (*api.AccessRule, error)
 }
 
 type accessRuleService struct {
@@ -60,7 +60,7 @@ func (s *accessRuleService) ListLevels(path api.DirPath) ([]*api.AccessLevel, er
 }
 
 // Set sets an access rule with a certain permission level for an account to a path.
-func (s *accessRuleService) Set(path api.BlindNamePath, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
+func (s *accessRuleService) Set(path api.DirPath, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
 	return s.client.SetAccessRule(path, permission, name)
 }
 
