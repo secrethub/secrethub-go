@@ -38,6 +38,10 @@ func (s userService) Create(username, email, fullName string) (*api.User, error)
 		return nil, errio.Error(err)
 	}
 
+	return s.create(username, email, fullName, accountKey)
+}
+
+func (s userService) create(username, email, fullName string, accountKey *crypto.RSAKey) (*api.User, error) {
 	credentialRequest, err := s.client.createCredentialRequest(s.client.credential)
 	if err != nil {
 		return nil, errio.Error(err)
