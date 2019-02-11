@@ -15,7 +15,9 @@ type DirService interface {
 	// When the depth <= 0, there is no limit.
 	// TODO SHDEV-1062: Change this such that 0 returns the Tree without any descendants
 	// and -1 returns the Tree with all descendants.
-	GetTree(path api.DirPath, depth int) (*api.Tree, error)
+	// When ancestors is true, the parent directories of the dir at the given path
+	// will also be included in the tree.
+	GetTree(path api.DirPath, depth int, ancestors bool) (*api.Tree, error)
 }
 
 func newDirService(client client) dirService {
@@ -30,13 +32,9 @@ type dirService struct {
 
 // GetTree retrieves a directory tree at a given path. The contents to the given depth
 // are returned. When depth is -1 all contents of the directory are included in the tree.
-func (s dirService) GetTree(path api.DirPath, depth int) (*api.Tree, error) {
-	return s.getTree(path, depth, false)
-}
-
-// getTree retrieves a directory tree at a given path. The contents to the given depth
-// are returned. When depth is -1 all contents of the directory are included in the tree.
-func (s dirService) getTree(path api.DirPath, depth int, ancestors bool) (*api.Tree, error) {
+// When ancestors is true, the parent directories of the dir at the given path will also
+// be included in the tree.
+func (s dirService) GetTree(path api.DirPath, depth int, ancestors bool) (*api.Tree, error) {
 	blindName, err := s.client.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)
