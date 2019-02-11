@@ -1,6 +1,9 @@
 package secrethub
 
-import "github.com/keylockerbv/secrethub-go/pkg/api"
+import (
+	"github.com/keylockerbv/secrethub-go/pkg/api"
+	"github.com/keylockerbv/secrethub-go/pkg/errio"
+)
 
 // RepoServiceService handles operations on services of repositories.
 type RepoServiceService interface {
@@ -20,5 +23,10 @@ type repoServiceService struct {
 
 // List lists the services of the given repository.
 func (s repoServiceService) List(path api.RepoPath) ([]*api.Service, error) {
-	return s.client.ListRepoServices(path)
+	services, err := s.client.httpClient.ListServices(path.GetNamespaceAndRepoName())
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return services, nil
 }

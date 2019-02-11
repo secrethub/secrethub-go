@@ -5,23 +5,6 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
-// ListAuditEventsRepo retrieves all Audit events for a given repo.
-// If subjectTypes is left empty, the server's default is used.
-func (c *client) ListAuditEventsRepo(repoPath api.RepoPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
-	namespace, repoName := repoPath.GetNamespaceAndRepoName()
-	events, err := c.httpClient.AuditRepo(namespace, repoName, subjectTypes)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	err = c.decryptAuditEvents(events...)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return events, nil
-}
-
 // ListAuditEventsSecret retrieves all Audit events for a given secret.
 // If subjectTypes is left empty, the server's default is used.
 func (c *client) ListAuditEventsSecret(secretPath api.SecretPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
