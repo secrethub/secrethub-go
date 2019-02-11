@@ -111,7 +111,7 @@ func (s secretService) Write(secretPath api.SecretPath, data []byte) (*api.Secre
 		return nil, ErrCannotWriteToVersion
 	}
 
-	key, err := s.client.GetSecretKey(secretPath)
+	key, err := s.client.getSecretKey(secretPath)
 	if err == api.ErrSecretNotFound {
 		return s.client.createSecret(secretPath, data)
 	} else if err == api.ErrNoOKSecretKey {
