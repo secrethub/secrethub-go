@@ -9,6 +9,8 @@ import (
 type SecretService interface {
 	// Delete removes the secret at the given path.
 	Delete(path api.SecretPath) error
+	// Exists returns whether a secret exists on the given path.
+	Exists(path api.SecretPath) (bool, error)
 	// Get retrieves a Secret.
 	Get(path api.SecretPath) (*api.Secret, error)
 	// ListEvents retrieves all audit events for a given secret.
@@ -43,6 +45,17 @@ type secretService struct {
 // Delete removes the secret at the given path.
 func (s secretService) Delete(path api.SecretPath) error {
 	return s.client.DeleteSecret(path)
+}
+
+// Exists returns whether a secret exists on the given path.
+func (s secretService) Exists(path api.SecretPath) (bool, error) {
+	_, err := s.client.GetSecret(path)
+	if err == api.ErrSecretNotFound {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Get retrieves a Secret.
@@ -114,17 +127,6 @@ func (c *client) DeleteSecret(secretPath api.SecretPath) error {
 	}
 
 	return nil
-}
-
-// ExistsSecret checks if a secret already exists on SecretHub.
-func (c *client) ExistsSecret(path api.SecretPath) (bool, error) {
-	_, err := c.GetSecret(path)
-	if err == api.ErrSecretNotFound {
-		return false, nil
-	} else if err != nil {
-		return false, err
-	}
-	return true, nil
 }
 
 // convertsToBlindName will convert a path to a blindname.

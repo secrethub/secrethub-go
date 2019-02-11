@@ -22,6 +22,11 @@ func (s *SecretService) Delete(path api.SecretPath) error {
 	return s.Deleter.Delete(path)
 }
 
+// Exists implements the SecretService interface Exists function.
+func (s *SecretService) Exists(path api.SecretPath) (bool, error) {
+	return false, nil
+}
+
 // Get implements the SecretService interface Get function.
 func (s *SecretService) Get(path api.SecretPath) (*api.Secret, error) {
 	return s.Getter.Get(path)
