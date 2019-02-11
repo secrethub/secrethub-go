@@ -18,7 +18,7 @@ type DirService interface {
 	GetTree(path api.DirPath, depth int) (*api.Tree, error)
 }
 
-func newDirService(client client) DirService {
+func newDirService(client client) dirService {
 	return dirService{
 		client: client,
 	}

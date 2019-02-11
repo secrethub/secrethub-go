@@ -30,12 +30,14 @@ func newAccessRuleService(client client) AccessRuleService {
 	return accessRuleService{
 		client:         client,
 		accountService: newAccountService(client),
+		dirService:     newDirService(client),
 	}
 }
 
 type accessRuleService struct {
 	client         client
 	accountService AccountService
+	dirService     dirService
 }
 
 // Delete removes the accessrule for the given directory and account.
@@ -107,7 +109,7 @@ func (s accessRuleService) ListWithPaths(path api.DirPath, depth int, ancestors 
 		return nil, errio.Error(err)
 	}
 
-	dirFS, err := s.client.GetDirByBlindName(path, depth, ancestors)
+	dirFS, err := s.dirService.getTree(path, depth, ancestors)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -150,7 +152,7 @@ func (s accessRuleService) ListLevels(path api.DirPath) ([]*api.AccessLevel, err
 		return nil, errio.Error(err)
 	}
 
-	dir, err := s.client.GetDirByBlindName(path, 0, false)
+	dir, err := s.dirService.GetTree(path, 0)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
