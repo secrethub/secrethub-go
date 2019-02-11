@@ -115,7 +115,7 @@ func (s secretService) Write(secretPath api.SecretPath, data []byte) (*api.Secre
 	if err == api.ErrSecretNotFound {
 		return s.client.createSecret(secretPath, data)
 	} else if err == api.ErrNoOKSecretKey {
-		key, err = s.client.CreateSecretKey(secretPath)
+		key, err = s.client.createSecretKey(secretPath)
 		if err != nil {
 			return nil, errio.Error(err)
 		}

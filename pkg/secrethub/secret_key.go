@@ -26,8 +26,8 @@ func (c *client) getSecretKey(secretPath api.SecretPath) (*api.SecretKey, error)
 	return encKey.Decrypt(accountKey)
 }
 
-// CreateSecretKey creates a new secret key for a given secret.
-func (c *client) CreateSecretKey(secretPath api.SecretPath) (*api.SecretKey, error) {
+// createSecretKey creates a new secret key for a given secret.
+func (c *client) createSecretKey(secretPath api.SecretPath) (*api.SecretKey, error) {
 	secretKey, err := crypto.GenerateAESKey()
 	if err != nil {
 		return nil, errio.Error(err)

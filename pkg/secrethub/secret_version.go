@@ -135,7 +135,7 @@ func (s secretVersionService) ListWithoutData(path api.SecretPath) ([]*api.Secre
 func (c *client) createSecretVersion(secretPath api.SecretPath, data []byte, secretKey *api.SecretKey) (*api.SecretVersion, error) {
 	var err error
 	if secretKey.Status == api.StatusFlagged {
-		secretKey, err = c.CreateSecretKey(secretPath)
+		secretKey, err = c.createSecretKey(secretPath)
 		if err != nil {
 			return nil, errio.Error(err)
 		}
