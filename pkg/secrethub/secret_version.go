@@ -70,45 +70,6 @@ func (s secretVersionService) ListWithoutData(path api.SecretPath) ([]*api.Secre
 	return s.client.ListSecretVersions(path, false)
 }
 
-// Write encrypts and writes any secret data to SecretHub, always creating
-// a new secret version for the written data. This ensures secret data is
-// never overwritten.
-//
-// To ensure forward secrecy, a new secret key is used whenever the previously
-// used key has been flagged.
-//
-// Write accepts any non-empty byte data that is within the size limit of MaxSecretSize.
-// Note that data is encrypted as is. Sanitizing data is the responsibility of the
-// function caller.
-func (c *client) Write(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error) {
-
-	if len(data) == 0 {
-		return nil, ErrEmptySecret
-	}
-
-	if len(data) > MaxSecretSize {
-		return nil, ErrSecretTooBig
-	}
-
-	if secretPath.HasVersion() {
-		return nil, ErrCannotWriteToVersion
-	}
-
-	key, err := c.GetSecretKey(secretPath)
-	if err == api.ErrSecretNotFound {
-		return c.createSecret(secretPath, data)
-	} else if err == api.ErrNoOKSecretKey {
-		key, err = c.CreateSecretKey(secretPath)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-	} else if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return c.createSecretVersion(secretPath, data, key)
-}
-
 // createSecretVersion creates a new version of an existing secret.
 // It creates a new secret key if the provided key is flagged.
 func (c *client) createSecretVersion(secretPath api.SecretPath, data []byte, secretKey *api.SecretKey) (*api.SecretVersion, error) {
