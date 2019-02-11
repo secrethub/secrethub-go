@@ -37,7 +37,7 @@ func newAccessRuleService(client client) AccessRuleService {
 type accessRuleService struct {
 	client         client
 	accountService AccountService
-	dirService     dirService
+	dirService     DirService
 }
 
 // Delete removes the accessrule for the given directory and account.
