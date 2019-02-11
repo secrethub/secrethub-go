@@ -59,7 +59,12 @@ func (s secretService) Delete(path api.SecretPath) error {
 
 // Exists returns whether a secret exists on the given path.
 func (s secretService) Exists(path api.SecretPath) (bool, error) {
-	_, err := s.Get(path)
+	blindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return false, errio.Error(err)
+	}
+
+	_, err = s.client.httpClient.GetSecret(blindName)
 	if err == api.ErrSecretNotFound {
 		return false, nil
 	} else if err != nil {
