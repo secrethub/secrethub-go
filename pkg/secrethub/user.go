@@ -28,7 +28,7 @@ type userService struct {
 
 // Me gets the account's user if it exists.
 func (s userService) Me() (*api.User, error) {
-	return s.client.GetMyUser()
+	return s.client.httpClient.GetMyUser()
 }
 
 // Create creates a new user at SecretHub.
@@ -38,17 +38,7 @@ func (s userService) Create(username, email, fullName string) (*api.User, error)
 		return nil, errio.Error(err)
 	}
 
-	return s.client.SignupUser(username, email, fullName, accountKey)
-}
-
-// Get retrieves the user with the given username from SecretHub.
-func (s userService) Get(username string) (*api.User, error) {
-	return s.client.GetUser(username)
-}
-
-// SignupUser creates a new user at SecretHub
-func (c *client) SignupUser(username, email, fullName string, accountKey *crypto.RSAKey) (*api.User, error) {
-	credentialRequest, err := c.createCredentialRequest(c.credential)
+	credentialRequest, err := s.client.createCredentialRequest(s.client.credential)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -65,12 +55,12 @@ func (c *client) SignupUser(username, email, fullName string, accountKey *crypto
 		return nil, errio.Error(err)
 	}
 
-	user, err := c.httpClient.SignupUser(userRequest)
+	user, err := s.client.httpClient.SignupUser(userRequest)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	accountKeyResponse, err := c.CreateAccountKey(accountKey)
+	accountKeyResponse, err := s.client.createAccountKey(accountKey)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +70,23 @@ func (c *client) SignupUser(username, email, fullName string, accountKey *crypto
 	return user, nil
 }
 
-// CreateAccountKey adds the account key for the clients credential.
-func (c *client) CreateAccountKey(accountKey *crypto.RSAKey) (*api.EncryptedAccountKey, error) {
+// Get retrieves the user with the given username from SecretHub.
+func (s userService) Get(username string) (*api.User, error) {
+	err := api.ValidateUsername(username)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	user, err := s.client.httpClient.GetUser(username)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return user, nil
+}
+
+// createAccountKey adds the account key for the clients credential.
+func (c *client) createAccountKey(accountKey *crypto.RSAKey) (*api.EncryptedAccountKey, error) {
 	accountKeyRequest, err := c.createAccountKeyRequest(c.credential, accountKey)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -102,24 +107,4 @@ func (c *client) CreateAccountKey(accountKey *crypto.RSAKey) (*api.EncryptedAcco
 		return nil, errio.Error(err)
 	}
 	return result, nil
-}
-
-// GetUser retrieves a user at SecretHub
-func (c *client) GetUser(username string) (*api.User, error) {
-	err := api.ValidateUsername(username)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	user, err := c.httpClient.GetUser(username)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return user, nil
-}
-
-// GetMyUser gets the account's user if it exists.
-func (c *client) GetMyUser() (*api.User, error) {
-	return c.httpClient.GetMyUser()
 }
