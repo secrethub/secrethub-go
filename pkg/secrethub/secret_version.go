@@ -47,27 +47,87 @@ type secretVersionService struct {
 
 // Delete removes a secret version.
 func (s secretVersionService) Delete(path api.SecretPath) error {
-	return s.client.DeleteSecretVersion(path)
+	version, err := path.GetVersion()
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	secretBlindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	err = s.client.httpClient.DeleteSecretVersion(secretBlindName, version)
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	return nil
+}
+
+// get gets a version of a secret. withData specifies whether the encrypted data should be retrieved.
+func (s secretVersionService) get(path api.SecretPath, withData bool) (*api.SecretVersion, error) {
+	blindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	var versionParam string
+	if path.HasVersion() {
+		versionParam, err = path.GetVersion()
+		if err != nil {
+			return nil, errio.Error(err)
+		}
+	} else {
+		versionParam = "latest"
+	}
+
+	encVersion, err := s.client.httpClient.GetSecretVersion(blindName, versionParam, withData)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	accountKey, err := s.client.getAccountKey()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	secretVersion, err := encVersion.Decrypt(accountKey)
+	return secretVersion, errio.Error(err)
 }
 
 // GetWithData gets a secret version, with the sensitive data.
 func (s secretVersionService) GetWithData(path api.SecretPath) (*api.SecretVersion, error) {
-	return s.client.GetSecretVersionWithData(path)
+	return s.get(path, true)
 }
 
 // GetWithoutData gets a secret version, without the sensitive data.
 func (s secretVersionService) GetWithoutData(path api.SecretPath) (*api.SecretVersion, error) {
-	return s.client.GetSecretVersionWithoutData(path)
+	return s.get(path, false)
+}
+
+func (s secretVersionService) list(path api.SecretPath, withData bool) ([]*api.SecretVersion, error) {
+	blindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	versions, err := s.client.httpClient.ListSecretVersions(blindName, withData)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.client.decryptSecretVersions(versions...)
 }
 
 // ListWithData lists secret versions, with the sensitive data.
 func (s secretVersionService) ListWithData(path api.SecretPath) ([]*api.SecretVersion, error) {
-	return s.client.ListSecretVersions(path, true)
+	return s.list(path, true)
 }
 
 // ListWithoutData lists secret versions, without the sensitive data.
 func (s secretVersionService) ListWithoutData(path api.SecretPath) ([]*api.SecretVersion, error) {
-	return s.client.ListSecretVersions(path, false)
+	return s.list(path, false)
 }
 
 // createSecretVersion creates a new version of an existing secret.
@@ -183,101 +243,6 @@ func (c *client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 	}
 
 	return resp.Decrypt(accountKey)
-}
-
-// ListSecretVersions lists all versions of a secret by a given path, ordered oldest first.
-func (c *client) ListSecretVersions(path api.SecretPath, withData bool) ([]*api.SecretVersion, error) {
-	blindName, err := c.convertPathToBlindName(path)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	versions, err := c.httpClient.ListSecretVersions(blindName, withData)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return c.decryptSecretVersions(versions...)
-}
-
-// DeleteSecretVersion deletes a specific version of a secret.
-// If the given version is :latest, it will delete the latest version.
-func (c *client) DeleteSecretVersion(secretPath api.SecretPath) error {
-	version, err := secretPath.GetVersion()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	err = api.ValidateSecretName(secretPath.GetSecret())
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	secretBlindName, err := c.convertPathToBlindName(secretPath)
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	err = c.httpClient.DeleteSecretVersion(secretBlindName, version)
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	return nil
-}
-
-// ExistsSecretVersion checks if a secret version exists on SecretHub.
-func (c *client) ExistsSecretVersion(path api.SecretPath) (bool, error) {
-	_, err := c.GetSecretVersionWithoutData(path)
-	if err == api.ErrSecretVersionNotFound || err == api.ErrSecretNotFound {
-		return false, nil
-	} else if err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
-// GetSecretVersionWithData gets a secret version, with the sensitive data.
-func (c *client) GetSecretVersionWithData(secretPath api.SecretPath) (*api.SecretVersion, error) {
-	return c.GetSecretVersion(secretPath, true)
-}
-
-// GetSecretVersionWithoutData gets a secret version, without the sensitive data.
-// This is useful for inspecting a secret version.
-func (c *client) GetSecretVersionWithoutData(secretPath api.SecretPath) (*api.SecretVersion, error) {
-	return c.GetSecretVersion(secretPath, false)
-}
-
-// GetSecretVersion gets a version of a secret.
-// withData specifies whether the encrypted data should be retrieved.
-func (c *client) GetSecretVersion(path api.SecretPath, withData bool) (*api.SecretVersion, error) {
-	blindName, err := c.convertPathToBlindName(path)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	var versionParam string
-	if path.HasVersion() {
-		versionParam, err = path.GetVersion()
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-	} else {
-		versionParam = "latest"
-	}
-
-	encVersion, err := c.httpClient.GetSecretVersion(blindName, versionParam, withData)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	accountKey, err := c.getAccountKey()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	secretVersion, err := encVersion.Decrypt(accountKey)
-	return secretVersion, errio.Error(err)
 }
 
 // decryptSecretVersions decrypts EncryptedSecretVersions to a list of SecretVersions
