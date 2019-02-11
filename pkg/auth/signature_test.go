@@ -38,7 +38,7 @@ func init() {
 }
 
 func TestVerify(t *testing.T) {
-	fingerprint1, err := clientKey.GetIdentifier()
+	fingerprint1, err := clientKey.Fingerprint()
 	testutil.OK(t, err)
 
 	pub1, err := clientKey.ExportPublicKey()
@@ -158,7 +158,7 @@ func TestSignRequest(t *testing.T) {
 
 	// Arrange
 	key1 := clientKey
-	fingerprint1, err := key1.GetIdentifier()
+	fingerprint1, err := key1.Fingerprint()
 	testutil.OK(t, err)
 	pub1, err := key1.ExportPublicKey()
 	testutil.OK(t, err)
@@ -192,7 +192,7 @@ func TestSignRequest(t *testing.T) {
 			req, err := http.NewRequest("POST", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
 			testutil.OK(t, err)
 
-			fingerprint, err := tc.ClientKey.GetIdentifier()
+			fingerprint, err := tc.ClientKey.Fingerprint()
 			testutil.OK(t, err)
 
 			fakeCredentialGetter := fakeCredentialGetter{
@@ -245,7 +245,7 @@ func TestSignRequest_CheckHeadersAreSet(t *testing.T) {
 func TestReplayRequest(t *testing.T) {
 
 	// Arrange
-	fingerprint, err := clientKey.GetIdentifier()
+	fingerprint, err := clientKey.Fingerprint()
 	testutil.OK(t, err)
 	pub, err := clientKey.ExportPublicKey()
 	testutil.OK(t, err)

@@ -260,7 +260,7 @@ func (c RSACredential) AddAuthentication(r *http.Request) error {
 
 // Fingerprint returns the key identifier by which the server can identify the credential.
 func (c RSACredential) Fingerprint() (string, error) {
-	return c.RSAKey.GetIdentifier()
+	return c.RSAKey.Fingerprint()
 }
 
 // Verifier returns the public key to be stored server side to verify an http request authenticated with this credential.

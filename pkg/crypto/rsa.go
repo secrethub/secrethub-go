@@ -190,16 +190,6 @@ func GenerateServiceKey() (*RSAKey, error) {
 	return privateKey, nil
 }
 
-// GetIdentifier returns the identifier in the format RSA$<fingerprint> of this client key
-func (k *RSAKey) GetIdentifier() (string, error) {
-	fp, err := k.Fingerprint()
-	if err != nil {
-		return "", errio.Error(err)
-	}
-
-	return fp, nil
-}
-
 // Fingerprint returns the SHA256 fingerprint of the public key
 func (k *RSAKey) Fingerprint() (string, error) {
 	pub, err := k.ExportPublicKey()

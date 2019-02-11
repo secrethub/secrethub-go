@@ -117,7 +117,7 @@ func (c CredentialSignature) AddAuthentication(r *http.Request) error {
 
 	base64EncodedSignature := base64.StdEncoding.EncodeToString(signature)
 
-	identifier, err := c.key.GetIdentifier()
+	fingerprint, err := c.key.Fingerprint()
 	if err != nil {
 		return errio.Error(err)
 	}
@@ -125,7 +125,7 @@ func (c CredentialSignature) AddAuthentication(r *http.Request) error {
 	r.Header.Set("Authorization",
 		fmt.Sprintf("%s %s:%s",
 			MethodTagSignature,
-			identifier,
+			fingerprint,
 			base64EncodedSignature))
 
 	return nil
