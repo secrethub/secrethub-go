@@ -21,7 +21,7 @@ type AccessRuleService interface {
 	// retrieved without limit.
 	ListWithPaths(path api.DirPath, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error)
 	// ListLevels lists the access levels on the given directory.
-	ListLevels(apth api.DirPath) ([]*api.AccessLevel, error)
+	ListLevels(path api.DirPath) ([]*api.AccessLevel, error)
 	// Set sets an access rule with a certain permission level for an account to a path.
 	Set(path api.DirPath, permission api.Permission, name api.AccountName) (*api.AccessRule, error)
 }
