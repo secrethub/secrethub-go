@@ -129,7 +129,22 @@ func (s secretService) Write(secretPath api.SecretPath, data []byte) (*api.Secre
 // ListEvents retrieves all audit events for a given secret.
 // If subjectTypes is left empty, the server's default is used.
 func (s secretService) ListEvents(path api.SecretPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
-	return s.client.ListAuditEventsSecret(path, subjectTypes)
+	blindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	events, err := s.client.httpClient.AuditSecret(blindName, subjectTypes)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = s.client.decryptAuditEvents(events...)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return events, nil
 }
 
 // Versions returns a SecretVersionService.
