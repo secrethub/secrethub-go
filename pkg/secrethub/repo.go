@@ -179,12 +179,6 @@ func (s repoService) Services() RepoServiceService {
 	return newRepoServiceService(s.client)
 }
 
-// GetRepoUser retrieves a User if it has access to a repo.
-func (c *client) GetRepoUser(repoPath api.RepoPath, username string) (*api.User, error) {
-	user, err := c.httpClient.GetRepoUser(repoPath.GetNamespace(), repoPath.GetRepo(), username)
-	return user, errio.Error(err)
-}
-
 // Creates a new RepoMemberRequests for a given account.
 func (c *client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey []byte) (*api.CreateRepoMemberRequest, error) {
 	repoKey, err := c.httpClient.GetRepoKeys(repoPath.GetNamespaceAndRepoName())
