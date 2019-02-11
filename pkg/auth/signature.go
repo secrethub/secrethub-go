@@ -289,8 +289,8 @@ func (m methodSignatureCommon) Verify(r *http.Request) (*Result, error) {
 	}
 
 	return &Result{
-		AccountID: accountKey.AccountID,
-		AuthID:    accountKey.Fingerprint,
+		AccountID:   accountKey.AccountID,
+		Fingerprint: accountKey.Fingerprint,
 	}, nil
 }
 

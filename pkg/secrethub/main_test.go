@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	cred1          RSACredential
-	cred1PublicKey []byte
-	cred1AuthID    string
-	cred1Verifier  []byte
+	cred1            RSACredential
+	cred1PublicKey   []byte
+	cred1Fingerprint string
+	cred1Verifier    []byte
 )
 
 func init() {
@@ -26,7 +26,7 @@ func init() {
 		panic(err)
 	}
 
-	cred1AuthID, err = cred1.Fingerprint()
+	cred1Fingerprint, err = cred1.Fingerprint()
 	if err != nil {
 		panic(err)
 	}

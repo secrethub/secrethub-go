@@ -33,7 +33,7 @@ func TestSignup(t *testing.T) {
 		Email:    email,
 		Credential: &api.CreateCredentialRequest{
 			Type:        api.CredentialTypeRSA,
-			Fingerprint: cred1AuthID,
+			Fingerprint: cred1Fingerprint,
 			Verifier:    cred1Verifier,
 		},
 	}
@@ -69,7 +69,7 @@ func TestSignup(t *testing.T) {
 	publicAccountKey, err := accountKey.ExportPublicKey()
 	testutil.OK(t, err)
 
-	router.Post(fmt.Sprintf("/me/credentials/%s/key", cred1AuthID), func(w http.ResponseWriter, r *http.Request) {
+	router.Post(fmt.Sprintf("/me/credentials/%s/key", cred1Fingerprint), func(w http.ResponseWriter, r *http.Request) {
 		// Assert
 		req := new(api.CreateAccountKeyRequest)
 		err := json.NewDecoder(r.Body).Decode(&req)

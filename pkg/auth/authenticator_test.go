@@ -16,7 +16,7 @@ func TestVerifyMultipleMethods(t *testing.T) {
 
 	// Arrange
 	key := clientKey
-	authID, err := key.GetIdentifier()
+	fingerprint, err := key.GetIdentifier()
 	testutil.OK(t, err)
 	pub, err := key.ExportPublicKey()
 	testutil.OK(t, err)
@@ -25,7 +25,7 @@ func TestVerifyMultipleMethods(t *testing.T) {
 		GetFunc: func(arg string) (*api.Credential, error) {
 			return &api.Credential{
 				AccountID:   uuid.New(),
-				Fingerprint: authID,
+				Fingerprint: fingerprint,
 				Verifier:    pub,
 			}, nil
 		},
@@ -37,7 +37,7 @@ func TestVerifyMultipleMethods(t *testing.T) {
 	}{
 		"success": {
 			Credential: auth.NewCredentialSignature(key),
-			Expected:   authID,
+			Expected:   fingerprint,
 		},
 	}
 
@@ -60,7 +60,7 @@ func TestVerifyMultipleMethods(t *testing.T) {
 			// Assert
 			testutil.OK(t, err)
 
-			testutil.Compare(t, actual.AuthID, tc.Expected)
+			testutil.Compare(t, actual.Fingerprint, tc.Expected)
 		})
 	}
 }
