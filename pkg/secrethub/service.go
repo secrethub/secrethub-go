@@ -95,6 +95,6 @@ func (s serviceService) Get(id string) (*api.Service, error) {
 
 // List is an alias of the RepoServiceService List function.
 func (s serviceService) List(path api.RepoPath) ([]*api.Service, error) {
-	repoServiceService := &repoServiceService{s.client}
+	repoServiceService := newRepoServiceService(s.client)
 	return repoServiceService.List(path)
 }
