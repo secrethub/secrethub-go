@@ -501,24 +501,39 @@ func joinPath(path, name string) string {
 
 // OrgName
 
-// OrgName is the name of an organization.
-type OrgName Namespace
-
-// Set implements the flag.Value interface and validates the value.
-func (n *OrgName) Set(value string) error {
-	err := ValidateOrgName(value)
+// NewOrgName validates an organizations name.
+func NewOrgName(name string) (OrgName, error) {
+	err := ValidateOrgName(name)
 	if err != nil {
-		return errio.Error(err)
+		return orgName{}, errio.Error(err)
 	}
-	*n = OrgName(value)
-	return nil
+
+	return orgName{
+		namespace: Namespace(name),
+	}, nil
 }
 
-func (n OrgName) String() string {
-	return string(n)
+// OrgName is the name of an organization.
+type OrgName interface {
+	String() string
+	Namespace() Namespace
+	// sealed ensures no additional implementations of the interface can be created.
+	sealed()
+}
+
+// orgName is the name of an organization.
+type orgName struct {
+	namespace Namespace
+}
+
+func (n orgName) String() string {
+	return n.namespace.String()
 }
 
 // Namespace returns the OrgName as a Namespace.
-func (n OrgName) Namespace() Namespace {
-	return Namespace(n)
+func (n orgName) Namespace() Namespace {
+	return n.namespace
 }
+
+// sealed ensures no additional implementations of the OrgName interface can be created.
+func (n orgName) sealed() {}
