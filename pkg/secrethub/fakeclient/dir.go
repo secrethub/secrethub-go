@@ -24,7 +24,7 @@ func (s *DirService) Delete(path api.DirPath) error {
 }
 
 // GetTree implements the DirService interface GetTree function.
-func (s *DirService) GetTree(path api.DirPath, depth int) (*api.Tree, error) {
+func (s *DirService) GetTree(path api.DirPath, depth int, ancestors bool) (*api.Tree, error) {
 	return s.TreeGetter.GetTree(path, depth)
 }
 
