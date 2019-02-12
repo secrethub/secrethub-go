@@ -38,7 +38,7 @@ func init() {
 }
 
 func TestVerify(t *testing.T) {
-	authID1, err := clientKey.GetIdentifier()
+	fingerprint1, err := clientKey.Fingerprint()
 	testutil.OK(t, err)
 
 	pub1, err := clientKey.ExportPublicKey()
@@ -46,7 +46,7 @@ func TestVerify(t *testing.T) {
 
 	key1 := &api.Credential{
 		AccountID:   uuid.New(),
-		Fingerprint: authID1,
+		Fingerprint: fingerprint1,
 		Verifier:    pub1,
 	}
 
@@ -93,7 +93,7 @@ func TestVerify(t *testing.T) {
 			Date:          time.Now().Format(time.RFC1123),
 			Err:           auth.ErrMalformedSignature,
 		},
-		"authID_not_found": {
+		"fingerprint_not_found": {
 			Authorization: fmt.Sprintf("secrethub-sig-v1 %s:%s", key1.Fingerprint, base64.StdEncoding.EncodeToString([]byte("some_signature"))),
 			Date:          time.Now().Format(time.RFC1123),
 			GetErr:        api.ErrCredentialNotFound,
@@ -134,7 +134,7 @@ func TestVerify(t *testing.T) {
 			req.Header.Set("Date", tc.Date)
 
 			fakeCredentialGetter := fakeCredentialGetter{
-				GetFunc: func(authID string) (*api.Credential, error) {
+				GetFunc: func(fingerprint string) (*api.Credential, error) {
 					return tc.Credential, tc.GetErr
 				},
 			}
@@ -158,7 +158,7 @@ func TestSignRequest(t *testing.T) {
 
 	// Arrange
 	key1 := clientKey
-	authID1, err := key1.GetIdentifier()
+	fingerprint1, err := key1.Fingerprint()
 	testutil.OK(t, err)
 	pub1, err := key1.ExportPublicKey()
 	testutil.OK(t, err)
@@ -168,16 +168,16 @@ func TestSignRequest(t *testing.T) {
 	testutil.OK(t, err)
 
 	cases := map[string]struct {
-		ClientKey      *crypto.RSAKey
-		StoredPub      []byte
-		ExpectedAuthID string
-		Err            error
+		ClientKey           *crypto.RSAKey
+		StoredPub           []byte
+		ExpectedFingerprint string
+		Err                 error
 	}{
 		"valid": {
-			ClientKey:      key1,
-			StoredPub:      pub1,
-			ExpectedAuthID: authID1,
-			Err:            nil,
+			ClientKey:           key1,
+			StoredPub:           pub1,
+			ExpectedFingerprint: fingerprint1,
+			Err:                 nil,
 		},
 		"pub_does_not_match_client_key": {
 			ClientKey: key1,
@@ -192,14 +192,14 @@ func TestSignRequest(t *testing.T) {
 			req, err := http.NewRequest("POST", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
 			testutil.OK(t, err)
 
-			authID, err := tc.ClientKey.GetIdentifier()
+			fingerprint, err := tc.ClientKey.Fingerprint()
 			testutil.OK(t, err)
 
 			fakeCredentialGetter := fakeCredentialGetter{
 				GetFunc: func(arg string) (*api.Credential, error) {
 					return &api.Credential{
 						AccountID:   uuid.New(),
-						Fingerprint: authID,
+						Fingerprint: fingerprint,
 						Verifier:    tc.StoredPub,
 					}, nil
 				},
@@ -216,7 +216,7 @@ func TestSignRequest(t *testing.T) {
 			// Assert
 			testutil.Compare(t, err, tc.Err)
 			if err == nil {
-				testutil.Compare(t, actual.AuthID, tc.ExpectedAuthID)
+				testutil.Compare(t, actual.Fingerprint, tc.ExpectedFingerprint)
 			}
 		})
 	}
@@ -245,7 +245,7 @@ func TestSignRequest_CheckHeadersAreSet(t *testing.T) {
 func TestReplayRequest(t *testing.T) {
 
 	// Arrange
-	authID, err := clientKey.GetIdentifier()
+	fingerprint, err := clientKey.Fingerprint()
 	testutil.OK(t, err)
 	pub, err := clientKey.ExportPublicKey()
 	testutil.OK(t, err)
@@ -254,7 +254,7 @@ func TestReplayRequest(t *testing.T) {
 		GetFunc: func(arg string) (*api.Credential, error) {
 			return &api.Credential{
 				AccountID:   uuid.New(),
-				Fingerprint: authID,
+				Fingerprint: fingerprint,
 				Verifier:    pub,
 			}, nil
 		},

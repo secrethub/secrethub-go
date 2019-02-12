@@ -60,19 +60,19 @@ func (c *client) createAccountKeyRequest(credential Credential, accountKey *cryp
 }
 
 func (c *client) createCredentialRequest(credential Credential) (*api.CreateCredentialRequest, error) {
-	authID, err := credential.AuthID()
+	fingerprint, err := credential.Fingerprint()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	authData, err := credential.AuthData()
+	verifier, err := credential.Verifier()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
 	return &api.CreateCredentialRequest{
-		Fingerprint: authID,
-		Verifier:    authData,
+		Fingerprint: fingerprint,
+		Verifier:    verifier,
 		Type:        credential.Type(),
 	}, nil
 }
