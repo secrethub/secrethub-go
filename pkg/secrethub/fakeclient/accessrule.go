@@ -11,7 +11,7 @@ type AccessRuleService struct {
 	ListLevelsFunc    func(path api.DirPath) ([]*api.AccessLevel, error)
 	ListFunc          func(path api.DirPath, depth int, ancestors bool) ([]*api.AccessRule, error)
 	ListWithPathsFunc func(path api.DirPath, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error)
-	SetFunc           func(path api.BlindNamePath, permission api.Permission, name api.AccountName) (*api.AccessRule, error)
+	SetFunc           func(path api.DirPath, permission api.Permission, name api.AccountName) (*api.AccessRule, error)
 }
 
 // Delete implements the AccessRuleService interface Delete function.
@@ -40,6 +40,6 @@ func (s AccessRuleService) ListWithPaths(path api.DirPath, depth int, ancestors 
 }
 
 // Set implements the AccessRuleService interface Set function.
-func (s AccessRuleService) Set(path api.BlindNamePath, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
+func (s AccessRuleService) Set(path api.DirPath, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
 	return s.SetFunc(path, permission, name)
 }

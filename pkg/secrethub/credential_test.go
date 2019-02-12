@@ -63,8 +63,7 @@ func TestPassphraseArmoring(t *testing.T) {
 // works correctly.
 func RunCredentialInterfaceTest(t *testing.T, credential Credential) {
 	t.Run("encoding", func(t *testing.T) {
-		exported, err := credential.Export()
-		testutil.OK(t, err)
+		exported := credential.Export()
 
 		decoder := credential.Decoder()
 		actual, err := decoder.Decode(exported)
@@ -96,7 +95,7 @@ func RunCredentialInterfaceTest(t *testing.T, credential Credential) {
 
 func TestRSACredential(t *testing.T) {
 
-	credential, err := GenerateRSACredential(1024)
+	credential, err := generateRSACredential(1024)
 	testutil.OK(t, err)
 
 	RunCredentialInterfaceTest(t, credential)
@@ -105,11 +104,10 @@ func TestRSACredential(t *testing.T) {
 func TestParser(t *testing.T) {
 
 	// Arrange
-	credential, err := GenerateRSACredential(1024)
+	credential, err := generateRSACredential(1024)
 	testutil.OK(t, err)
 
-	payload, err := credential.Export()
-	testutil.OK(t, err)
+	payload := credential.Export()
 
 	header := map[string]interface{}{
 		"type": credential.Decoder().Name(),
@@ -245,7 +243,7 @@ func TestParser(t *testing.T) {
 func TestEncodeCredential(t *testing.T) {
 
 	// Arrange
-	cred, err := GenerateRSACredential(1024)
+	cred, err := generateRSACredential(1024)
 	testutil.OK(t, err)
 
 	parser := NewCredentialParser(DefaultCredentialDecoders)
@@ -267,7 +265,7 @@ func TestEncodeCredential(t *testing.T) {
 func TestEncodeArmoredCredential(t *testing.T) {
 
 	// Arrange
-	cred, err := GenerateRSACredential(1024)
+	cred, err := generateRSACredential(1024)
 	testutil.OK(t, err)
 
 	parser := NewCredentialParser(DefaultCredentialDecoders)

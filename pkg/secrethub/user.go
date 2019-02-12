@@ -86,7 +86,7 @@ func (c *client) CreateAccountKey(accountKey *crypto.RSAKey) (*api.EncryptedAcco
 		return nil, err
 	}
 
-	fingerprint, err := c.credential.AuthID()
+	fingerprint, err := c.credential.Fingerprint()
 	if err != nil {
 		return nil, err
 	}

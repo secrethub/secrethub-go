@@ -20,8 +20,8 @@ type Credential interface {
 
 // Result is the result object returned on an Authenticate method call.
 type Result struct {
-	AccountID *uuid.UUID
-	AuthID    string
+	AccountID   *uuid.UUID
+	Fingerprint string
 }
 
 // Authenticator can authenticate an account from an http request.

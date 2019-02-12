@@ -1,11 +1,5 @@
 image: golang:latest
 
-format:
-  stage: test
-  script:
-    - make format-tools
-    - make format
-
 lint:
   stage: test
   variables:

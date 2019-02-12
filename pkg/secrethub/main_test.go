@@ -8,15 +8,15 @@ import (
 )
 
 var (
-	cred1          RSACredential
-	cred1PublicKey []byte
-	cred1AuthID    string
-	cred1AuthData  []byte
+	cred1            RSACredential
+	cred1PublicKey   []byte
+	cred1Fingerprint string
+	cred1Verifier    []byte
 )
 
 func init() {
 	var err error
-	cred1, err = GenerateRSACredential(1024)
+	cred1, err = generateRSACredential(1024)
 	if err != nil {
 		panic(err)
 	}
@@ -26,12 +26,12 @@ func init() {
 		panic(err)
 	}
 
-	cred1AuthID, err = cred1.AuthID()
+	cred1Fingerprint, err = cred1.Fingerprint()
 	if err != nil {
 		panic(err)
 	}
 
-	cred1AuthData, err = cred1.AuthData()
+	cred1Verifier, err = cred1.Verifier()
 	if err != nil {
 		panic(err)
 	}

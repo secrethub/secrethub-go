@@ -2,6 +2,7 @@ package auth
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/base64"
 	"io/ioutil"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 	"fmt"
 
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto/hashing"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
@@ -117,7 +117,7 @@ func (c CredentialSignature) AddAuthentication(r *http.Request) error {
 
 	base64EncodedSignature := base64.StdEncoding.EncodeToString(signature)
 
-	identifier, err := c.key.GetIdentifier()
+	fingerprint, err := c.key.Fingerprint()
 	if err != nil {
 		return errio.Error(err)
 	}
@@ -125,7 +125,7 @@ func (c CredentialSignature) AddAuthentication(r *http.Request) error {
 	r.Header.Set("Authorization",
 		fmt.Sprintf("%s %s:%s",
 			MethodTagSignature,
-			identifier,
+			fingerprint,
 			base64EncodedSignature))
 
 	return nil
@@ -186,9 +186,10 @@ func getMessage(r *http.Request) ([]byte, error) {
 		// Restore the body to its original state so that it can be read again.
 		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
-		hashedBody := hashing.Sum(body)
+		sum := sha256.Sum256(body)
+		encoded := base64.StdEncoding.EncodeToString(sum[:])
 
-		result.WriteString(fmt.Sprintf("%s\n", hashedBody.Base64()))
+		result.WriteString(fmt.Sprintf("%s\n", encoded))
 	}
 	// Date \n
 	requestTime, err := time.Parse(time.RFC1123, r.Header.Get("Date"))
@@ -288,8 +289,8 @@ func (m methodSignatureCommon) Verify(r *http.Request) (*Result, error) {
 	}
 
 	return &Result{
-		AccountID: accountKey.AccountID,
-		AuthID:    accountKey.Fingerprint,
+		AccountID:   accountKey.AccountID,
+		Fingerprint: accountKey.Fingerprint,
 	}, nil
 }
 

@@ -28,11 +28,6 @@ var (
 	ErrInvalidKey                        = errClient.Code("invalid_key").Error("the given key is not valid for the encryption algorithm")
 )
 
-const (
-	// DefaultRSACredentialKeyLength defines the recommended key length for RSACredentials.
-	DefaultRSACredentialKeyLength = 4098
-)
-
 var (
 	// DefaultCredentialDecoders defines the default list of supported decoders.
 	DefaultCredentialDecoders = []CredentialDecoder{RSAPrivateKeyDecoder{}}
@@ -43,16 +38,16 @@ var (
 // Credential can be used to encrypt and decrypt data and to authenticate http requests.
 type Credential interface {
 	auth.Credential
-	// AuthID returns an identifier by which the server can identify the credential, e.g. a username of a fingerprint.
-	AuthID() (string, error)
-	// AuthData returns the data to be stored server side to verify an http request authenticated with this credential.
-	AuthData() ([]byte, error)
+	// Fingerprint returns an identifier by which the server can identify the credential, e.g. a username of a fingerprint.
+	Fingerprint() (string, error)
+	// Verifier returns the data to be stored server side to verify an http request authenticated with this credential.
+	Verifier() ([]byte, error)
 	// Wrap encrypts data, typically an account key.
 	Wrap(plaintext []byte) (crypto.Ciphertext, error)
 	// Unwrap decrypts data, typically an account key.
 	Unwrap(ciphertext crypto.Ciphertext) ([]byte, error)
 	// Export exports the credential in a format that can be decoded by its Decoder.
-	Export() ([]byte, error)
+	Export() []byte
 	// Decoder returns a decoder that can decode an exported key back into a Credential.
 	Decoder() CredentialDecoder
 	// Type returns what type of credential this is.
@@ -116,20 +111,14 @@ func (c EncodedCredential) IsEncrypted() bool {
 
 // EncodeCredential encodes a Credential as a one line string that can be transferred.
 func EncodeCredential(credential Credential) (string, error) {
-	cred, err := newEncodedCredential(credential)
-	if err != nil {
-		return "", errio.Error(err)
-	}
+	cred := newEncodedCredential(credential)
 
 	return encodeCredentialPartsToString(cred.Header, cred.Payload)
 }
 
 // EncodeArmoredCredential armors and encodes a Credential as a one line string token that can be transferred.
 func EncodeArmoredCredential(credential Credential, armorer Armorer) (string, error) {
-	cred, err := newEncodedCredential(credential)
-	if err != nil {
-		return "", errio.Error(err)
-	}
+	cred := newEncodedCredential(credential)
 
 	// Set the `enc` header so it can be used to decrypt later.
 	cred.Header["enc"] = armorer.Name()
@@ -147,21 +136,16 @@ func EncodeArmoredCredential(credential Credential, armorer Armorer) (string, er
 }
 
 // newEncodedCredential creates exports and encodes a credential in the payload.
-func newEncodedCredential(credential Credential) (*EncodedCredential, error) {
-	payload, err := credential.Export()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
+func newEncodedCredential(credential Credential) *EncodedCredential {
 	decoder := credential.Decoder()
 
 	return &EncodedCredential{
 		Header: map[string]interface{}{
 			"type": decoder.Name(),
 		},
-		Payload: payload,
+		Payload: credential.Export(),
 		Decoder: decoder,
-	}, nil
+	}
 }
 
 // encodeCredentialPartsToString encodes an header and payload in a format string: header.payload
@@ -252,8 +236,13 @@ type RSACredential struct {
 	*crypto.RSAKey
 }
 
-// GenerateRSACredential generates a new RSA credential.
-func GenerateRSACredential(keyLength int) (RSACredential, error) {
+// GenerateCredential generates a new credential to be used to
+// authenticate the account and to decrypt the account key.
+func GenerateCredential() (Credential, error) {
+	return generateRSACredential(crypto.ExternalKeyLength)
+}
+
+func generateRSACredential(keyLength int) (RSACredential, error) {
 	key, err := crypto.GenerateRSAKey(keyLength)
 	if err != nil {
 		return RSACredential{}, errio.Error(err)
@@ -269,13 +258,13 @@ func (c RSACredential) AddAuthentication(r *http.Request) error {
 	return auth.NewCredentialSignature(c.RSAKey).AddAuthentication(r)
 }
 
-// AuthID returns the key identifier by which the server can identify the credential.
-func (c RSACredential) AuthID() (string, error) {
-	return c.RSAKey.GetIdentifier()
+// Fingerprint returns the key identifier by which the server can identify the credential.
+func (c RSACredential) Fingerprint() (string, error) {
+	return c.RSAKey.Fingerprint()
 }
 
-// AuthData returns the public key to be stored server side to verify an http request authenticated with this credential.
-func (c RSACredential) AuthData() ([]byte, error) {
+// Verifier returns the public key to be stored server side to verify an http request authenticated with this credential.
+func (c RSACredential) Verifier() ([]byte, error) {
 	return c.RSAKey.ExportPublicKey()
 }
 
