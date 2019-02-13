@@ -34,8 +34,7 @@ import (
 )
 
 // Setup
-encodedCredential, err := secrethub.DefaultCredentialParser().Parse("<my credential>")
-credential, err := encodedCredential.Decode()
+credential, err := secrethub.DefaultCredentialParser().ParseAndDecode("<my credential>")
 client := secrethub.NewClient(credential, nil) // the second parameter can be used to override default options, e.g. to use a different backend for mocking.
 
 // Write

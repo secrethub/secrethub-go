@@ -231,6 +231,16 @@ func (p Parser) Parse(raw string) (*EncodedCredential, error) {
 	return cred, nil
 }
 
+// ParseAndDecode parses and decodes a credential string.
+func (p Parser) ParseAndDecode(raw string) (Credential, error) {
+	encodedCredential, err := p.Parse(raw)
+	if err != nil {
+		return nil, err
+	}
+
+	return encodedCredential.Decode()
+}
+
 // DefaultCredentialParser returns a new credential parser for
 // credentials that are encoded with the default encoding.
 func DefaultCredentialParser() Parser {
