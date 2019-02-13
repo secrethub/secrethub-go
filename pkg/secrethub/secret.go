@@ -9,6 +9,8 @@ import (
 type SecretService interface {
 	// Delete removes the secret at the given path.
 	Delete(path api.SecretPath) error
+	// Exists returns whether a secret exists on the given path.
+	Exists(path api.SecretPath) (bool, error)
 	// Get retrieves a Secret.
 	Get(path api.SecretPath) (*api.Secret, error)
 	// ListEvents retrieves all audit events for a given secret.
@@ -30,18 +32,65 @@ type SecretService interface {
 	Write(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error)
 }
 
+func newSecretService(client client) SecretService {
+	return secretService{
+		client: client,
+	}
+}
+
 type secretService struct {
 	client client
 }
 
 // Delete removes the secret at the given path.
-func (s *secretService) Delete(path api.SecretPath) error {
-	return s.client.DeleteSecret(path)
+func (s secretService) Delete(path api.SecretPath) error {
+	secretBlindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	err = s.client.httpClient.DeleteSecret(secretBlindName)
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	return nil
+}
+
+// Exists returns whether a secret exists on the given path.
+func (s secretService) Exists(path api.SecretPath) (bool, error) {
+	blindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return false, errio.Error(err)
+	}
+
+	_, err = s.client.httpClient.GetSecret(blindName)
+	if err == api.ErrSecretNotFound {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Get retrieves a Secret.
-func (s *secretService) Get(path api.SecretPath) (*api.Secret, error) {
-	return s.client.GetSecret(path)
+func (s secretService) Get(path api.SecretPath) (*api.Secret, error) {
+	blindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	encSecret, err := s.client.httpClient.GetSecret(blindName)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	accountKey, err := s.client.getAccountKey()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return encSecret.Decrypt(accountKey)
 }
 
 // Write encrypts and writes any secret data to SecretHub, always creating
@@ -54,73 +103,58 @@ func (s *secretService) Get(path api.SecretPath) (*api.Secret, error) {
 // Write accepts any non-empty byte data that is within the size limit of MaxSecretSize.
 // Note that data is encrypted as is. Sanitizing data is the responsibility of the
 // function caller.
-// TODO SHDEV-1027 Move client implementation here.
-func (s *secretService) Write(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error) {
-	return s.client.Write(secretPath, data)
+func (s secretService) Write(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error) {
+	if len(data) == 0 {
+		return nil, ErrEmptySecret
+	}
+
+	if len(data) > MaxSecretSize {
+		return nil, ErrSecretTooBig
+	}
+
+	if secretPath.HasVersion() {
+		return nil, ErrCannotWriteToVersion
+	}
+
+	key, err := s.client.getSecretKey(secretPath)
+	if err == api.ErrSecretNotFound {
+		return s.client.createSecret(secretPath, data)
+	} else if err == api.ErrNoOKSecretKey {
+		key, err = s.client.createSecretKey(secretPath)
+		if err != nil {
+			return nil, errio.Error(err)
+		}
+	} else if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.client.createSecretVersion(secretPath, data, key)
 }
 
 // ListEvents retrieves all audit events for a given secret.
 // If subjectTypes is left empty, the server's default is used.
-func (s *secretService) ListEvents(path api.SecretPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
-	return s.client.ListAuditEventsSecret(path, subjectTypes)
+func (s secretService) ListEvents(path api.SecretPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+	blindName, err := s.client.convertPathToBlindName(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	events, err := s.client.httpClient.AuditSecret(blindName, subjectTypes)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = s.client.decryptAuditEvents(events...)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return events, nil
 }
 
 // Versions returns a SecretVersionService.
-func (s *secretService) Versions() SecretVersionService {
-	return &secretVersionService{
-		client: s.client,
-	}
-}
-
-// GetSecret gets a secret by a given path.
-func (c *client) GetSecret(path api.SecretPath) (*api.Secret, error) {
-	blindName, err := c.convertPathToBlindName(path)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	encSecret, err := c.httpClient.GetSecret(blindName)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	accountKey, err := c.getAccountKey()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return encSecret.Decrypt(accountKey)
-}
-
-// DeleteSecret deletes a secret by a given path.
-func (c *client) DeleteSecret(secretPath api.SecretPath) error {
-	err := api.ValidateSecretName(secretPath.GetSecret())
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	secretBlindName, err := c.convertPathToBlindName(secretPath)
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	err = c.httpClient.DeleteSecret(secretBlindName)
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	return nil
-}
-
-// ExistsSecret checks if a secret already exists on SecretHub.
-func (c *client) ExistsSecret(path api.SecretPath) (bool, error) {
-	_, err := c.GetSecret(path)
-	if err == api.ErrSecretNotFound {
-		return false, nil
-	} else if err != nil {
-		return false, err
-	}
-	return true, nil
+func (s secretService) Versions() SecretVersionService {
+	return newSecretVersionService(s.client)
 }
 
 // convertsToBlindName will convert a path to a blindname.

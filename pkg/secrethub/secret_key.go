@@ -6,8 +6,8 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
-// GetSecretKey gets the current key for a given secret.
-func (c *client) GetSecretKey(secretPath api.SecretPath) (*api.SecretKey, error) {
+// getSecretKey gets the current key for a given secret.
+func (c *client) getSecretKey(secretPath api.SecretPath) (*api.SecretKey, error) {
 	blindName, err := c.convertPathToBlindName(secretPath)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -26,8 +26,8 @@ func (c *client) GetSecretKey(secretPath api.SecretPath) (*api.SecretKey, error)
 	return encKey.Decrypt(accountKey)
 }
 
-// CreateSecretKey creates a new secret key for a given secret.
-func (c *client) CreateSecretKey(secretPath api.SecretPath) (*api.SecretKey, error) {
+// createSecretKey creates a new secret key for a given secret.
+func (c *client) createSecretKey(secretPath api.SecretPath) (*api.SecretKey, error) {
 	secretKey, err := crypto.GenerateAESKey()
 	if err != nil {
 		return nil, errio.Error(err)

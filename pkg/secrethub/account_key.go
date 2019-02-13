@@ -37,7 +37,7 @@ func (s accountKeyService) Create() (*api.EncryptedAccountKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return s.client.CreateAccountKey(key)
+	return s.client.createAccountKey(key)
 }
 
 // Exists returns whether an account key exists for the client's credential.

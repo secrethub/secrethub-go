@@ -21,7 +21,9 @@ func TestSignup(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client := newClient(cred1, opts)
+	userService := userService{
+		client: newClient(cred1, opts),
+	}
 
 	username := "dev1"
 	fullName := "Developer Uno"
@@ -87,7 +89,7 @@ func TestSignup(t *testing.T) {
 	})
 
 	// Act
-	actual, err := client.SignupUser(username, email, fullName, accountKey)
+	actual, err := userService.create(username, email, fullName, accountKey)
 
 	// Assert
 	testutil.OK(t, err)
@@ -100,7 +102,9 @@ func TestSignup_AlreadyExists(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client := newClient(cred1, opts)
+	userService := userService{
+		client: newClient(cred1, opts),
+	}
 
 	expected := api.ErrUserEmailAlreadyExists
 
@@ -115,7 +119,7 @@ func TestSignup_AlreadyExists(t *testing.T) {
 	testutil.OK(t, err)
 
 	// Act
-	_, err = client.SignupUser("dev1", "dev1@testing.com", "Developer Uno", key)
+	_, err = userService.create("dev1", "dev1@testing.com", "Developer Uno", key)
 
 	// Assert
 	testutil.Compare(t, err, expected)
@@ -127,13 +131,15 @@ func TestSignup_InvalidArgument(t *testing.T) {
 	_, opts, cleanup := setup()
 	defer cleanup()
 
-	client := newClient(cred1, opts)
+	userService := userService{
+		client: newClient(cred1, opts),
+	}
 
 	key, err := crypto.GenerateRSAKey(512)
 	testutil.OK(t, err)
 
 	// Act
-	_, err = client.SignupUser("invalidname$#@%%", "dev1@testing.com", "Developer Uno", key)
+	_, err = userService.create("invalidname$#@%%", "dev1@testing.com", "Developer Uno", key)
 
 	// Assert
 	testutil.Compare(t, err, api.ErrInvalidUsername)
@@ -145,7 +151,9 @@ func TestGetUser(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client := newClient(cred1, opts)
+	userService := newUserService(
+		newClient(cred1, opts),
+	)
 
 	username := "dev1"
 	fullName := "Developer Uno"
@@ -173,7 +181,7 @@ func TestGetUser(t *testing.T) {
 	})
 
 	// Act
-	actual, err := client.GetUser(username)
+	actual, err := userService.Get(username)
 
 	// Assert
 	testutil.OK(t, err)
@@ -186,7 +194,9 @@ func TestGetUser_NotFound(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client := newClient(cred1, opts)
+	userService := newUserService(
+		newClient(cred1, opts),
+	)
 
 	expected := api.ErrUserNotFound
 
@@ -198,7 +208,7 @@ func TestGetUser_NotFound(t *testing.T) {
 	})
 
 	// Act
-	_, err := client.GetUser("dev1")
+	_, err := userService.Get("dev1")
 
 	// Assert
 	testutil.Compare(t, err, expected)
@@ -210,10 +220,12 @@ func TestGetUser_InvalidArgument(t *testing.T) {
 	_, opts, cleanup := setup()
 	defer cleanup()
 
-	client := newClient(cred1, opts)
+	userService := newUserService(
+		newClient(cred1, opts),
+	)
 
 	// Act
-	_, err := client.GetUser("invalidname$#@%%")
+	_, err := userService.Get("invalidname$#@%%")
 
 	// Assert
 	testutil.Compare(t, err, api.ErrInvalidUsername)
@@ -225,7 +237,9 @@ func TestGetMyUser(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client := newClient(cred1, opts)
+	userService := newUserService(
+		newClient(cred1, opts),
+	)
 
 	username := "dev1"
 	fullName := "Developer Uno"
@@ -249,7 +263,7 @@ func TestGetMyUser(t *testing.T) {
 	})
 
 	// Act
-	actual, err := client.GetMyUser()
+	actual, err := userService.Me()
 
 	// Assert
 	testutil.OK(t, err)
@@ -262,7 +276,9 @@ func TestGetMyUser_NotFound(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client := newClient(cred1, opts)
+	userService := newUserService(
+		newClient(cred1, opts),
+	)
 
 	expected := api.ErrRequestNotAuthenticated
 
@@ -274,7 +290,7 @@ func TestGetMyUser_NotFound(t *testing.T) {
 	})
 
 	// Act
-	_, err := client.GetMyUser()
+	_, err := userService.Me()
 
 	// Assert
 	testutil.Compare(t, err, expected)

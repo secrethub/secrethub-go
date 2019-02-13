@@ -2,7 +2,6 @@ package secrethub
 
 import (
 	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
@@ -18,49 +17,34 @@ type ServiceService interface {
 	List(path api.RepoPath) ([]*api.Service, error)
 }
 
+func newServiceService(client client) ServiceService {
+	return serviceService{
+		client: client,
+	}
+}
+
 type serviceService struct {
 	client client
 }
 
 // Create creates a new service for the given repo.
-func (s *serviceService) Create(path api.RepoPath, description string, credential Credential) (*api.Service, error) {
+func (s serviceService) Create(path api.RepoPath, description string, credential Credential) (*api.Service, error) {
 	accountKey, err := generateAccountKey()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	return s.client.CreateService(path, description, credential, accountKey)
-}
-
-// Delete removes a service.
-func (s *serviceService) Delete(id string) (*api.RevokeRepoResponse, error) {
-	return s.client.DeleteService(id)
-}
-
-// Get retrieves a service.
-func (s *serviceService) Get(id string) (*api.Service, error) {
-	return s.client.GetService(id)
-}
-
-// List is an alias of the RepoServiceService List function.
-func (s *serviceService) List(path api.RepoPath) ([]*api.Service, error) {
-	repoServiceService := &repoServiceService{s.client}
-	return repoServiceService.List(path)
-}
-
-// CreateService creates a new service for the given repo.
-func (c *client) CreateService(repoPath api.RepoPath, description string, serviceCredential Credential, accountKey *crypto.RSAKey) (*api.Service, error) {
-	credentialRequest, err := c.createCredentialRequest(serviceCredential)
+	credentialRequest, err := s.client.createCredentialRequest(credential)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	accountKeyRequest, err := c.createAccountKeyRequest(serviceCredential, accountKey)
+	accountKeyRequest, err := s.client.createAccountKeyRequest(credential, accountKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	serviceRepoMemberRequest, err := c.createRepoMemberRequest(repoPath, accountKeyRequest.PublicKey)
+	serviceRepoMemberRequest, err := s.client.createRepoMemberRequest(path, accountKeyRequest.PublicKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -77,7 +61,7 @@ func (c *client) CreateService(repoPath api.RepoPath, description string, servic
 		return nil, errio.Error(err)
 	}
 
-	service, err := c.httpClient.CreateService(repoPath.GetNamespace(), repoPath.GetRepo(), in)
+	service, err := s.client.httpClient.CreateService(path.GetNamespace(), path.GetRepo(), in)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -85,26 +69,32 @@ func (c *client) CreateService(repoPath api.RepoPath, description string, servic
 	return service, nil
 }
 
-// GetService returns a service.
-func (c *client) GetService(serviceID string) (*api.Service, error) {
-	err := api.ValidateServiceID(serviceID)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-	return c.httpClient.GetService(serviceID)
-}
-
-// DeleteService deletes a service.
-func (c *client) DeleteService(serviceID string) (*api.RevokeRepoResponse, error) {
-	err := api.ValidateServiceID(serviceID)
+// Delete removes a service.
+func (s serviceService) Delete(id string) (*api.RevokeRepoResponse, error) {
+	err := api.ValidateServiceID(id)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	resp, err := c.httpClient.DeleteService(serviceID)
+	resp, err := s.client.httpClient.DeleteService(id)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
 	return resp, nil
+}
+
+// Get retrieves a service.
+func (s serviceService) Get(id string) (*api.Service, error) {
+	err := api.ValidateServiceID(id)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+	return s.client.httpClient.GetService(id)
+}
+
+// List is an alias of the RepoServiceService List function.
+func (s serviceService) List(path api.RepoPath) ([]*api.Service, error) {
+	repoServiceService := newRepoServiceService(s.client)
+	return repoServiceService.List(path)
 }

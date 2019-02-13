@@ -28,69 +28,78 @@ type RepoService interface {
 	Services() RepoServiceService
 }
 
+func newRepoService(client client) RepoService {
+	return repoService{
+		client: client,
+	}
+}
+
 type repoService struct {
 	client client
 }
 
 // Delete removes the repo with the given path.
 func (s repoService) Delete(path api.RepoPath) error {
-	return s.client.DeleteRepo(path)
+	err := s.client.httpClient.DeleteRepo(path.GetNamespaceAndRepoName())
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	delete(s.client.repoIndexKeys, path)
+
+	return nil
 }
 
 // Get retrieves the repo with the given path.
 func (s repoService) Get(path api.RepoPath) (*api.Repo, error) {
-	return s.client.GetRepo(path)
+	return s.client.httpClient.GetRepo(path.GetNamespaceAndRepoName())
 }
 
 // List retrieves all repositories in the given namespace.
 func (s repoService) List(namespace api.Namespace) ([]*api.Repo, error) {
-	return s.client.ListRepos(string(namespace))
+	return s.client.httpClient.ListRepos(namespace.String())
 }
 
 // ListAccounts lists the accounts in the repository.
 func (s repoService) ListAccounts(path api.RepoPath) ([]*api.Account, error) {
-	return s.client.ListRepoAccounts(path)
+	return s.client.httpClient.ListRepoAccounts(path.GetNamespaceAndRepoName())
 }
 
 // ListEvents retrieves all audit events for a given repo.
 // If subjectTypes is left empty, the server's default is used.
 func (s repoService) ListEvents(path api.RepoPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
-	return s.client.ListAuditEventsRepo(path, subjectTypes)
+	namespace, repoName := path.GetNamespaceAndRepoName()
+	events, err := s.client.httpClient.AuditRepo(namespace, repoName, subjectTypes)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = s.client.decryptAuditEvents(events...)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return events, nil
 }
 
 // ListMine retrieves all repositories of the current user.
 func (s repoService) ListMine() ([]*api.Repo, error) {
-	return s.client.ListMyRepos()
+	return s.client.httpClient.ListMyRepos()
 }
 
 // Create creates a new repo for the given owner and name.
 func (s repoService) Create(path api.RepoPath) (*api.Repo, error) {
-	return s.client.CreateRepo(path)
-}
-
-// Users returns a RepoUserService that handles operations on users of a repository.
-func (s repoService) Users() RepoUserService {
-	return repoUserService(s)
-}
-
-// Services returns a RepoServiceService that handles operations on services of a repository.
-func (s repoService) Services() RepoServiceService {
-	return repoServiceService(s)
-}
-
-// CreateRepo creates a new repo for this owner with the name.
-func (c *client) CreateRepo(repoPath api.RepoPath) (*api.Repo, error) {
-	err := repoPath.Validate()
+	err := path.Validate()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	account, err := c.getMyAccount()
+	account, err := s.client.getMyAccount()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	accountKey, err := c.getAccountKey()
+	accountKey, err := s.client.getAccountKey()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -117,12 +126,12 @@ func (c *client) CreateRepo(repoPath api.RepoPath) (*api.Repo, error) {
 	}
 
 	// Generate the Root Dir with a DirMember for yourself only.
-	encryptedNames, err := encryptNameForAccounts(repoPath.GetRepo(), account)
+	encryptedNames, err := encryptNameForAccounts(path.GetRepo(), account)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	blindName, err := repoPath.BlindName(key)
+	blindName, err := path.BlindName(key)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -137,7 +146,7 @@ func (c *client) CreateRepo(repoPath api.RepoPath) (*api.Repo, error) {
 	}
 
 	in := &api.CreateRepoRequest{
-		Name: repoPath.GetRepo(),
+		Name: path.GetRepo(),
 
 		RootDir: rootDir,
 
@@ -152,7 +161,7 @@ func (c *client) CreateRepo(repoPath api.RepoPath) (*api.Repo, error) {
 		return nil, errio.Error(err)
 	}
 
-	repo, err := c.httpClient.CreateRepo(repoPath.GetNamespace(), in)
+	repo, err := s.client.httpClient.CreateRepo(path.GetNamespace(), in)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -160,128 +169,14 @@ func (c *client) CreateRepo(repoPath api.RepoPath) (*api.Repo, error) {
 	return repo, nil
 }
 
-// DeleteRepo deletes a repo on the specified namespace with the name.
-func (c *client) DeleteRepo(repoPath api.RepoPath) error {
-	err := c.httpClient.DeleteRepo(repoPath.GetNamespaceAndRepoName())
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	delete(c.repoIndexKeys, repoPath)
-
-	return nil
+// Users returns a RepoUserService that handles operations on users of a repository.
+func (s repoService) Users() RepoUserService {
+	return newRepoUserService(s.client)
 }
 
-// ListRepos lists the repos in a namespace the account has access to.
-func (c *client) ListRepos(namespace string) ([]*api.Repo, error) {
-	err := api.ValidateNamespace(namespace)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return c.httpClient.ListRepos(namespace)
-}
-
-// ListMyRepos lists the repos an account has access to.
-func (c *client) ListMyRepos() ([]*api.Repo, error) {
-	return c.httpClient.ListMyRepos()
-}
-
-// GetRepo retrieves the Repo from SecretHub.
-func (c *client) GetRepo(repoPath api.RepoPath) (*api.Repo, error) {
-	repo, err := c.httpClient.GetRepo(repoPath.GetNamespaceAndRepoName())
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return repo, nil
-}
-
-// InviteRepo adds access for a given User for a given repo.
-func (c *client) InviteRepo(repoPath api.RepoPath, username string) (*api.RepoMember, error) {
-	name := api.AccountName(username)
-	err := name.Validate()
-	if err != nil {
-		return nil, err
-	}
-	if !name.IsUser() {
-		return nil, api.ErrUsernameIsService
-	}
-
-	account, err := c.httpClient.GetAccount(name)
-	if err == api.ErrAccountNotFound {
-		// return a more context specific error
-		return nil, api.ErrUserNotFound
-	} else if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	if len(account.PublicKey) == 0 {
-		return nil, api.ErrAccountNotKeyed
-	}
-
-	createRepoMember, err := c.createRepoMemberRequest(repoPath, account.PublicKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	in := &api.InviteUserRequest{
-		AccountID:  account.AccountID,
-		RepoMember: createRepoMember,
-	}
-
-	repoMember, err := c.httpClient.InviteRepo(repoPath.GetNamespace(), repoPath.GetRepo(), in)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return repoMember, nil
-}
-
-// GetRepoUser retrieves a User if it has access to a repo.
-func (c *client) GetRepoUser(repoPath api.RepoPath, username string) (*api.User, error) {
-	user, err := c.httpClient.GetRepoUser(repoPath.GetNamespace(), repoPath.GetRepo(), username)
-	return user, errio.Error(err)
-}
-
-// RemoveUser removes access for a given User for a given repo.
-func (c *client) RemoveUser(repoPath api.RepoPath, username string) (*api.RevokeRepoResponse, error) {
-	resp, err := c.httpClient.RemoveUser(repoPath.GetNamespace(), repoPath.GetRepo(), username)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return resp, nil
-}
-
-// ListRepoAccounts lists all repo accounts in the repo.
-func (c *client) ListRepoAccounts(repoPath api.RepoPath) ([]*api.Account, error) {
-	accounts, err := c.httpClient.ListRepoAccounts(repoPath.GetNamespaceAndRepoName())
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return accounts, nil
-}
-
-// ListRepoUsers lists all users with access to the Repo by RepoPath.
-func (c *client) ListRepoUsers(repoPath api.RepoPath) ([]*api.User, error) {
-	users, err := c.httpClient.ListRepoUsers(repoPath.GetNamespaceAndRepoName())
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return users, nil
-}
-
-// ListRepoServices lists all services with access to the Repo by RepoPath.
-func (c *client) ListRepoServices(repoPath api.RepoPath) ([]*api.Service, error) {
-	services, err := c.httpClient.ListServices(repoPath.GetNamespaceAndRepoName())
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return services, nil
+// Services returns a RepoServiceService that handles operations on services of a repository.
+func (s repoService) Services() RepoServiceService {
+	return newRepoServiceService(s.client)
 }
 
 // Creates a new RepoMemberRequests for a given account.
