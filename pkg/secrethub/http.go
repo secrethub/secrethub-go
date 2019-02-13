@@ -634,7 +634,6 @@ func (c *httpClient) do(rawURL string, method string, expectedStatus int, in int
 			"Client is out of date\n" +
 				"Go to `https://secrethub.io/docs/getting-started/install` to see how to update your client.")
 	} else if resp.StatusCode != expectedStatus {
-		log.Debugf("unexpected status code: %d (actual) != %d (expected)", resp.StatusCode, expectedStatus)
 		return parseError(resp)
 	}
 
