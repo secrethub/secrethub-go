@@ -16,6 +16,8 @@ var (
 	log = logging.MustGetLogger("log")
 )
 
+//go:generate go run -ldflags "-X main.Version=v0.18.0" internal/version/gen.go
+
 const (
 	baseURLPath = "/v1"
 
