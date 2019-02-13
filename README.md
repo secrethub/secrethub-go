@@ -39,12 +39,13 @@ encodedCredential, err := parser.Parse("credential")
 credential, err := encodedCredential.Decode()
 client := secrethub.NewClient(credential, nil) // the second parameter can be used to override default options, e.g. to use a different backend for mocking.
 
-// Read
-secret, err := client.Secrets().Versions().GetWithData(api.SecretPath("organisation/repo/directory/secret:latest"))
-secret.Data
-
 // Write
-secret, err := client.Secrets().Write(api.SecretPath("organisation/repo/directory/secret"), []byte("data"))
+secret, err := client.Secrets().Write(api.SecretPath("organisation/repo/db_password"), []byte("password123"))
+
+// Read
+secret, err := client.Secrets().Versions().GetWithData(api.SecretPath("organisation/repo/db_password:latest"))
+fmt.Println(secret.Data) // prints password123
+
 
 // Generate
 data, err := randstr.NewGenerator(false).Generate(32) // Generate a byte-array of 32 alphanumeric characters.
