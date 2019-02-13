@@ -1,4 +1,4 @@
 package secrethub
 
 // ClientVersion is the current version of the client
-var ClientVersion string
+const ClientVersion = "v0.18.0"
