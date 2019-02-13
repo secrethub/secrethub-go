@@ -231,6 +231,12 @@ func (p Parser) Parse(raw string) (*EncodedCredential, error) {
 	return cred, nil
 }
 
+// DefaultCredentialParser returns a new credential parser for
+// credentials that are encoded with the default encoding.
+func DefaultCredentialParser() Parser {
+	return NewCredentialParser(DefaultCredentialDecoders)
+}
+
 // RSACredential implements a Credential for an RSA key.
 type RSACredential struct {
 	*crypto.RSAKey
