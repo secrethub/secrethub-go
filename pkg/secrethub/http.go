@@ -14,10 +14,6 @@ import (
 
 var (
 	log = logging.MustGetLogger("log")
-
-	// ClientVersion is the current version of the client
-	// Has to be set by the compiler
-	ClientVersion string
 )
 
 const (
