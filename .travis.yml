@@ -5,12 +5,9 @@ go:
   - "1.10.x"
   - "1.11.x"
 
-env:
-  - GO111MODULE=on
-
 install:
   - make lint-tools
 
 script:
-  - make lint
-  - make test
+  - env GO111MODULE=on make lint
+  - env GO111MODULE=on make test
