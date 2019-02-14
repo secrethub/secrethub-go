@@ -59,10 +59,6 @@ If you'd like to contribute, please checkout [the contributing guidelines](./CON
 
 ## Test
 
-Before running the tests, make sure to grab all of the package's dependencies:
-
-    go get -t
-
 Run all tests:
 
     make test
