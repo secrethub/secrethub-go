@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	// randPatternAlphanumeric is the default pattern of characters used to generate random secrets.
-	randPatternAlphanumeric = []byte(`0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`)
-	// randPatternSymbols is added to the randPattern when generator.useSymbols is true.
-	randPatternSymbols = []byte(`!@#$%^*-_+=.,?`)
+	// charsetAlphanumeric is the default pattern of characters used to generate random secrets.
+	charsetAlphanumeric = []byte(`0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`)
+	// charsetSymbols is added to the pattern when generator.useSymbols is true.
+	charsetSymbols = []byte(`!@#$%^*-_+=.,?`)
 )
 
 // Generator generates random byte arrays.
@@ -32,9 +32,9 @@ type generator struct {
 
 // Generate returns a random byte array of given length.
 func (generator generator) Generate(length int) ([]byte, error) {
-	pattern := randPatternAlphanumeric
+	pattern := charsetAlphanumeric
 	if generator.useSymbols {
-		pattern = append(pattern, randPatternSymbols...)
+		pattern = append(pattern, charsetSymbols...)
 	}
 	return randFromPattern(pattern, length)
 }
