@@ -20,6 +20,7 @@ var (
 	ErrInvalidCredential                 = errClient.Code("invalid_credential")
 	ErrInvalidNumberOfCredentialSegments = errClient.Code("invalid_number_of_credential_segments").ErrorPref("credential contains an invalid number of segments: %d")
 	ErrEmptyCredentialHeader             = errClient.Code("invalid_empty_credential_header").Error("credential header cannot be empty")
+	ErrEmptyCredentialPassphrase         = errClient.Code("invalid_empty_credential_passphrase").Error("credential passphrase cannot be empty for encrypted credentials")
 	ErrInvalidCredentialHeaderField      = errClient.Code("invalid_credential_header_field").ErrorPref("invalid header field: %s")
 	ErrCannotDecodeCredentialHeader      = errClient.Code("invalid_credential_header").ErrorPref("cannot decode credential header: %v")
 	ErrUnsupportedCredentialType         = errClient.Code("unsupported_credential_type").ErrorPref("unsupported credential type: %s")
@@ -52,6 +53,28 @@ type Credential interface {
 	Decoder() CredentialDecoder
 	// Type returns what type of credential this is.
 	Type() api.CredentialType
+}
+
+// NewCredential is a shorthand function to decode a credential string and optionally
+// decrypt it with a passphrase. When an encrypted credential is given, the passphrase
+// cannot be empty.
+func NewCredential(credential string, passphrase string) (Credential, error) {
+	parser := NewCredentialParser(DefaultCredentialDecoders)
+
+	encoded, err := parser.Parse(credential)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	if encoded.IsEncrypted() {
+		if passphrase == "" {
+			return nil, ErrEmptyCredentialPassphrase
+		}
+
+		return encoded.DecodeArmored(NewPassphraseUnarmorer([]byte(passphrase)))
+	}
+
+	return encoded.Decode()
 }
 
 // CredentialDecoder converts a payload into a Credential.

@@ -29,27 +29,24 @@ Below are a few simple examples:
 ```go
 import (
 	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/randstr"
+	"github.com/keylockerbv/secrethub-go/pkg/randchar"
 	"github.com/keylockerbv/secrethub-go/pkg/secrethub"
 )
 
 // Setup
-parser := secrethub.NewCredentialParser(secrethub.DefaultCredentialDecoders)
-encodedCredential, err := parser.Parse("<my credential>")
-credential, err := encodedCredential.Decode()
-client := secrethub.NewClient(credential, nil) // the second parameter can be used to override default options, e.g. to use a different backend for mocking.
+credential, err := secrethub.NewCredential("<your credential>", "<passphrase>")
+client := secrethub.NewClient(credential, nil)
 
 // Write
-secret, err := client.Secrets().Write(api.SecretPath("organization/repo/db_password"), []byte("password123"))
+secret, err := client.Secrets().Write(api.SecretPath("path/to/secret"), []byte("password123"))
 
 // Read
-secret, err := client.Secrets().Versions().GetWithData(api.SecretPath("organisation/repo/db_password:latest"))
+secret, err = client.Secrets().Versions().GetWithData(api.SecretPath("path/to/secret:latest"))
 fmt.Println(secret.Data) // prints password123
 
-
 // Generate
-data, err := randstr.NewGenerator(false).Generate(32) // Generate a byte-array of 32 alphanumeric characters.
-secret, err := client.Secrets().Write(api.SecretPath("organization/repo/directory/secret"), data)
+data, err := randchar.NewGenerator(false).Generate(32) // Generate a slice of 32 alphanumeric characters.
+secret, err = client.Secrets().Write(api.SecretPath("path/to/secret"), data)
 ```
 
 ## Development
