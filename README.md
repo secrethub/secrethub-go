@@ -38,15 +38,15 @@ credential, err := secrethub.NewCredential("<your credential>", "<passphrase>")
 client := secrethub.NewClient(credential, nil)
 
 // Write
-secret, err := client.Secrets().Write(api.SecretPath("organization/repo/db_password"), []byte("password123"))
+secret, err := client.Secrets().Write(api.SecretPath("path/to/secret"), []byte("password123"))
 
 // Read
-secret, err := client.Secrets().Versions().GetWithData(api.SecretPath("organisation/repo/db_password:latest"))
+secret, err = client.Secrets().Versions().GetWithData(api.SecretPath("path/to/secret:latest"))
 fmt.Println(secret.Data) // prints password123
 
 // Generate
 data, err := randchar.NewGenerator(false).Generate(32) // Generate a slice of 32 alphanumeric characters.
-secret, err := client.Secrets().Write(api.SecretPath("organization/repo/directory/secret"), data)
+secret, err = client.Secrets().Write(api.SecretPath("path/to/secret"), data)
 ```
 
 ## Development
