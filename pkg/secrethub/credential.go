@@ -71,7 +71,7 @@ func NewCredential(credential string, passphrase string) (Credential, error) {
 			return nil, ErrEmptyCredentialPassphrase
 		}
 
-		return encoded.DecodeArmored(NewPassphraseUnarmorer(passphrase))
+		return encoded.DecodeArmored(NewPassphraseUnarmorer([]byte(passphrase)))
 	}
 
 	return encoded.Decode()
