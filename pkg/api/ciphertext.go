@@ -20,6 +20,15 @@ var (
 // EncodedCiphertext contains a string in the format <algorithm>$<base64-encoded-encrypted-data>$<metadata>.
 type EncodedCiphertext string
 
+// EncodedCiphertextAES contains a string in the format AES-GCM$<base64-encoded-encrypted-data>$<metadata>.
+type EncodedCiphertextAES EncodedCiphertext
+
+// EncodedCiphertextRSA contains a string in the format RSA-OAEP$<base64-encoded-encrypted-data>$<metadata>.
+type EncodedCiphertextRSA EncodedCiphertext
+
+// EncodedCiphertextRSAAES contains a string in the format RSA-OAEP+AES-GCM$<base64-encoded-encrypted-data>$<metadata>.
+type EncodedCiphertextRSAAES EncodedCiphertext
+
 // EncryptionAlgorithm represents the algorithm an EncodedCiphertext is encrypted with.
 type EncryptionAlgorithm string
 
