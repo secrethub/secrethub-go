@@ -35,6 +35,14 @@ func TestGetOrgMember(t *testing.T) {
 		err        error
 		expected   *api.OrgMember
 	}{
+		"invalid org name": {
+			name:       "invalid org name",
+			username:   "user1",
+			response:   nil,
+			statusCode: 0,
+			err:        api.ErrInvalidOrgName,
+			expected:   nil,
+		},
 		"invalid username": {
 			name:       "myorg",
 			username:   "invalid user",
@@ -139,6 +147,13 @@ func TestListOrgMembers(t *testing.T) {
 		err        error
 		expected   []*api.OrgMember
 	}{
+		"invalid org name": {
+			name:       "invalid org name",
+			response:   []*api.OrgMember{},
+			statusCode: http.StatusBadRequest,
+			err:        api.ErrInvalidOrgName,
+			expected:   nil,
+		},
 		"zero": {
 			name:       "myorg",
 			response:   []*api.OrgMember{},
@@ -227,6 +242,16 @@ func TestInviteOrg(t *testing.T) {
 		err             error
 		expected        *api.OrgMember
 	}{
+		"invalid org name": {
+			name:            "invalid org name",
+			username:        "user1",
+			role:            "admin",
+			expectedRequest: nil,
+			response:        nil,
+			statusCode:      0,
+			err:             api.ErrInvalidOrgName,
+			expected:        nil,
+		},
 		"invalid username": {
 			name:            "myorg",
 			username:        "invalid user",
@@ -354,6 +379,16 @@ func TestUpdateOrgMember(t *testing.T) {
 		err             error
 		expected        *api.OrgMember
 	}{
+		"invalid org name": {
+			name:            "invalid org name",
+			username:        "user1",
+			role:            "admin",
+			expectedRequest: nil,
+			response:        nil,
+			statusCode:      0,
+			err:             api.ErrInvalidOrgName,
+			expected:        nil,
+		},
 		"invalid username": {
 			name:            "myorg",
 			username:        "invalid user",
