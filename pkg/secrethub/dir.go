@@ -8,16 +8,13 @@ import (
 // DirService handles operations on directories from SecretHub.
 type DirService interface {
 	// Create a directory at a given path.
-	Create(path api.DirPath) (*api.Dir, error)
+	Create(path string) (*api.Dir, error)
 	// Delete removes the directory at the given path.
-	Delete(path api.DirPath) error
+	Delete(path string) error
 	// GetTree retrieves a directory at a given path and all of its descendants up to a given depth.
-	// When the depth <= 0, there is no limit.
-	// TODO SHDEV-1062: Change this such that 0 returns the Tree without any descendants
-	// and -1 returns the Tree with all descendants.
-	// When ancestors is true, the parent directories of the dir at the given path
-	// will also be included in the tree.
-	GetTree(path api.DirPath, depth int, ancestors bool) (*api.Tree, error)
+	// When the depth <= 0, all descendants are returned. When ancestors is true, the parent directories
+	// of the dir at the given path will also be included in the tree.
+	GetTree(path string, depth int, ancestors bool) (*api.Tree, error)
 }
 
 func newDirService(client client) DirService {
@@ -34,8 +31,16 @@ type dirService struct {
 // are returned. When depth is -1 all contents of the directory are included in the tree.
 // When ancestors is true, the parent directories of the dir at the given path will also
 // be included in the tree.
-func (s dirService) GetTree(path api.DirPath, depth int, ancestors bool) (*api.Tree, error) {
-	blindName, err := s.client.convertPathToBlindName(path)
+//
+// TODO SHDEV-1062: Change this such that 0 returns the Tree without any descendants
+// and -1 returns the Tree with all descendants.
+func (s dirService) GetTree(path string, depth int, ancestors bool) (*api.Tree, error) {
+	p, err := api.NewDirPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	blindName, err := s.client.convertPathToBlindName(p)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -58,11 +63,11 @@ func (s dirService) GetTree(path api.DirPath, depth int, ancestors bool) (*api.T
 	if ancestors {
 		// When ancestors are retrieved, the root of the filesystem is the directory at repo level.
 		// So, the parentPath of the filesystem is then the namespace of the path.
-		tree.ParentPath = api.ParentPath(path.GetNamespace())
+		tree.ParentPath = api.ParentPath(p.GetNamespace())
 	} else {
 		// When ancestors are not retrieved, the root of the filesystem is the directory at path.
 		// So, the parentPath of the filesystem is then the parent of the directory at path.
-		tree.ParentPath, err = path.GetParentPath()
+		tree.ParentPath, err = p.GetParentPath()
 		if err != nil {
 			return nil, errio.Error(err)
 		}
@@ -72,13 +77,13 @@ func (s dirService) GetTree(path api.DirPath, depth int, ancestors bool) (*api.T
 }
 
 // Create creates a directory at a given path.
-func (s dirService) Create(path api.DirPath) (*api.Dir, error) {
-	err := path.Validate()
+func (s dirService) Create(path string) (*api.Dir, error) {
+	p, err := api.NewDirPath(path)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	parentPath, err := path.GetParentPath()
+	parentPath, err := p.GetParentPath()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -88,12 +93,12 @@ func (s dirService) Create(path api.DirPath) (*api.Dir, error) {
 		return nil, errio.Error(err)
 	}
 
-	encryptedNames, err := encryptNameForAccounts(path.GetDirName(), accounts...)
+	encryptedNames, err := encryptNameForAccounts(p.GetDirName(), accounts...)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	blindName, err := s.client.convertPathToBlindName(path)
+	blindName, err := s.client.convertPathToBlindName(p)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -110,7 +115,7 @@ func (s dirService) Create(path api.DirPath) (*api.Dir, error) {
 		EncryptedNames: encryptedNames,
 	}
 
-	encryptedDir, err := s.client.httpClient.CreateDir(path.GetNamespace(), path.GetRepo(), request)
+	encryptedDir, err := s.client.httpClient.CreateDir(p.GetNamespace(), p.GetRepo(), request)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -125,13 +130,13 @@ func (s dirService) Create(path api.DirPath) (*api.Dir, error) {
 }
 
 // Delete removes the directory at the given path.
-func (s dirService) Delete(path api.DirPath) error {
-	err := path.Validate()
+func (s dirService) Delete(path string) error {
+	p, err := api.NewDirPath(path)
 	if err != nil {
 		return errio.Error(err)
 	}
 
-	dirBlindName, err := s.client.convertPathToBlindName(path)
+	dirBlindName, err := s.client.convertPathToBlindName(p)
 	if err != nil {
 		return errio.Error(err)
 	}

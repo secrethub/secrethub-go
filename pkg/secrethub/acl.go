@@ -124,12 +124,12 @@ func (s accessRuleService) ListWithPaths(path string, depth int, ancestors bool)
 		return nil, errio.Error(err)
 	}
 
-	p, err := api.NewDirPath(path)
+	err = api.ValidateDirPath(path)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	dirFS, err := s.dirService.GetTree(p, depth, ancestors)
+	dirFS, err := s.dirService.GetTree(path, depth, ancestors)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -177,7 +177,7 @@ func (s accessRuleService) ListLevels(path string) ([]*api.AccessLevel, error) {
 		return nil, errio.Error(err)
 	}
 
-	dir, err := s.dirService.GetTree(p, 0, false)
+	dir, err := s.dirService.GetTree(path, 0, false)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
