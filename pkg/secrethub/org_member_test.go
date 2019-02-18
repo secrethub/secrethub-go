@@ -28,7 +28,7 @@ func TestGetOrgMember(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		name       api.OrgName
+		name       string
 		username   string
 		response   interface{}
 		statusCode int
@@ -133,7 +133,7 @@ func TestListOrgMembers(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		name       api.OrgName
+		name       string
 		response   interface{}
 		statusCode int
 		err        error
@@ -218,7 +218,7 @@ func TestInviteOrg(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		name            api.OrgName
+		name            string
 		username        string
 		role            string
 		expectedRequest *api.CreateOrgMemberRequest
@@ -345,7 +345,7 @@ func TestUpdateOrgMember(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		name            api.OrgName
+		name            string
 		username        string
 		role            string
 		expectedRequest *api.UpdateOrgMemberRequest
