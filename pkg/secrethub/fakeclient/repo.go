@@ -26,12 +26,12 @@ func (s *RepoService) List(namespace api.Namespace) ([]*api.Repo, error) {
 }
 
 // ListAccounts implements the RepoService interface ListAccounts function.
-func (s *RepoService) ListAccounts(path api.RepoPath) ([]*api.Account, error) {
+func (s *RepoService) ListAccounts(path string) ([]*api.Account, error) {
 	return s.AccountLister.ListAccounts(path)
 }
 
 // ListEvents implements the RepoService interface ListEvents function.
-func (s *RepoService) ListEvents(path api.RepoPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+func (s *RepoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	return s.EventLister.ListEvents(path, subjectTypes)
 }
 
@@ -41,17 +41,17 @@ func (s *RepoService) ListMine() ([]*api.Repo, error) {
 }
 
 // Create implements the RepoService interface Create function.
-func (s *RepoService) Create(path api.RepoPath) (*api.Repo, error) {
+func (s *RepoService) Create(path string) (*api.Repo, error) {
 	return s.Creater.Create(path)
 }
 
 // Delete implements the RepoService interface Delete function.
-func (s *RepoService) Delete(path api.RepoPath) error {
+func (s *RepoService) Delete(path string) error {
 	return s.Deleter.Delete(path)
 }
 
 // Get implements the RepoService interface Get function.
-func (s *RepoService) Get(path api.RepoPath) (*api.Repo, error) {
+func (s *RepoService) Get(path string) (*api.Repo, error) {
 	return s.Getter.Get(path)
 }
 
@@ -67,25 +67,25 @@ func (s *RepoService) Services() secrethub.RepoServiceService {
 
 // RepoDeleter mocks the Delete function.
 type RepoDeleter struct {
-	ArgPath api.RepoPath
+	ArgPath string
 	Err     error
 }
 
 // Delete saves the arguments it was called with and returns the mocked response.
-func (d *RepoDeleter) Delete(path api.RepoPath) error {
+func (d *RepoDeleter) Delete(path string) error {
 	d.ArgPath = path
 	return d.Err
 }
 
 // RepoGetter mocks the Get function.
 type RepoGetter struct {
-	ArgPath     api.RepoPath
+	ArgPath     string
 	ReturnsRepo *api.Repo
 	Err         error
 }
 
 // Get saves the arguments it was called with and returns the mocked response.
-func (g *RepoGetter) Get(path api.RepoPath) (*api.Repo, error) {
+func (g *RepoGetter) Get(path string) (*api.Repo, error) {
 	g.ArgPath = path
 	return g.ReturnsRepo, g.Err
 }
@@ -105,14 +105,14 @@ func (g *RepoLister) List(namespace api.Namespace) ([]*api.Repo, error) {
 
 // RepoEventLister mocks the ListEvents function.
 type RepoEventLister struct {
-	ArgPath            api.RepoPath
+	ArgPath            string
 	ArgSubjectTypes    api.AuditSubjectTypeList
 	ReturnsAuditEvents []*api.Audit
 	Err                error
 }
 
 // ListEvents saves the arguments it was called with and returns the mocked response.
-func (el *RepoEventLister) ListEvents(path api.RepoPath, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+func (el *RepoEventLister) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	el.ArgPath = path
 	el.ArgSubjectTypes = subjectTypes
 	return el.ReturnsAuditEvents, el.Err
@@ -120,26 +120,26 @@ func (el *RepoEventLister) ListEvents(path api.RepoPath, subjectTypes api.AuditS
 
 // RepoCreater mocks the Create function.
 type RepoCreater struct {
-	Argpath     api.RepoPath
+	Argpath     string
 	ReturnsRepo *api.Repo
 	Err         error
 }
 
 // Create saves the arguments it was called with and returns the mocked response.
-func (creater *RepoCreater) Create(path api.RepoPath) (*api.Repo, error) {
+func (creater *RepoCreater) Create(path string) (*api.Repo, error) {
 	creater.Argpath = path
 	return creater.ReturnsRepo, creater.Err
 }
 
 // RepoAccountLister mocks the ListAccounts function.
 type RepoAccountLister struct {
-	ArgPath         api.RepoPath
+	ArgPath         string
 	ReturnsAccounts []*api.Account
 	Err             error
 }
 
 // ListAccounts saves the arguments it was called with and returns the mocked response.
-func (l *RepoAccountLister) ListAccounts(path api.RepoPath) ([]*api.Account, error) {
+func (l *RepoAccountLister) ListAccounts(path string) ([]*api.Account, error) {
 	l.ArgPath = path
 	return l.ReturnsAccounts, l.Err
 }
