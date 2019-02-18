@@ -21,7 +21,7 @@ type RepoService struct {
 }
 
 // List implements the RepoService interface List function.
-func (s *RepoService) List(namespace api.Namespace) ([]*api.Repo, error) {
+func (s *RepoService) List(namespace string) ([]*api.Repo, error) {
 	return s.Lister.List(namespace)
 }
 
@@ -92,13 +92,13 @@ func (g *RepoGetter) Get(path string) (*api.Repo, error) {
 
 // RepoLister mocks the List function.
 type RepoLister struct {
-	ArgNamespace api.Namespace
+	ArgNamespace string
 	ReturnsRepos []*api.Repo
 	Err          error
 }
 
 // List saves the argument it was called with and returns the mocked response.
-func (g *RepoLister) List(namespace api.Namespace) ([]*api.Repo, error) {
+func (g *RepoLister) List(namespace string) ([]*api.Repo, error) {
 	g.ArgNamespace = namespace
 	return g.ReturnsRepos, g.Err
 }

@@ -15,7 +15,7 @@ type RepoService interface {
 	// Get retrieves the repo with the given path.
 	Get(path string) (*api.Repo, error)
 	// List retrieves all repositories in the given namespace.
-	List(namespace api.Namespace) ([]*api.Repo, error)
+	List(namespace string) ([]*api.Repo, error)
 	// ListAccounts lists the accounts in the repository.
 	ListAccounts(path string) ([]*api.Account, error)
 	// ListEvents retrieves all audit events for a given repo.
@@ -66,8 +66,13 @@ func (s repoService) Get(path string) (*api.Repo, error) {
 }
 
 // List retrieves all repositories in the given namespace.
-func (s repoService) List(namespace api.Namespace) ([]*api.Repo, error) {
-	return s.client.httpClient.ListRepos(namespace.String())
+func (s repoService) List(namespace string) ([]*api.Repo, error) {
+	err := api.ValidateNamespace(namespace)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.client.httpClient.ListRepos(namespace)
 }
 
 // ListAccounts lists the accounts in the repository.
