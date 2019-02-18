@@ -32,23 +32,23 @@ type generator struct {
 
 // Generate returns a random byte array of given length.
 func (generator generator) Generate(length int) ([]byte, error) {
-	pattern := charsetAlphanumeric
+	charset := charsetAlphanumeric
 	if generator.useSymbols {
-		pattern = append(pattern, charsetSymbols...)
+		charset = append(charset, charsetSymbols...)
 	}
-	return randFromPattern(pattern, length)
+	return randFromCharset(charset, length)
 }
 
-func randFromPattern(pattern []byte, length int) ([]byte, error) {
+func randFromCharset(charset []byte, length int) ([]byte, error) {
 	data := make([]byte, length)
 
-	lengthPattern := len(pattern)
+	lengthCharset := len(charset)
 	for i := 0; i < length; i++ {
-		c, err := rand.Int(rand.Reader, big.NewInt(int64(lengthPattern)))
+		c, err := rand.Int(rand.Reader, big.NewInt(int64(lengthCharset)))
 		if err != nil {
 			return nil, errio.Error(err)
 		}
-		data[i] = pattern[c.Int64()]
+		data[i] = charset[c.Int64()]
 	}
 	return data, nil
 }
