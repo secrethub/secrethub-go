@@ -240,7 +240,7 @@ func (s accessRuleService) create(path api.BlindNamePath, permission api.Permiss
 		return nil, errio.Error(err)
 	}
 
-	account, err := s.accountService.Get(accountName)
+	account, err := s.accountService.Get(accountName.String())
 	if err != nil {
 		return nil, errio.Error(err)
 	}
