@@ -116,3 +116,51 @@ func (k *AESKey) Export() []byte {
 func IsWrongKey(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "cipher: message authentication failed")
 }
+
+// CiphertextAES represents data encrypted with AES-GCM.
+type CiphertextAES struct {
+	Data  []byte
+	Nonce []byte
+}
+
+// EncryptAES encrypts the provided data with AES-GCM.
+func EncryptAES(data []byte, k *AESKey) (*CiphertextAES, error) {
+	encryptedData, nonce, err := k.Encrypt(data)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return &CiphertextAES{
+		Data:  encryptedData,
+		Nonce: nonce,
+	}, nil
+}
+
+// Decrypt decrypts the data in CiphertextAES with AES-GCM using the provided key.
+func (b *CiphertextAES) Decrypt(k Key) ([]byte, error) {
+	aesKey, ok := k.(*AESKey)
+	if !ok {
+		return nil, ErrWrongKeyType
+	}
+
+	if b.Data == nil || b.Nonce == nil {
+		return nil, ErrInvalidCiphertext
+	}
+
+	return aesKey.Decrypt(b.Data, b.Nonce)
+}
+
+// ReEncrypt reencrypts the ciphertext using AES for the given encryption key.
+func (b *CiphertextAES) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error) {
+	decrypted, err := b.Decrypt(decryptKey)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	aesKey, ok := encryptKey.(*AESKey)
+	if !ok {
+		return nil, ErrWrongKeyType
+	}
+
+	return EncryptAES(decrypted, aesKey)
+}
