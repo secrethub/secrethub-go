@@ -66,7 +66,7 @@ func TestCreateOrg(t *testing.T) {
 	})
 
 	// Act
-	resp, err := client.Orgs().Create(api.OrgName(name), descr)
+	resp, err := client.Orgs().Create(name, descr)
 
 	// Assert
 	testutil.OK(t, err)
@@ -76,7 +76,7 @@ func TestCreateOrg(t *testing.T) {
 func TestCreateOrg_InvalidArgs(t *testing.T) {
 
 	cases := map[string]struct {
-		name  api.OrgName
+		name  string
 		descr string
 		err   error
 	}{
@@ -111,7 +111,7 @@ func TestGetOrg(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		name       api.OrgName
+		name       string
 		response   interface{}
 		statusCode int
 		err        error
@@ -238,7 +238,7 @@ func TestListMyOrgs(t *testing.T) {
 
 func TestDeleteOrg(t *testing.T) {
 	cases := map[string]struct {
-		name       api.OrgName
+		name       string
 		response   interface{}
 		statusCode int
 		err        error
