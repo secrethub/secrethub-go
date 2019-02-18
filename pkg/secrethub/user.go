@@ -33,6 +33,21 @@ func (s userService) Me() (*api.User, error) {
 
 // Create creates a new user at SecretHub.
 func (s userService) Create(username, email, fullName string) (*api.User, error) {
+	err := api.ValidateUsername(username)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = api.ValidateEmail(email)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = api.ValidateFullName(fullName)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
 	accountKey, err := generateAccountKey()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -52,11 +67,6 @@ func (s userService) create(username, email, fullName string, accountKey *crypto
 		Email:      email,
 		FullName:   fullName,
 		Credential: credentialRequest,
-	}
-
-	err = userRequest.Validate()
-	if err != nil {
-		return nil, errio.Error(err)
 	}
 
 	user, err := s.client.httpClient.SignupUser(userRequest)
