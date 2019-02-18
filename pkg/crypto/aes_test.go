@@ -14,12 +14,12 @@ func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {
 
 	testData := []byte("testdata")
 
-	encData, metaData, err := encryptionKey.Encrypt(testData)
+	ciphertext, err := encryptionKey.Encrypt(testData)
 	if err != nil {
 		t.Error(err)
 	}
 
-	decryptedData, err := encryptionKey.Decrypt(encData, metaData)
+	decryptedData, err := encryptionKey.Decrypt(ciphertext.Data, ciphertext.Nonce)
 	if err != nil {
 		t.Error(err)
 	}
