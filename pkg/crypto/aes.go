@@ -73,26 +73,29 @@ func (k *AESKey) Decrypt(encryptedData, nonce []byte) ([]byte, error) {
 
 // Encrypt encrypts the data with AES-GCM using the AESKey.
 // Returns the encrypted data and the nonce as []byte.
-func (k *AESKey) Encrypt(data []byte) ([]byte, []byte, error) {
+func (k *AESKey) Encrypt(data []byte) (*CiphertextAES, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
-		return nil, nil, ErrInvalidCipher(err)
+		return nil, ErrInvalidCipher(err)
 	}
 
 	gcm, err := cipher.NewGCM(key)
 	if err != nil {
-		return nil, nil, ErrInvalidCipher(err)
+		return nil, ErrInvalidCipher(err)
 	}
 
 	nonce, err := GenerateNonce(gcm.NonceSize())
 	if err != nil {
-		return nil, nil, ErrAESEncrypt(err)
+		return nil, ErrAESEncrypt(err)
 	}
 
 	// We do not use a destination []byte, but a return value.
 	encData := gcm.Seal(nil, *nonce, data, nil)
 
-	return encData, *nonce, nil
+	return &CiphertextAES{
+		Data:  encData,
+		Nonce: *nonce,
+	}, nil
 }
 
 // HMAC creates an HMAC of the data.
@@ -125,15 +128,7 @@ type CiphertextAES struct {
 
 // EncryptAES encrypts the provided data with AES-GCM.
 func EncryptAES(data []byte, k *AESKey) (*CiphertextAES, error) {
-	encryptedData, nonce, err := k.Encrypt(data)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return &CiphertextAES{
-		Data:  encryptedData,
-		Nonce: nonce,
-	}, nil
+	return k.Encrypt(data)
 }
 
 // Decrypt decrypts the data in CiphertextAES with AES-GCM using the provided key.
