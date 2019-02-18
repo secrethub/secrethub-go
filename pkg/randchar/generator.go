@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	// randPatternAlphanumeric is the default pattern of characters used to generate random secrets.
-	randPatternAlphanumeric = []byte(`0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`)
-	// randPatternSymbols is added to the randPattern when generator.useSymbols is true.
-	randPatternSymbols = []byte(`!@#$%^*-_+=.,?`)
+	// charsetAlphanumeric is the default pattern of characters used to generate random secrets.
+	charsetAlphanumeric = []byte(`0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`)
+	// charsetSymbols is added to the pattern when generator.useSymbols is true.
+	charsetSymbols = []byte(`!@#$%^*-_+=.,?`)
 )
 
 // Generator generates random byte arrays.
@@ -32,23 +32,23 @@ type generator struct {
 
 // Generate returns a random byte array of given length.
 func (generator generator) Generate(length int) ([]byte, error) {
-	pattern := randPatternAlphanumeric
+	charset := charsetAlphanumeric
 	if generator.useSymbols {
-		pattern = append(pattern, randPatternSymbols...)
+		charset = append(charset, charsetSymbols...)
 	}
-	return randFromPattern(pattern, length)
+	return randFromCharset(charset, length)
 }
 
-func randFromPattern(pattern []byte, length int) ([]byte, error) {
+func randFromCharset(charset []byte, length int) ([]byte, error) {
 	data := make([]byte, length)
 
-	lengthPattern := len(pattern)
+	lengthCharset := len(charset)
 	for i := 0; i < length; i++ {
-		c, err := rand.Int(rand.Reader, big.NewInt(int64(lengthPattern)))
+		c, err := rand.Int(rand.Reader, big.NewInt(int64(lengthCharset)))
 		if err != nil {
 			return nil, errio.Error(err)
 		}
-		data[i] = pattern[c.Int64()]
+		data[i] = charset[c.Int64()]
 	}
 	return data, nil
 }
