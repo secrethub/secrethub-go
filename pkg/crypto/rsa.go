@@ -182,7 +182,7 @@ func (k *RSAKey) Decrypt(encryptedData []byte) ([]byte, error) {
 // The RSAKey must be able to decrypt the original data for the function to succeed.
 func (k *RSAKey) ReEncrypt(pk *RSAPublicKey, encData []byte) ([]byte, error) {
 
-	decData, err := k.Decrypt(encData)
+	decData, err := k.DecryptBytes(encData)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -355,7 +355,7 @@ func (b *CiphertextRSA) Decrypt(k Key) ([]byte, error) {
 		return nil, ErrInvalidCiphertext
 	}
 
-	return rsaKey.Decrypt(b.Data)
+	return rsaKey.DecryptBytes(b.Data)
 }
 
 // ReEncrypt reencrypts the ciphertext using RSA for the given encryption key.
