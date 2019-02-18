@@ -15,12 +15,12 @@ type AccessRuleService struct {
 }
 
 // Delete implements the AccessRuleService interface Delete function.
-func (s *AccessRuleService) Delete(path string, accountName api.AccountName) error {
+func (s *AccessRuleService) Delete(path string, accountName string) error {
 	return s.Deleter.Delete(path, accountName)
 }
 
 // Get implements the AccessRuleService interface Get function.
-func (s *AccessRuleService) Get(path string, accountName api.AccountName) (*api.AccessRule, error) {
+func (s *AccessRuleService) Get(path string, accountName string) (*api.AccessRule, error) {
 	return s.Getter.Get(path, accountName)
 }
 
@@ -40,19 +40,19 @@ func (s *AccessRuleService) ListWithPaths(path string, depth int, ancestors bool
 }
 
 // Set implements the AccessRuleService interface Set function.
-func (s *AccessRuleService) Set(path string, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
-	return s.Setter.Set(path, permission, name)
+func (s *AccessRuleService) Set(path string, permission api.Permission, accountName string) (*api.AccessRule, error) {
+	return s.Setter.Set(path, permission, accountName)
 }
 
 // AccessRuleDeleter mocks the Delete function.
 type AccessRuleDeleter struct {
 	ArgPath        string
-	ArgAccountName api.AccountName
+	ArgAccountName string
 	Err            error
 }
 
 // Delete saves the arguments it was called with and returns the mocked response.
-func (d *AccessRuleDeleter) Delete(path string, accountName api.AccountName) error {
+func (d *AccessRuleDeleter) Delete(path string, accountName string) error {
 	d.ArgPath = path
 	d.ArgAccountName = accountName
 	return d.Err
@@ -61,13 +61,13 @@ func (d *AccessRuleDeleter) Delete(path string, accountName api.AccountName) err
 // AccessRuleGetter mocks the Get function.
 type AccessRuleGetter struct {
 	ArgPath           string
-	ArgAccountName    api.AccountName
+	ArgAccountName    string
 	ReturnsAccessRule *api.AccessRule
 	Err               error
 }
 
 // Get saves the arguments it was called with and returns the mocked response.
-func (g *AccessRuleGetter) Get(path string, accountName api.AccountName) (*api.AccessRule, error) {
+func (g *AccessRuleGetter) Get(path string, accountName string) (*api.AccessRule, error) {
 	g.ArgPath = path
 	g.ArgAccountName = accountName
 	return g.ReturnsAccessRule, g.Err
@@ -90,13 +90,13 @@ func (l *AccessLevelLister) ListLevels(path string) ([]*api.AccessLevel, error) 
 type AccessRuleSetter struct {
 	ArgPath           string
 	ArgPermission     api.Permission
-	ArgName           api.AccountName
+	ArgName           string
 	ReturnsAccessRule *api.AccessRule
 	Err               error
 }
 
 // Set saves the arguments it was called with and returns the mocked response.
-func (s *AccessRuleSetter) Set(path string, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
+func (s *AccessRuleSetter) Set(path string, permission api.Permission, name string) (*api.AccessRule, error) {
 	s.ArgPath = path
 	s.ArgPermission = permission
 	s.ArgName = name

@@ -9,9 +9,9 @@ import (
 // AccessRuleService handles operations on access rules from SecretHub.
 type AccessRuleService interface {
 	// Delete removes the accessrule for the given directory and account.
-	Delete(path string, accountName api.AccountName) error
+	Delete(path string, accountName string) error
 	// Get retrieves the access rule for the given account on the given directory.
-	Get(path string, accountName api.AccountName) (*api.AccessRule, error)
+	Get(path string, accountName string) (*api.AccessRule, error)
 	// List retrieves all access rules that apply to a directory.
 	List(path string, depth int, ancestors bool) ([]*api.AccessRule, error)
 	// ListWithPaths retrieves all access rules that apply to a directory,
@@ -23,7 +23,7 @@ type AccessRuleService interface {
 	// ListLevels lists the access levels on the given directory.
 	ListLevels(path string) ([]*api.AccessLevel, error)
 	// Set sets an access rule with a certain permission level for an account to a path.
-	Set(path string, permission api.Permission, name api.AccountName) (*api.AccessRule, error)
+	Set(path string, permission api.Permission, accountName string) (*api.AccessRule, error)
 }
 
 func newAccessRuleService(client client) AccessRuleService {
@@ -41,8 +41,13 @@ type accessRuleService struct {
 }
 
 // Delete removes the accessrule for the given directory and account.
-func (s accessRuleService) Delete(path string, accountName api.AccountName) error {
+func (s accessRuleService) Delete(path string, accountName string) error {
 	p, err := api.NewDirPath(path)
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	err = api.ValidateAccountName(api.AccountName(accountName))
 	if err != nil {
 		return errio.Error(err)
 	}
@@ -52,12 +57,7 @@ func (s accessRuleService) Delete(path string, accountName api.AccountName) erro
 		return errio.Error(err)
 	}
 
-	err = accountName.Validate()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	err = s.client.httpClient.DeleteAccessRule(blindName, accountName)
+	err = s.client.httpClient.DeleteAccessRule(blindName, api.AccountName(accountName))
 	if err != nil {
 		return errio.Error(err)
 	}
@@ -66,8 +66,13 @@ func (s accessRuleService) Delete(path string, accountName api.AccountName) erro
 }
 
 // Get retrieves the access rule for the given account on the given directory.
-func (s accessRuleService) Get(path string, accountName api.AccountName) (*api.AccessRule, error) {
+func (s accessRuleService) Get(path string, accountName string) (*api.AccessRule, error) {
 	p, err := api.NewDirPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = api.ValidateAccountName(api.AccountName(accountName))
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -77,12 +82,7 @@ func (s accessRuleService) Get(path string, accountName api.AccountName) (*api.A
 		return nil, errio.Error(err)
 	}
 
-	err = api.ValidateAccountName(accountName)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	accessRule, err := s.client.httpClient.GetAccessRule(blindName, accountName)
+	accessRule, err := s.client.httpClient.GetAccessRule(blindName, api.AccountName(accountName))
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -213,34 +213,29 @@ func (s accessRuleService) ListLevels(path string) ([]*api.AccessLevel, error) {
 }
 
 // Set sets an access rule with a certain permission level for an account to a path.
-func (s accessRuleService) Set(path string, permission api.Permission, name api.AccountName) (*api.AccessRule, error) {
+func (s accessRuleService) Set(path string, permission api.Permission, accountName string) (*api.AccessRule, error) {
 	p, err := api.NewDirPath(path)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	err = api.ValidateAccountName(name)
+	err = api.ValidateAccountName(api.AccountName(accountName))
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	_, err = s.Get(path, name)
+	_, err = s.Get(path, accountName)
 	if err != nil && err != api.ErrAccessRuleNotFound {
 		return nil, errio.Error(err)
 	} else if err == api.ErrAccessRuleNotFound {
-		return s.create(p, permission, name)
+		return s.create(p, permission, api.AccountName(accountName))
 	}
-	return s.update(p, permission, name)
+	return s.update(p, permission, api.AccountName(accountName))
 }
 
 // CreateAccessRule creates a new AccessRule for an account with a certain permission level.
 func (s accessRuleService) create(path api.BlindNamePath, permission api.Permission, accountName api.AccountName) (*api.AccessRule, error) {
 	blindName, err := s.client.convertPathToBlindName(path)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	err = api.ValidateAccountName(accountName)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -313,11 +308,6 @@ func (s accessRuleService) update(path api.BlindNamePath, permission api.Permiss
 		return nil, errio.Error(err)
 	}
 
-	err = api.ValidateAccountName(name)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
 	in := &api.UpdateAccessRuleRequest{
 		Permission: permission,
 	}
@@ -329,11 +319,6 @@ func (s accessRuleService) update(path api.BlindNamePath, permission api.Permiss
 // one or more access rules on the directory itself or its parent(s).
 func (c *client) getAccessLevel(path api.BlindNamePath, accountName api.AccountName) (*api.AccessLevel, error) {
 	blindName, err := c.convertPathToBlindName(path)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	err = api.ValidateAccountName(accountName)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
