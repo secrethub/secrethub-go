@@ -230,7 +230,7 @@ func (c *client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.AESKey, error) 
 		return nil, errio.Error(err)
 	}
 
-	keyData, err := accountKey.Decrypt(wrappedKey.RepoIndexKey)
+	keyData, err := accountKey.DecryptBytes(wrappedKey.RepoIndexKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}

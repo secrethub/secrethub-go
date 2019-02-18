@@ -159,6 +159,16 @@ func (k *RSAKey) Sign(message []byte) ([]byte, error) {
 	return rsa.SignPKCS1v15(rand.Reader, k.privateKey, crypto.SHA256, hashedMessage[:])
 }
 
+// DecryptBytes decrypts the encrypted data with RSA-OAEP using the RSAKey and
+// will be deprecated. Directly use Decrypt instead.
+func (k *RSAKey) DecryptBytes(encryptedData []byte) ([]byte, error) {
+	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, k.privateKey, encryptedData, []byte{})
+	if err != nil {
+		return nil, ErrRSADecrypt(err)
+	}
+	return output, nil
+}
+
 // Decrypt decrypts the encryptedData with RSA-OAEP using the RSAKey.
 func (k *RSAKey) Decrypt(encryptedData []byte) ([]byte, error) {
 	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, k.privateKey, encryptedData, []byte{})
