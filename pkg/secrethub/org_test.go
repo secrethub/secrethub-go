@@ -14,7 +14,6 @@ import (
 )
 
 func TestCreateOrg(t *testing.T) {
-
 	// Arrange
 	router, opts, cleanup := setup()
 	defer cleanup()
@@ -80,6 +79,11 @@ func TestCreateOrg_InvalidArgs(t *testing.T) {
 		descr string
 		err   error
 	}{
+		"invalid org name": {
+			name:  "invalid org name",
+			descr: "some description",
+			err:   api.ErrInvalidOrgName,
+		},
 		"invalid descr": {
 			name:  "myorg",
 			descr: strings.Repeat("a", 300),
@@ -117,6 +121,13 @@ func TestGetOrg(t *testing.T) {
 		err        error
 		expected   *api.Org
 	}{
+		"invalid org name": {
+			name:       "invalid org name",
+			response:   nil,
+			statusCode: http.StatusBadRequest,
+			err:        api.ErrInvalidOrgName,
+			expected:   nil,
+		},
 		"not found": {
 			name:       "myorg",
 			response:   api.ErrOrgNotFound,
@@ -243,6 +254,12 @@ func TestDeleteOrg(t *testing.T) {
 		statusCode int
 		err        error
 	}{
+		"invalid org name": {
+			name:       "invalid org name",
+			response:   nil,
+			statusCode: http.StatusBadRequest,
+			err:        api.ErrInvalidOrgName,
+		},
 		"not found": {
 			name:       "myorg",
 			response:   api.ErrOrgNotFound,
