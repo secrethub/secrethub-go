@@ -19,7 +19,7 @@ type AccessRuleService interface {
 	// up to a specified depth. When ancestors is set to true, it also includes rules
 	// for any parent directories. When the depth is set to -1, all children are
 	// retrieved without limit.
-	ListWithPaths(path string, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error)
+	ListWithPaths(path string, depth int, ancestors bool) (map[string][]*api.AccessRule, error)
 	// ListLevels lists the access levels on the given directory.
 	ListLevels(path string) ([]*api.AccessLevel, error)
 	// Set sets an access rule with a certain permission level for an account to a path.
@@ -118,7 +118,7 @@ func (s accessRuleService) List(path string, depth int, ancestors bool) ([]*api.
 // up to a specified depth. When ancestors is set to true, it also includes rules
 // for any parent directories. When the depth is set to -1, all children are
 // retrieved without limit.
-func (s accessRuleService) ListWithPaths(path string, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error) {
+func (s accessRuleService) ListWithPaths(path string, depth int, ancestors bool) (map[string][]*api.AccessRule, error) {
 	rules, err := s.List(path, depth, ancestors)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -142,7 +142,7 @@ func (s accessRuleService) ListWithPaths(path string, depth int, ancestors bool)
 	}
 
 	// Map the directories to rule lists.
-	result := make(map[api.DirPath][]*api.AccessRule)
+	result := make(map[string][]*api.AccessRule)
 	for dirID, list := range ruleMap {
 		dirPath, err := dirFS.AbsDirPath(&dirID)
 		if err != nil {
@@ -154,7 +154,7 @@ func (s accessRuleService) ListWithPaths(path string, depth int, ancestors bool)
 			dirRules[i] = rules[ruleIndex]
 		}
 
-		result[*dirPath] = dirRules
+		result[dirPath.String()] = dirRules
 	}
 
 	return result, nil

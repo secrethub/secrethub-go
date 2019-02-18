@@ -35,7 +35,7 @@ func (s *AccessRuleService) List(path string, depth int, ancestors bool) ([]*api
 }
 
 // ListWithPaths implements the AccessRuleService interface ListWithPaths function.
-func (s *AccessRuleService) ListWithPaths(path string, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error) {
+func (s *AccessRuleService) ListWithPaths(path string, depth int, ancestors bool) (map[string][]*api.AccessRule, error) {
 	return s.WithPathLister.ListWithPaths(path, depth, ancestors)
 }
 
@@ -125,12 +125,12 @@ type AccessRuleWithPathLister struct {
 	ArgPath              string
 	ArgDepth             int
 	ArgAncestors         bool
-	ReturnsAccessRuleMap map[api.DirPath][]*api.AccessRule
+	ReturnsAccessRuleMap map[string][]*api.AccessRule
 	Err                  error
 }
 
 // ListWithPaths saves the arguments it was called with and returns the mocked response.
-func (s *AccessRuleWithPathLister) ListWithPaths(path string, depth int, ancestors bool) (map[api.DirPath][]*api.AccessRule, error) {
+func (s *AccessRuleWithPathLister) ListWithPaths(path string, depth int, ancestors bool) (map[string][]*api.AccessRule, error) {
 	s.ArgPath = path
 	s.ArgDepth = depth
 	s.ArgAncestors = ancestors
