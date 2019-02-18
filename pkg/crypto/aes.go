@@ -126,11 +126,6 @@ type CiphertextAES struct {
 	Nonce []byte
 }
 
-// EncryptAES encrypts the provided data with AES-GCM.
-func EncryptAES(data []byte, k *AESKey) (*CiphertextAES, error) {
-	return k.Encrypt(data)
-}
-
 // Decrypt decrypts the data in CiphertextAES with AES-GCM using the provided key.
 func (b *CiphertextAES) Decrypt(k Key) ([]byte, error) {
 	aesKey, ok := k.(*AESKey)
@@ -157,5 +152,5 @@ func (b *CiphertextAES) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error
 		return nil, ErrWrongKeyType
 	}
 
-	return EncryptAES(decrypted, aesKey)
+	return aesKey.Encrypt(decrypted)
 }

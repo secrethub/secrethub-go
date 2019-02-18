@@ -275,7 +275,7 @@ func EncryptRSAAES(data []byte, k *RSAPublicKey) (*CiphertextRSAAES, error) {
 		return nil, errio.Error(err)
 	}
 
-	aesData, err := EncryptAES(data, aesKey)
+	aesData, err := aesKey.Encrypt(data)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
