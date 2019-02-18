@@ -72,7 +72,6 @@ func (k *AESKey) Decrypt(encryptedData, nonce []byte) ([]byte, error) {
 }
 
 // Encrypt encrypts the data with AES-GCM using the AESKey.
-// Returns the encrypted data and the nonce as []byte.
 func (k *AESKey) Encrypt(data []byte) (*CiphertextAES, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
