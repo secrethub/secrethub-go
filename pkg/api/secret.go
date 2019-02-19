@@ -43,25 +43,20 @@ var (
 // EncryptedSecret represents an encrypted Secret
 // It does not contain the encrypted data. Only the encrypted name.
 type EncryptedSecret struct {
-	SecretID      *uuid.UUID               `json:"secret_id"`
-	DirID         *uuid.UUID               `json:"dir_id"`
-	RepoID        *uuid.UUID               `json:"repo_id"`
-	EncryptedName crypto.EncodedCiphertext `json:"encrypted_name"`
-	BlindName     string                   `json:"blind_name"`
-	VersionCount  int                      `json:"version_count"`
-	LatestVersion int                      `json:"latest_version"`
-	Status        string                   `json:"status"`
-	CreatedAt     time.Time                `json:"created_at"`
+	SecretID      *uuid.UUID                  `json:"secret_id"`
+	DirID         *uuid.UUID                  `json:"dir_id"`
+	RepoID        *uuid.UUID                  `json:"repo_id"`
+	EncryptedName crypto.EncodedCiphertextRSA `json:"encrypted_name"`
+	BlindName     string                      `json:"blind_name"`
+	VersionCount  int                         `json:"version_count"`
+	LatestVersion int                         `json:"latest_version"`
+	Status        string                      `json:"status"`
+	CreatedAt     time.Time                   `json:"created_at"`
 }
 
 // Decrypt decrypts an EncryptedSecret into a Secret.
 func (es *EncryptedSecret) Decrypt(accountKey *crypto.RSAKey) (*Secret, error) {
-	nameCiphertext, err := es.EncryptedName.Decode()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	name, err := nameCiphertext.Decrypt(accountKey)
+	name, err := accountKey.Decrypt(es.EncryptedName)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
