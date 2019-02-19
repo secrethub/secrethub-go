@@ -170,7 +170,12 @@ func (k *RSAKey) DecryptBytes(encryptedData []byte) ([]byte, error) {
 }
 
 // Decrypt decrypts the encryptedData with RSA-OAEP using the RSAKey.
-func (k *RSAKey) Decrypt(encryptedData []byte) ([]byte, error) {
+func (k *RSAKey) Decrypt(encodedCiphertext EncodedCiphertextRSA) ([]byte, error) {
+	encryptedData, err := EncodedCiphertext(encodedCiphertext).GetData()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
 	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, k.privateKey, encryptedData, []byte{})
 	if err != nil {
 		return nil, ErrRSADecrypt(err)
