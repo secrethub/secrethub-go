@@ -34,13 +34,13 @@ var (
 // EncryptedSecretVersion represents a version of an encrypted Secret.
 // It contains the encrypted data and the corresponding key.
 type EncryptedSecretVersion struct {
-	SecretVersionID *uuid.UUID          `json:"secret_version_id"`
-	Secret          *EncryptedSecret    `json:"secret"`
-	Version         int                 `json:"version"`
-	SecretKey       *EncryptedSecretKey `json:"secret_key,omitempty"`
-	EncryptedData   EncodedCiphertext   `json:"encrypted_data,omitempty"`
-	CreatedAt       time.Time           `json:"created_at"`
-	Status          string              `json:"status"`
+	SecretVersionID *uuid.UUID               `json:"secret_version_id"`
+	Secret          *EncryptedSecret         `json:"secret"`
+	Version         int                      `json:"version"`
+	SecretKey       *EncryptedSecretKey      `json:"secret_key,omitempty"`
+	EncryptedData   crypto.EncodedCiphertext `json:"encrypted_data,omitempty"`
+	CreatedAt       time.Time                `json:"created_at"`
+	Status          string                   `json:"status"`
 }
 
 // Decrypt decrypts an EncryptedSecretVersion into a SecretVersion.
@@ -131,8 +131,8 @@ func (esv *EncryptedSecretVersion) ToAuditSubject() *AuditSubject {
 // CreateSecretVersionRequest contains the request fields for creating a
 // secret version with a secret key.
 type CreateSecretVersionRequest struct {
-	EncryptedData EncodedCiphertext `json:"encrypted_data"`
-	SecretKeyID   *uuid.UUID        `json:"secret_key_id"`
+	EncryptedData crypto.EncodedCiphertext `json:"encrypted_data"`
+	SecretKeyID   *uuid.UUID               `json:"secret_key_id"`
 }
 
 // Validate validates the request fields.

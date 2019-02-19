@@ -54,7 +54,7 @@ func (c *client) createAccountKeyRequest(credential Credential, accountKey *cryp
 		return nil, errio.Error(err)
 	}
 
-	encodedWrappedAccountKey, err := api.EncodeCiphertext(wrappedAccountKey)
+	encodedWrappedAccountKey, err := crypto.EncodeCiphertext(wrappedAccountKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}

@@ -6,5 +6,5 @@ package api
 var (
 	ErrUnknownAlgorithm  = errAPI.Code("unknown_algorithm").Error("algorithm of the encoded ciphertext is invalid")
 	ErrInvalidCiphertext = errAPI.Code("invalid_ciphertext").Error("cannot encode invalid ciphertext")
-	ErrInvalidMetadata    = errAPI.Code("invalid_metadata").Error("metadata of encrypted key is invalid")
+	ErrInvalidMetadata   = errAPI.Code("invalid_metadata").Error("metadata of encrypted key is invalid")
 )

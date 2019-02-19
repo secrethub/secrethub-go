@@ -1,6 +1,10 @@
 package api
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/keylockerbv/secrethub-go/pkg/crypto"
+)
 
 // Errors
 var (
@@ -12,13 +16,13 @@ var (
 type EncryptedAccountKey struct {
 	Account             *Account
 	PublicKey           []byte
-	EncryptedPrivateKey EncodedCiphertext
+	EncryptedPrivateKey crypto.EncodedCiphertext
 	Credential          *Credential
 }
 
 // CreateAccountKeyRequest contains the fields to add an account_key encrypted for a credential.
 type CreateAccountKeyRequest struct {
-	EncryptedPrivateKey EncodedCiphertext
+	EncryptedPrivateKey crypto.EncodedCiphertext
 	PublicKey           []byte
 }
 

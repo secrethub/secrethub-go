@@ -146,7 +146,7 @@ func (c *client) createSecretVersion(secretPath api.SecretPath, data []byte, sec
 		return nil, errio.Error(err)
 	}
 
-	encodedData, err := api.EncodeCiphertext(encryptedData)
+	encodedData, err := crypto.EncodeCiphertext(encryptedData)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -209,7 +209,7 @@ func (c *client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 		return nil, errio.Error(err)
 	}
 
-	encodedData, err := api.EncodeCiphertext(encryptedData)
+	encodedData, err := crypto.EncodeCiphertext(encryptedData)
 	if err != nil {
 		return nil, errio.Error(err)
 	}

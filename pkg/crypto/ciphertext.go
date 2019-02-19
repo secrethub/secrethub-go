@@ -3,9 +3,10 @@ package crypto
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
 	"regexp"
 	"sort"
+
+	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
 // Errors
@@ -13,7 +14,7 @@ var (
 	ErrWrongKeyType      = errCrypto.Code("wrong_key_type").Error("received wrong key type")
 	ErrInvalidCiphertext = errCrypto.Code("invalid_ciphertext").Error("ciphertext contains invalid data")
 	ErrUnknownAlgorithm  = errCrypto.Code("unknown_algorithm").Error("algorithm of the encoded ciphertext is invalid")
-	ErrInvalidMetadata    = errCrypto.Code("invalid_metadata").Error("metadata of encrypted key is invalid")
+	ErrInvalidMetadata   = errCrypto.Code("invalid_metadata").Error("metadata of encrypted key is invalid")
 )
 
 var (

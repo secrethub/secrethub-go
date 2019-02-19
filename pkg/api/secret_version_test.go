@@ -44,7 +44,7 @@ func TestCreateSecretVersionRequest_Validate(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		encCipherText, err := EncodeCiphertext(cipherText)
+		encCipherText, err := crypto.EncodeCiphertext(cipherText)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -47,7 +47,7 @@ func (c *client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 			return nil, errio.Error(err)
 		}
 
-		encodedSecretName, err := api.EncodeCiphertext(encryptedSecretName)
+		encodedSecretName, err := crypto.EncodeCiphertext(encryptedSecretName)
 		if err != nil {
 			return nil, errio.Error(err)
 		}
@@ -67,7 +67,7 @@ func (c *client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 				return nil, errio.Error(err)
 			}
 
-			encodedKey, err := api.EncodeCiphertext(encryptedKey)
+			encodedKey, err := crypto.EncodeCiphertext(encryptedKey)
 			if err != nil {
 				return nil, errio.Error(err)
 			}
@@ -123,7 +123,7 @@ func encryptNameForAccounts(name string, accounts ...*api.Account) ([]api.Encryp
 			return nil, errio.Error(err)
 		}
 
-		encodedSecretName, err := api.EncodeCiphertext(encryptedSecretName)
+		encodedSecretName, err := crypto.EncodeCiphertext(encryptedSecretName)
 		if err != nil {
 			return nil, errio.Error(err)
 		}
@@ -151,7 +151,7 @@ func encryptKeyForAccounts(key *crypto.AESKey, accounts ...*api.Account) ([]api.
 			return nil, errio.Error(err)
 		}
 
-		encodedSecretKey, err := api.EncodeCiphertext(encryptedSecretKey)
+		encodedSecretKey, err := crypto.EncodeCiphertext(encryptedSecretKey)
 		if err != nil {
 			return nil, errio.Error(err)
 		}

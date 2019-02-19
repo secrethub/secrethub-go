@@ -523,8 +523,3 @@ func TestEncodedCiphertextMetadata_GetDecodedValue(t *testing.T) {
 		}
 	}
 }
-
-// getValidEncodedCipherText returns a valid EncodedCipherText to use in tests.
-func getValidEncodedCipherText() EncodedCiphertext {
-	return "RSA-OAEP$VGh/cyBpcyBhIHRlc3Qgc3RyaW5n$"
-}
