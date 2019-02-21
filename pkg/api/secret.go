@@ -9,13 +9,10 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
-	logging "github.com/op/go-logging"
 )
 
 // Errors
 var (
-	log = logging.MustGetLogger("log")
-
 	ErrInvalidSecretName = errAPI.Code("invalid_secret_name").StatusError(
 		"secret names must be between 1 and 32 characters and "+
 			"may only contain letters, numbers, dashes (-), underscores (_), and dots (.)",

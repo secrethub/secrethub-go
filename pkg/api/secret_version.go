@@ -34,13 +34,13 @@ var (
 // EncryptedSecretVersion represents a version of an encrypted Secret.
 // It contains the encrypted data and the corresponding key.
 type EncryptedSecretVersion struct {
-	SecretVersionID *uuid.UUID               `json:"secret_version_id"`
-	Secret          *EncryptedSecret         `json:"secret"`
-	Version         int                      `json:"version"`
-	SecretKey       *EncryptedSecretKey      `json:"secret_key,omitempty"`
-	EncryptedData   crypto.EncodedCiphertext `json:"encrypted_data,omitempty"`
-	CreatedAt       time.Time                `json:"created_at"`
-	Status          string                   `json:"status"`
+	SecretVersionID *uuid.UUID                  `json:"secret_version_id"`
+	Secret          *EncryptedSecret            `json:"secret"`
+	Version         int                         `json:"version"`
+	SecretKey       *EncryptedSecretKey         `json:"secret_key,omitempty"`
+	EncryptedData   crypto.EncodedCiphertextAES `json:"encrypted_data,omitempty"`
+	CreatedAt       time.Time                   `json:"created_at"`
+	Status          string                      `json:"status"`
 }
 
 // Decrypt decrypts an EncryptedSecretVersion into a SecretVersion.
@@ -58,16 +58,9 @@ func (esv *EncryptedSecretVersion) Decrypt(accountKey *crypto.RSAKey) (*SecretVe
 			return nil, errio.Error(err)
 		}
 
-		dataCiphertext, err := esv.EncryptedData.Decode()
+		data, err = secretKey.Key.Decrypt(esv.EncryptedData)
 		if err != nil {
-			log.Debugf("cannot decode EncryptedData: %v", esv.EncryptedData)
-			return nil, errio.Error(err)
-		}
-
-		data, err = dataCiphertext.Decrypt(secretKey.Key)
-		if err != nil {
-			log.Debugf("cannot decrypt EncryptedData: %v", dataCiphertext)
-			return nil, errio.Error(err)
+			return nil, err
 		}
 	}
 
