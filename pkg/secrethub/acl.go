@@ -47,7 +47,7 @@ func (s accessRuleService) Delete(path string, accountName string) error {
 		return errio.Error(err)
 	}
 
-	err = api.ValidateAccountName(api.AccountName(accountName))
+	an, err := api.NewAccountName(accountName)
 	if err != nil {
 		return errio.Error(err)
 	}
@@ -57,7 +57,7 @@ func (s accessRuleService) Delete(path string, accountName string) error {
 		return errio.Error(err)
 	}
 
-	err = s.client.httpClient.DeleteAccessRule(blindName, api.AccountName(accountName))
+	err = s.client.httpClient.DeleteAccessRule(blindName, an)
 	if err != nil {
 		return errio.Error(err)
 	}
@@ -72,7 +72,7 @@ func (s accessRuleService) Get(path string, accountName string) (*api.AccessRule
 		return nil, errio.Error(err)
 	}
 
-	err = api.ValidateAccountName(api.AccountName(accountName))
+	an, err := api.NewAccountName(accountName)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -82,7 +82,7 @@ func (s accessRuleService) Get(path string, accountName string) (*api.AccessRule
 		return nil, errio.Error(err)
 	}
 
-	accessRule, err := s.client.httpClient.GetAccessRule(blindName, api.AccountName(accountName))
+	accessRule, err := s.client.httpClient.GetAccessRule(blindName, an)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -219,7 +219,7 @@ func (s accessRuleService) Set(path string, permission api.Permission, accountNa
 		return nil, errio.Error(err)
 	}
 
-	err = api.ValidateAccountName(api.AccountName(accountName))
+	an, err := api.NewAccountName(accountName)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -228,9 +228,9 @@ func (s accessRuleService) Set(path string, permission api.Permission, accountNa
 	if err != nil && err != api.ErrAccessRuleNotFound {
 		return nil, errio.Error(err)
 	} else if err == api.ErrAccessRuleNotFound {
-		return s.create(p, permission, api.AccountName(accountName))
+		return s.create(p, permission, an)
 	}
-	return s.update(p, permission, api.AccountName(accountName))
+	return s.update(p, permission, an)
 }
 
 // CreateAccessRule creates a new AccessRule for an account with a certain permission level.

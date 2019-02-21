@@ -26,8 +26,7 @@ type accountService struct {
 
 // Get retrieves an account by name.
 func (s accountService) Get(name string) (*api.Account, error) {
-	accountName := api.AccountName(name)
-	err := accountName.Validate()
+	accountName, err := api.NewAccountName(name)
 	if err != nil {
 		return nil, errio.Error(err)
 	}

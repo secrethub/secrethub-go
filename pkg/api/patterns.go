@@ -97,11 +97,11 @@ func ValidateNamespace(namespace string) error {
 }
 
 // ValidateAccountName validates an AcccountName.
-func ValidateAccountName(name AccountName) error {
-	if name.IsService() {
-		return ValidateServiceID(string(name))
+func ValidateAccountName(name string) error {
+	if AccountName(name).IsService() {
+		return ValidateServiceID(name)
 	}
-	return ValidateUsername(string(name))
+	return ValidateUsername(name)
 }
 
 // ValidateUsername validates a username.

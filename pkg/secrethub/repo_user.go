@@ -32,16 +32,15 @@ func (s repoUserService) Invite(path string, username string) (*api.RepoMember, 
 		return nil, errio.Error(err)
 	}
 
-	name := api.AccountName(username)
-	err = name.Validate()
+	accountName, err := api.NewAccountName(username)
 	if err != nil {
 		return nil, err
 	}
-	if !name.IsUser() {
+	if !accountName.IsUser() {
 		return nil, api.ErrUsernameIsService
 	}
 
-	account, err := s.client.httpClient.GetAccount(name)
+	account, err := s.client.httpClient.GetAccount(accountName)
 	if err == api.ErrAccountNotFound {
 		// return a more context specific error
 		return nil, api.ErrUserNotFound
