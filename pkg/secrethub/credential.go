@@ -303,7 +303,7 @@ func (c RSACredential) Wrap(plaintext []byte) (crypto.EncodedCiphertextRSAAES, e
 
 // Unwrap decrypts data, typically an account key.
 func (c RSACredential) Unwrap(encodedCiphertext crypto.EncodedCiphertextRSAAES) ([]byte, error) {
-	return crypto.DecryptRSAAES(encodedCiphertext, *c.RSAPublicKey)
+	return crypto.DecryptRSAAES(encodedCiphertext, *c.RSAKey)
 }
 
 // Type returns what type of credential this is.

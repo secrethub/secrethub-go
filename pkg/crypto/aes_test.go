@@ -98,7 +98,7 @@ func TestCiphertextRSAAES_Encode(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// Act
-			actual := tc.ciphertext.Encode()
+			actual := tc.ciphertext.encode()
 
 			// Assert
 			testutil.Compare(t, actual, tc.expected)

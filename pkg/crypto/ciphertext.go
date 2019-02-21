@@ -32,23 +32,17 @@ var (
 	encodedCiphertextMetadataPattern = `(?:^|,)%s=([a-zA-Z0-9\+/]+(?:={0,2}?))(?:$|,)`
 )
 
-// Key represents a key that can be used to decrypt data.
-type Key interface{}
-
-// Ciphertext is an interface for to decrypt encrypted data.
-type Ciphertext interface{}
-
-// EncodedCiphertext contains a string in the format <algorithm>$<base64-encoded-encrypted-data>$<metadata>.
-type EncodedCiphertext string
+// encodedCiphertext contains a string in the format <algorithm>$<base64-encoded-encrypted-data>$<metadata>.
+type encodedCiphertext string
 
 // EncodedCiphertextAES contains a string in the format AES-GCM$<base64-encoded-encrypted-data>$<metadata>.
-type EncodedCiphertextAES EncodedCiphertext
+type EncodedCiphertextAES encodedCiphertext
 
 // EncodedCiphertextRSA contains a string in the format RSA-OAEP$<base64-encoded-encrypted-data>$<metadata>.
-type EncodedCiphertextRSA EncodedCiphertext
+type EncodedCiphertextRSA encodedCiphertext
 
 // EncodedCiphertextRSAAES contains a string in the format RSA-OAEP+AES-GCM$<base64-encoded-encrypted-data>$<metadata>.
-type EncodedCiphertextRSAAES EncodedCiphertext
+type EncodedCiphertextRSAAES encodedCiphertext
 
 // EncryptionAlgorithm represents the algorithm an EncodedCiphertext is encrypted with.
 type EncryptionAlgorithm string
@@ -65,17 +59,17 @@ const (
 // E.g. nonce=abcd,length=1024
 type EncodedCiphertextMetadata string
 
-// NewEncodedCiphertext creates a new EncodedCiphertext from an EncryptionAlgorithm and a []byte with a key.
-func NewEncodedCiphertext(algorithm EncryptionAlgorithm, keyData []byte, metadataList map[string]string) EncodedCiphertext {
+// newEncodedCiphertext creates a new EncodedCiphertext from an EncryptionAlgorithm and a []byte with a key.
+func newEncodedCiphertext(algorithm EncryptionAlgorithm, keyData []byte, metadataList map[string]string) encodedCiphertext {
 	encodedKey := base64.StdEncoding.EncodeToString(keyData)
 
 	metadata := NewEncodedCiphertextMetadata(metadataList)
 
-	return EncodedCiphertext(fmt.Sprintf("%s$%s$%s", algorithm, encodedKey, metadata))
+	return encodedCiphertext(fmt.Sprintf("%s$%s$%s", algorithm, encodedKey, metadata))
 }
 
 // Validate verifies the EncodedCiphertext has a valid format.
-func (ec EncodedCiphertext) Validate() error {
+func (ec encodedCiphertext) Validate() error {
 	if !encodedCiphertextPattern.MatchString(string(ec)) {
 		return ErrInvalidCiphertext
 	}
@@ -84,7 +78,7 @@ func (ec EncodedCiphertext) Validate() error {
 }
 
 // parseRegex finds all matches of the encryptedKeyPattern regex on the EncodedCiphertext.
-func (ec EncodedCiphertext) parseRegex() ([]string, error) {
+func (ec encodedCiphertext) parseRegex() ([]string, error) {
 	matches := encodedCiphertextPattern.FindStringSubmatch(string(ec))
 	if len(matches) < 4 {
 		return nil, ErrInvalidCiphertext
@@ -93,7 +87,7 @@ func (ec EncodedCiphertext) parseRegex() ([]string, error) {
 }
 
 // GetAlgorithm returns the algorithm part of the EncodedCiphertext.
-func (ec EncodedCiphertext) GetAlgorithm() (EncryptionAlgorithm, error) {
+func (ec encodedCiphertext) GetAlgorithm() (EncryptionAlgorithm, error) {
 	matches, err := ec.parseRegex()
 	if err != nil {
 		return "", errio.Error(err)
@@ -102,7 +96,7 @@ func (ec EncodedCiphertext) GetAlgorithm() (EncryptionAlgorithm, error) {
 }
 
 // GetData returns the encrypted data part of the EncodedCiphertext.
-func (ec EncodedCiphertext) GetData() ([]byte, error) {
+func (ec encodedCiphertext) GetData() ([]byte, error) {
 	matches, err := ec.parseRegex()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -111,7 +105,7 @@ func (ec EncodedCiphertext) GetData() ([]byte, error) {
 }
 
 // GetMetadata returns the metadata part of the EncodedCiphertext.
-func (ec EncodedCiphertext) GetMetadata() (EncodedCiphertextMetadata, error) {
+func (ec encodedCiphertext) GetMetadata() (EncodedCiphertextMetadata, error) {
 	matches, err := ec.parseRegex()
 	if err != nil {
 		return "", errio.Error(err)
@@ -172,7 +166,7 @@ func (m EncodedCiphertextMetadata) GetDecodedValue(name string) ([]byte, error) 
 }
 
 func (ec EncodedCiphertextRSA) decode() (*ciphertextRSA, error) {
-	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
+	algorithm, err := encodedCiphertext(ec).GetAlgorithm()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -181,7 +175,7 @@ func (ec EncodedCiphertextRSA) decode() (*ciphertextRSA, error) {
 		return nil, ErrWrongAlgorithm
 	}
 
-	encryptedData, err := EncodedCiphertext(ec).GetData()
+	encryptedData, err := encodedCiphertext(ec).GetData()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -192,7 +186,7 @@ func (ec EncodedCiphertextRSA) decode() (*ciphertextRSA, error) {
 }
 
 func (ec EncodedCiphertextRSAAES) decode() (*ciphertextRSAAES, error) {
-	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
+	algorithm, err := encodedCiphertext(ec).GetAlgorithm()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -201,12 +195,12 @@ func (ec EncodedCiphertextRSAAES) decode() (*ciphertextRSAAES, error) {
 		return nil, ErrWrongAlgorithm
 	}
 
-	encryptedData, err := EncodedCiphertext(ec).GetData()
+	encryptedData, err := encodedCiphertext(ec).GetData()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	metadata, err := EncodedCiphertext(ec).GetMetadata()
+	metadata, err := encodedCiphertext(ec).GetMetadata()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -233,7 +227,7 @@ func (ec EncodedCiphertextRSAAES) decode() (*ciphertextRSAAES, error) {
 }
 
 func (ec EncodedCiphertextAES) decode() (*ciphertextAES, error) {
-	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
+	algorithm, err := encodedCiphertext(ec).GetAlgorithm()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -242,12 +236,12 @@ func (ec EncodedCiphertextAES) decode() (*ciphertextAES, error) {
 		return nil, ErrWrongAlgorithm
 	}
 
-	encryptedData, err := EncodedCiphertext(ec).GetData()
+	encryptedData, err := encodedCiphertext(ec).GetData()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	metadata, err := EncodedCiphertext(ec).GetMetadata()
+	metadata, err := encodedCiphertext(ec).GetMetadata()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -265,12 +259,12 @@ func (ec EncodedCiphertextAES) decode() (*ciphertextAES, error) {
 
 // Validate validates the encoded ciphertext.
 func (ec EncodedCiphertextRSA) Validate() error {
-	err := EncodedCiphertext(ec).Validate()
+	err := encodedCiphertext(ec).Validate()
 	if err != nil {
 		return err
 	}
 
-	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
+	algorithm, err := encodedCiphertext(ec).GetAlgorithm()
 	if err != nil {
 		return err
 	}
@@ -284,12 +278,12 @@ func (ec EncodedCiphertextRSA) Validate() error {
 
 // Validate validates the encoded ciphertext.
 func (ec EncodedCiphertextAES) Validate() error {
-	err := EncodedCiphertext(ec).Validate()
+	err := encodedCiphertext(ec).Validate()
 	if err != nil {
 		return err
 	}
 
-	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
+	algorithm, err := encodedCiphertext(ec).GetAlgorithm()
 	if err != nil {
 		return err
 	}
@@ -303,12 +297,12 @@ func (ec EncodedCiphertextAES) Validate() error {
 
 // Validate validates the encoded ciphertext.
 func (ec EncodedCiphertextRSAAES) Validate() error {
-	err := EncodedCiphertext(ec).Validate()
+	err := encodedCiphertext(ec).Validate()
 	if err != nil {
 		return err
 	}
 
-	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
+	algorithm, err := encodedCiphertext(ec).GetAlgorithm()
 	if err != nil {
 		return err
 	}

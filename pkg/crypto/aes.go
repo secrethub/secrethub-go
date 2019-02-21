@@ -130,7 +130,6 @@ func (k *AESKey) encrypt(data []byte) (*ciphertextAES, error) {
 	}, nil
 }
 
-
 // IsWrongKey returns true when the error can be
 // the result of a wrong key being used for decryption.
 func IsWrongKey(err error) bool {
@@ -143,24 +142,10 @@ type ciphertextAES struct {
 	Nonce []byte
 }
 
-// Decrypt decrypts the data in ciphertextAES with AES-GCM using the provided key.
-func (b *ciphertextAES) Decrypt(k Key) ([]byte, error) {
-	aesKey, ok := k.(*AESKey)
-	if !ok {
-		return nil, ErrWrongKeyType
-	}
-
-	if b.Data == nil || b.Nonce == nil {
-		return nil, ErrInvalidCiphertext
-	}
-
-	return aesKey.Decrypt(b.Encode())
-}
-
 // Encode encodes the ciphertext in a string.
 func (b ciphertextAES) Encode() EncodedCiphertextAES {
 	return EncodedCiphertextAES(
-		NewEncodedCiphertext(
+		newEncodedCiphertext(
 			AlgorithmAES,
 			b.Data,
 			map[string]string{
