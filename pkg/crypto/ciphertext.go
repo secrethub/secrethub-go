@@ -14,6 +14,7 @@ var (
 	ErrWrongKeyType      = errCrypto.Code("wrong_key_type").Error("received wrong key type")
 	ErrInvalidCiphertext = errCrypto.Code("invalid_ciphertext").Error("ciphertext contains invalid data")
 	ErrUnknownAlgorithm  = errCrypto.Code("unknown_algorithm").Error("algorithm of the encoded ciphertext is invalid")
+	ErrWrongAlgorithm  = errCrypto.Code("wrong_algorithm").Error("unexpected algorithm of the encoded ciphertext")
 	ErrInvalidMetadata   = errCrypto.Code("invalid_metadata").Error("metadata of encrypted key is invalid")
 )
 
@@ -286,4 +287,25 @@ func (m EncodedCiphertextMetadata) GetDecodedValue(name string) ([]byte, error) 
 	}
 
 	return base64.StdEncoding.DecodeString(dataStr)
+}
+
+// Decode decodes an encoded ciphertext.
+func (ec EncodedCiphertextRSA) Decode() (*CiphertextRSA, error) {
+	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	if algorithm != AlgorithmRSA {
+		return nil, ErrWrongAlgorithm
+	}
+
+	encryptedData, err := EncodedCiphertext(ec).GetData()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return &CiphertextRSA{
+		Data: encryptedData,
+	}, nil
 }
