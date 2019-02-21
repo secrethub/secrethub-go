@@ -16,13 +16,13 @@ var (
 type EncryptedAccountKey struct {
 	Account             *Account
 	PublicKey           []byte
-	EncryptedPrivateKey crypto.EncodedCiphertext
+	EncryptedPrivateKey crypto.EncodedCiphertextRSAAES
 	Credential          *Credential
 }
 
 // CreateAccountKeyRequest contains the fields to add an account_key encrypted for a credential.
 type CreateAccountKeyRequest struct {
-	EncryptedPrivateKey crypto.EncodedCiphertext
+	EncryptedPrivateKey crypto.EncodedCiphertextRSAAES
 	PublicKey           []byte
 }
 

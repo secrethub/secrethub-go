@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
 	"errors"
@@ -297,26 +298,26 @@ type CiphertextRSA struct {
 
 // EncryptRSAAES encrypts provided data with AES-GCM.
 // The used AES-key is then encrypted with RSA-OAEP.
-func EncryptRSAAES(data []byte, k *RSAPublicKey) (*CiphertextRSAAES, error) {
+func EncryptRSAAES(data []byte, k *RSAPublicKey) (EncodedCiphertextRSAAES, error) {
 	aesKey, err := GenerateAESKey()
 	if err != nil {
-		return nil, errio.Error(err)
+		return "", errio.Error(err)
 	}
 
 	aesData, err := aesKey.encrypt(data)
 	if err != nil {
-		return nil, errio.Error(err)
+		return "", errio.Error(err)
 	}
 
 	rsaData, err := EncryptRSA(aesKey.key, k)
 	if err != nil {
-		return nil, errio.Error(err)
+		return "", errio.Error(err)
 	}
 
-	return &CiphertextRSAAES{
+	return CiphertextRSAAES{
 		CiphertextAES: aesData,
 		CiphertextRSA: rsaData,
-	}, nil
+	}.Encode(), nil
 }
 
 // Decrypt decrypts the key in CiphertextRSAAES with RSA-OAEP and then decrypts the data in CiphertextRSAAES with AES-GCM.
@@ -347,7 +348,11 @@ func (b *CiphertextRSAAES) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, er
 		return nil, ErrWrongKeyType
 	}
 
-	return EncryptRSAAES(decrypted, rsaKey)
+	encoded, err := EncryptRSAAES(decrypted, rsaKey)
+	if err != nil {
+		return nil, err
+	}
+	return encoded.Decode()
 }
 
 // EncryptRSA encrypts the provided data with RSA-OAEP.
@@ -398,6 +403,20 @@ func (b CiphertextRSA) Encode() EncodedCiphertextRSA {
 			AlgorithmRSA,
 			b.Data,
 			nil,
+		),
+	)
+}
+
+// Encode encodes the ciphertext in a string.
+func (b CiphertextRSAAES) Encode() EncodedCiphertextRSAAES {
+	return EncodedCiphertextRSAAES(
+		NewEncodedCiphertext(
+			AlgorithmRSAAES,
+			b.CiphertextAES.Data,
+			map[string]string{
+				"nonce": base64.StdEncoding.EncodeToString(b.CiphertextAES.Nonce),
+				"key":   base64.StdEncoding.EncodeToString(b.CiphertextRSA.Data),
+			},
 		),
 	)
 }

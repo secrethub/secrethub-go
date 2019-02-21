@@ -54,14 +54,9 @@ func (c *client) createAccountKeyRequest(credential Credential, accountKey *cryp
 		return nil, errio.Error(err)
 	}
 
-	encodedWrappedAccountKey, err := crypto.EncodeCiphertext(wrappedAccountKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
 	return &api.CreateAccountKeyRequest{
 		PublicKey:           publicAccountKey,
-		EncryptedPrivateKey: encodedWrappedAccountKey,
+		EncryptedPrivateKey: wrappedAccountKey,
 	}, nil
 }
 
@@ -121,12 +116,7 @@ func (c *client) fetchAccountDetails() error {
 		return errio.Error(err)
 	}
 
-	ciphertext, err := resp.EncryptedPrivateKey.Decode()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	data, err := c.credential.Unwrap(ciphertext)
+	data, err := c.credential.Unwrap(resp.EncryptedPrivateKey)
 	if err != nil {
 		return errio.Error(err)
 	}

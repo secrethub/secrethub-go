@@ -44,9 +44,9 @@ type Credential interface {
 	// Verifier returns the data to be stored server side to verify an http request authenticated with this credential.
 	Verifier() ([]byte, error)
 	// Wrap encrypts data, typically an account key.
-	Wrap(plaintext []byte) (crypto.Ciphertext, error)
+	Wrap(plaintext []byte) (crypto.EncodedCiphertextRSAAES, error)
 	// Unwrap decrypts data, typically an account key.
-	Unwrap(ciphertext crypto.Ciphertext) ([]byte, error)
+	Unwrap(ciphertext crypto.EncodedCiphertextRSAAES) ([]byte, error)
 	// Export exports the credential in a format that can be decoded by its Decoder.
 	Export() []byte
 	// Decoder returns a decoder that can decode an exported key back into a Credential.
@@ -297,12 +297,17 @@ func (c RSACredential) Decoder() CredentialDecoder {
 }
 
 // Wrap encrypts data, typically an account key.
-func (c RSACredential) Wrap(plaintext []byte) (crypto.Ciphertext, error) {
+func (c RSACredential) Wrap(plaintext []byte) (crypto.EncodedCiphertextRSAAES, error) {
 	return crypto.EncryptRSAAES(plaintext, c.RSAKey.RSAPublicKey)
 }
 
 // Unwrap decrypts data, typically an account key.
-func (c RSACredential) Unwrap(ciphertext crypto.Ciphertext) ([]byte, error) {
+func (c RSACredential) Unwrap(encodedCiphertext crypto.EncodedCiphertextRSAAES) ([]byte, error) {
+	ciphertext, err := encodedCiphertext.Decode()
+	if err != nil {
+		return nil, err
+	}
+
 	return ciphertext.Decrypt(c.RSAKey)
 }
 
