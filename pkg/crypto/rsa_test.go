@@ -154,3 +154,27 @@ func getTestKey2(t testing.TB) *crypto.RSAKey {
 	testutil.OK(t, err)
 	return key2
 }
+
+func TestCiphertextRSA_Encode(t *testing.T) {
+	cases := map[string]struct{
+		ciphertext crypto.CiphertextRSA
+		expected crypto.EncodedCiphertextRSA
+	}{
+		"success": {
+			ciphertext: crypto.CiphertextRSA{
+				Data: []byte("rsa_data"),
+			},
+			expected:        crypto.EncodedCiphertextRSA("RSA-OAEP$cnNhX2RhdGE=$"),
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			// Act
+			actual := tc.ciphertext.Encode()
+
+			// Assert
+			testutil.Compare(t, actual, tc.expected)
+		})
+	}
+}

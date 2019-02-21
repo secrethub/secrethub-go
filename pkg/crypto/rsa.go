@@ -381,21 +381,6 @@ func (b *CiphertextRSA) Decrypt(k Key) ([]byte, error) {
 	return rsaKey.DecryptBytes(b.Data)
 }
 
-// ReEncrypt reencrypts the ciphertext using RSA for the given encryption key.
-func (b *CiphertextRSA) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error) {
-	decrypted, err := b.Decrypt(decryptKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	rsaKey, ok := encryptKey.(*RSAPublicKey)
-	if !ok {
-		return nil, ErrWrongKeyType
-	}
-
-	return EncryptRSA(decrypted, rsaKey)
-}
-
 // Encode encodes the ciphertext in a string.
 func (b CiphertextRSA) Encode() EncodedCiphertextRSA {
 	return EncodedCiphertextRSA(

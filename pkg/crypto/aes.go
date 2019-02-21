@@ -157,21 +157,6 @@ func (b *CiphertextAES) Decrypt(k Key) ([]byte, error) {
 	return aesKey.Decrypt(b.Encode())
 }
 
-// ReEncrypt reencrypts the ciphertext using AES for the given encryption key.
-func (b *CiphertextAES) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error) {
-	decrypted, err := b.Decrypt(decryptKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	aesKey, ok := encryptKey.(*AESKey)
-	if !ok {
-		return nil, ErrWrongKeyType
-	}
-
-	return aesKey.encrypt(decrypted)
-}
-
 // Encode encodes the ciphertext in a string.
 func (b CiphertextAES) Encode() EncodedCiphertextAES {
 	return EncodedCiphertextAES(

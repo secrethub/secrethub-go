@@ -51,3 +51,58 @@ func TestSymmetricKey_HMAC(t *testing.T) {
 		}
 	}
 }
+
+func TestCiphertextAES_Encode(t *testing.T) {
+	cases := map[string]struct{
+		ciphertext crypto.CiphertextAES
+		expected crypto.EncodedCiphertextAES
+	}{
+		"success": {
+			ciphertext: crypto.CiphertextAES{
+				Data:  []byte("aes_data"),
+				Nonce: []byte("nonce_data"),
+			},
+			expected:        crypto.EncodedCiphertextAES("AES-GCM$YWVzX2RhdGE=$nonce=bm9uY2VfZGF0YQ=="),
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			// Act
+			actual := tc.ciphertext.Encode()
+
+			// Assert
+			testutil.Compare(t, actual, tc.expected)
+		})
+	}
+}
+
+func TestCiphertextRSAAES_Encode(t *testing.T) {
+	cases := map[string]struct{
+		ciphertext crypto.CiphertextRSAAES
+		expected crypto.EncodedCiphertextRSAAES
+	}{
+		"success": {
+			ciphertext: crypto.CiphertextRSAAES{
+				CiphertextAES: &crypto.CiphertextAES{
+					Data:  []byte("aes_data"),
+					Nonce: []byte("nonce_data"),
+				},
+				CiphertextRSA: &crypto.CiphertextRSA{
+					Data: []byte("rsa_data"),
+				},
+			},
+			expected:        crypto.EncodedCiphertextRSAAES("RSA-OAEP+AES-GCM$YWVzX2RhdGE=$key=cnNhX2RhdGE=,nonce=bm9uY2VfZGF0YQ=="),
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			// Act
+			actual := tc.ciphertext.Encode()
+
+			// Assert
+			testutil.Compare(t, actual, tc.expected)
+		})
+	}
+}

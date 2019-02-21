@@ -36,10 +36,7 @@ var (
 type Key interface{}
 
 // Ciphertext is an interface for to decrypt encrypted data.
-type Ciphertext interface {
-	Decrypt(k Key) ([]byte, error)
-	ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error)
-}
+type Ciphertext interface{}
 
 // EncodedCiphertext contains a string in the format <algorithm>$<base64-encoded-encrypted-data>$<metadata>.
 type EncodedCiphertext string
@@ -75,56 +72,6 @@ func NewEncodedCiphertext(algorithm EncryptionAlgorithm, keyData []byte, metadat
 	metadata := NewEncodedCiphertextMetadata(metadataList)
 
 	return EncodedCiphertext(fmt.Sprintf("%s$%s$%s", algorithm, encodedKey, metadata))
-}
-
-// EncodeCiphertext creates a new EncodedCiphertext based on an existing Ciphertext.
-func EncodeCiphertext(ciphertext Ciphertext) (EncodedCiphertext, error) {
-
-	var encoded EncodedCiphertext
-
-	if ciphertext == nil {
-		return "", ErrInvalidCiphertext
-	}
-
-	switch c := ciphertext.(type) {
-	case *CiphertextRSAAES:
-
-		if c.CiphertextAES == nil || c.CiphertextRSA == nil {
-			return "", ErrInvalidCiphertext
-		}
-
-		encoded = NewEncodedCiphertext(
-			AlgorithmRSAAES,
-			c.CiphertextAES.Data,
-			map[string]string{
-				"nonce": base64.StdEncoding.EncodeToString(c.CiphertextAES.Nonce),
-				"key":   base64.StdEncoding.EncodeToString(c.CiphertextRSA.Data),
-			},
-		)
-	case *CiphertextRSA:
-		encoded = NewEncodedCiphertext(
-			AlgorithmRSA,
-			c.Data,
-			nil,
-		)
-	case *CiphertextAES:
-		encoded = NewEncodedCiphertext(
-			AlgorithmAES,
-			c.Data,
-			map[string]string{
-				"nonce": base64.StdEncoding.EncodeToString(c.Nonce),
-			},
-		)
-	default:
-		return "", ErrUnknownAlgorithm
-	}
-
-	err := encoded.Validate()
-	if err != nil {
-		return "", err
-	}
-
-	return encoded, nil
 }
 
 // Validate verifies the EncodedCiphertext has a valid format.
@@ -170,71 +117,6 @@ func (ec EncodedCiphertext) GetMetadata() (EncodedCiphertextMetadata, error) {
 		return "", errio.Error(err)
 	}
 	return EncodedCiphertextMetadata(matches[3]), nil
-}
-
-// Decode converts an EncodedCiphertext into an instance of Ciphertext (CiphertextRSAAES, CiphertextRSA or CiphertextAES).
-func (ec EncodedCiphertext) Decode() (Ciphertext, error) {
-
-	algorithm, err := ec.GetAlgorithm()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	encryptedData, err := ec.GetData()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	metadata, err := ec.GetMetadata()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	switch algorithm {
-	case AlgorithmRSAAES:
-
-		aesNonce, err := metadata.GetDecodedValue("nonce")
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		aesKey, err := metadata.GetDecodedValue("key")
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		return &CiphertextRSAAES{
-			CiphertextAES: &CiphertextAES{
-				Data:  encryptedData,
-				Nonce: aesNonce,
-			},
-			CiphertextRSA: &CiphertextRSA{
-				Data: aesKey,
-			},
-		}, nil
-
-	case AlgorithmRSA:
-
-		return &CiphertextRSA{
-			Data: encryptedData,
-		}, nil
-
-	case AlgorithmAES:
-
-		aesNonce, err := metadata.GetDecodedValue("nonce")
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		return &CiphertextAES{
-			Data:  encryptedData,
-			Nonce: aesNonce,
-		}, nil
-
-	default:
-		return nil, ErrUnknownAlgorithm
-	}
-
 }
 
 // NewEncodedCiphertextMetadata creates a new EncodedCiphertextMetadata from a map of metadata.
