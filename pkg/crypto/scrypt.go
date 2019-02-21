@@ -179,11 +179,16 @@ func (k *ScryptKey) Decrypt(encryptedData, nonce []byte, operation SaltOperation
 
 // Encrypt encrypts the data with AES-GCM using the AESKey.
 // Returns the encrypted data and the nonce as []byte.
-func (k *ScryptKey) Encrypt(data []byte, operation SaltOperation) (*CiphertextAES, error) {
+func (k *ScryptKey) Encrypt(data []byte, operation SaltOperation) ([]byte, []byte, error) {
 	err := k.Salt.Purpose().Verify(k.KeyLen, "aesgcm", operation)
 	if err != nil {
-		return nil, errio.Error(err)
+		return nil, nil, errio.Error(err)
 	}
 
-	return k.key.encrypt(data)
+	cipher, err := k.key.encrypt(data)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return cipher.Data, cipher.Nonce, nil
 }

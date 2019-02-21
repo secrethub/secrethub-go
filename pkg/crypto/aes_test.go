@@ -1,15 +1,14 @@
-package crypto_test
+package crypto
 
 import (
 	"bytes"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {
-	encryptionKey, err := crypto.GenerateAESKey()
+	encryptionKey, err := GenerateAESKey()
 	testutil.Compare(t, err, nil)
 
 	testData := []byte("testdata")
@@ -31,7 +30,7 @@ func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {
 
 func TestSymmetricKey_HMAC(t *testing.T) {
 	// Setup
-	indexKey, err := crypto.GenerateAESKey()
+	indexKey, err := GenerateAESKey()
 	testutil.OK(t, err)
 	testData := []byte("testDataString")
 
@@ -53,16 +52,16 @@ func TestSymmetricKey_HMAC(t *testing.T) {
 }
 
 func TestCiphertextAES_Encode(t *testing.T) {
-	cases := map[string]struct{
-		ciphertext crypto.CiphertextAES
-		expected crypto.EncodedCiphertextAES
+	cases := map[string]struct {
+		ciphertext ciphertextAES
+		expected   EncodedCiphertextAES
 	}{
 		"success": {
-			ciphertext: crypto.CiphertextAES{
+			ciphertext: ciphertextAES{
 				Data:  []byte("aes_data"),
 				Nonce: []byte("nonce_data"),
 			},
-			expected:        crypto.EncodedCiphertextAES("AES-GCM$YWVzX2RhdGE=$nonce=bm9uY2VfZGF0YQ=="),
+			expected: EncodedCiphertextAES("AES-GCM$YWVzX2RhdGE=$nonce=bm9uY2VfZGF0YQ=="),
 		},
 	}
 
@@ -78,21 +77,21 @@ func TestCiphertextAES_Encode(t *testing.T) {
 }
 
 func TestCiphertextRSAAES_Encode(t *testing.T) {
-	cases := map[string]struct{
-		ciphertext crypto.CiphertextRSAAES
-		expected crypto.EncodedCiphertextRSAAES
+	cases := map[string]struct {
+		ciphertext ciphertextRSAAES
+		expected   EncodedCiphertextRSAAES
 	}{
 		"success": {
-			ciphertext: crypto.CiphertextRSAAES{
-				CiphertextAES: &crypto.CiphertextAES{
+			ciphertext: ciphertextRSAAES{
+				ciphertextAES: &ciphertextAES{
 					Data:  []byte("aes_data"),
 					Nonce: []byte("nonce_data"),
 				},
-				CiphertextRSA: &crypto.CiphertextRSA{
+				ciphertextRSA: &ciphertextRSA{
 					Data: []byte("rsa_data"),
 				},
 			},
-			expected:        crypto.EncodedCiphertextRSAAES("RSA-OAEP+AES-GCM$YWVzX2RhdGE=$key=cnNhX2RhdGE=,nonce=bm9uY2VfZGF0YQ=="),
+			expected: EncodedCiphertextRSAAES("RSA-OAEP+AES-GCM$YWVzX2RhdGE=$key=cnNhX2RhdGE=,nonce=bm9uY2VfZGF0YQ=="),
 		},
 	}
 

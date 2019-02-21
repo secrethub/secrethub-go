@@ -53,7 +53,7 @@ func GenerateAESKey() (*AESKey, error) {
 
 // Decrypt decrypts the encryptedData with AES-GCM using the AESKey and the provided nonce.
 func (k *AESKey) Decrypt(encodedCiphertextAES EncodedCiphertextAES) ([]byte, error) {
-	ciphertext, err := encodedCiphertextAES.Decode()
+	ciphertext, err := encodedCiphertextAES.decode()
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (k *AESKey) Encrypt(data []byte) (EncodedCiphertextAES, error) {
 	return ciphertext.Encode(), nil
 }
 
-func (k *AESKey) encrypt(data []byte) (*CiphertextAES, error) {
+func (k *AESKey) encrypt(data []byte) (*ciphertextAES, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
 		return nil, ErrInvalidCipher(err)
@@ -109,7 +109,7 @@ func (k *AESKey) encrypt(data []byte) (*CiphertextAES, error) {
 	// We do not use a destination []byte, but a return value.
 	encData := gcm.Seal(nil, *nonce, data, nil)
 
-	return &CiphertextAES{
+	return &ciphertextAES{
 		Data:  encData,
 		Nonce: *nonce,
 	}, nil
@@ -137,14 +137,14 @@ func IsWrongKey(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "cipher: message authentication failed")
 }
 
-// CiphertextAES represents data encrypted with AES-GCM.
-type CiphertextAES struct {
+// ciphertextAES represents data encrypted with AES-GCM.
+type ciphertextAES struct {
 	Data  []byte
 	Nonce []byte
 }
 
-// Decrypt decrypts the data in CiphertextAES with AES-GCM using the provided key.
-func (b *CiphertextAES) Decrypt(k Key) ([]byte, error) {
+// Decrypt decrypts the data in ciphertextAES with AES-GCM using the provided key.
+func (b *ciphertextAES) Decrypt(k Key) ([]byte, error) {
 	aesKey, ok := k.(*AESKey)
 	if !ok {
 		return nil, ErrWrongKeyType
@@ -158,7 +158,7 @@ func (b *CiphertextAES) Decrypt(k Key) ([]byte, error) {
 }
 
 // Encode encodes the ciphertext in a string.
-func (b CiphertextAES) Encode() EncodedCiphertextAES {
+func (b ciphertextAES) Encode() EncodedCiphertextAES {
 	return EncodedCiphertextAES(
 		NewEncodedCiphertext(
 			AlgorithmAES,

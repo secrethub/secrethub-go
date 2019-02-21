@@ -54,14 +54,23 @@ type RSAPublicKey struct {
 
 // Encrypt encrypts the data with RSA-OAEP using the RSAKey.
 func (k *RSAPublicKey) Encrypt(data []byte) (EncodedCiphertextRSA, error) {
+	encrypted, err := k.encrypt(data)
+	if err != nil {
+		return "", err
+	}
+	return encrypted.Encode(), nil
+}
+
+// Encrypt encrypts the data with RSA-OAEP using the RSAKey.
+func (k *RSAPublicKey) encrypt(data []byte) (*ciphertextRSA, error) {
 	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, k.publicKey, data, []byte{})
 	if err != nil {
-		return "", ErrRSAEncrypt(err)
+		return nil, ErrRSAEncrypt(err)
 	}
 
-	return CiphertextRSA{
+	return &ciphertextRSA{
 		Data: encrypted,
-	}.Encode(), nil
+	}, nil
 }
 
 // EncryptBytes encrypts the data with RSA-OAEP using the RSAPublicKey and
@@ -185,7 +194,7 @@ func (k *RSAKey) DecryptBytes(encryptedData []byte) ([]byte, error) {
 
 // Decrypt decrypts the encryptedData with RSA-OAEP using the RSAKey.
 func (k *RSAKey) Decrypt(encodedCiphertext EncodedCiphertextRSA) ([]byte, error) {
-	ciphertext, err := encodedCiphertext.Decode()
+	ciphertext, err := encodedCiphertext.decode()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -285,14 +294,14 @@ func (k RSAKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
 	return pem.EncodeToMemory(encrypted), nil
 }
 
-// CiphertextRSAAES represents data encrypted with AES-GCM, where the AES-key is encrypted with RSA-OAEP.
-type CiphertextRSAAES struct {
-	*CiphertextAES
-	*CiphertextRSA
+// ciphertextRSAAES represents data encrypted with AES-GCM, where the AES-key is encrypted with RSA-OAEP.
+type ciphertextRSAAES struct {
+	*ciphertextAES
+	*ciphertextRSA
 }
 
-// CiphertextRSA represents data encrypted with RSA-OAEP.
-type CiphertextRSA struct {
+// ciphertextRSA represents data encrypted with RSA-OAEP.
+type ciphertextRSA struct {
 	Data []byte
 }
 
@@ -309,35 +318,46 @@ func EncryptRSAAES(data []byte, k *RSAPublicKey) (EncodedCiphertextRSAAES, error
 		return "", errio.Error(err)
 	}
 
-	rsaData, err := EncryptRSA(aesKey.key, k)
+	rsaData, err := k.encrypt(aesKey.key)
 	if err != nil {
 		return "", errio.Error(err)
 	}
 
-	return CiphertextRSAAES{
-		CiphertextAES: aesData,
-		CiphertextRSA: rsaData,
+	return ciphertextRSAAES{
+		ciphertextAES: aesData,
+		ciphertextRSA: rsaData,
 	}.Encode(), nil
 }
 
-// Decrypt decrypts the key in CiphertextRSAAES with RSA-OAEP and then decrypts the data in CiphertextRSAAES with AES-GCM.
-func (b *CiphertextRSAAES) Decrypt(k Key) ([]byte, error) {
-	if b.CiphertextRSA == nil || b.CiphertextAES == nil {
+// DecryptRSAAES decrypts provided data that is encrypted with AES-GCM
+// and then the AES-key used for encryption encrypted with RSA-OAEP.
+func DecryptRSAAES(encodedCiphertext EncodedCiphertextRSAAES, pk RSAPublicKey) ([]byte, error) {
+	ciphertext, err := encodedCiphertext.decode()
+	if err != nil {
+		return nil, err
+	}
+
+	return ciphertext.Decrypt(pk)
+}
+
+// Decrypt decrypts the key in ciphertextRSAAES with RSA-OAEP and then decrypts the data in ciphertextRSAAES with AES-GCM.
+func (b *ciphertextRSAAES) Decrypt(k Key) ([]byte, error) {
+	if b.ciphertextRSA == nil || b.ciphertextAES == nil {
 		return nil, ErrInvalidCiphertext
 	}
 
-	aesKeyData, err := b.CiphertextRSA.Decrypt(k)
+	aesKeyData, err := b.ciphertextRSA.Decrypt(k)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
 	aesKey := &AESKey{aesKeyData}
 
-	return b.CiphertextAES.Decrypt(aesKey)
+	return b.ciphertextAES.Decrypt(aesKey)
 }
 
 // ReEncrypt reencrypts the ciphertext using RSA+AES for the given encryption key.
-func (b *CiphertextRSAAES) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error) {
+func (b *ciphertextRSAAES) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error) {
 	decrypted, err := b.Decrypt(decryptKey)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -352,23 +372,11 @@ func (b *CiphertextRSAAES) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, er
 	if err != nil {
 		return nil, err
 	}
-	return encoded.Decode()
+	return encoded.decode()
 }
 
-// EncryptRSA encrypts the provided data with RSA-OAEP.
-func EncryptRSA(data []byte, k *RSAPublicKey) (*CiphertextRSA, error) {
-	encryptedData, err := k.EncryptBytes(data)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return &CiphertextRSA{
-		Data: encryptedData,
-	}, nil
-}
-
-// Decrypt decrypts the data in CiphertextRSA with RSA-OAEP using the provided key.
-func (b *CiphertextRSA) Decrypt(k Key) ([]byte, error) {
+// Decrypt decrypts the data in ciphertextRSA with RSA-OAEP using the provided key.
+func (b *ciphertextRSA) Decrypt(k Key) ([]byte, error) {
 	rsaKey, ok := k.(*RSAKey)
 	if !ok {
 		return nil, ErrWrongKeyType
@@ -382,7 +390,7 @@ func (b *CiphertextRSA) Decrypt(k Key) ([]byte, error) {
 }
 
 // Encode encodes the ciphertext in a string.
-func (b CiphertextRSA) Encode() EncodedCiphertextRSA {
+func (b ciphertextRSA) Encode() EncodedCiphertextRSA {
 	return EncodedCiphertextRSA(
 		NewEncodedCiphertext(
 			AlgorithmRSA,
@@ -393,14 +401,14 @@ func (b CiphertextRSA) Encode() EncodedCiphertextRSA {
 }
 
 // Encode encodes the ciphertext in a string.
-func (b CiphertextRSAAES) Encode() EncodedCiphertextRSAAES {
+func (b ciphertextRSAAES) Encode() EncodedCiphertextRSAAES {
 	return EncodedCiphertextRSAAES(
 		NewEncodedCiphertext(
 			AlgorithmRSAAES,
-			b.CiphertextAES.Data,
+			b.ciphertextAES.Data,
 			map[string]string{
-				"nonce": base64.StdEncoding.EncodeToString(b.CiphertextAES.Nonce),
-				"key":   base64.StdEncoding.EncodeToString(b.CiphertextRSA.Data),
+				"nonce": base64.StdEncoding.EncodeToString(b.ciphertextAES.Nonce),
+				"key":   base64.StdEncoding.EncodeToString(b.ciphertextRSA.Data),
 			},
 		),
 	)

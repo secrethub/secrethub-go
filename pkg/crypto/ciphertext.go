@@ -171,8 +171,7 @@ func (m EncodedCiphertextMetadata) GetDecodedValue(name string) ([]byte, error) 
 	return base64.StdEncoding.DecodeString(dataStr)
 }
 
-// Decode decodes an encoded ciphertext.
-func (ec EncodedCiphertextRSA) Decode() (*CiphertextRSA, error) {
+func (ec EncodedCiphertextRSA) decode() (*ciphertextRSA, error) {
 	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -187,13 +186,12 @@ func (ec EncodedCiphertextRSA) Decode() (*CiphertextRSA, error) {
 		return nil, errio.Error(err)
 	}
 
-	return &CiphertextRSA{
+	return &ciphertextRSA{
 		Data: encryptedData,
 	}, nil
 }
 
-// Decode decodes an encoded ciphertext.
-func (ec EncodedCiphertextRSAAES) Decode() (*CiphertextRSAAES, error) {
+func (ec EncodedCiphertextRSAAES) decode() (*ciphertextRSAAES, error) {
 	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -223,19 +221,18 @@ func (ec EncodedCiphertextRSAAES) Decode() (*CiphertextRSAAES, error) {
 		return nil, errio.Error(err)
 	}
 
-	return &CiphertextRSAAES{
-		CiphertextAES: &CiphertextAES{
+	return &ciphertextRSAAES{
+		ciphertextAES: &ciphertextAES{
 			Data:  encryptedData,
 			Nonce: aesNonce,
 		},
-		CiphertextRSA: &CiphertextRSA{
+		ciphertextRSA: &ciphertextRSA{
 			Data: aesKey,
 		},
 	}, nil
 }
 
-// Decode decodes an encoded ciphertext.
-func (ec EncodedCiphertextAES) Decode() (*CiphertextAES, error) {
+func (ec EncodedCiphertextAES) decode() (*ciphertextAES, error) {
 	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -260,7 +257,7 @@ func (ec EncodedCiphertextAES) Decode() (*CiphertextAES, error) {
 		return nil, errio.Error(err)
 	}
 
-	return &CiphertextAES{
+	return &ciphertextAES{
 		Data:  encryptedData,
 		Nonce: aesNonce,
 	}, nil

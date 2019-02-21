@@ -6,18 +6,18 @@ import (
 )
 
 var (
-	testCiphertextAES = CiphertextAES{
+	testCiphertextAES = ciphertextAES{
 		Data:  []byte("testdata"),
 		Nonce: []byte("testnonce"),
 	}
 
-	testCiphertextRSA = CiphertextRSA{
+	testCiphertextRSA = ciphertextRSA{
 		Data: []byte("testdata"),
 	}
 
-	testCiphertextRSAAES = CiphertextRSAAES{
-		CiphertextAES: &testCiphertextAES,
-		CiphertextRSA: &testCiphertextRSA,
+	testCiphertextRSAAES = ciphertextRSAAES{
+		ciphertextAES: &testCiphertextAES,
+		ciphertextRSA: &testCiphertextRSA,
 	}
 )
 
@@ -50,12 +50,12 @@ func TestRSAAES_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ciphertext, err := encoded.Decode()
+	ciphertext, err := encoded.decode()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if bytes.Equal(ciphertext.CiphertextAES.Data, input) {
+	if bytes.Equal(ciphertext.ciphertextAES.Data, input) {
 		t.Error("encrypted data equals the original data")
 	}
 
@@ -89,7 +89,7 @@ func TestRSAAES_DecryptWrongKeyType(t *testing.T) {
 func TestRSAAES_DecryptNilData(t *testing.T) {
 	rsaKey := generateRSAKey(t)
 
-	ciphertext := CiphertextRSAAES{}
+	ciphertext := ciphertextRSAAES{}
 
 	_, err := ciphertext.Decrypt(rsaKey)
 
@@ -143,7 +143,7 @@ func TestAES_DecryptWrongKeyType(t *testing.T) {
 func TestAES_DecryptNilData(t *testing.T) {
 	aesKey := generateAESKey(t)
 
-	ciphertext := CiphertextAES{
+	ciphertext := ciphertextAES{
 		Nonce: []byte("aa"),
 	}
 
@@ -160,7 +160,7 @@ func TestRSA_Success(t *testing.T) {
 
 	input := []byte("secret message")
 
-	ciphertext, err := EncryptRSA(input, rsaKey1.RSAPublicKey)
+	ciphertext, err := rsaKey1.RSAPublicKey.encrypt(input)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,7 +199,7 @@ func TestRSA_DecryptWrongKeyType(t *testing.T) {
 func TestRSA_DecryptNilData(t *testing.T) {
 	rsaKey := generateRSAKey(t)
 
-	ciphertext := CiphertextRSA{}
+	ciphertext := ciphertextRSA{}
 
 	_, err := ciphertext.Decrypt(rsaKey)
 
