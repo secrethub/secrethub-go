@@ -16,23 +16,16 @@ type SecretKey struct {
 
 // EncryptedSecretKey represents a secret key, encrypted for a specific account.
 type EncryptedSecretKey struct {
-	SecretKeyID  *uuid.UUID               `json:"secret_key_id"`
-	AccountID    *uuid.UUID               `json:"account_id"`
-	EncryptedKey crypto.EncodedCiphertext `json:"encrypted_key"`
-	Status       string                   `json:"status"` // TODO SHDEV-702: actually set this in the response
+	SecretKeyID  *uuid.UUID                  `json:"secret_key_id"`
+	AccountID    *uuid.UUID                  `json:"account_id"`
+	EncryptedKey crypto.EncodedCiphertextRSA `json:"encrypted_key"`
+	Status       string                      `json:"status"` // TODO SHDEV-702: actually set this in the response
 }
 
 // Decrypt decrypts an EncryptedSecretKey into a SecretKey.
 func (k *EncryptedSecretKey) Decrypt(accountKey *crypto.RSAKey) (*SecretKey, error) {
-	keyCiphertext, err := k.EncryptedKey.Decode()
+	keyBytes, err := accountKey.Decrypt(k.EncryptedKey)
 	if err != nil {
-		log.Debugf("cannot decode EncryptedKey: %v", k.EncryptedKey)
-		return nil, errio.Error(err)
-	}
-
-	keyBytes, err := keyCiphertext.Decrypt(accountKey)
-	if err != nil {
-		log.Debug("cannot decrypt EncryptedKey: %v", keyCiphertext)
 		return nil, errio.Error(err)
 	}
 
