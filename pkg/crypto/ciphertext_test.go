@@ -290,7 +290,7 @@ func TestNewEncodedCiphertextMetadata(t *testing.T) {
 
 	tests := []struct {
 		input  map[string]string
-		output EncodedCiphertextMetadata
+		output encodedCiphertextMetadata
 	}{
 		{
 			input:  map[string]string{},
@@ -301,20 +301,20 @@ func TestNewEncodedCiphertextMetadata(t *testing.T) {
 				"param": "foo",
 				"next":  "bar",
 			},
-			output: EncodedCiphertextMetadata("next=bar,param=foo"),
+			output: encodedCiphertextMetadata("next=bar,param=foo"),
 		},
 		{
 			input: map[string]string{
 				"param":  "foo",
 				"base64": "YWVzX2RhdGE=",
 			},
-			output: EncodedCiphertextMetadata("base64=YWVzX2RhdGE=,param=foo"),
+			output: encodedCiphertextMetadata("base64=YWVzX2RhdGE=,param=foo"),
 		},
 	}
 
 	for _, test := range tests {
 
-		output := NewEncodedCiphertextMetadata(test.input)
+		output := newEncodedCiphertextMetadata(test.input)
 
 		if output != test.output {
 			t.Errorf("expected output=%s but got output=%s", test.output, output)

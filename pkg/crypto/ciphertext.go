@@ -54,16 +54,16 @@ const (
 	AlgorithmAES    EncryptionAlgorithm = "AES-GCM"
 )
 
-// EncodedCiphertextMetadata represents the metadata of an EncodedCiphertext.
+// encodedCiphertextMetadata represents the metadata of an EncodedCiphertext.
 // Has the form of <name>=<value>,<name>=<value>.
 // E.g. nonce=abcd,length=1024
-type EncodedCiphertextMetadata string
+type encodedCiphertextMetadata string
 
 // newEncodedCiphertext creates a new EncodedCiphertext from an EncryptionAlgorithm and a []byte with a key.
 func newEncodedCiphertext(algorithm EncryptionAlgorithm, keyData []byte, metadataList map[string]string) encodedCiphertext {
 	encodedKey := base64.StdEncoding.EncodeToString(keyData)
 
-	metadata := NewEncodedCiphertextMetadata(metadataList)
+	metadata := newEncodedCiphertextMetadata(metadataList)
 
 	return encodedCiphertext(fmt.Sprintf("%s$%s$%s", algorithm, encodedKey, metadata))
 }
@@ -105,17 +105,17 @@ func (ec encodedCiphertext) GetData() ([]byte, error) {
 }
 
 // GetMetadata returns the metadata part of the EncodedCiphertext.
-func (ec encodedCiphertext) GetMetadata() (EncodedCiphertextMetadata, error) {
+func (ec encodedCiphertext) GetMetadata() (encodedCiphertextMetadata, error) {
 	matches, err := ec.parseRegex()
 	if err != nil {
 		return "", errio.Error(err)
 	}
-	return EncodedCiphertextMetadata(matches[3]), nil
+	return encodedCiphertextMetadata(matches[3]), nil
 }
 
-// NewEncodedCiphertextMetadata creates a new EncodedCiphertextMetadata from a map of metadata.
+// newEncodedCiphertextMetadata creates a new encodedCiphertextMetadata from a map of metadata.
 // Input of {"param": "foo", "second": "bar"} outputs "param=foo,second=bar".
-func NewEncodedCiphertextMetadata(metadataList map[string]string) EncodedCiphertextMetadata {
+func newEncodedCiphertextMetadata(metadataList map[string]string) encodedCiphertextMetadata {
 	metadata := ""
 
 	// Sort all the keys of the metadataList so that metadata is always in alphabetical order.
@@ -133,12 +133,12 @@ func NewEncodedCiphertextMetadata(metadataList map[string]string) EncodedCiphert
 		metadata = fmt.Sprintf("%s%s%s=%s", metadata, separator, k, metadataList[k])
 	}
 
-	return EncodedCiphertextMetadata(metadata)
+	return encodedCiphertextMetadata(metadata)
 }
 
 // GetValue returns a value from metadata.
 // E.g. when the metadata is "first=foo,second=bar", then GetValue("second") => "bar".
-func (m EncodedCiphertextMetadata) GetValue(name string) (string, error) {
+func (m encodedCiphertextMetadata) GetValue(name string) (string, error) {
 	pattern := fmt.Sprintf(encodedCiphertextMetadataPattern, name)
 	regexp, err := regexp.Compile(pattern)
 
@@ -156,7 +156,7 @@ func (m EncodedCiphertextMetadata) GetValue(name string) (string, error) {
 }
 
 // GetDecodedValue gets the value as if GetValue and also decodes it from base64.
-func (m EncodedCiphertextMetadata) GetDecodedValue(name string) ([]byte, error) {
+func (m encodedCiphertextMetadata) GetDecodedValue(name string) ([]byte, error) {
 	dataStr, err := m.GetValue(name)
 	if err != nil {
 		return nil, ErrInvalidMetadata
