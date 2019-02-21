@@ -51,19 +51,14 @@ func (c *client) createSecretKey(secretPath api.SecretPath) (*api.SecretKey, err
 			return nil, errio.Error(err)
 		}
 
-		encryptedSecretKey, err := crypto.EncryptRSA(secretKey.Export(), publicKey)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		encodedSecretKey, err := crypto.EncodeCiphertext(encryptedSecretKey)
+		encryptedSecretKey, err := publicKey.Encrypt(secretKey.Export())
 		if err != nil {
 			return nil, errio.Error(err)
 		}
 
 		encryptedFor[i] = api.EncryptedKeyRequest{
 			AccountID:    account.AccountID,
-			EncryptedKey: encodedSecretKey,
+			EncryptedKey: encryptedSecretKey,
 		}
 	}
 

@@ -60,8 +60,8 @@ func (r *CreateSecretKeyRequest) Validate() error {
 
 // EncryptedKeyRequest contains the request fields for re-encrypted for an account.
 type EncryptedKeyRequest struct {
-	AccountID    *uuid.UUID               `json:"account_id"`
-	EncryptedKey crypto.EncodedCiphertext `json:"encrypted_key"`
+	AccountID    *uuid.UUID                  `json:"account_id"`
+	EncryptedKey crypto.EncodedCiphertextRSA `json:"encrypted_key"`
 }
 
 // Validate validates the request fields.

@@ -136,19 +136,14 @@ func encryptKeyForAccounts(key *crypto.AESKey, accounts ...*api.Account) ([]api.
 			return nil, errio.Error(err)
 		}
 
-		encryptedSecretKey, err := crypto.EncryptRSA(key.Export(), publicKey)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		encodedSecretKey, err := crypto.EncodeCiphertext(encryptedSecretKey)
+		encryptedSecretKey, err := publicKey.Encrypt(key.Export())
 		if err != nil {
 			return nil, errio.Error(err)
 		}
 
 		encryptedKeys[i] = api.EncryptedKeyRequest{
 			AccountID:    account.AccountID,
-			EncryptedKey: encodedSecretKey,
+			EncryptedKey: encryptedSecretKey,
 		}
 	}
 

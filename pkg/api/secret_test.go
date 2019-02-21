@@ -84,7 +84,7 @@ func TestCreateSecretRequest_Validate_Unique(t *testing.T) {
 				},
 				EncryptedKeys: []api.EncryptedKeyRequest{{
 					AccountID:    accountID,
-					EncryptedKey: getValidEncodedCipherText(),
+					EncryptedKey: getValidEncodedCipherTextRSA(),
 				},
 				},
 			},
@@ -102,11 +102,11 @@ func TestCreateSecretRequest_Validate_Unique(t *testing.T) {
 				},
 				EncryptedKeys: []api.EncryptedKeyRequest{{
 					AccountID:    accountID,
-					EncryptedKey: getValidEncodedCipherText(),
+					EncryptedKey: getValidEncodedCipherTextRSA(),
 				},
 					{
 						AccountID:    accountID,
-						EncryptedKey: getValidEncodedCipherText(),
+						EncryptedKey: getValidEncodedCipherTextRSA(),
 					},
 				},
 			},
@@ -142,7 +142,7 @@ func TestCreateSecretRequest_Validate_EncryptedNameAndKeyForEachAccount(t *testi
 		},
 		EncryptedKeys: []api.EncryptedKeyRequest{{
 			AccountID:    uuid.New(),
-			EncryptedKey: getValidEncodedCipherText(),
+			EncryptedKey: getValidEncodedCipherTextRSA(),
 		},
 		},
 	}
