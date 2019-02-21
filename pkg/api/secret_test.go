@@ -153,11 +153,11 @@ func TestCreateSecretRequest_Validate_EncryptedNameAndKeyForEachAccount(t *testi
 }
 
 func TestExistingNameMemberRequest_Validate(t *testing.T) {
-	tests := []struct {
+	cases := map[string]struct {
 		EncryptedNameRequest api.EncryptedNameForNodeRequest
 		expected             error
 	}{
-		{
+		"success": {
 			EncryptedNameRequest: api.EncryptedNameForNodeRequest{
 				EncryptedNameRequest: api.EncryptedNameRequest{
 					AccountID:     uuid.New(),
@@ -167,7 +167,7 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 			},
 			expected: nil,
 		},
-		{
+		"invalid node id": {
 			EncryptedNameRequest: api.EncryptedNameForNodeRequest{
 				EncryptedNameRequest: api.EncryptedNameRequest{
 					AccountID:     uuid.New(),
@@ -176,7 +176,7 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 			},
 			expected: api.ErrInvalidNodeID,
 		},
-		{
+		"invalid account id": {
 			EncryptedNameRequest: api.EncryptedNameForNodeRequest{
 				NodeID: uuid.New(),
 				EncryptedNameRequest: api.EncryptedNameRequest{
@@ -185,7 +185,7 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 			},
 			expected: api.ErrInvalidAccountID,
 		},
-		{
+		"invalid ciphertext": {
 			EncryptedNameRequest: api.EncryptedNameForNodeRequest{
 				NodeID: uuid.New(),
 				EncryptedNameRequest: api.EncryptedNameRequest{
@@ -197,11 +197,15 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		err := test.EncryptedNameRequest.Validate()
-		if err != test.expected {
-			t.Errorf("Unexpected result on %s: %s (actual) != %s (expected)", test.EncryptedNameRequest, err, test.expected)
-		}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+
+			// Act
+			err := tc.EncryptedNameRequest.Validate()
+
+			// Assert
+			testutil.Compare(t, err, tc.expected)
+		})
 	}
 }
 
