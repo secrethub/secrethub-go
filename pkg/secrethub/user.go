@@ -62,6 +62,11 @@ func (s userService) create(username, email, fullName string, accountKey *crypto
 		return nil, errio.Error(err)
 	}
 
+	err = credentialRequest.Validate()
+	if err != nil {
+		return nil, err
+	}
+
 	userRequest := &api.CreateUserRequest{
 		Username:   username,
 		Email:      email,
