@@ -193,7 +193,7 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 					EncryptedName: "INVALID CIPHERTEXT",
 				},
 			},
-			expected: api.ErrInvalidCiphertext,
+			expected: crypto.ErrInvalidCiphertext,
 		},
 	}
 
