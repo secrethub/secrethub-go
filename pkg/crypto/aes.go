@@ -52,7 +52,16 @@ func GenerateAESKey() (*AESKey, error) {
 }
 
 // Decrypt decrypts the encryptedData with AES-GCM using the AESKey and the provided nonce.
-func (k *AESKey) Decrypt(encryptedData, nonce []byte) ([]byte, error) {
+func (k *AESKey) Decrypt(encodedCiphertextAES EncodedCiphertextAES) ([]byte, error) {
+	ciphertext, err := encodedCiphertextAES.Decode()
+	if err != nil {
+		return nil, err
+	}
+
+	return k.decrypt(ciphertext.Data, ciphertext.Nonce)
+}
+
+func (k AESKey) decrypt(data, nonce []byte) ([]byte, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
 		return nil, ErrInvalidCipher(err)
@@ -63,7 +72,7 @@ func (k *AESKey) Decrypt(encryptedData, nonce []byte) ([]byte, error) {
 		return nil, ErrInvalidCipher(err)
 	}
 
-	output, err := gcm.Open(nil, nonce, encryptedData, nil)
+	output, err := gcm.Open(nil, nonce, data, nil)
 	if err != nil {
 		return nil, ErrAESDecrypt(err)
 	}
@@ -145,7 +154,7 @@ func (b *CiphertextAES) Decrypt(k Key) ([]byte, error) {
 		return nil, ErrInvalidCiphertext
 	}
 
-	return aesKey.Decrypt(b.Data, b.Nonce)
+	return aesKey.Decrypt(b.Encode())
 }
 
 // ReEncrypt reencrypts the ciphertext using AES for the given encryption key.

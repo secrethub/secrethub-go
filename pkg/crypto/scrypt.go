@@ -174,7 +174,7 @@ func (k *ScryptKey) Decrypt(encryptedData, nonce []byte, operation SaltOperation
 		return nil, errio.Error(err)
 	}
 
-	return k.key.Decrypt(encryptedData, nonce)
+	return k.key.decrypt(encryptedData, nonce)
 }
 
 // Encrypt encrypts the data with AES-GCM using the AESKey.
