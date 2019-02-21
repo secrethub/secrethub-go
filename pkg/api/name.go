@@ -7,8 +7,8 @@ import (
 
 // EncryptedNameRequest contains an EncryptedName for an Account.
 type EncryptedNameRequest struct {
-	AccountID     *uuid.UUID               `json:"account_id"`
-	EncryptedName crypto.EncodedCiphertext `json:"encrypted_name"`
+	AccountID     *uuid.UUID                  `json:"account_id"`
+	EncryptedName crypto.EncodedCiphertextRSA `json:"encrypted_name"`
 }
 
 // Validate validates the EncryptedNameRequest to be valid.

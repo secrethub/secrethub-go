@@ -18,7 +18,7 @@ func TestReEncryptionRepoKey(t *testing.T) {
 		t.Error(err)
 	}
 
-	exportedRepoKey1, err := key1.Encrypt(repoKey1.Export())
+	exportedRepoKey1, err := key1.EncryptBytes(repoKey1.Export())
 	if err != nil {
 		t.Error(err)
 	}

@@ -42,12 +42,7 @@ func (c *client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 			return nil, errio.Error(err)
 		}
 
-		encryptedSecretName, err := crypto.EncryptRSA([]byte(secret.Name), publicKey)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		encodedSecretName, err := crypto.EncodeCiphertext(encryptedSecretName)
+		encryptedSecretName, err := publicKey.Encrypt([]byte(secret.Name))
 		if err != nil {
 			return nil, errio.Error(err)
 		}
@@ -55,7 +50,7 @@ func (c *client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 		encryptedName := api.EncryptedNameForNodeRequest{
 			EncryptedNameRequest: api.EncryptedNameRequest{
 				AccountID:     account.AccountID,
-				EncryptedName: encodedSecretName,
+				EncryptedName: encryptedSecretName,
 			},
 			NodeID: secret.SecretID,
 		}
@@ -118,19 +113,14 @@ func encryptNameForAccounts(name string, accounts ...*api.Account) ([]api.Encryp
 			return nil, errio.Error(err)
 		}
 
-		encryptedSecretName, err := crypto.EncryptRSA([]byte(name), publicKey)
+		ciphertext, err := publicKey.Encrypt([]byte(name))
 		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		encodedSecretName, err := crypto.EncodeCiphertext(encryptedSecretName)
-		if err != nil {
-			return nil, errio.Error(err)
+			return nil, err
 		}
 
 		encryptedNames[i] = api.EncryptedNameRequest{
 			AccountID:     account.AccountID,
-			EncryptedName: encodedSecretName,
+			EncryptedName: ciphertext,
 		}
 	}
 

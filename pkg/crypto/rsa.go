@@ -52,12 +52,25 @@ type RSAPublicKey struct {
 }
 
 // Encrypt encrypts the data with RSA-OAEP using the RSAKey.
-func (k *RSAPublicKey) Encrypt(data []byte) ([]byte, error) {
-	output, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, k.publicKey, data, []byte{})
+func (k *RSAPublicKey) Encrypt(data []byte) (EncodedCiphertextRSA, error) {
+	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, k.publicKey, data, []byte{})
+	if err != nil {
+		return "", ErrRSAEncrypt(err)
+	}
+
+	return CiphertextRSA{
+		Data: encrypted,
+	}.Encode(), nil
+}
+
+// EncryptBytes encrypts the data with RSA-OAEP using the RSAPublicKey and
+// will be deprecated. Directly use Encrypt instead.
+func (k *RSAPublicKey) EncryptBytes(data []byte) ([]byte, error) {
+	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, k.publicKey, data, []byte{})
 	if err != nil {
 		return nil, ErrRSAEncrypt(err)
 	}
-	return output, nil
+	return encrypted, nil
 }
 
 // Verify will verify a message using the encoded public key and the signature.
@@ -192,7 +205,7 @@ func (k *RSAKey) ReEncrypt(pk *RSAPublicKey, encData []byte) ([]byte, error) {
 		return nil, errio.Error(err)
 	}
 
-	return pk.Encrypt(decData)
+	return pk.EncryptBytes(decData)
 }
 
 // GenerateServiceKey generates an key pair for the Service and returns the private key and public key.
@@ -339,7 +352,7 @@ func (b *CiphertextRSAAES) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, er
 
 // EncryptRSA encrypts the provided data with RSA-OAEP.
 func EncryptRSA(data []byte, k *RSAPublicKey) (*CiphertextRSA, error) {
-	encryptedData, err := k.Encrypt(data)
+	encryptedData, err := k.EncryptBytes(data)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -376,4 +389,15 @@ func (b *CiphertextRSA) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error
 	}
 
 	return EncryptRSA(decrypted, rsaKey)
+}
+
+// Encode encodes the ciphertext in a string.
+func (b CiphertextRSA) Encode() EncodedCiphertextRSA {
+	return EncodedCiphertextRSA(
+		NewEncodedCiphertext(
+			AlgorithmRSA,
+			b.Data,
+			nil,
+		),
+	)
 }

@@ -6,3 +6,8 @@ import "github.com/keylockerbv/secrethub-go/pkg/crypto"
 func getValidEncodedCipherText() crypto.EncodedCiphertext {
 	return "RSA-OAEP$VGh/cyBpcyBhIHRlc3Qgc3RyaW5n$"
 }
+
+// getValidEncodedCipherTextRSA returns a valid EncodedCipherTextRSA to use in tests.
+func getValidEncodedCipherTextRSA() crypto.EncodedCiphertextRSA {
+	return "RSA-OAEP$VGh/cyBpcyBhIHRlc3Qgc3RyaW5n$"
+}

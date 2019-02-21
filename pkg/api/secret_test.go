@@ -75,11 +75,11 @@ func TestCreateSecretRequest_Validate_Unique(t *testing.T) {
 
 				EncryptedNames: []api.EncryptedNameRequest{{
 					AccountID:     accountID,
-					EncryptedName: getValidEncodedCipherText(),
+					EncryptedName: getValidEncodedCipherTextRSA(),
 				},
 					{
 						AccountID:     accountID,
-						EncryptedName: getValidEncodedCipherText(),
+						EncryptedName: getValidEncodedCipherTextRSA(),
 					},
 				},
 				EncryptedKeys: []api.EncryptedKeyRequest{{
@@ -97,7 +97,7 @@ func TestCreateSecretRequest_Validate_Unique(t *testing.T) {
 
 				EncryptedNames: []api.EncryptedNameRequest{{
 					AccountID:     accountID,
-					EncryptedName: getValidEncodedCipherText(),
+					EncryptedName: getValidEncodedCipherTextRSA(),
 				},
 				},
 				EncryptedKeys: []api.EncryptedKeyRequest{{
@@ -137,7 +137,7 @@ func TestCreateSecretRequest_Validate_EncryptedNameAndKeyForEachAccount(t *testi
 
 		EncryptedNames: []api.EncryptedNameRequest{{
 			AccountID:     uuid.New(),
-			EncryptedName: getValidEncodedCipherText(),
+			EncryptedName: getValidEncodedCipherTextRSA(),
 		},
 		},
 		EncryptedKeys: []api.EncryptedKeyRequest{{
@@ -161,7 +161,7 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 			EncryptedNameRequest: api.EncryptedNameForNodeRequest{
 				EncryptedNameRequest: api.EncryptedNameRequest{
 					AccountID:     uuid.New(),
-					EncryptedName: getValidEncodedCipherText(),
+					EncryptedName: getValidEncodedCipherTextRSA(),
 				},
 				NodeID: uuid.New(),
 			},
@@ -171,7 +171,7 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 			EncryptedNameRequest: api.EncryptedNameForNodeRequest{
 				EncryptedNameRequest: api.EncryptedNameRequest{
 					AccountID:     uuid.New(),
-					EncryptedName: getValidEncodedCipherText(),
+					EncryptedName: getValidEncodedCipherTextRSA(),
 				},
 			},
 			expected: api.ErrInvalidNodeID,
@@ -180,7 +180,7 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 			EncryptedNameRequest: api.EncryptedNameForNodeRequest{
 				NodeID: uuid.New(),
 				EncryptedNameRequest: api.EncryptedNameRequest{
-					EncryptedName: getValidEncodedCipherText(),
+					EncryptedName: getValidEncodedCipherTextRSA(),
 				},
 			},
 			expected: api.ErrInvalidAccountID,
@@ -218,7 +218,7 @@ func TestSecretAccessRequest_Validate_AccountIDs(t *testing.T) {
 				Name: api.EncryptedNameForNodeRequest{
 					EncryptedNameRequest: api.EncryptedNameRequest{
 						AccountID:     uuid.New(),
-						EncryptedName: getValidEncodedCipherText(),
+						EncryptedName: getValidEncodedCipherTextRSA(),
 					},
 					NodeID: uuid.New(),
 				},
@@ -236,7 +236,7 @@ func TestSecretAccessRequest_Validate_AccountIDs(t *testing.T) {
 				Name: api.EncryptedNameForNodeRequest{
 					EncryptedNameRequest: api.EncryptedNameRequest{
 						AccountID:     testAccountID,
-						EncryptedName: getValidEncodedCipherText(),
+						EncryptedName: getValidEncodedCipherTextRSA(),
 					},
 					NodeID: uuid.New(),
 				},

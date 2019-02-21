@@ -383,3 +383,22 @@ func (ec EncodedCiphertextAES) Decode() (*CiphertextAES, error) {
 		Nonce: aesNonce,
 	}, nil
 }
+
+// Validate validates the encoded ciphertext.
+func (ec EncodedCiphertextRSA) Validate() error {
+	err := EncodedCiphertext(ec).Validate()
+	if err != nil {
+		return err
+	}
+
+	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
+	if err != nil {
+		return err
+	}
+
+	if algorithm != AlgorithmRSA {
+		return ErrWrongAlgorithm
+	}
+
+	return nil
+}
