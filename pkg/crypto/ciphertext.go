@@ -14,7 +14,7 @@ var (
 	ErrWrongKeyType      = errCrypto.Code("wrong_key_type").Error("received wrong key type")
 	ErrInvalidCiphertext = errCrypto.Code("invalid_ciphertext").Error("ciphertext contains invalid data")
 	ErrUnknownAlgorithm  = errCrypto.Code("unknown_algorithm").Error("algorithm of the encoded ciphertext is invalid")
-	ErrWrongAlgorithm  = errCrypto.Code("wrong_algorithm").Error("unexpected algorithm of the encoded ciphertext")
+	ErrWrongAlgorithm    = errCrypto.Code("wrong_algorithm").Error("unexpected algorithm of the encoded ciphertext")
 	ErrInvalidMetadata   = errCrypto.Code("invalid_metadata").Error("metadata of encrypted key is invalid")
 )
 
@@ -307,5 +307,79 @@ func (ec EncodedCiphertextRSA) Decode() (*CiphertextRSA, error) {
 
 	return &CiphertextRSA{
 		Data: encryptedData,
+	}, nil
+}
+
+// Decode decodes an encoded ciphertext.
+func (ec EncodedCiphertextRSAAES) Decode() (*CiphertextRSAAES, error) {
+	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	if algorithm != AlgorithmRSA {
+		return nil, ErrWrongAlgorithm
+	}
+
+	encryptedData, err := EncodedCiphertext(ec).GetData()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	metadata, err := EncodedCiphertext(ec).GetMetadata()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	aesNonce, err := metadata.GetDecodedValue("nonce")
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	aesKey, err := metadata.GetDecodedValue("key")
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return &CiphertextRSAAES{
+		CiphertextAES: &CiphertextAES{
+			Data:  encryptedData,
+			Nonce: aesNonce,
+		},
+		CiphertextRSA: &CiphertextRSA{
+			Data: aesKey,
+		},
+	}, nil
+}
+
+// Decode decodes an encoded ciphertext.
+func (ec EncodedCiphertextAES) Decode() (*CiphertextAES, error) {
+	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	if algorithm != AlgorithmAES {
+		return nil, ErrWrongAlgorithm
+	}
+
+	encryptedData, err := EncodedCiphertext(ec).GetData()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	metadata, err := EncodedCiphertext(ec).GetMetadata()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	aesNonce, err := metadata.GetDecodedValue("nonce")
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return &CiphertextAES{
+		Data:  encryptedData,
+		Nonce: aesNonce,
 	}, nil
 }
