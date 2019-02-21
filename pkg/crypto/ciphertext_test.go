@@ -99,7 +99,7 @@ func TestAES_Success(t *testing.T) {
 
 	input := []byte("secret message")
 
-	ciphertext, err := aesKey1.Encrypt(input)
+	ciphertext, err := aesKey1.encrypt(input)
 	if err != nil {
 		t.Fatal(err)
 	}

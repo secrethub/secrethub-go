@@ -185,5 +185,5 @@ func (k *ScryptKey) Encrypt(data []byte, operation SaltOperation) (*CiphertextAE
 		return nil, errio.Error(err)
 	}
 
-	return k.key.Encrypt(data)
+	return k.key.encrypt(data)
 }

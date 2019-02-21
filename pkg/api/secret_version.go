@@ -131,8 +131,8 @@ func (esv *EncryptedSecretVersion) ToAuditSubject() *AuditSubject {
 // CreateSecretVersionRequest contains the request fields for creating a
 // secret version with a secret key.
 type CreateSecretVersionRequest struct {
-	EncryptedData crypto.EncodedCiphertext `json:"encrypted_data"`
-	SecretKeyID   *uuid.UUID               `json:"secret_key_id"`
+	EncryptedData crypto.EncodedCiphertextAES `json:"encrypted_data"`
+	SecretKeyID   *uuid.UUID                  `json:"secret_key_id"`
 }
 
 // Validate validates the request fields.

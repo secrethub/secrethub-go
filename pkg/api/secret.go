@@ -95,8 +95,8 @@ func (s *Secret) HasName(name string) bool {
 // CreateSecretRequest contains the request fields for creating a new secret,
 // together with its first version, encrypted for accounts that need access.
 type CreateSecretRequest struct {
-	BlindName     string                   `json:"blind_name"`
-	EncryptedData crypto.EncodedCiphertext `json:"encrypted_data"`
+	BlindName     string                      `json:"blind_name"`
+	EncryptedData crypto.EncodedCiphertextAES `json:"encrypted_data"`
 
 	EncryptedNames []EncryptedNameRequest `json:"encrypted_names"`
 	EncryptedKeys  []EncryptedKeyRequest  `json:"encrypted_keys"`

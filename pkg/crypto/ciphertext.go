@@ -402,3 +402,41 @@ func (ec EncodedCiphertextRSA) Validate() error {
 
 	return nil
 }
+
+// Validate validates the encoded ciphertext.
+func (ec EncodedCiphertextAES) Validate() error {
+	err := EncodedCiphertext(ec).Validate()
+	if err != nil {
+		return err
+	}
+
+	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
+	if err != nil {
+		return err
+	}
+
+	if algorithm != AlgorithmAES {
+		return ErrWrongAlgorithm
+	}
+
+	return nil
+}
+
+// Validate validates the encoded ciphertext.
+func (ec EncodedCiphertextRSAAES) Validate() error {
+	err := EncodedCiphertext(ec).Validate()
+	if err != nil {
+		return err
+	}
+
+	algorithm, err := EncodedCiphertext(ec).GetAlgorithm()
+	if err != nil {
+		return err
+	}
+
+	if algorithm != AlgorithmRSAAES {
+		return ErrWrongAlgorithm
+	}
+
+	return nil
+}

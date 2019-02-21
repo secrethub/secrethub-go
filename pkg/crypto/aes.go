@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"strings"
 
 	"crypto/hmac"
@@ -72,7 +73,15 @@ func (k *AESKey) Decrypt(encryptedData, nonce []byte) ([]byte, error) {
 }
 
 // Encrypt encrypts the data with AES-GCM using the AESKey.
-func (k *AESKey) Encrypt(data []byte) (*CiphertextAES, error) {
+func (k *AESKey) Encrypt(data []byte) (EncodedCiphertextAES, error) {
+	ciphertext, err := k.encrypt(data)
+	if err != nil {
+		return "", err
+	}
+	return ciphertext.Encode(), nil
+}
+
+func (k *AESKey) encrypt(data []byte) (*CiphertextAES, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
 		return nil, ErrInvalidCipher(err)
@@ -151,5 +160,18 @@ func (b *CiphertextAES) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error
 		return nil, ErrWrongKeyType
 	}
 
-	return aesKey.Encrypt(decrypted)
+	return aesKey.encrypt(decrypted)
+}
+
+// Encode encodes the ciphertext in a string.
+func (b CiphertextAES) Encode() EncodedCiphertextAES {
+	return EncodedCiphertextAES(
+		NewEncodedCiphertext(
+			AlgorithmAES,
+			b.Data,
+			map[string]string{
+				"nonce": base64.StdEncoding.EncodeToString(b.Nonce),
+			},
+		),
+	)
 }

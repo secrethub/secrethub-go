@@ -71,7 +71,7 @@ func TestCreateSecretRequest_Validate_Unique(t *testing.T) {
 		{
 			CreateSecretRequest: api.CreateSecretRequest{
 				BlindName:     blindname,
-				EncryptedData: getValidEncodedCipherText(),
+				EncryptedData: getValidEncodedCipherTextAES(),
 
 				EncryptedNames: []api.EncryptedNameRequest{{
 					AccountID:     accountID,
@@ -93,7 +93,7 @@ func TestCreateSecretRequest_Validate_Unique(t *testing.T) {
 		{
 			CreateSecretRequest: api.CreateSecretRequest{
 				BlindName:     blindname,
-				EncryptedData: getValidEncodedCipherText(),
+				EncryptedData: getValidEncodedCipherTextAES(),
 
 				EncryptedNames: []api.EncryptedNameRequest{{
 					AccountID:     accountID,
@@ -133,7 +133,7 @@ func TestCreateSecretRequest_Validate_EncryptedNameAndKeyForEachAccount(t *testi
 	// the set of accounts in EncryptedNames is equal to the set of accounts in EncryptedKeys.
 	createSecretRequest := api.CreateSecretRequest{
 		BlindName:     blindname,
-		EncryptedData: getValidEncodedCipherText(),
+		EncryptedData: getValidEncodedCipherTextAES(),
 
 		EncryptedNames: []api.EncryptedNameRequest{{
 			AccountID:     uuid.New(),

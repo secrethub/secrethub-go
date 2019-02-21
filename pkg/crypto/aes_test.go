@@ -19,7 +19,7 @@ func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {
 		t.Error(err)
 	}
 
-	decryptedData, err := encryptionKey.Decrypt(ciphertext.Data, ciphertext.Nonce)
+	decryptedData, err := encryptionKey.Decrypt(ciphertext)
 	if err != nil {
 		t.Error(err)
 	}
