@@ -61,6 +61,31 @@ func (k *AESKey) Decrypt(encodedCiphertextAES EncodedCiphertextAES) ([]byte, err
 	return k.decrypt(ciphertext.Data, ciphertext.Nonce)
 }
 
+// Encrypt encrypts the data with AES-GCM using the AESKey.
+func (k *AESKey) Encrypt(data []byte) (EncodedCiphertextAES, error) {
+	ciphertext, err := k.encrypt(data)
+	if err != nil {
+		return "", err
+	}
+	return ciphertext.Encode(), nil
+}
+
+// HMAC creates an HMAC of the data.
+func (k AESKey) HMAC(data []byte) ([]byte, error) {
+	mac := hmac.New(sha256.New, k.key)
+	_, err := mac.Write(data)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+	return mac.Sum(nil), nil
+}
+
+// Export will export the AESKey.
+// No format is used.
+func (k *AESKey) Export() []byte {
+	return k.key
+}
+
 func (k AESKey) decrypt(data, nonce []byte) ([]byte, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
@@ -80,16 +105,6 @@ func (k AESKey) decrypt(data, nonce []byte) ([]byte, error) {
 	// We do not use a destination []byte, but a return value.
 	return output, nil
 }
-
-// Encrypt encrypts the data with AES-GCM using the AESKey.
-func (k *AESKey) Encrypt(data []byte) (EncodedCiphertextAES, error) {
-	ciphertext, err := k.encrypt(data)
-	if err != nil {
-		return "", err
-	}
-	return ciphertext.Encode(), nil
-}
-
 func (k *AESKey) encrypt(data []byte) (*ciphertextAES, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
@@ -115,21 +130,6 @@ func (k *AESKey) encrypt(data []byte) (*ciphertextAES, error) {
 	}, nil
 }
 
-// HMAC creates an HMAC of the data.
-func (k AESKey) HMAC(data []byte) ([]byte, error) {
-	mac := hmac.New(sha256.New, k.key)
-	_, err := mac.Write(data)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-	return mac.Sum(nil), nil
-}
-
-// Export will export the AESKey.
-// No format is used.
-func (k *AESKey) Export() []byte {
-	return k.key
-}
 
 // IsWrongKey returns true when the error can be
 // the result of a wrong key being used for decryption.
