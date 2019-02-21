@@ -29,6 +29,15 @@ type Account struct {
 // AccountName represents the name of either a user or a service.
 type AccountName string
 
+// NewAccountName validates an accounts name and returns it as a typed AccountName when valid.
+func NewAccountName(name string) (AccountName, error) {
+	err := ValidateAccountName(name)
+	if err != nil {
+		return "", err
+	}
+	return AccountName(name), err
+}
+
 // IsService returns true if the AccountName contains the name of a service.
 func (n AccountName) IsService() bool {
 	return strings.HasPrefix(strings.ToLower(string(n)), ServiceNamePrefix)
@@ -41,13 +50,12 @@ func (n AccountName) IsUser() bool {
 
 // Validate checks whether an AccountName is valid.
 func (n AccountName) Validate() error {
-	return ValidateAccountName(n)
+	return ValidateAccountName(string(n))
 }
 
 // Set sets the AccountName to the value.
 func (n *AccountName) Set(value string) error {
-	accountName := AccountName(value)
-	err := ValidateAccountName(accountName)
+	accountName, err := NewAccountName(value)
 	if err != nil {
 		return err
 	}

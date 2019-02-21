@@ -9,7 +9,7 @@ import (
 // AccountService handles operations on SecretHub accounts.
 type AccountService interface {
 	// Get retrieves an account by name.
-	Get(name api.AccountName) (*api.Account, error)
+	Get(name string) (*api.Account, error)
 	// Keys returns an account key service.
 	Keys() AccountKeyService
 }
@@ -25,8 +25,13 @@ type accountService struct {
 }
 
 // Get retrieves an account by name.
-func (s accountService) Get(name api.AccountName) (*api.Account, error) {
-	return s.client.httpClient.GetAccount(name)
+func (s accountService) Get(name string) (*api.Account, error) {
+	accountName, err := api.NewAccountName(name)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.client.httpClient.GetAccount(accountName)
 }
 
 // Keys returns an account key service.
