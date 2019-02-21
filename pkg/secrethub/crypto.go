@@ -57,12 +57,7 @@ func (c *client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 
 		encryptedKeys := make([]api.SecretKeyMemberRequest, len(decryptedKeys))
 		for keyIndex, decryptedKey := range decryptedKeys {
-			encryptedKey, err := crypto.EncryptRSA(decryptedKey.Key.Export(), publicKey)
-			if err != nil {
-				return nil, errio.Error(err)
-			}
-
-			encodedKey, err := crypto.EncodeCiphertext(encryptedKey)
+			encryptedKey, err := publicKey.Encrypt(decryptedKey.Key.Export())
 			if err != nil {
 				return nil, errio.Error(err)
 			}
@@ -70,7 +65,7 @@ func (c *client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 			encryptedKeys[keyIndex] = api.SecretKeyMemberRequest{
 				AccountID:    account.AccountID,
 				SecretKeyID:  decryptedKey.SecretKeyID,
-				EncryptedKey: encodedKey,
+				EncryptedKey: encryptedKey,
 			}
 		}
 

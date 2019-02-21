@@ -229,7 +229,7 @@ func TestSecretAccessRequest_Validate_AccountIDs(t *testing.T) {
 				Keys: []api.SecretKeyMemberRequest{{
 					AccountID:    uuid.New(),
 					SecretKeyID:  uuid.New(),
-					EncryptedKey: getValidEncodedCipherText(),
+					EncryptedKey: getValidEncodedCipherTextRSA(),
 				},
 				},
 			},
@@ -247,7 +247,7 @@ func TestSecretAccessRequest_Validate_AccountIDs(t *testing.T) {
 				Keys: []api.SecretKeyMemberRequest{{
 					AccountID:    testAccountID,
 					SecretKeyID:  uuid.New(),
-					EncryptedKey: getValidEncodedCipherText(),
+					EncryptedKey: getValidEncodedCipherTextRSA(),
 				},
 				},
 			},
