@@ -189,7 +189,7 @@ func (ec EncodedCiphertextRSAAES) decode() (*ciphertextRSAAES, error) {
 		return nil, errio.Error(err)
 	}
 
-	if algorithm != AlgorithmRSA {
+	if algorithm != AlgorithmRSAAES {
 		return nil, ErrWrongAlgorithm
 	}
 
