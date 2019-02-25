@@ -39,7 +39,7 @@ func TestRSAAES_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if bytes.Equal(ciphertext.ciphertextAES.Data, input) {
+	if bytes.Equal(ciphertext.CiphertextAES.Data, input) {
 		t.Error("encrypted data equals the original data")
 	}
 
@@ -78,7 +78,7 @@ func TestAES_Success(t *testing.T) {
 
 	input := []byte("secret message")
 
-	ciphertext, err := aesKey1.encrypt(input)
+	ciphertext, err := aesKey1.Encrypt(input)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,9 +107,9 @@ func TestAES_Success(t *testing.T) {
 func TestAES_DecryptNilData(t *testing.T) {
 	aesKey := generateAESKey(t)
 
-	ciphertext := ciphertextAES{
+	ciphertext := CiphertextAES{
 		Nonce: []byte("aa"),
-	}.Encode()
+	}
 
 	_, err := aesKey.Decrypt(ciphertext)
 

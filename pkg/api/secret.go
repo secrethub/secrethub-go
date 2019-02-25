@@ -92,8 +92,8 @@ func (s *Secret) HasName(name string) bool {
 // CreateSecretRequest contains the request fields for creating a new secret,
 // together with its first version, encrypted for accounts that need access.
 type CreateSecretRequest struct {
-	BlindName     string                      `json:"blind_name"`
-	EncryptedData crypto.EncodedCiphertextAES `json:"encrypted_data"`
+	BlindName     string               `json:"blind_name"`
+	EncryptedData crypto.CiphertextAES `json:"encrypted_data"`
 
 	EncryptedNames []EncryptedNameRequest `json:"encrypted_names"`
 	EncryptedKeys  []EncryptedKeyRequest  `json:"encrypted_keys"`
@@ -104,11 +104,6 @@ func (csr *CreateSecretRequest) Validate() error {
 	err := ValidateBlindName(csr.BlindName)
 	if err != nil {
 		return ErrInvalidSecretBlindName
-	}
-
-	err = csr.EncryptedData.Validate()
-	if err != nil {
-		return err
 	}
 
 	if len(csr.EncryptedNames) < 1 {

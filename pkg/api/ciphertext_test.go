@@ -8,6 +8,9 @@ func getValidEncodedCipherTextRSA() crypto.EncodedCiphertextRSA {
 }
 
 // getValidEncodedCipherTextAES returns a valid EncodedCipherTextAES to use in tests.
-func getValidEncodedCipherTextAES() crypto.EncodedCiphertextAES {
-	return "AES-GCM$Lwi6p9ofYSs+FeCHkmt/aacN3A8=$nonce=DeLt3C9ZWZ1I4P+H"
+func getValidEncodedCipherTextAES() crypto.CiphertextAES {
+	return crypto.CiphertextAES{
+		Data:  []byte("Lwi6p9ofYSs+FeCHkmt/aacN3A8="),
+		Nonce: []byte("DeLt3C9ZWZ1I4P+H"),
+	}
 }

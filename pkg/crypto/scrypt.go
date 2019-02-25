@@ -185,7 +185,7 @@ func (k *ScryptKey) Encrypt(data []byte, operation SaltOperation) ([]byte, []byt
 		return nil, nil, errio.Error(err)
 	}
 
-	cipher, err := k.key.encrypt(data)
+	cipher, err := k.key.Encrypt(data)
 	if err != nil {
 		return nil, nil, err
 	}

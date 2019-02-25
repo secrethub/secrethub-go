@@ -296,7 +296,7 @@ func (k RSAKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
 
 // ciphertextRSAAES represents data encrypted with AES-GCM, where the AES-key is encrypted with RSA-OAEP.
 type ciphertextRSAAES struct {
-	*ciphertextAES
+	CiphertextAES
 	*ciphertextRSA
 }
 
@@ -313,7 +313,7 @@ func EncryptRSAAES(data []byte, k *RSAPublicKey) (EncodedCiphertextRSAAES, error
 		return "", errio.Error(err)
 	}
 
-	aesData, err := aesKey.encrypt(data)
+	aesData, err := aesKey.Encrypt(data)
 	if err != nil {
 		return "", errio.Error(err)
 	}
@@ -324,7 +324,7 @@ func EncryptRSAAES(data []byte, k *RSAPublicKey) (EncodedCiphertextRSAAES, error
 	}
 
 	return ciphertextRSAAES{
-		ciphertextAES: aesData,
+		CiphertextAES: aesData,
 		ciphertextRSA: rsaData,
 	}.encode(), nil
 }
@@ -342,7 +342,7 @@ func DecryptRSAAES(encodedCiphertext EncodedCiphertextRSAAES, pk RSAKey) ([]byte
 
 // decrypt decrypts the key in ciphertextRSAAES with RSA-OAEP and then decrypts the data in ciphertextRSAAES with AES-GCM.
 func (b *ciphertextRSAAES) decrypt(k RSAKey) ([]byte, error) {
-	if b.ciphertextRSA == nil || b.ciphertextAES == nil {
+	if b.ciphertextRSA == nil {
 		return nil, ErrInvalidCiphertext
 	}
 
@@ -353,7 +353,7 @@ func (b *ciphertextRSAAES) decrypt(k RSAKey) ([]byte, error) {
 
 	aesKey := &AESKey{aesKeyData}
 
-	return aesKey.decrypt(b.ciphertextAES.Data, b.ciphertextAES.Nonce)
+	return aesKey.decrypt(b.CiphertextAES.Data, b.CiphertextAES.Nonce)
 }
 
 // decrypt decrypts the data in ciphertextRSA with RSA-OAEP using the provided key.
@@ -379,9 +379,9 @@ func (b ciphertextRSAAES) encode() EncodedCiphertextRSAAES {
 	return EncodedCiphertextRSAAES(
 		newEncodedCiphertext(
 			AlgorithmRSAAES,
-			b.ciphertextAES.Data,
+			b.CiphertextAES.Data,
 			map[string]string{
-				"nonce": base64.StdEncoding.EncodeToString(b.ciphertextAES.Nonce),
+				"nonce": base64.StdEncoding.EncodeToString(b.CiphertextAES.Nonce),
 				"key":   base64.StdEncoding.EncodeToString(b.ciphertextRSA.Data),
 			},
 		),

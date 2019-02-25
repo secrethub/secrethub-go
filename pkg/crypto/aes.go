@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 	"strings"
 
 	"crypto/hmac"
@@ -51,23 +52,43 @@ func GenerateAESKey() (*AESKey, error) {
 	}, nil
 }
 
-// Decrypt decrypts the encryptedData with AES-GCM using the AESKey and the provided nonce.
-func (k *AESKey) Decrypt(encodedCiphertextAES EncodedCiphertextAES) ([]byte, error) {
-	ciphertext, err := encodedCiphertextAES.decode()
+// Encrypt encrypts the data with AES-GCM using the AESKey.
+func (k *AESKey) Encrypt(data []byte) (CiphertextAES, error) {
+	key, err := aes.NewCipher(k.key)
 	if err != nil {
-		return nil, err
+		return CiphertextAES{}, ErrInvalidCipher(err)
+	}
+
+	gcm, err := cipher.NewGCM(key)
+	if err != nil {
+		return CiphertextAES{}, ErrInvalidCipher(err)
+	}
+
+	nonce, err := GenerateNonce(gcm.NonceSize())
+	if err != nil {
+		return CiphertextAES{}, ErrAESEncrypt(err)
+	}
+
+	// We do not use a destination []byte, but a return value.
+	encData := gcm.Seal(nil, *nonce, data, nil)
+
+	return CiphertextAES{
+		Data:  encData,
+		Nonce: *nonce,
+	}, nil
+}
+
+// Decrypt decrypts the encryptedData with AES-GCM using the AESKey and the provided nonce.
+func (k *AESKey) Decrypt(ciphertext CiphertextAES) ([]byte, error) {
+	if len(ciphertext.Data) == 0 {
+		return []byte{}, nil
+	}
+
+	if len(ciphertext.Nonce) == 0 {
+		return nil, ErrInvalidCiphertext
 	}
 
 	return k.decrypt(ciphertext.Data, ciphertext.Nonce)
-}
-
-// Encrypt encrypts the data with AES-GCM using the AESKey.
-func (k *AESKey) Encrypt(data []byte) (EncodedCiphertextAES, error) {
-	ciphertext, err := k.encrypt(data)
-	if err != nil {
-		return "", err
-	}
-	return ciphertext.Encode(), nil
 }
 
 // HMAC creates an HMAC of the data.
@@ -105,30 +126,6 @@ func (k AESKey) decrypt(data, nonce []byte) ([]byte, error) {
 	// We do not use a destination []byte, but a return value.
 	return output, nil
 }
-func (k *AESKey) encrypt(data []byte) (*ciphertextAES, error) {
-	key, err := aes.NewCipher(k.key)
-	if err != nil {
-		return nil, ErrInvalidCipher(err)
-	}
-
-	gcm, err := cipher.NewGCM(key)
-	if err != nil {
-		return nil, ErrInvalidCipher(err)
-	}
-
-	nonce, err := GenerateNonce(gcm.NonceSize())
-	if err != nil {
-		return nil, ErrAESEncrypt(err)
-	}
-
-	// We do not use a destination []byte, but a return value.
-	encData := gcm.Seal(nil, *nonce, data, nil)
-
-	return &ciphertextAES{
-		Data:  encData,
-		Nonce: *nonce,
-	}, nil
-}
 
 // IsWrongKey returns true when the error can be
 // the result of a wrong key being used for decryption.
@@ -136,21 +133,57 @@ func IsWrongKey(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "cipher: message authentication failed")
 }
 
-// ciphertextAES represents data encrypted with AES-GCM.
-type ciphertextAES struct {
+// CiphertextAES represents data encrypted with AES-GCM.
+type CiphertextAES struct {
 	Data  []byte
 	Nonce []byte
 }
 
-// Encode encodes the ciphertext in a string.
-func (b ciphertextAES) Encode() EncodedCiphertextAES {
-	return EncodedCiphertextAES(
-		newEncodedCiphertext(
-			AlgorithmAES,
-			b.Data,
-			map[string]string{
-				"nonce": base64.StdEncoding.EncodeToString(b.Nonce),
-			},
-		),
-	)
+// MarshalJSON encodes the ciphertext in a string.
+func (ct CiphertextAES) MarshalJSON() ([]byte, error) {
+	encodedKey := base64.StdEncoding.EncodeToString(ct.Data)
+
+	metadata := newEncodedCiphertextMetadata(map[string]string{
+		"nonce": base64.StdEncoding.EncodeToString(ct.Nonce),
+	})
+
+	return []byte(fmt.Sprintf("%s$%s$%s", AlgorithmAES, encodedKey, metadata)), nil
+}
+
+// UnmarshalJSON decodes a string into a ciphertext.
+func (ct *CiphertextAES) UnmarshalJSON(b []byte) error {
+	if len(b) == 0 {
+		return nil
+	}
+
+	encoded := encodedCiphertext(b)
+
+	algorithm, err := encoded.GetAlgorithm()
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	if algorithm != AlgorithmAES {
+		return ErrWrongAlgorithm
+	}
+
+	encryptedData, err := encoded.GetData()
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	metadata, err := encoded.GetMetadata()
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	aesNonce, err := metadata.GetDecodedValue("nonce")
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	ct.Data = encryptedData
+	ct.Nonce = aesNonce
+
+	return nil
 }
