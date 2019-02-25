@@ -208,8 +208,8 @@ func (k *RSAKey) ReEncrypt(pk *RSAPublicKey, encData []byte) ([]byte, error) {
 	return pk.EncryptBytes(decData)
 }
 
-// DecryptBytes decrypts the encrypted data with RSA-OAEP using the RSAKey and
-// will be deprecated. Directly use Decrypt instead.
+// DecryptBytes decrypts the encrypted data with RSA-OAEP using the RSAKey.
+// This function will be deprecated. Directly use Decrypt instead.
 func (k *RSAKey) DecryptBytes(encryptedData []byte) ([]byte, error) {
 	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, k.privateKey, encryptedData, []byte{})
 	if err != nil {
