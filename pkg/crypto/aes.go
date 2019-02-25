@@ -141,13 +141,13 @@ type CiphertextAES struct {
 
 // MarshalJSON encodes the ciphertext in a string.
 func (ct CiphertextAES) MarshalJSON() ([]byte, error) {
-	encodedKey := base64.StdEncoding.EncodeToString(ct.Data)
+	data := base64.StdEncoding.EncodeToString(ct.Data)
 
 	metadata := newEncodedCiphertextMetadata(map[string]string{
 		"nonce": base64.StdEncoding.EncodeToString(ct.Nonce),
 	})
 
-	return []byte(fmt.Sprintf("%s$%s$%s", AlgorithmAES, encodedKey, metadata)), nil
+	return []byte(fmt.Sprintf("%s$%s$%s", AlgorithmAES, data, metadata)), nil
 }
 
 // UnmarshalJSON decodes a string into a ciphertext.

@@ -29,12 +29,7 @@ func TestRSAAES_Success(t *testing.T) {
 
 	input := []byte("secret message")
 
-	encoded, err := EncryptRSAAES(input, rsaKey1.RSAPublicKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ciphertext, err := encoded.decode()
+	ciphertext, err := EncryptRSAAES(input, rsaKey1.RSAPublicKey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +58,7 @@ func TestRSAAES_Success(t *testing.T) {
 func TestRSAAES_DecryptNilData(t *testing.T) {
 	rsaKey := generateRSAKey(t)
 
-	ciphertext := ciphertextRSAAES{}
+	ciphertext := CiphertextRSAAES{}
 
 	_, err := ciphertext.decrypt(*rsaKey)
 

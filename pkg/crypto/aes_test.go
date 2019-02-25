@@ -77,13 +77,13 @@ func TestCiphertextAES_MarshallJSON(t *testing.T) {
 	}
 }
 
-func TestCiphertextRSAAES_Encode(t *testing.T) {
+func TestCiphertextRSAAES_MarshalJSON(t *testing.T) {
 	cases := map[string]struct {
-		ciphertext ciphertextRSAAES
-		expected   EncodedCiphertextRSAAES
+		ciphertext CiphertextRSAAES
+		expected   []byte
 	}{
 		"success": {
-			ciphertext: ciphertextRSAAES{
+			ciphertext: CiphertextRSAAES{
 				CiphertextAES: CiphertextAES{
 					Data:  []byte("aes_data"),
 					Nonce: []byte("nonce_data"),
@@ -92,14 +92,15 @@ func TestCiphertextRSAAES_Encode(t *testing.T) {
 					Data: []byte("rsa_data"),
 				},
 			},
-			expected: EncodedCiphertextRSAAES("RSA-OAEP+AES-GCM$YWVzX2RhdGE=$key=cnNhX2RhdGE=,nonce=bm9uY2VfZGF0YQ=="),
+			expected: []byte("RSA-OAEP+AES-GCM$YWVzX2RhdGE=$key=cnNhX2RhdGE=,nonce=bm9uY2VfZGF0YQ=="),
 		},
 	}
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// Act
-			actual := tc.ciphertext.encode()
+			actual, err := tc.ciphertext.MarshalJSON()
+			testutil.OK(t, err)
 
 			// Assert
 			testutil.Compare(t, actual, tc.expected)
