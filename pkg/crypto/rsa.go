@@ -55,9 +55,9 @@ type RSAPublicKey struct {
 
 // Encrypt encrypts the data with RSA-OAEP using the RSAKey.
 func (k *RSAPublicKey) Encrypt(data []byte) (CiphertextRSA, error) {
-	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, k.publicKey, data, []byte{})
+	encrypted, err := k.encrypt(data)
 	if err != nil {
-		return CiphertextRSA{}, ErrRSAEncrypt(err)
+		return CiphertextRSA{}, err
 	}
 
 	return CiphertextRSA{
@@ -68,6 +68,10 @@ func (k *RSAPublicKey) Encrypt(data []byte) (CiphertextRSA, error) {
 // EncryptBytes encrypts the data with RSA-OAEP using the RSAPublicKey and
 // will be deprecated. Directly use Encrypt instead.
 func (k *RSAPublicKey) EncryptBytes(data []byte) ([]byte, error) {
+	return k.encrypt(data)
+}
+
+func (k *RSAPublicKey) encrypt(data []byte) ([]byte, error) {
 	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, k.publicKey, data, []byte{})
 	if err != nil {
 		return nil, ErrRSAEncrypt(err)
@@ -180,11 +184,7 @@ func (k *RSAKey) Decrypt(ciphertext CiphertextRSA) ([]byte, error) {
 		return []byte{}, nil
 	}
 
-	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, k.privateKey, ciphertext.Data, []byte{})
-	if err != nil {
-		return nil, ErrRSADecrypt(err)
-	}
-	return output, nil
+	return k.decrypt(ciphertext.Data)
 }
 
 // ReEncrypt re-encrypts the data for the given public key.
@@ -202,6 +202,10 @@ func (k *RSAKey) ReEncrypt(pk *RSAPublicKey, encData []byte) ([]byte, error) {
 // DecryptBytes decrypts the encrypted data with RSA-OAEP using the RSAKey.
 // This function will be deprecated. Directly use Decrypt instead.
 func (k *RSAKey) DecryptBytes(encryptedData []byte) ([]byte, error) {
+	return k.decrypt(encryptedData)
+}
+
+func (k *RSAKey) decrypt(encryptedData []byte) ([]byte, error) {
 	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, k.privateKey, encryptedData, []byte{})
 	if err != nil {
 		return nil, ErrRSADecrypt(err)
