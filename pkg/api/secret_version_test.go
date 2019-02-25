@@ -7,7 +7,7 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 )
 
-func TestCreateSecretVersionRequest_Validate(t *testing.T) {
+func TestCreateSecretVersionRequest_Validate_MaxSize(t *testing.T) {
 
 	tests := []struct {
 		dataSize      int
