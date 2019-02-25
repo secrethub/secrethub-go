@@ -6,8 +6,8 @@ import (
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/assert"
+	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 )
 
 func TestSortSecretByName(t *testing.T) {

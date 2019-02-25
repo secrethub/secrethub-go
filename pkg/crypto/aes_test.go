@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/assert"
+	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 )
 
 func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {
