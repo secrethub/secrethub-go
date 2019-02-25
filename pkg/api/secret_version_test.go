@@ -39,14 +39,14 @@ func TestCreateSecretVersionRequest_Validate(t *testing.T) {
 			slice[i] = 0x1
 		}
 
-		enc, err := aesKey.Encrypt(slice)
+		ciphertext, err := aesKey.Encrypt(slice)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		r := CreateSecretVersionRequest{
 			SecretKeyID:   uuid.New(),
-			EncryptedData: enc,
+			EncryptedData: ciphertext,
 		}
 
 		err = r.Validate()
