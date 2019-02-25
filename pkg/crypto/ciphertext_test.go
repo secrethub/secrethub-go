@@ -199,7 +199,7 @@ func TestEncodedCiphertext_Validate(t *testing.T) {
 func TestEncodedCiphertext_GetAlgorithm(t *testing.T) {
 	tests := []struct {
 		input         string
-		output        EncryptionAlgorithm
+		output        encryptionAlgorithm
 		expectSuccess bool
 	}{
 		{"RSA-OAEP$dGVzdA==$", "RSA-OAEP", true},

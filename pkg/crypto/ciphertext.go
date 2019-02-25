@@ -33,14 +33,14 @@ var (
 // encodedCiphertext contains a string in the format <algorithm>$<base64-encoded-encrypted-data>$<metadata>.
 type encodedCiphertext string
 
-// EncryptionAlgorithm represents the algorithm an EncodedCiphertext is encrypted with.
-type EncryptionAlgorithm string
+// encryptionAlgorithm represents the algorithm an EncodedCiphertext is encrypted with.
+type encryptionAlgorithm string
 
-// EncryptionAlgorithm definitions
+// encryptionAlgorithm definitions
 const (
-	AlgorithmRSAAES EncryptionAlgorithm = "RSA-OAEP+AES-GCM"
-	AlgorithmRSA    EncryptionAlgorithm = "RSA-OAEP"
-	AlgorithmAES    EncryptionAlgorithm = "AES-GCM"
+	algorithmRSAAES encryptionAlgorithm = "RSA-OAEP+AES-GCM"
+	algorithmRSA    encryptionAlgorithm = "RSA-OAEP"
+	algorithmAES    encryptionAlgorithm = "AES-GCM"
 )
 
 // encodedCiphertextMetadata represents the metadata of an EncodedCiphertext.
@@ -67,12 +67,12 @@ func (ec encodedCiphertext) parseRegex() ([]string, error) {
 }
 
 // algorithm returns the algorithm part of the EncodedCiphertext.
-func (ec encodedCiphertext) algorithm() (EncryptionAlgorithm, error) {
+func (ec encodedCiphertext) algorithm() (encryptionAlgorithm, error) {
 	matches, err := ec.parseRegex()
 	if err != nil {
 		return "", errio.Error(err)
 	}
-	return EncryptionAlgorithm(matches[1]), nil
+	return encryptionAlgorithm(matches[1]), nil
 }
 
 // data returns the encrypted data part of the EncodedCiphertext.

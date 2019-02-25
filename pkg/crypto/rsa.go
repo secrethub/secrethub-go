@@ -300,7 +300,7 @@ func (ct CiphertextRSAAES) MarshalJSON() ([]byte, error) {
 		"key":   base64.StdEncoding.EncodeToString(ct.CiphertextRSA.Data),
 	})
 
-	return []byte(fmt.Sprintf("%s$%s$%s", AlgorithmRSAAES, data, metadata)), nil
+	return []byte(fmt.Sprintf("%s$%s$%s", algorithmRSAAES, data, metadata)), nil
 }
 
 // UnmarshalJSON decodes a string into a ciphertext.
@@ -316,7 +316,7 @@ func (ct *CiphertextRSAAES) UnmarshalJSON(b []byte) error {
 		return errio.Error(err)
 	}
 
-	if algorithm != AlgorithmRSAAES {
+	if algorithm != algorithmRSAAES {
 		return ErrWrongAlgorithm
 	}
 
@@ -412,7 +412,7 @@ func (ct *CiphertextRSA) decrypt(k RSAKey) ([]byte, error) {
 func (ct CiphertextRSA) MarshalJSON() ([]byte, error) {
 	encodedKey := base64.StdEncoding.EncodeToString(ct.Data)
 
-	return []byte(fmt.Sprintf("%s$%s$", AlgorithmRSA, encodedKey)), nil
+	return []byte(fmt.Sprintf("%s$%s$", algorithmRSA, encodedKey)), nil
 }
 
 // UnmarshalJSON decodes a string into a ciphertext.
@@ -428,7 +428,7 @@ func (ct *CiphertextRSA) UnmarshalJSON(b []byte) error {
 		return errio.Error(err)
 	}
 
-	if algorithm != AlgorithmRSA {
+	if algorithm != algorithmRSA {
 		return ErrWrongAlgorithm
 	}
 

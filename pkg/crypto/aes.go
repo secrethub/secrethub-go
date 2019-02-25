@@ -147,7 +147,7 @@ func (ct CiphertextAES) MarshalJSON() ([]byte, error) {
 		"nonce": base64.StdEncoding.EncodeToString(ct.Nonce),
 	})
 
-	return []byte(fmt.Sprintf("%s$%s$%s", AlgorithmAES, data, metadata)), nil
+	return []byte(fmt.Sprintf("%s$%s$%s", algorithmAES, data, metadata)), nil
 }
 
 // UnmarshalJSON decodes a string into a ciphertext.
@@ -163,7 +163,7 @@ func (ct *CiphertextAES) UnmarshalJSON(b []byte) error {
 		return errio.Error(err)
 	}
 
-	if algorithm != AlgorithmAES {
+	if algorithm != algorithmAES {
 		return ErrWrongAlgorithm
 	}
 
