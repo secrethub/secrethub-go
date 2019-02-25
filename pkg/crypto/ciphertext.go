@@ -48,8 +48,8 @@ const (
 // E.g. nonce=abcd,length=1024
 type encodedCiphertextMetadata string
 
-// Validate verifies the EncodedCiphertext has a valid format.
-func (ec encodedCiphertext) Validate() error {
+// validate verifies the EncodedCiphertext has a valid format.
+func (ec encodedCiphertext) validate() error {
 	if !encodedCiphertextPattern.MatchString(string(ec)) {
 		return ErrInvalidCiphertext
 	}
@@ -66,8 +66,8 @@ func (ec encodedCiphertext) parseRegex() ([]string, error) {
 	return matches, nil
 }
 
-// GetAlgorithm returns the algorithm part of the EncodedCiphertext.
-func (ec encodedCiphertext) GetAlgorithm() (EncryptionAlgorithm, error) {
+// algorithm returns the algorithm part of the EncodedCiphertext.
+func (ec encodedCiphertext) algorithm() (EncryptionAlgorithm, error) {
 	matches, err := ec.parseRegex()
 	if err != nil {
 		return "", errio.Error(err)
@@ -75,8 +75,8 @@ func (ec encodedCiphertext) GetAlgorithm() (EncryptionAlgorithm, error) {
 	return EncryptionAlgorithm(matches[1]), nil
 }
 
-// GetData returns the encrypted data part of the EncodedCiphertext.
-func (ec encodedCiphertext) GetData() ([]byte, error) {
+// data returns the encrypted data part of the EncodedCiphertext.
+func (ec encodedCiphertext) data() ([]byte, error) {
 	matches, err := ec.parseRegex()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -84,8 +84,8 @@ func (ec encodedCiphertext) GetData() ([]byte, error) {
 	return base64.StdEncoding.DecodeString(matches[2])
 }
 
-// GetMetadata returns the metadata part of the EncodedCiphertext.
-func (ec encodedCiphertext) GetMetadata() (encodedCiphertextMetadata, error) {
+// metadata returns the metadata part of the EncodedCiphertext.
+func (ec encodedCiphertext) metadata() (encodedCiphertextMetadata, error) {
 	matches, err := ec.parseRegex()
 	if err != nil {
 		return "", errio.Error(err)
@@ -116,9 +116,9 @@ func newEncodedCiphertextMetadata(metadataList map[string]string) encodedCiphert
 	return encodedCiphertextMetadata(metadata)
 }
 
-// GetValue returns a value from metadata.
-// E.g. when the metadata is "first=foo,second=bar", then GetValue("second") => "bar".
-func (m encodedCiphertextMetadata) GetValue(name string) (string, error) {
+// getValue returns a value from metadata.
+// E.g. when the metadata is "first=foo,second=bar", then getValue("second") => "bar".
+func (m encodedCiphertextMetadata) getValue(name string) (string, error) {
 	pattern := fmt.Sprintf(encodedCiphertextMetadataPattern, name)
 	regexp, err := regexp.Compile(pattern)
 
@@ -135,9 +135,9 @@ func (m encodedCiphertextMetadata) GetValue(name string) (string, error) {
 	return matches[1], nil
 }
 
-// GetDecodedValue gets the value as if GetValue and also decodes it from base64.
-func (m encodedCiphertextMetadata) GetDecodedValue(name string) ([]byte, error) {
-	dataStr, err := m.GetValue(name)
+// getDecodedValue gets the value as if getValue and also decodes it from base64.
+func (m encodedCiphertextMetadata) getDecodedValue(name string) ([]byte, error) {
+	dataStr, err := m.getValue(name)
 	if err != nil {
 		return nil, ErrInvalidMetadata
 	}

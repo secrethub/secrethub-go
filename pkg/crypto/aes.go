@@ -158,7 +158,7 @@ func (ct *CiphertextAES) UnmarshalJSON(b []byte) error {
 
 	encoded := encodedCiphertext(b)
 
-	algorithm, err := encoded.GetAlgorithm()
+	algorithm, err := encoded.algorithm()
 	if err != nil {
 		return errio.Error(err)
 	}
@@ -167,17 +167,17 @@ func (ct *CiphertextAES) UnmarshalJSON(b []byte) error {
 		return ErrWrongAlgorithm
 	}
 
-	encryptedData, err := encoded.GetData()
+	encryptedData, err := encoded.data()
 	if err != nil {
 		return errio.Error(err)
 	}
 
-	metadata, err := encoded.GetMetadata()
+	metadata, err := encoded.metadata()
 	if err != nil {
 		return errio.Error(err)
 	}
 
-	aesNonce, err := metadata.GetDecodedValue("nonce")
+	aesNonce, err := metadata.getDecodedValue("nonce")
 	if err != nil {
 		return errio.Error(err)
 	}

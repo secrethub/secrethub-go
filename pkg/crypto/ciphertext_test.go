@@ -210,7 +210,7 @@ func TestEncodedCiphertext_GetAlgorithm(t *testing.T) {
 	for _, test := range tests {
 		ek := encodedCiphertext(test.input)
 
-		alg, err := ek.GetAlgorithm()
+		alg, err := ek.algorithm()
 
 		success := err == nil
 
@@ -238,7 +238,7 @@ func TestEncodedCiphertext_GetKey(t *testing.T) {
 	for _, test := range tests {
 		ek := encodedCiphertext(test.input)
 
-		key, err := ek.GetData()
+		key, err := ek.data()
 
 		success := err == nil
 
@@ -267,7 +267,7 @@ func TestEncodedCiphertext_GetMetadata(t *testing.T) {
 	for _, test := range tests {
 		ek := encodedCiphertext(test.input)
 
-		metadata, err := ek.GetMetadata()
+		metadata, err := ek.metadata()
 
 		success := err == nil
 
@@ -335,10 +335,10 @@ func TestEncodedCiphertextMetadata_GetValue(t *testing.T) {
 	for _, test := range tests {
 		ek := encodedCiphertext(test.input)
 
-		metadata, err := ek.GetMetadata()
+		metadata, err := ek.metadata()
 		success := err == nil
 
-		value, err := metadata.GetValue(test.name)
+		value, err := metadata.getValue(test.name)
 		success = (err == nil) && success
 
 		if success != test.expectSuccess {
@@ -365,10 +365,10 @@ func TestEncodedCiphertextMetadata_GetDecodedValue(t *testing.T) {
 	for _, test := range tests {
 		ek := encodedCiphertext(test.input)
 
-		metadata, err := ek.GetMetadata()
+		metadata, err := ek.metadata()
 		success := err == nil
 
-		value, err := metadata.GetDecodedValue(test.name)
+		value, err := metadata.getDecodedValue(test.name)
 		success = (err == nil) && success
 
 		if success != test.expectSuccess {
