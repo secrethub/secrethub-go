@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/crypto/scrypt"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestValidateScryptKey(t *testing.T) {
@@ -164,7 +164,7 @@ func TestValidateScryptKey(t *testing.T) {
 			err := key.Validate()
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 		})
 	}
 }
@@ -192,7 +192,7 @@ func TestGenerateScryptKey(t *testing.T) {
 			key, err := GenerateScryptKey([]byte(tc.passphrase))
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 			if tc.err == nil && key == nil {
 				t.Errorf("unexpected key after initialization:\n%+v", key)
 			}
@@ -248,7 +248,7 @@ func TestDeriveScryptKey(t *testing.T) {
 			key, err := DeriveScryptKey([]byte(tc.passphrase), tc.salt, tc.N, tc.r, tc.p, tc.keyLen)
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 			if tc.err == nil && key == nil {
 				t.Errorf("unexpected key after initialization:\n%+v", key)
 			}
@@ -316,7 +316,7 @@ func TestIsPowerOfTwo(t *testing.T) {
 			actual := isPowerOf2(tc.n)
 
 			// Assert
-			testutil.Compare(t, actual, tc.expected)
+			assert.Equal(t, actual, tc.expected)
 		})
 	}
 }
@@ -342,6 +342,6 @@ func benchmarkScryptKey(b *testing.B, saltLen, N, r, p, keyLen int) {
 
 	for n := 0; n < b.N; n++ {
 		_, err := scrypt.Key([]byte("some_complex_123456_passphrase"), salt, N, r, p, keyLen)
-		testutil.OK(b, err)
+		assert.OK(b, err)
 	}
 }

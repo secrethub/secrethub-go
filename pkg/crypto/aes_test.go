@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {
 	encryptionKey, err := crypto.GenerateAESKey()
-	testutil.Compare(t, err, nil)
+	assert.Equal(t, err, nil)
 
 	testData := []byte("testdata")
 
@@ -32,12 +32,12 @@ func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {
 func TestSymmetricKey_HMAC(t *testing.T) {
 	// Setup
 	indexKey, err := crypto.GenerateAESKey()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	testData := []byte("testDataString")
 
 	// Act
 	result, err := indexKey.HMAC(testData)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	// Assert
 	if bytes.Equal(result, testData) {

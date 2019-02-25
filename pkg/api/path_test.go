@@ -6,7 +6,7 @@ import (
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestPath_HasVersion(t *testing.T) {
@@ -70,21 +70,21 @@ func TestValidateSecretPath_Root(t *testing.T) {
 	testPath := "owner/repo/secret"
 
 	err := api.ValidateSecretPath(testPath)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 }
 
 func TestValidateSecretPath_Dir(t *testing.T) {
 	testPath := "owner/repo/dir/subdir/secret"
 
 	err := api.ValidateSecretPath(testPath)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 }
 
 func TestValidateSecretPath_NoUniformSecretName(t *testing.T) {
 	testPath := "owner/repo/+"
 
 	result := api.ValidateSecretPath(testPath)
-	testutil.Compare(t, result, api.ErrInvalidSecretName)
+	assert.Equal(t, result, api.ErrInvalidSecretName)
 }
 
 func TestValidateSecretPath_PrependSlash(t *testing.T) {
@@ -265,15 +265,15 @@ func TestSecretPath_AddVersion(t *testing.T) {
 			result, err := tc.path.AddVersion(tc.version)
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 			if tc.err == nil {
 				actual, err := result.GetVersion()
-				testutil.OK(t, err)
+				assert.OK(t, err)
 
-				testutil.Compare(t, actual, strconv.Itoa(tc.version))
+				assert.Equal(t, actual, strconv.Itoa(tc.version))
 
 				err = result.Validate()
-				testutil.OK(t, err)
+				assert.OK(t, err)
 			}
 		})
 	}
@@ -294,7 +294,7 @@ func TestSecretPath_GetSecret(t *testing.T) {
 
 	result := testPath.GetSecret()
 
-	testutil.Compare(t, result, "secret")
+	assert.Equal(t, result, "secret")
 }
 
 func TestSecretPath_GetRepoPath(t *testing.T) {
@@ -302,7 +302,7 @@ func TestSecretPath_GetRepoPath(t *testing.T) {
 
 	result := testPath.GetRepoPath()
 
-	testutil.Compare(t, result, "owner/repo")
+	assert.Equal(t, result, "owner/repo")
 }
 
 func TestSecretPath_GetParentPath(t *testing.T) {
@@ -407,7 +407,7 @@ func TestValidateRepoPath(t *testing.T) {
 	testPath := "owner/repo"
 
 	err := api.ValidateRepoPath(testPath)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 }
 
 func TestValidateRepoPath_Secret(t *testing.T) {
@@ -502,13 +502,13 @@ func TestSecretPath_BlindName_IgnoreVersion(t *testing.T) {
 	}
 
 	expected, err := path.BlindName(key)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	if expected == "" {
 		t.Errorf("unexpected blindname for path %s: %s (actual) != <some-base64-encoded-string> (expected)", path, expected)
 	}
 
 	actual, err := pathWithVersion.BlindName(key)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	if actual != expected {
 		t.Errorf("blindname of versioned path is not equal to unversioned path.")
 	}
@@ -530,13 +530,13 @@ func TestBlindNameCaseSensitivity(t *testing.T) {
 	}
 
 	expected, err := paths[0].BlindName(key)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	if expected == "" {
 		t.Errorf("unexpected blindname for path %s: %s (actual) != <some-base64-encoded-string> (expected)", paths[0], expected)
 	}
 	for _, path := range paths {
 		actual, err := path.BlindName(key)
-		testutil.OK(t, err)
+		assert.OK(t, err)
 
 		if actual != expected {
 			t.Errorf("unexpected blindname for path %s: %s (actual) != %s (expected)", path, actual, expected)
@@ -567,9 +567,9 @@ func TestBlindName_DifferentKey(t *testing.T) {
 
 	for _, path := range paths {
 		first, err := path.BlindName(key1)
-		testutil.OK(t, err)
+		assert.OK(t, err)
 		second, err := path.BlindName(key2)
-		testutil.OK(t, err)
+		assert.OK(t, err)
 
 		if first == second {
 			t.Errorf("unexpected blindname for same path %s with different keys: %s (first) == %s (second)", path, first, second)
@@ -776,7 +776,7 @@ func TestDirPath_JoinDir(t *testing.T) {
 	expected := api.DirPath("namespace/repo/parent/child")
 
 	actual := path.JoinDir(dirName)
-	testutil.Compare(t, actual, expected)
+	assert.Equal(t, actual, expected)
 
 }
 
@@ -786,7 +786,7 @@ func TestDirPath_JoinSecret(t *testing.T) {
 	expected := api.SecretPath("namespace/repo/parent/secret")
 
 	actual := path.JoinSecret(secretName)
-	testutil.Compare(t, actual, expected)
+	assert.Equal(t, actual, expected)
 
 }
 
@@ -796,7 +796,7 @@ func TestParentPath_JoinDir(t *testing.T) {
 	expected := api.DirPath("namespace/repo/parent/child")
 
 	actual := path.JoinDir(dirName)
-	testutil.Compare(t, actual, expected)
+	assert.Equal(t, actual, expected)
 }
 
 func TestRepoPath_GetDirPath(t *testing.T) {
@@ -804,8 +804,8 @@ func TestRepoPath_GetDirPath(t *testing.T) {
 	expected := api.DirPath("namespace/repo")
 
 	actual := path.GetDirPath()
-	testutil.Compare(t, actual, expected)
+	assert.Equal(t, actual, expected)
 
 	err := actual.Validate()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 }

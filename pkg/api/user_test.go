@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestValidateUsername(t *testing.T) {
@@ -240,7 +240,7 @@ func TestCreateUserRequest_Validate(t *testing.T) {
 			err := tc.req.Validate()
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 		})
 	}
 }
@@ -301,7 +301,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 			err := tc.req.Validate()
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 		})
 	}
 }

@@ -3,7 +3,7 @@ package vat
 import (
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestGetTaxRate(t *testing.T) {
@@ -47,8 +47,8 @@ func TestGetTaxRate(t *testing.T) {
 			actual, reverse := rates.GetTaxRate(tc.buyer)
 
 			// Assert
-			testutil.Compare(t, actual, tc.expected)
-			testutil.Compare(t, reverse, tc.reverse)
+			assert.Equal(t, actual, tc.expected)
+			assert.Equal(t, reverse, tc.reverse)
 		})
 	}
 }

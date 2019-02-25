@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 type fakeMethod struct{}
@@ -63,9 +63,9 @@ func TestAuthenticator_GetMethod(t *testing.T) {
 			}
 
 			res, err := authenticator.getMethod(&tc.request)
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 			if tc.err == nil {
-				testutil.Compare(t, res, &fakeMethod{})
+				assert.Equal(t, res, &fakeMethod{})
 			}
 		})
 	}

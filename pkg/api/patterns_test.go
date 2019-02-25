@@ -7,7 +7,7 @@ import (
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestValidateOrgDescription(t *testing.T) {
@@ -107,7 +107,7 @@ func TestValidateUsername(t *testing.T) {
 			actual := api.ValidateUsername(tc.username)
 
 			// Assert
-			testutil.Compare(t, actual, tc.expected)
+			assert.Equal(t, actual, tc.expected)
 		})
 	}
 }
@@ -154,7 +154,7 @@ func TestValidateOrgName(t *testing.T) {
 			actual := api.ValidateOrgName(tc.orgName)
 
 			// Assert
-			testutil.Compare(t, actual, tc.expected)
+			assert.Equal(t, actual, tc.expected)
 		})
 	}
 }
@@ -197,7 +197,7 @@ func TestValidateRepoName(t *testing.T) {
 			actual := api.ValidateRepoName(tc.repoName)
 
 			// Assert
-			testutil.Compare(t, actual, tc.expected)
+			assert.Equal(t, actual, tc.expected)
 		})
 	}
 }
@@ -248,7 +248,7 @@ func TestValidateSecretName(t *testing.T) {
 			actual := api.ValidateSecretName(tc.secretName)
 
 			// Assert
-			testutil.Compare(t, actual, tc.expected)
+			assert.Equal(t, actual, tc.expected)
 		})
 	}
 }
@@ -256,7 +256,7 @@ func TestValidateSecretName(t *testing.T) {
 func TestValidateBlindName_BlindNamePath(t *testing.T) {
 	// This test is coupled with BlindNamePath interface implementors to test if their implementations are validated.
 	key, err := crypto.GenerateAESKey()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	// Arrange
 	tests := map[string]struct {
@@ -286,8 +286,8 @@ func TestValidateBlindName_BlindNamePath(t *testing.T) {
 			validationErr := api.ValidateBlindName(actual)
 
 			// Assert
-			testutil.Compare(t, err, nil)
-			testutil.Compare(t, validationErr, nil)
+			assert.Equal(t, err, nil)
+			assert.Equal(t, validationErr, nil)
 		})
 	}
 }
