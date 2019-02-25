@@ -24,13 +24,13 @@ var (
 // The names are encrypted and so are the names of SubDirs and Secrets.
 // The secrets contain no encrypted data, only the encrypted name.
 type EncryptedDir struct {
-	DirID          *uuid.UUID                  `json:"dir_id"`
-	BlindName      string                      `json:"blind_name"`
-	EncryptedName  crypto.EncodedCiphertextRSA `json:"encrypted_name"`
-	ParentID       *uuid.UUID                  `json:"parent_id"`
-	Status         string                      `json:"status"`
-	CreatedAt      time.Time                   `json:"created_at"`
-	LastModifiedAt time.Time                   `json:"last_modified_at"`
+	DirID          *uuid.UUID           `json:"dir_id"`
+	BlindName      string               `json:"blind_name"`
+	EncryptedName  crypto.CiphertextRSA `json:"encrypted_name"`
+	ParentID       *uuid.UUID           `json:"parent_id"`
+	Status         string               `json:"status"`
+	CreatedAt      time.Time            `json:"created_at"`
+	LastModifiedAt time.Time            `json:"last_modified_at"`
 }
 
 // Decrypt decrypts an EncryptedDir into a Dir.

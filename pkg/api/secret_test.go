@@ -185,16 +185,6 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 			},
 			expected: api.ErrInvalidAccountID,
 		},
-		"invalid ciphertext": {
-			EncryptedNameRequest: api.EncryptedNameForNodeRequest{
-				NodeID: uuid.New(),
-				EncryptedNameRequest: api.EncryptedNameRequest{
-					AccountID:     uuid.New(),
-					EncryptedName: "INVALID CIPHERTEXT",
-				},
-			},
-			expected: crypto.ErrInvalidCiphertext,
-		},
 	}
 
 	for name, tc := range cases {

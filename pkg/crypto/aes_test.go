@@ -88,7 +88,7 @@ func TestCiphertextRSAAES_Encode(t *testing.T) {
 					Data:  []byte("aes_data"),
 					Nonce: []byte("nonce_data"),
 				},
-				ciphertextRSA: &ciphertextRSA{
+				CiphertextRSA: CiphertextRSA{
 					Data: []byte("rsa_data"),
 				},
 			},

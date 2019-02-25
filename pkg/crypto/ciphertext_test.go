@@ -124,7 +124,7 @@ func TestRSA_Success(t *testing.T) {
 
 	input := []byte("secret message")
 
-	ciphertext, err := rsaKey1.RSAPublicKey.encrypt(input)
+	ciphertext, err := rsaKey1.RSAPublicKey.Encrypt(input)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,7 +153,7 @@ func TestRSA_Success(t *testing.T) {
 func TestRSA_DecryptNilData(t *testing.T) {
 	rsaKey := generateRSAKey(t)
 
-	ciphertext := ciphertextRSA{}
+	ciphertext := CiphertextRSA{}
 
 	_, err := ciphertext.decrypt(*rsaKey)
 

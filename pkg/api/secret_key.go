@@ -16,10 +16,10 @@ type SecretKey struct {
 
 // EncryptedSecretKey represents a secret key, encrypted for a specific account.
 type EncryptedSecretKey struct {
-	SecretKeyID  *uuid.UUID                  `json:"secret_key_id"`
-	AccountID    *uuid.UUID                  `json:"account_id"`
-	EncryptedKey crypto.EncodedCiphertextRSA `json:"encrypted_key"`
-	Status       string                      `json:"status"` // TODO SHDEV-702: actually set this in the response
+	SecretKeyID  *uuid.UUID           `json:"secret_key_id"`
+	AccountID    *uuid.UUID           `json:"account_id"`
+	EncryptedKey crypto.CiphertextRSA `json:"encrypted_key"`
+	Status       string               `json:"status"` // TODO SHDEV-702: actually set this in the response
 }
 
 // Decrypt decrypts an EncryptedSecretKey into a SecretKey.
@@ -60,8 +60,8 @@ func (r *CreateSecretKeyRequest) Validate() error {
 
 // EncryptedKeyRequest contains the request fields for re-encrypted for an account.
 type EncryptedKeyRequest struct {
-	AccountID    *uuid.UUID                  `json:"account_id"`
-	EncryptedKey crypto.EncodedCiphertextRSA `json:"encrypted_key"`
+	AccountID    *uuid.UUID           `json:"account_id"`
+	EncryptedKey crypto.CiphertextRSA `json:"encrypted_key"`
 }
 
 // Validate validates the request fields.
@@ -70,8 +70,7 @@ func (r *EncryptedKeyRequest) Validate() error {
 		return ErrInvalidAccountID
 	}
 
-	return r.EncryptedKey.Validate()
-
+	return nil
 }
 
 // ToAuditSubject converts a SecretKey to an AuditSubject

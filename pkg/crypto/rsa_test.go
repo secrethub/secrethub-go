@@ -218,23 +218,24 @@ func getTestKey2(t testing.TB) *RSAKey {
 	return key2
 }
 
-func TestCiphertextRSA_Encode(t *testing.T) {
+func TestCiphertextRSA_MarshalJSON(t *testing.T) {
 	cases := map[string]struct {
-		ciphertext ciphertextRSA
-		expected   EncodedCiphertextRSA
+		ciphertext CiphertextRSA
+		expected   []byte
 	}{
 		"success": {
-			ciphertext: ciphertextRSA{
+			ciphertext: CiphertextRSA{
 				Data: []byte("rsa_data"),
 			},
-			expected: EncodedCiphertextRSA("RSA-OAEP$cnNhX2RhdGE=$"),
+			expected: []byte("RSA-OAEP$cnNhX2RhdGE=$"),
 		},
 	}
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// Act
-			actual := tc.ciphertext.encode()
+			actual, err := tc.ciphertext.MarshalJSON()
+			testutil.OK(t, err)
 
 			// Assert
 			testutil.Compare(t, actual, tc.expected)

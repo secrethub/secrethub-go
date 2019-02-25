@@ -33,9 +33,6 @@ var (
 // encodedCiphertext contains a string in the format <algorithm>$<base64-encoded-encrypted-data>$<metadata>.
 type encodedCiphertext string
 
-// EncodedCiphertextRSA contains a string in the format RSA-OAEP$<base64-encoded-encrypted-data>$<metadata>.
-type EncodedCiphertextRSA encodedCiphertext
-
 // EncodedCiphertextRSAAES contains a string in the format RSA-OAEP+AES-GCM$<base64-encoded-encrypted-data>$<metadata>.
 type EncodedCiphertextRSAAES encodedCiphertext
 
@@ -160,26 +157,6 @@ func (m encodedCiphertextMetadata) GetDecodedValue(name string) ([]byte, error) 
 	return base64.StdEncoding.DecodeString(dataStr)
 }
 
-func (ec EncodedCiphertextRSA) decode() (*ciphertextRSA, error) {
-	algorithm, err := encodedCiphertext(ec).GetAlgorithm()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	if algorithm != AlgorithmRSA {
-		return nil, ErrWrongAlgorithm
-	}
-
-	encryptedData, err := encodedCiphertext(ec).GetData()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return &ciphertextRSA{
-		Data: encryptedData,
-	}, nil
-}
-
 func (ec EncodedCiphertextRSAAES) decode() (*ciphertextRSAAES, error) {
 	algorithm, err := encodedCiphertext(ec).GetAlgorithm()
 	if err != nil {
@@ -215,29 +192,10 @@ func (ec EncodedCiphertextRSAAES) decode() (*ciphertextRSAAES, error) {
 			Data:  encryptedData,
 			Nonce: aesNonce,
 		},
-		ciphertextRSA: &ciphertextRSA{
+		CiphertextRSA: CiphertextRSA{
 			Data: aesKey,
 		},
 	}, nil
-}
-
-// Validate validates the encoded ciphertext.
-func (ec EncodedCiphertextRSA) Validate() error {
-	err := encodedCiphertext(ec).Validate()
-	if err != nil {
-		return err
-	}
-
-	algorithm, err := encodedCiphertext(ec).GetAlgorithm()
-	if err != nil {
-		return err
-	}
-
-	if algorithm != AlgorithmRSA {
-		return ErrWrongAlgorithm
-	}
-
-	return nil
 }
 
 // Validate validates the encoded ciphertext.

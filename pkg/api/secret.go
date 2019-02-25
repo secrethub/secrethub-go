@@ -40,15 +40,15 @@ var (
 // EncryptedSecret represents an encrypted Secret
 // It does not contain the encrypted data. Only the encrypted name.
 type EncryptedSecret struct {
-	SecretID      *uuid.UUID                  `json:"secret_id"`
-	DirID         *uuid.UUID                  `json:"dir_id"`
-	RepoID        *uuid.UUID                  `json:"repo_id"`
-	EncryptedName crypto.EncodedCiphertextRSA `json:"encrypted_name"`
-	BlindName     string                      `json:"blind_name"`
-	VersionCount  int                         `json:"version_count"`
-	LatestVersion int                         `json:"latest_version"`
-	Status        string                      `json:"status"`
-	CreatedAt     time.Time                   `json:"created_at"`
+	SecretID      *uuid.UUID           `json:"secret_id"`
+	DirID         *uuid.UUID           `json:"dir_id"`
+	RepoID        *uuid.UUID           `json:"repo_id"`
+	EncryptedName crypto.CiphertextRSA `json:"encrypted_name"`
+	BlindName     string               `json:"blind_name"`
+	VersionCount  int                  `json:"version_count"`
+	LatestVersion int                  `json:"latest_version"`
+	Status        string               `json:"status"`
+	CreatedAt     time.Time            `json:"created_at"`
 }
 
 // Decrypt decrypts an EncryptedSecret into a Secret.
@@ -204,9 +204,9 @@ func (r *SecretAccessRequest) Validate() error {
 
 // SecretKeyMemberRequest contains the request fields to grant access to a secret key.
 type SecretKeyMemberRequest struct {
-	AccountID    *uuid.UUID                  `json:"account_id"`
-	SecretKeyID  *uuid.UUID                  `json:"secret_key_id"`
-	EncryptedKey crypto.EncodedCiphertextRSA `json:"encrypted_key"`
+	AccountID    *uuid.UUID           `json:"account_id"`
+	SecretKeyID  *uuid.UUID           `json:"secret_key_id"`
+	EncryptedKey crypto.CiphertextRSA `json:"encrypted_key"`
 }
 
 // Validate validates the request fields.
@@ -219,5 +219,5 @@ func (skmr *SecretKeyMemberRequest) Validate() error {
 		return ErrInvalidKeyID
 	}
 
-	return skmr.EncryptedKey.Validate()
+	return nil
 }
