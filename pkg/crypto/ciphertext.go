@@ -48,6 +48,11 @@ const (
 // E.g. nonce=abcd,length=1024
 type encodedCiphertextMetadata string
 
+func newEncodedCiphertext(from []byte) (encodedCiphertext, error) {
+	ct := encodedCiphertext(from)
+	return ct, ct.validate()
+}
+
 // validate verifies the EncodedCiphertext has a valid format.
 func (ec encodedCiphertext) validate() error {
 	if !encodedCiphertextPattern.MatchString(string(ec)) {

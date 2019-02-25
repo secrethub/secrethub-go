@@ -309,7 +309,10 @@ func (ct *CiphertextRSAAES) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	encoded := encodedCiphertext(b)
+	encoded, err := newEncodedCiphertext(b)
+	if err != nil {
+		return err
+	}
 
 	algorithm, err := encoded.algorithm()
 	if err != nil {
@@ -421,7 +424,10 @@ func (ct *CiphertextRSA) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	encoded := encodedCiphertext(b)
+	encoded, err := newEncodedCiphertext(b)
+	if err != nil {
+		return err
+	}
 
 	algorithm, err := encoded.algorithm()
 	if err != nil {
