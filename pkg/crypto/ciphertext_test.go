@@ -185,7 +185,7 @@ func TestEncodedCiphertext_Validate(t *testing.T) {
 	for _, test := range tests {
 		ek := encodedCiphertext(test.input)
 
-		err := ek.Validate()
+		err := ek.validate()
 
 		success := err == nil
 
