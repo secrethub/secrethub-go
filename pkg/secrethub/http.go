@@ -2,6 +2,7 @@ package secrethub
 
 import (
 	"fmt"
+	"github.com/keylockerbv/secrethub-go/pkg/auth"
 	"net/http"
 	"net/url"
 	"strings"
@@ -84,15 +85,15 @@ type ClientOptions struct {
 
 // httpClient is a raw client for the SecretHub http API.
 type httpClient struct {
-	client     *http.Client
-	credential Credential
-	base       string // base url
-	version    string
+	client  *http.Client
+	signer  auth.Signer
+	base    string // base url
+	version string
 }
 
 // newHTTPClient configures a new httpClient and overrides default values
 // when opts is not nil.
-func newHTTPClient(credential Credential, opts *ClientOptions) *httpClient {
+func newHTTPClient(signer auth.Signer, opts *ClientOptions) *httpClient {
 	serverURL := DefaultServerURL
 	timeout := DefaultTimeout
 	if opts != nil {
@@ -112,9 +113,9 @@ func newHTTPClient(credential Credential, opts *ClientOptions) *httpClient {
 		client: &http.Client{
 			Timeout: timeout,
 		},
-		credential: credential,
-		base:       serverURL,
-		version:    ClientVersion,
+		signer:  signer,
+		base:    serverURL,
+		version: ClientVersion,
 	}
 }
 
@@ -617,7 +618,7 @@ func (c *httpClient) do(rawURL string, method string, expectedStatus int, in int
 		return errio.Error(err)
 	}
 
-	err = c.credential.AddAuthentication(req)
+	err = c.signer.AddAuthentication(req)
 	if err != nil {
 		return errio.Error(err)
 	}
