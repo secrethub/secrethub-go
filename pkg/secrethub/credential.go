@@ -122,7 +122,7 @@ func (c EncodedCredential) Decode() (Credential, error) {
 	return c.Decoder.Decode(c.Payload)
 }
 
-// DecodeEncrypted decodes an encrypted credential string into a Credential
+// DecodeEncrypted decodes and decrypts an encrypted credential string
 // using the given key.
 func (c EncodedCredential) DecodeEncrypted(key PassBasedKey) (Credential, error) {
 	if key.Name() != c.EncryptionAlgorithm {
@@ -345,7 +345,7 @@ func (d RSAPrivateKeyDecoder) Name() string {
 type PassBasedKey interface {
 	// Name returns the name of the key derivation algorithm.
 	Name() string
-	// Encrypt encrypts a payload with and returns a header.
+	// Encrypt encrypts a given payload with the passphrase derived key and returns encrypted bytes and header with encryption parameter values.
 	Encrypt(payload []byte) ([]byte, map[string]interface{}, error)
 	// Decrypt decrypts a payload with the key and accepts the raw JSON header to read values from.
 	Decrypt(payload []byte, header []byte) ([]byte, error)
