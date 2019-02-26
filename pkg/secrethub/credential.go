@@ -283,7 +283,7 @@ func generateRSACredential(keyLength int) (RSACredential, error) {
 
 // AddAuthentication adds authentication to an http request.
 func (c RSACredential) AddAuthentication(r *http.Request) error {
-	return auth.NewCredentialSignature(c.RSAKey).AddAuthentication(r)
+	return auth.NewSigner(c.RSAKey).AddAuthentication(r)
 }
 
 // Fingerprint returns the key identifier by which the server can identify the credential.

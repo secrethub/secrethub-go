@@ -57,14 +57,14 @@ var (
 	ErrSignatureFuture    = errNamespace.Code("signature_future").StatusError("could not authenticate request because signature timestamp is too far in the future", http.StatusUnauthorized)
 )
 
-// CredentialSignature contains all necessary credentials to sign a request.
-type CredentialSignature struct {
+// signer contains all necessary credentials to sign a request.
+type signer struct {
 	key crypto.RSAKey
 }
 
-// NewCredentialSignature initializes a new signing credentials struct.
-func NewCredentialSignature(key crypto.RSAKey) Signer {
-	return CredentialSignature{
+// NewSigner initializes a new signing credentials struct.
+func NewSigner(key crypto.RSAKey) Signer {
+	return signer{
 		key: key,
 	}
 }
@@ -101,7 +101,7 @@ func NewCredentialSignature(key crypto.RSAKey) Signer {
 // this risk by using TLS, which encrypts HTTP Headers as well. This makes
 // a MitM attack impossible without an attacker having access to the server's
 // private TLS key. This solution is also proposed in RFC 4521 Section-4.1.
-func (c CredentialSignature) AddAuthentication(r *http.Request) error {
+func (c signer) AddAuthentication(r *http.Request) error {
 	formattedTime := time.Now().UTC().Format(time.RFC1123)
 	r.Header.Set("Date", formattedTime)
 
