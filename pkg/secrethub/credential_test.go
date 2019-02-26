@@ -17,23 +17,22 @@ var (
 	exampleHeaderEncoded = "eyJ0eXBlIjoidGVzdCJ9"
 )
 
-// RunArmorInterfaceTest tests whether an Armorer and corresponding Unarmorer
-// interfaces work correctly.
-func RunArmorInterfaceTest(t *testing.T, armorer PassBasedKey, unarmorer PassBasedKey) {
+// RunPassBasedKeyTest tests whether an pass based key Encrypt and Decrypt work correctly.
+func RunPassBasedKeyTest(t *testing.T, encryptor PassBasedKey, decryptor PassBasedKey) {
 	t.Run("name_equality", func(t *testing.T) {
-		assert.Equal(t, armorer.Name(), unarmorer.Name())
+		assert.Equal(t, encryptor.Name(), decryptor.Name())
 	})
 
 	t.Run("encryption", func(t *testing.T) {
 		expected := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 
-		armored, header, err := armorer.Encrypt(expected)
+		encrypted, header, err := encryptor.Encrypt(expected)
 		assert.OK(t, err)
 
-		if reflect.DeepEqual(armored, expected) {
+		if reflect.DeepEqual(encrypted, expected) {
 			t.Errorf(
-				"unexpected armored payload: %v (armored) == %v (unarmored)",
-				armored,
+				"unexpected encrypted payload: %v (encrypted) == %v (expected)",
+				encrypted,
 				expected,
 			)
 		}
@@ -41,22 +40,20 @@ func RunArmorInterfaceTest(t *testing.T, armorer PassBasedKey, unarmorer PassBas
 		headerBytes, err := json.Marshal(header)
 		assert.OK(t, err)
 
-		unarmored, err := unarmorer.Decrypt(armored, headerBytes)
+		actual, err := decryptor.Decrypt(encrypted, headerBytes)
 		assert.OK(t, err)
 
-		assert.Equal(t, unarmored, expected)
+		assert.Equal(t, actual, expected)
 	})
 }
 
-func TestPassphraseArmoring(t *testing.T) {
+func TestPassBasedKey(t *testing.T) {
 
 	pass := []byte("Password123")
-	unarmorer := NewPassphraseUnarmorer(pass)
-
-	armorer, err := NewPassBasedKey(pass)
+	key, err := NewPassBasedKey(pass)
 	assert.OK(t, err)
 
-	RunArmorInterfaceTest(t, armorer, unarmorer)
+	RunPassBasedKeyTest(t, key, key)
 }
 
 // RunCredentialInterfaceTest tests whether a Credential interface
@@ -120,16 +117,16 @@ func TestParser(t *testing.T) {
 		DefaultCredentialEncoding.EncodeToString(payload),
 	)
 
-	headerArmored := map[string]interface{}{
+	headerEncrypted := map[string]interface{}{
 		"type": credential.Decoder().Name(),
 		"enc":  "scrypt",
 	}
-	headerArmoredBytes, err := json.Marshal(headerArmored)
+	headerEncryptedBytes, err := json.Marshal(headerEncrypted)
 	assert.OK(t, err)
-	rawArmored := fmt.Sprintf(
+	rawEncrypted := fmt.Sprintf(
 		"%s.%s",
-		DefaultCredentialEncoding.EncodeToString(headerArmoredBytes),
-		DefaultCredentialEncoding.EncodeToString(payload), // payload isn't actually armored but that does not matter for the parser.
+		DefaultCredentialEncoding.EncodeToString(headerEncryptedBytes),
+		DefaultCredentialEncoding.EncodeToString(payload), // payload isn't actually encrypted but that does not matter for the parser.
 	)
 
 	headerTypeNotSet, err := json.Marshal(map[string]interface{}{"foo": "bar"})
@@ -146,24 +143,24 @@ func TestParser(t *testing.T) {
 		"valid_rsa": {
 			raw: raw,
 			expected: &EncodedCredential{
-				Raw:       raw,
-				Header:    header,
-				RawHeader: headerBytes,
-				Payload:   payload,
-				Armor:     "",
-				Decoder:   credential.Decoder(),
+				Raw:                 raw,
+				Header:              header,
+				RawHeader:           headerBytes,
+				Payload:             payload,
+				EncryptionAlgorithm: "",
+				Decoder:             credential.Decoder(),
 			},
 			err: nil,
 		},
-		"valid_rsa_armored": {
-			raw: rawArmored,
+		"valid_rsa_encrypted": {
+			raw: rawEncrypted,
 			expected: &EncodedCredential{
-				Raw:       rawArmored,
-				Header:    headerArmored,
-				RawHeader: headerArmoredBytes,
-				Payload:   payload,
-				Armor:     "scrypt",
-				Decoder:   credential.Decoder(),
+				Raw:                 rawEncrypted,
+				Header:              headerEncrypted,
+				RawHeader:           headerEncryptedBytes,
+				Payload:             payload,
+				EncryptionAlgorithm: "scrypt",
+				Decoder:             credential.Decoder(),
 			},
 			err: nil,
 		},
@@ -262,7 +259,7 @@ func TestEncodeCredential(t *testing.T) {
 	assert.Equal(t, cred, decoded)
 }
 
-func TestEncodeArmoredCredential(t *testing.T) {
+func TestEncodeEncryptedCredential(t *testing.T) {
 
 	// Arrange
 	cred, err := generateRSACredential(1024)
@@ -271,19 +268,17 @@ func TestEncodeArmoredCredential(t *testing.T) {
 	parser := NewCredentialParser(DefaultCredentialDecoders)
 
 	pass := []byte("Password123")
-	unarmorer := NewPassphraseUnarmorer(pass)
-
-	armorer, err := NewPassBasedKey(pass)
+	key, err := NewPassBasedKey(pass)
 	assert.OK(t, err)
 
 	// Act
-	raw, err := EncodeArmoredCredential(cred, armorer)
+	raw, err := EncodeEncryptedCredential(cred, key)
 	assert.OK(t, err)
 
 	parsed, err := parser.Parse(raw)
 	assert.OK(t, err)
 
-	decoded, err := parsed.DecodeArmored(unarmorer)
+	decoded, err := parsed.DecodeEncrypted(key)
 	assert.OK(t, err)
 
 	// Assert
@@ -332,23 +327,23 @@ func TestCredentialIsEncrypted(t *testing.T) {
 
 	// Arrange
 	cases := map[string]struct {
-		armor    string
-		expected bool
+		algorithm string
+		expected  bool
 	}{
 		"empty": {
-			armor:    "",
-			expected: false,
+			algorithm: "",
+			expected:  false,
 		},
-		"armored": {
-			armor:    "scrypt",
-			expected: true,
+		"scrypt": {
+			algorithm: "scrypt",
+			expected:  true,
 		},
 	}
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			cred := &EncodedCredential{
-				Armor: tc.armor,
+				EncryptionAlgorithm: tc.algorithm,
 			}
 
 			// Act

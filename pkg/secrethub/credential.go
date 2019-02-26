@@ -77,7 +77,7 @@ func NewCredential(credential string, passphrase string) (Credential, error) {
 			return nil, err
 		}
 
-		credential, err := encoded.DecodeArmored(key)
+		credential, err := encoded.DecodeEncrypted(key)
 		if crypto.IsWrongKey(err) {
 			return nil, ErrCannotDecryptCredential
 		}
@@ -106,14 +106,14 @@ type EncodedCredential struct {
 	RawHeader []byte
 	// Payload is the second part of the credential string.
 	Payload []byte
-	// Encrypt contains the name of the armoring algorithm if the payload is encrypted.
-	Armor string
+	// EncryptionAlgorithm contains the name of the encryption algorithm if the payload is encrypted.
+	EncryptionAlgorithm string
 	// Decoder is used to decode the payload into a Credential.
 	// Populated when you Parse a credential string.
 	Decoder CredentialDecoder
 }
 
-// Decode decodes an unarmored credential string into a Credential.
+// Decode decodes an unencrypted credential string into a Credential.
 func (c EncodedCredential) Decode() (Credential, error) {
 	if c.IsEncrypted() {
 		return nil, ErrCannotDecodeEncryptedCredential
@@ -122,14 +122,14 @@ func (c EncodedCredential) Decode() (Credential, error) {
 	return c.Decoder.Decode(c.Payload)
 }
 
-// DecodeArmored decodes an armored credential string into a Credential
-// using the given Unarmorer.
-func (c EncodedCredential) DecodeArmored(unarmorer PassBasedKey) (Credential, error) {
-	if unarmorer.Name() != c.Armor {
+// DecodeEncrypted decodes an encrypted credential string into a Credential
+// using the given key.
+func (c EncodedCredential) DecodeEncrypted(key PassBasedKey) (Credential, error) {
+	if key.Name() != c.EncryptionAlgorithm {
 		return nil, ErrInvalidKey
 	}
 
-	payload, err := unarmorer.Decrypt(c.Payload, c.RawHeader)
+	payload, err := key.Decrypt(c.Payload, c.RawHeader)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -139,7 +139,7 @@ func (c EncodedCredential) DecodeArmored(unarmorer PassBasedKey) (Credential, er
 
 // IsEncrypted returns true when the credential is encrypted.
 func (c EncodedCredential) IsEncrypted() bool {
-	return c.Armor != ""
+	return c.EncryptionAlgorithm != ""
 }
 
 // EncodeCredential encodes a Credential as a one line string that can be transferred.
@@ -149,14 +149,14 @@ func EncodeCredential(credential Credential) (string, error) {
 	return encodeCredentialPartsToString(cred.Header, cred.Payload)
 }
 
-// EncodeArmoredCredential armors and encodes a Credential as a one line string token that can be transferred.
-func EncodeArmoredCredential(credential Credential, armorer PassBasedKey) (string, error) {
+// EncodeEncryptedCredential encrypts and encodes a Credential as a one line string token that can be transferred.
+func EncodeEncryptedCredential(credential Credential, key PassBasedKey) (string, error) {
 	cred := newEncodedCredential(credential)
 
 	// Set the `enc` header so it can be used to decrypt later.
-	cred.Header["enc"] = armorer.Name()
+	cred.Header["enc"] = key.Name()
 
-	payload, additionalheaders, err := armorer.Encrypt(cred.Payload)
+	payload, additionalheaders, err := key.Encrypt(cred.Payload)
 	if err != nil {
 		return "", errio.Error(err)
 	}
@@ -256,9 +256,9 @@ func (p Parser) Parse(raw string) (*EncodedCredential, error) {
 		return nil, ErrCannotDecodeCredentialPayload(err)
 	}
 
-	armor, ok := cred.Header["enc"].(string)
+	encryptionAlgorithm, ok := cred.Header["enc"].(string)
 	if ok {
-		cred.Armor = armor
+		cred.EncryptionAlgorithm = encryptionAlgorithm
 	}
 
 	return cred, nil
@@ -341,7 +341,7 @@ func (d RSAPrivateKeyDecoder) Name() string {
 	return "rsa"
 }
 
-// PassBasedKey can armor a Credential into token values.
+// PassBasedKey can encrypt a Credential into token values.
 type PassBasedKey interface {
 	// Name returns the name of the key derivation algorithm.
 	Name() string
@@ -352,7 +352,7 @@ type PassBasedKey interface {
 }
 
 // passbasedKeyHeader is a helper type to help encoding
-// and decoding header values for the Scrypt armoring.
+// and decoding header values for the Scrypt encryption.
 type passbasedKeyHeader struct {
 	KeyLen int    `json:"klen"`
 	Salt   []byte `json:"salt"`
