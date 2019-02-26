@@ -57,21 +57,21 @@ func (k PEMKey) IsEncrypted() bool {
 // If the key is not encrypted it returns ErrDecryptionUnarmoredKey and Decode should
 // have been called instead. Use IsEncrypted to determine whether to Decrypt or only
 // Decode the key.
-func (k *PEMKey) Decrypt(password []byte) (*RSAKey, error) {
+func (k *PEMKey) Decrypt(password []byte) (RSAKey, error) {
 	if !k.IsEncrypted() {
-		return nil, ErrDecryptionUnarmoredKey
+		return RSAKey{}, ErrDecryptionUnarmoredKey
 	}
 
 	bytes, err := x509.DecryptPEMBlock(k.block, password)
 	if err == x509.IncorrectPasswordError {
-		return nil, ErrIncorrectPassphrase
+		return RSAKey{}, ErrIncorrectPassphrase
 	} else if err != nil {
-		return nil, ErrCannotDecryptKey(err)
+		return RSAKey{}, ErrCannotDecryptKey(err)
 	}
 
 	key, err := x509.ParsePKCS1PrivateKey(bytes)
 	if err != nil {
-		return nil, ErrNotPKCS1Format
+		return RSAKey{}, ErrNotPKCS1Format
 	}
 
 	return NewRSAKey(key), nil
@@ -80,14 +80,14 @@ func (k *PEMKey) Decrypt(password []byte) (*RSAKey, error) {
 // Decode decodes the pem key to an RSA Key. If the key is encrypted it returns
 // ErrNoPassphraseProvided and Decrypt should have been called. Use IsEncrypted
 // to determine whether to Decrypt or only Decode the key.
-func (k PEMKey) Decode() (*RSAKey, error) {
+func (k PEMKey) Decode() (RSAKey, error) {
 	if k.IsEncrypted() {
-		return nil, ErrNoPassphraseProvided
+		return RSAKey{}, ErrNoPassphraseProvided
 	}
 
 	key, err := x509.ParsePKCS1PrivateKey(k.block.Bytes)
 	if err != nil {
-		return nil, ErrNotPKCS1Format
+		return RSAKey{}, ErrNotPKCS1Format
 	}
 
 	return NewRSAKey(key), nil

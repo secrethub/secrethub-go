@@ -201,7 +201,7 @@ func TestExportPrivateKeyWithEmptyPassphrase(t *testing.T) {
 	}
 }
 
-func getTestKey1(t testing.TB) *RSAKey {
+func getTestKey1(t testing.TB) RSAKey {
 	pemKey1, err := ReadPEM(testKey1)
 	assert.OK(t, err)
 
@@ -210,7 +210,7 @@ func getTestKey1(t testing.TB) *RSAKey {
 	return key1
 }
 
-func getTestKey2(t testing.TB) *RSAKey {
+func getTestKey2(t testing.TB) RSAKey {
 	pemKey2, err := ReadPEM(testKey2)
 	assert.OK(t, err)
 

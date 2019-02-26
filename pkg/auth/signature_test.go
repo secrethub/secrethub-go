@@ -20,8 +20,8 @@ import (
 )
 
 var (
-	clientKey     *crypto.RSAKey
-	diffClientKey *crypto.RSAKey
+	clientKey     crypto.RSAKey
+	diffClientKey crypto.RSAKey
 )
 
 func init() {
@@ -168,7 +168,7 @@ func TestSignRequest(t *testing.T) {
 	assert.OK(t, err)
 
 	cases := map[string]struct {
-		ClientKey           *crypto.RSAKey
+		ClientKey           crypto.RSAKey
 		StoredPub           []byte
 		ExpectedFingerprint string
 		Err                 error

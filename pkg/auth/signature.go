@@ -59,11 +59,11 @@ var (
 
 // CredentialSignature contains all necessary credentials to sign a request.
 type CredentialSignature struct {
-	key *crypto.RSAKey
+	key crypto.RSAKey
 }
 
 // NewCredentialSignature initializes a new signing credentials struct.
-func NewCredentialSignature(key *crypto.RSAKey) Credential {
+func NewCredentialSignature(key crypto.RSAKey) Credential {
 	return CredentialSignature{
 		key: key,
 	}

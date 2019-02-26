@@ -261,7 +261,7 @@ func (p Parser) Parse(raw string) (*EncodedCredential, error) {
 
 // RSACredential implements a Credential for an RSA key.
 type RSACredential struct {
-	*crypto.RSAKey
+	crypto.RSAKey
 }
 
 // GenerateCredential generates a new credential to be used to

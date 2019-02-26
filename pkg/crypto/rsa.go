@@ -177,8 +177,8 @@ type RSAKey struct {
 
 // NewRSAKey is used to create a new RSAKey.
 // Normally you create a RSAKey by DecodeKey
-func NewRSAKey(privateKey *rsa.PrivateKey) *RSAKey {
-	return &RSAKey{
+func NewRSAKey(privateKey *rsa.PrivateKey) RSAKey {
+	return RSAKey{
 		RSAPublicKey: &RSAPublicKey{
 			publicKey: &privateKey.PublicKey,
 		},
@@ -187,10 +187,10 @@ func NewRSAKey(privateKey *rsa.PrivateKey) *RSAKey {
 }
 
 // GenerateRSAKey generates a new RSAKey with the given length
-func GenerateRSAKey(length int) (*RSAKey, error) {
+func GenerateRSAKey(length int) (RSAKey, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, length)
 	if err != nil {
-		return nil, ErrGenerateRSAKey
+		return RSAKey{}, ErrGenerateRSAKey
 	}
 
 	return NewRSAKey(privateKey), nil
@@ -251,10 +251,10 @@ func (k *RSAKey) unwrap(encryptedData []byte) ([]byte, error) {
 
 // GenerateServiceKey generates an key pair for the Service and returns the private key and public key.
 // These keys are in an exported format.
-func GenerateServiceKey() (*RSAKey, error) {
+func GenerateServiceKey() (RSAKey, error) {
 	privateKey, err := GenerateRSAKey(ExternalKeyLength)
 	if err != nil {
-		return nil, errio.Error(err)
+		return RSAKey{}, errio.Error(err)
 	}
 	return privateKey, nil
 }
@@ -288,18 +288,18 @@ func (k RSAKey) Export() []byte {
 }
 
 // ImportRSAPrivateKey imports a rsa private key from a pem encoded format.
-func ImportRSAPrivateKey(privateKey []byte) (*RSAKey, error) {
+func ImportRSAPrivateKey(privateKey []byte) (RSAKey, error) {
 	pemBlock, rest := pem.Decode(privateKey)
 	if pemBlock == nil {
-		return nil, ErrNoKeyInFile
+		return RSAKey{}, ErrNoKeyInFile
 
 	} else if len(rest) > 0 {
-		return nil, ErrMultipleKeysInFile
+		return RSAKey{}, ErrMultipleKeysInFile
 	}
 
 	privateRSAKey, err := x509.ParsePKCS1PrivateKey(pemBlock.Bytes)
 	if err != nil {
-		return nil, ErrNotPKCS1Format
+		return RSAKey{}, ErrNotPKCS1Format
 	}
 
 	return NewRSAKey(privateRSAKey), nil
