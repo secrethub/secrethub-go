@@ -351,9 +351,9 @@ type PassBasedKey interface {
 	Decrypt(payload []byte, header []byte) ([]byte, error)
 }
 
-// armoredCredentialHeader is a helper type to help encoding
+// passbasedKeyHeader is a helper type to help encoding
 // and decoding header values for the Scrypt armoring.
-type armoredCredentialHeader struct {
+type passbasedKeyHeader struct {
 	KeyLen int    `json:"klen"`
 	Salt   []byte `json:"salt"`
 	N      int    `json:"n"`
@@ -390,7 +390,7 @@ func (p passBasedKey) Encrypt(payload []byte) ([]byte, map[string]interface{}, e
 		return nil, nil, errio.Error(err)
 	}
 
-	header := armoredCredentialHeader{
+	header := passbasedKeyHeader{
 		KeyLen: p.key.KeyLen,
 		Salt:   p.key.Salt,
 		N:      p.key.N,
@@ -419,7 +419,7 @@ func (p passBasedKey) Name() string {
 
 // Decrypt decrypts an encrypted payload and reads values from the header when necessary.
 func (p passBasedKey) Decrypt(payload []byte, rawHeader []byte) ([]byte, error) {
-	header := armoredCredentialHeader{}
+	header := passbasedKeyHeader{}
 	err := json.Unmarshal(rawHeader, &header)
 	if err != nil {
 		return nil, errio.Error(err)
