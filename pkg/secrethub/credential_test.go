@@ -19,7 +19,7 @@ var (
 
 // RunArmorInterfaceTest tests whether an Armorer and corresponding Unarmorer
 // interfaces work correctly.
-func RunArmorInterfaceTest(t *testing.T, armorer Armorer, unarmorer Unarmorer) {
+func RunArmorInterfaceTest(t *testing.T, armorer PassBasedKey, unarmorer PassBasedKey) {
 	t.Run("name_equality", func(t *testing.T) {
 		assert.Equal(t, armorer.Name(), unarmorer.Name())
 	})
