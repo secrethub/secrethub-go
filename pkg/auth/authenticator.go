@@ -13,8 +13,8 @@ var (
 	ErrNoAuthHeader          = errNamespace.Code("no_auth_header").StatusError("the authorization header should be set", http.StatusBadRequest)
 )
 
-// Credential provides a mechanism of adding authentication to an http request.
-type Credential interface {
+// Signer provides a mechanism of adding authentication to an http request.
+type Signer interface {
 	AddAuthentication(r *http.Request) error
 }
 

@@ -32,7 +32,7 @@ func TestVerifyMultipleMethods(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		Credential auth.Credential
+		Credential auth.Signer
 		Expected   string
 	}{
 		"success": {

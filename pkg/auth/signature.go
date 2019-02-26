@@ -63,7 +63,7 @@ type CredentialSignature struct {
 }
 
 // NewCredentialSignature initializes a new signing credentials struct.
-func NewCredentialSignature(key crypto.RSAKey) Credential {
+func NewCredentialSignature(key crypto.RSAKey) Signer {
 	return CredentialSignature{
 		key: key,
 	}
