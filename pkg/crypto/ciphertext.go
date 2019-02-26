@@ -48,7 +48,7 @@ const (
 // E.g. nonce=abcd,length=1024
 type encodedCiphertextMetadata string
 
-func newEncodedCiphertext(from []byte) (encodedCiphertext, error) {
+func newEncodedCiphertext(from string) (encodedCiphertext, error) {
 	ct := encodedCiphertext(from)
 	return ct, ct.validate()
 }

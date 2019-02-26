@@ -8,6 +8,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -339,16 +340,22 @@ func (ct CiphertextRSAAES) MarshalJSON() ([]byte, error) {
 		"key":   base64.StdEncoding.EncodeToString(ct.CiphertextRSA.Data),
 	})
 
-	return []byte(fmt.Sprintf("%s$%s$%s", algorithmRSAAES, data, metadata)), nil
+	return json.Marshal(fmt.Sprintf("%s$%s$%s", algorithmRSAAES, data, metadata))
 }
 
 // UnmarshalJSON decodes a string into a ciphertext.
 func (ct *CiphertextRSAAES) UnmarshalJSON(b []byte) error {
-	if len(b) == 0 {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		return err
+	}
+
+	if s == "" {
 		return nil
 	}
 
-	encoded, err := newEncodedCiphertext(b)
+	encoded, err := newEncodedCiphertext(s)
 	if err != nil {
 		return err
 	}
@@ -403,16 +410,22 @@ type CiphertextRSA struct {
 func (ct CiphertextRSA) MarshalJSON() ([]byte, error) {
 	encodedKey := base64.StdEncoding.EncodeToString(ct.Data)
 
-	return []byte(fmt.Sprintf("%s$%s$", algorithmRSA, encodedKey)), nil
+	return json.Marshal(fmt.Sprintf("%s$%s$", algorithmRSA, encodedKey))
 }
 
 // UnmarshalJSON decodes a string into a ciphertext.
 func (ct *CiphertextRSA) UnmarshalJSON(b []byte) error {
-	if len(b) == 0 {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		return err
+	}
+
+	if s == "" {
 		return nil
 	}
 
-	encoded, err := newEncodedCiphertext(b)
+	encoded, err := newEncodedCiphertext(s)
 	if err != nil {
 		return err
 	}

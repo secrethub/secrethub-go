@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/keylockerbv/secrethub-go/pkg/testutil"
@@ -54,14 +55,14 @@ func TestSymmetricKey_HMAC(t *testing.T) {
 func TestCiphertextAES_MarshallJSON(t *testing.T) {
 	cases := map[string]struct {
 		ciphertext CiphertextAES
-		expected   []byte
+		expected   string
 	}{
 		"success": {
 			ciphertext: CiphertextAES{
 				Data:  []byte("aes_data"),
 				Nonce: []byte("nonce_data"),
 			},
-			expected: []byte("AES-GCM$YWVzX2RhdGE=$nonce=bm9uY2VfZGF0YQ=="),
+			expected: "AES-GCM$YWVzX2RhdGE=$nonce=bm9uY2VfZGF0YQ==",
 		},
 	}
 
@@ -70,9 +71,11 @@ func TestCiphertextAES_MarshallJSON(t *testing.T) {
 			// Act
 			actual, err := tc.ciphertext.MarshalJSON()
 			testutil.OK(t, err)
+			expected, err := json.Marshal(tc.expected)
+			testutil.OK(t, err)
 
 			// Assert
-			testutil.Compare(t, actual, tc.expected)
+			testutil.Compare(t, actual, expected)
 		})
 	}
 }
@@ -80,7 +83,7 @@ func TestCiphertextAES_MarshallJSON(t *testing.T) {
 func TestCiphertextRSAAES_MarshalJSON(t *testing.T) {
 	cases := map[string]struct {
 		ciphertext CiphertextRSAAES
-		expected   []byte
+		expected   string
 	}{
 		"success": {
 			ciphertext: CiphertextRSAAES{
@@ -92,7 +95,7 @@ func TestCiphertextRSAAES_MarshalJSON(t *testing.T) {
 					Data: []byte("rsa_data"),
 				},
 			},
-			expected: []byte("RSA-OAEP+AES-GCM$YWVzX2RhdGE=$key=cnNhX2RhdGE=,nonce=bm9uY2VfZGF0YQ=="),
+			expected: "RSA-OAEP+AES-GCM$YWVzX2RhdGE=$key=cnNhX2RhdGE=,nonce=bm9uY2VfZGF0YQ==",
 		},
 	}
 
@@ -101,9 +104,11 @@ func TestCiphertextRSAAES_MarshalJSON(t *testing.T) {
 			// Act
 			actual, err := tc.ciphertext.MarshalJSON()
 			testutil.OK(t, err)
+			expected, err := json.Marshal(tc.expected)
+			testutil.OK(t, err)
 
 			// Assert
-			testutil.Compare(t, actual, tc.expected)
+			testutil.Compare(t, actual, expected)
 		})
 	}
 }

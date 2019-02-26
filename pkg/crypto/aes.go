@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -147,16 +148,22 @@ func (ct CiphertextAES) MarshalJSON() ([]byte, error) {
 		"nonce": base64.StdEncoding.EncodeToString(ct.Nonce),
 	})
 
-	return []byte(fmt.Sprintf("%s$%s$%s", algorithmAES, data, metadata)), nil
+	return json.Marshal(fmt.Sprintf("%s$%s$%s", algorithmAES, data, metadata))
 }
 
 // UnmarshalJSON decodes a string into a ciphertext.
 func (ct *CiphertextAES) UnmarshalJSON(b []byte) error {
-	if len(b) == 0 {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		return err
+	}
+
+	if s == "" {
 		return nil
 	}
 
-	encoded, err := newEncodedCiphertext(b)
+	encoded, err := newEncodedCiphertext(s)
 	if err != nil {
 		return err
 	}

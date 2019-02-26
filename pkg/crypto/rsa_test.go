@@ -1,6 +1,7 @@
 package crypto
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 
@@ -221,13 +222,13 @@ func getTestKey2(t testing.TB) *RSAKey {
 func TestCiphertextRSA_MarshalJSON(t *testing.T) {
 	cases := map[string]struct {
 		ciphertext CiphertextRSA
-		expected   []byte
+		expected   string
 	}{
 		"success": {
 			ciphertext: CiphertextRSA{
 				Data: []byte("rsa_data"),
 			},
-			expected: []byte("RSA-OAEP$cnNhX2RhdGE=$"),
+			expected: "RSA-OAEP$cnNhX2RhdGE=$",
 		},
 	}
 
@@ -236,9 +237,11 @@ func TestCiphertextRSA_MarshalJSON(t *testing.T) {
 			// Act
 			actual, err := tc.ciphertext.MarshalJSON()
 			testutil.OK(t, err)
+			expected, err := json.Marshal(tc.expected)
+			testutil.OK(t, err)
 
 			// Assert
-			testutil.Compare(t, actual, tc.expected)
+			testutil.Compare(t, actual, expected)
 		})
 	}
 }
