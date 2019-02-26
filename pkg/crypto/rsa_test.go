@@ -81,17 +81,17 @@ func TestReEncryptionRepoKey(t *testing.T) {
 		t.Error(err)
 	}
 
-	exportedRepoKey1, err := key1.EncryptBytes(repoKey1.Export())
+	exportedRepoKey1, err := key1.WrapBytes(repoKey1.Export())
 	if err != nil {
 		t.Error(err)
 	}
 
-	exportedRepoKey2, err := key1.ReEncrypt(key2.RSAPublicKey, exportedRepoKey1)
+	exportedRepoKey2, err := key1.ReWrap(key2.RSAPublicKey, exportedRepoKey1)
 	if err != nil {
 		t.Error(err)
 	}
 
-	_, err = key2.DecryptBytes(exportedRepoKey2)
+	_, err = key2.UnwrapBytes(exportedRepoKey2)
 	if err != nil {
 		t.Error(err)
 	}

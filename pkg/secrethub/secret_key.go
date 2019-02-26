@@ -51,7 +51,7 @@ func (c *client) createSecretKey(secretPath api.SecretPath) (*api.SecretKey, err
 			return nil, errio.Error(err)
 		}
 
-		encryptedSecretKey, err := publicKey.Encrypt(secretKey.Export())
+		encryptedSecretKey, err := publicKey.Wrap(secretKey.Export())
 		if err != nil {
 			return nil, errio.Error(err)
 		}

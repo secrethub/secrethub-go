@@ -109,7 +109,7 @@ func (s repoService) Create(path api.RepoPath) (*api.Repo, error) {
 	if err != nil {
 		return nil, errio.Error(err)
 	}
-	repoEncryptionKey, err := accountKey.EncryptBytes(key.Export())
+	repoEncryptionKey, err := accountKey.WrapBytes(key.Export())
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -120,7 +120,7 @@ func (s repoService) Create(path api.RepoPath) (*api.Repo, error) {
 		return nil, errio.Error(err)
 	}
 
-	repoIndexKey, err := accountKey.EncryptBytes(key.Export())
+	repoIndexKey, err := accountKey.WrapBytes(key.Export())
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -196,12 +196,12 @@ func (c *client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey
 		return nil, errio.Error(err)
 	}
 
-	accountRepoEncryptionKey, err := accountKey.ReEncrypt(rsaPublicKey, repoKey.RepoEncryptionKey)
+	accountRepoEncryptionKey, err := accountKey.ReWrap(rsaPublicKey, repoKey.RepoEncryptionKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	accountRepoIndexKey, err := accountKey.ReEncrypt(rsaPublicKey, repoKey.RepoIndexKey)
+	accountRepoIndexKey, err := accountKey.ReWrap(rsaPublicKey, repoKey.RepoIndexKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -230,7 +230,7 @@ func (c *client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.AESKey, error) 
 		return nil, errio.Error(err)
 	}
 
-	keyData, err := accountKey.DecryptBytes(wrappedKey.RepoIndexKey)
+	keyData, err := accountKey.UnwrapBytes(wrappedKey.RepoIndexKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}

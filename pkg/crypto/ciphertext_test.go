@@ -119,7 +119,7 @@ func TestRSA_Success(t *testing.T) {
 
 	input := []byte("secret message")
 
-	ciphertext, err := rsaKey1.RSAPublicKey.Encrypt(input)
+	ciphertext, err := rsaKey1.RSAPublicKey.Wrap(input)
 	if err != nil {
 		t.Fatal(err)
 	}

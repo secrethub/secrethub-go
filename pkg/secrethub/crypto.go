@@ -42,7 +42,7 @@ func (c *client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 			return nil, errio.Error(err)
 		}
 
-		encryptedSecretName, err := publicKey.Encrypt([]byte(secret.Name))
+		encryptedSecretName, err := publicKey.Wrap([]byte(secret.Name))
 		if err != nil {
 			return nil, errio.Error(err)
 		}
@@ -57,7 +57,7 @@ func (c *client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 
 		encryptedKeys := make([]api.SecretKeyMemberRequest, len(decryptedKeys))
 		for keyIndex, decryptedKey := range decryptedKeys {
-			encryptedKey, err := publicKey.Encrypt(decryptedKey.Key.Export())
+			encryptedKey, err := publicKey.Wrap(decryptedKey.Key.Export())
 			if err != nil {
 				return nil, errio.Error(err)
 			}
@@ -108,7 +108,7 @@ func encryptNameForAccounts(name string, accounts ...*api.Account) ([]api.Encryp
 			return nil, errio.Error(err)
 		}
 
-		ciphertext, err := publicKey.Encrypt([]byte(name))
+		ciphertext, err := publicKey.Wrap([]byte(name))
 		if err != nil {
 			return nil, err
 		}
@@ -131,7 +131,7 @@ func encryptKeyForAccounts(key *crypto.AESKey, accounts ...*api.Account) ([]api.
 			return nil, errio.Error(err)
 		}
 
-		encryptedSecretKey, err := publicKey.Encrypt(key.Export())
+		encryptedSecretKey, err := publicKey.Wrap(key.Export())
 		if err != nil {
 			return nil, errio.Error(err)
 		}

@@ -24,7 +24,7 @@ type EncryptedSecretKey struct {
 
 // Decrypt decrypts an EncryptedSecretKey into a SecretKey.
 func (k *EncryptedSecretKey) Decrypt(accountKey *crypto.RSAKey) (*SecretKey, error) {
-	keyBytes, err := accountKey.Decrypt(k.EncryptedKey)
+	keyBytes, err := accountKey.Unwrap(k.EncryptedKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
