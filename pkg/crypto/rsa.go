@@ -141,29 +141,29 @@ func (k RSAPublicKey) ExportPublicKey() ([]byte, error) {
 }
 
 // ImportRSAPublicKey imports a RSAPublic key from an exported public key.
-func ImportRSAPublicKey(encodedPublicKey []byte) (*RSAPublicKey, error) {
+func ImportRSAPublicKey(encodedPublicKey []byte) (RSAPublicKey, error) {
 	if len(encodedPublicKey) == 0 {
-		return nil, ErrEmptyPublicKey
+		return RSAPublicKey{}, ErrEmptyPublicKey
 	}
 
 	pemBlock, rest := pem.Decode(encodedPublicKey)
 	if pemBlock == nil {
-		return nil, ErrNoPublicKeyFoundInImport
+		return RSAPublicKey{}, ErrNoPublicKeyFoundInImport
 	} else if len(rest) > 0 {
-		return nil, ErrMultiplePublicKeysFoundInImport
+		return RSAPublicKey{}, ErrMultiplePublicKeysFoundInImport
 	}
 
 	publicKey, err := x509.ParsePKIXPublicKey(pemBlock.Bytes)
 	if err != nil {
-		return nil, ErrNotPKCS1Format
+		return RSAPublicKey{}, ErrNotPKCS1Format
 	}
 
 	rsaPublicKey, ok := publicKey.(*rsa.PublicKey)
 	if !ok {
-		return nil, ErrKeyTypeNotSupported
+		return RSAPublicKey{}, ErrKeyTypeNotSupported
 	}
 
-	return &RSAPublicKey{
+	return RSAPublicKey{
 		publicKey: rsaPublicKey,
 	}, nil
 }
@@ -171,7 +171,7 @@ func ImportRSAPublicKey(encodedPublicKey []byte) (*RSAPublicKey, error) {
 // RSAKey wraps a RSA key.
 // It exposes all crypto functionality asymmetric keys.
 type RSAKey struct {
-	*RSAPublicKey
+	RSAPublicKey
 	privateKey *rsa.PrivateKey
 }
 
@@ -179,7 +179,7 @@ type RSAKey struct {
 // Normally you create a RSAKey by DecodeKey
 func NewRSAKey(privateKey *rsa.PrivateKey) RSAKey {
 	return RSAKey{
-		RSAPublicKey: &RSAPublicKey{
+		RSAPublicKey: RSAPublicKey{
 			publicKey: &privateKey.PublicKey,
 		},
 		privateKey: privateKey,
@@ -225,7 +225,7 @@ func (k *RSAKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
 
 // ReWrap re-encrypts the data for the given public key.
 // The RSAKey must be able to decrypt the original data for the function to succeed.
-func (k *RSAKey) ReWrap(pk *RSAPublicKey, encData []byte) ([]byte, error) {
+func (k *RSAKey) ReWrap(pk RSAPublicKey, encData []byte) ([]byte, error) {
 
 	decData, err := k.UnwrapBytes(encData)
 	if err != nil {
