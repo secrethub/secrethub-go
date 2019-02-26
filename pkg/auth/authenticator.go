@@ -13,11 +13,6 @@ var (
 	ErrNoAuthHeader          = errNamespace.Code("no_auth_header").StatusError("the authorization header should be set", http.StatusBadRequest)
 )
 
-// Credential provides a mechanism of adding authentication to an http request.
-type Credential interface {
-	AddAuthentication(r *http.Request) error
-}
-
 // Result is the result object returned on an Authenticate method call.
 type Result struct {
 	AccountID   *uuid.UUID

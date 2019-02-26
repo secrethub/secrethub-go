@@ -57,6 +57,11 @@ var (
 	ErrSignatureFuture    = errNamespace.Code("signature_future").StatusError("could not authenticate request because signature timestamp is too far in the future", http.StatusUnauthorized)
 )
 
+// Credential provides a mechanism of adding authentication to an http request.
+type Credential interface {
+	AddAuthentication(r *http.Request) error
+}
+
 // signer contains all necessary credentials to sign a request.
 type signer struct {
 	key crypto.RSAKey
