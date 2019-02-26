@@ -21,7 +21,7 @@ func init() {
 		panic(err)
 	}
 
-	cred1PublicKey, err = cred1.Public.ExportPublicKey()
+	cred1PublicKey, err = cred1.Public.Export()
 	if err != nil {
 		panic(err)
 	}

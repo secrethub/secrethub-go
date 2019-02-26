@@ -125,8 +125,8 @@ func Verify(encodedPublicKey, message, signature []byte) error {
 	return publicKey.Verify(message, signature)
 }
 
-// ExportPublicKey exports the rsa public key in an PKIX pem encoded format.
-func (k RSAPublicKey) ExportPublicKey() ([]byte, error) {
+// Export exports the rsa public key in an PKIX pem encoded format.
+func (k RSAPublicKey) Export() ([]byte, error) {
 	asn1, err := x509.MarshalPKIXPublicKey(k.publicKey)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -261,7 +261,7 @@ func GenerateServiceKey() (RSAKey, error) {
 
 // Fingerprint returns the SHA256 fingerprint of the public key
 func (k RSAKey) Fingerprint() (string, error) {
-	pub, err := k.Public.ExportPublicKey()
+	pub, err := k.Public.Export()
 	if err != nil {
 		return "", errio.Error(err)
 	}

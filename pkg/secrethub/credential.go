@@ -293,7 +293,7 @@ func (c RSACredential) Fingerprint() (string, error) {
 
 // Verifier returns the public key to be stored server side to verify an http request authenticated with this credential.
 func (c RSACredential) Verifier() ([]byte, error) {
-	return c.RSAKey.Public.ExportPublicKey()
+	return c.RSAKey.Public.Export()
 }
 
 // Decoder returns the decoder for the rsa private key.

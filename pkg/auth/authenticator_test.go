@@ -18,7 +18,7 @@ func TestVerifyMultipleMethods(t *testing.T) {
 	key := clientKey
 	fingerprint, err := key.Fingerprint()
 	assert.OK(t, err)
-	pub, err := key.Public.ExportPublicKey()
+	pub, err := key.Public.Export()
 	assert.OK(t, err)
 
 	fakeCredentialGetter := fakeCredentialGetter{
