@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {
 	encryptionKey, err := GenerateAESKey()
-	testutil.Compare(t, err, nil)
+	assert.Equal(t, err, nil)
 
 	testData := []byte("testdata")
 
@@ -32,12 +32,12 @@ func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {
 func TestSymmetricKey_HMAC(t *testing.T) {
 	// Setup
 	indexKey, err := GenerateAESKey()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	testData := []byte("testDataString")
 
 	// Act
 	result, err := indexKey.HMAC(testData)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	// Assert
 	if bytes.Equal(result, testData) {
@@ -70,12 +70,12 @@ func TestCiphertextAES_MarshallJSON(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// Act
 			actual, err := tc.ciphertext.MarshalJSON()
-			testutil.OK(t, err)
+			assert.OK(t, err)
 			expected, err := json.Marshal(tc.expected)
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			// Assert
-			testutil.Compare(t, actual, expected)
+			assert.Equal(t, actual, expected)
 		})
 	}
 }
@@ -103,12 +103,12 @@ func TestCiphertextRSAAES_MarshalJSON(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// Act
 			actual, err := tc.ciphertext.MarshalJSON()
-			testutil.OK(t, err)
+			assert.OK(t, err)
 			expected, err := json.Marshal(tc.expected)
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			// Assert
-			testutil.Compare(t, actual, expected)
+			assert.Equal(t, actual, expected)
 		})
 	}
 }

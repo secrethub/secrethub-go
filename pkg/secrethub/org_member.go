@@ -8,15 +8,15 @@ import (
 // OrgMemberService handles operations on organization members.
 type OrgMemberService interface {
 	// Get retrieves a users organization membership details.
-	Get(org api.OrgName, username string) (*api.OrgMember, error)
+	Get(org string, username string) (*api.OrgMember, error)
 	// Invite invites a user to an organization.
-	Invite(org api.OrgName, username string, role string) (*api.OrgMember, error)
+	Invite(org string, username string, role string) (*api.OrgMember, error)
 	// List retrieves all members of the given organization.
-	List(name api.OrgName) ([]*api.OrgMember, error)
+	List(org string) ([]*api.OrgMember, error)
 	// Revoke removes the given user from the organization.
-	Revoke(name api.OrgName, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error)
+	Revoke(org string, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error)
 	// Update updates the role of a member of the organization.
-	Update(name api.OrgName, username string, role string) (*api.OrgMember, error)
+	Update(org string, username string, role string) (*api.OrgMember, error)
 }
 
 func newOrgMemberService(client client) OrgMemberService {
@@ -30,43 +30,73 @@ type orgMemberService struct {
 }
 
 // Get retrieves a users organization membership details.
-func (s orgMemberService) Get(org api.OrgName, username string) (*api.OrgMember, error) {
-	err := api.ValidateUsername(username)
+func (s orgMemberService) Get(org string, username string) (*api.OrgMember, error) {
+	err := api.ValidateOrgName(org)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	return s.client.httpClient.GetOrgMember(org.String(), username)
+	err = api.ValidateUsername(username)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.client.httpClient.GetOrgMember(org, username)
 }
 
 // Invite invites a user to an organization.
-func (s orgMemberService) Invite(org api.OrgName, username string, role string) (*api.OrgMember, error) {
+func (s orgMemberService) Invite(org string, username string, role string) (*api.OrgMember, error) {
+	err := api.ValidateOrgName(org)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
 	in := &api.CreateOrgMemberRequest{
 		Username: username,
 		Role:     role,
 	}
 
-	return s.client.httpClient.CreateOrgMember(org.String(), in)
-}
-
-// List retrieves all members of the given organization.
-func (s orgMemberService) List(name api.OrgName) ([]*api.OrgMember, error) {
-	return s.client.httpClient.ListOrgMembers(name.String())
-}
-
-// Revoke removes the given user from the organization.
-func (s orgMemberService) Revoke(name api.OrgName, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error) {
-	err := api.ValidateUsername(username)
+	err = in.Validate()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	return s.client.httpClient.RevokeOrgMember(name.String(), username, opts)
+	return s.client.httpClient.CreateOrgMember(org, in)
+}
+
+// List retrieves all members of the given organization.
+func (s orgMemberService) List(org string) ([]*api.OrgMember, error) {
+	err := api.ValidateOrgName(org)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.client.httpClient.ListOrgMembers(org)
+}
+
+// Revoke removes the given user from the organization.
+func (s orgMemberService) Revoke(org string, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error) {
+	err := api.ValidateOrgName(org)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = api.ValidateUsername(username)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.client.httpClient.RevokeOrgMember(org, username, opts)
 }
 
 // Update updates the role of a member of the organization.
-func (s orgMemberService) Update(org api.OrgName, username string, role string) (*api.OrgMember, error) {
-	err := api.ValidateUsername(username)
+func (s orgMemberService) Update(org string, username string, role string) (*api.OrgMember, error) {
+	err := api.ValidateOrgName(org)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = api.ValidateUsername(username)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -75,5 +105,10 @@ func (s orgMemberService) Update(org api.OrgName, username string, role string) 
 		Role: role,
 	}
 
-	return s.client.httpClient.UpdateOrgMember(org.String(), username, in)
+	err = in.Validate()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.client.httpClient.UpdateOrgMember(org, username, in)
 }

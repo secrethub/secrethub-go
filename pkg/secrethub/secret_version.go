@@ -24,15 +24,15 @@ var (
 // SecretVersionService handles operations on secret versions from SecretHub.
 type SecretVersionService interface {
 	// Delete removes a secret version.
-	Delete(path api.SecretPath) error
+	Delete(path string) error
 	// GetWithData gets a secret version, with the sensitive data.
-	GetWithData(path api.SecretPath) (*api.SecretVersion, error)
+	GetWithData(path string) (*api.SecretVersion, error)
 	// GetWithoutData gets a secret version, without the sensitive data.
-	GetWithoutData(path api.SecretPath) (*api.SecretVersion, error)
+	GetWithoutData(path string) (*api.SecretVersion, error)
 	// ListWithData lists secret versions, with the sensitive data.
-	ListWithData(path api.SecretPath) ([]*api.SecretVersion, error)
+	ListWithData(path string) ([]*api.SecretVersion, error)
 	// ListWithoutData lists secret versions, without the sensitive data.
-	ListWithoutData(path api.SecretPath) ([]*api.SecretVersion, error)
+	ListWithoutData(path string) ([]*api.SecretVersion, error)
 }
 
 func newSecretVersionService(client client) SecretVersionService {
@@ -46,13 +46,18 @@ type secretVersionService struct {
 }
 
 // Delete removes a secret version.
-func (s secretVersionService) Delete(path api.SecretPath) error {
-	version, err := path.GetVersion()
+func (s secretVersionService) Delete(path string) error {
+	secretPath, err := api.NewSecretPath(path)
 	if err != nil {
 		return errio.Error(err)
 	}
 
-	secretBlindName, err := s.client.convertPathToBlindName(path)
+	version, err := secretPath.GetVersion()
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	secretBlindName, err := s.client.convertPathToBlindName(secretPath)
 	if err != nil {
 		return errio.Error(err)
 	}
@@ -97,13 +102,23 @@ func (s secretVersionService) get(path api.SecretPath, withData bool) (*api.Secr
 }
 
 // GetWithData gets a secret version, with the sensitive data.
-func (s secretVersionService) GetWithData(path api.SecretPath) (*api.SecretVersion, error) {
-	return s.get(path, true)
+func (s secretVersionService) GetWithData(path string) (*api.SecretVersion, error) {
+	secretPath, err := api.NewSecretPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.get(secretPath, true)
 }
 
 // GetWithoutData gets a secret version, without the sensitive data.
-func (s secretVersionService) GetWithoutData(path api.SecretPath) (*api.SecretVersion, error) {
-	return s.get(path, false)
+func (s secretVersionService) GetWithoutData(path string) (*api.SecretVersion, error) {
+	secretPath, err := api.NewSecretPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.get(secretPath, false)
 }
 
 func (s secretVersionService) list(path api.SecretPath, withData bool) ([]*api.SecretVersion, error) {
@@ -121,13 +136,23 @@ func (s secretVersionService) list(path api.SecretPath, withData bool) ([]*api.S
 }
 
 // ListWithData lists secret versions, with the sensitive data.
-func (s secretVersionService) ListWithData(path api.SecretPath) ([]*api.SecretVersion, error) {
-	return s.list(path, true)
+func (s secretVersionService) ListWithData(path string) ([]*api.SecretVersion, error) {
+	secretPath, err := api.NewSecretPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.list(secretPath, true)
 }
 
 // ListWithoutData lists secret versions, without the sensitive data.
-func (s secretVersionService) ListWithoutData(path api.SecretPath) ([]*api.SecretVersion, error) {
-	return s.list(path, false)
+func (s secretVersionService) ListWithoutData(path string) ([]*api.SecretVersion, error) {
+	secretPath, err := api.NewSecretPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.list(secretPath, false)
 }
 
 // createSecretVersion creates a new version of an existing secret.

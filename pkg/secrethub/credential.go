@@ -26,6 +26,7 @@ var (
 	ErrUnsupportedCredentialType         = errClient.Code("unsupported_credential_type").ErrorPref("unsupported credential type: %s")
 	ErrCannotDecodeCredentialPayload     = errClient.Code("invalid_credential_header").ErrorPref("cannot decode credential payload: %v")
 	ErrCannotDecodeEncryptedCredential   = errClient.Code("cannot_decode_encrypted_credential").Error("cannot decode an encrypted credential without a key")
+	ErrCannotDecryptCredential           = errClient.Code("cannot_decrypt_credential").Error("passphrase is incorrect")
 	ErrInvalidKey                        = errClient.Code("invalid_key").Error("the given key is not valid for the encryption algorithm")
 )
 
@@ -71,7 +72,11 @@ func NewCredential(credential string, passphrase string) (Credential, error) {
 			return nil, ErrEmptyCredentialPassphrase
 		}
 
-		return encoded.DecodeArmored(NewPassphraseUnarmorer([]byte(passphrase)))
+		credential, err := encoded.DecodeArmored(NewPassphraseUnarmorer([]byte(passphrase)))
+		if crypto.IsWrongKey(err) {
+			return nil, ErrCannotDecryptCredential
+		}
+		return credential, err
 	}
 
 	return encoded.Decode()

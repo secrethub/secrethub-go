@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestSaltAlgoUniqueness(t *testing.T) {
@@ -63,7 +63,7 @@ func TestSaltAlgoValidate(t *testing.T) {
 			err := tc.algo.Validate()
 
 			// Assert
-			testutil.Compare(t, err, tc.expected)
+			assert.Equal(t, err, tc.expected)
 		})
 	}
 }
@@ -95,7 +95,7 @@ func TestSaltOperationValidate(t *testing.T) {
 			err := tc.operation.Validate()
 
 			// Assert
-			testutil.Compare(t, err, tc.expected)
+			assert.Equal(t, err, tc.expected)
 		})
 	}
 }
@@ -136,7 +136,7 @@ func TestSaltPurposeValidate(t *testing.T) {
 			err := tc.purpose.Validate()
 
 			// Assert
-			testutil.Compare(t, err, tc.expected)
+			assert.Equal(t, err, tc.expected)
 		})
 	}
 }
@@ -176,7 +176,7 @@ func TestGenerateSaltValidatesPurposeParams(t *testing.T) {
 			_, err := generateSalt(tc.l, tc.algo, tc.operation)
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 		})
 	}
 }
@@ -188,7 +188,7 @@ func TestGenerateSaltDiff(t *testing.T) {
 
 	for i := 0; i < n; i++ {
 		salt, err := generateSalt(8, SaltAlgoAES128GCM, SaltOperationLocalCredentialEncryption)
-		testutil.OK(t, err)
+		assert.OK(t, err)
 
 		generated[i] = salt
 	}
@@ -251,7 +251,7 @@ func TestValidateSalt(t *testing.T) {
 			err := Salt(tc.salt).Validate()
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 		})
 	}
 }
@@ -324,7 +324,7 @@ func TestVerifySaltPurpose(t *testing.T) {
 			err := tc.purpose.Verify(tc.keyLen, tc.algo, tc.operation)
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 		})
 	}
 }

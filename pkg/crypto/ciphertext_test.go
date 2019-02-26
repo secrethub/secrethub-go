@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func generateRSAKey(t *testing.T) *RSAKey {
@@ -64,7 +64,7 @@ func TestRSAAES_DecryptNilData(t *testing.T) {
 
 	_, err := rsaKey.Decrypt(ciphertext)
 
-	testutil.Compare(t, err, ErrInvalidCipher("crypto/aes: invalid key size 0"))
+	assert.Equal(t, err, ErrInvalidCipher("crypto/aes: invalid key size 0"))
 }
 
 func TestAES_Success(t *testing.T) {
@@ -108,8 +108,8 @@ func TestAES_DecryptNilData(t *testing.T) {
 
 	data, err := aesKey.Decrypt(ciphertext)
 
-	testutil.Compare(t, data, []byte{})
-	testutil.Compare(t, err, nil)
+	assert.Equal(t, data, []byte{})
+	assert.Equal(t, err, nil)
 }
 
 func TestRSA_Success(t *testing.T) {
@@ -151,8 +151,8 @@ func TestRSA_DecryptNilData(t *testing.T) {
 
 	data, err := rsaKey.Unwrap(ciphertext)
 
-	testutil.Compare(t, data, []byte{})
-	testutil.Compare(t, err, nil)
+	assert.Equal(t, data, []byte{})
+	assert.Equal(t, err, nil)
 }
 
 func TestEncodedCiphertext_Validate(t *testing.T) {

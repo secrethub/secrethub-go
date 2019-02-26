@@ -3,8 +3,8 @@ package crypto_test
 import (
 	"testing"
 
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 var (
@@ -73,41 +73,41 @@ var (
 
 func TestReadRSAKey_Plain(t *testing.T) {
 	pemKey, err := crypto.ReadPEM(testKey1)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	isEncrypted := pemKey.IsEncrypted()
-	testutil.Compare(t, isEncrypted, false)
+	assert.Equal(t, isEncrypted, false)
 
 	_, err = pemKey.Decode()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 }
 
 func TestReadRSAKey_PlainWithPassphrase(t *testing.T) {
 	pemKey, err := crypto.ReadPEM(testKey1)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	_, err = pemKey.Decrypt([]byte("some_passphrase"))
-	testutil.Compare(t, err, crypto.ErrDecryptionUnarmoredKey)
+	assert.Equal(t, err, crypto.ErrDecryptionUnarmoredKey)
 }
 
 func TestReadRSAKey_Armored(t *testing.T) {
 	pemKey, err := crypto.ReadPEM(testKey2)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	isEncrypted := pemKey.IsEncrypted()
-	testutil.Compare(t, isEncrypted, true)
+	assert.Equal(t, isEncrypted, true)
 
 	_, err = pemKey.Decrypt(passphraseKey2)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 }
 
 func TestReadRSAKey_Armored_WrongPassphrase(t *testing.T) {
 	pemKey, err := crypto.ReadPEM(testKey2)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	isEncrypted := pemKey.IsEncrypted()
-	testutil.Compare(t, isEncrypted, true)
+	assert.Equal(t, isEncrypted, true)
 
 	_, err = pemKey.Decrypt([]byte("wrong_passphrase"))
-	testutil.Compare(t, err, crypto.ErrIncorrectPassphrase)
+	assert.Equal(t, err, crypto.ErrIncorrectPassphrase)
 }

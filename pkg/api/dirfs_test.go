@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestAbsDirPath(t *testing.T) {
@@ -115,8 +115,8 @@ func TestAbsDirPath(t *testing.T) {
 			actual, err := tc.tree.AbsDirPath(tc.dirID)
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
-			testutil.Compare(t, actual, tc.expected)
+			assert.Equal(t, err, tc.err)
+			assert.Equal(t, actual, tc.expected)
 		})
 	}
 }

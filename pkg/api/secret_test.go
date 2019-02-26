@@ -6,8 +6,8 @@ import (
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 func TestSortSecretByName(t *testing.T) {
@@ -57,11 +57,11 @@ func TestSortSecretByName(t *testing.T) {
 func TestCreateSecretRequest_Validate_Unique(t *testing.T) {
 	// the set of accounts in EncryptedNames is equal to the set of accounts in EncryptedKeys.
 	blindKey, err := crypto.GenerateAESKey()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	secretPath := api.SecretPath("owner/repo/dir/secret")
 	blindname, err := secretPath.BlindName(blindKey)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	accountID := uuid.New()
 	tests := []struct {
@@ -116,19 +116,19 @@ func TestCreateSecretRequest_Validate_Unique(t *testing.T) {
 
 	for _, test := range tests {
 		result := test.CreateSecretRequest.Validate()
-		testutil.Compare(t, result, test.expected)
+		assert.Equal(t, result, test.expected)
 	}
 
 }
 
 func TestCreateSecretRequest_Validate_EncryptedNameAndKeyForEachAccount(t *testing.T) {
 	blindKey, err := crypto.GenerateAESKey()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	secretPath := api.SecretPath("owner/repo/dir/secret")
 
 	blindname, err := secretPath.BlindName(blindKey)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	// the set of accounts in EncryptedNames is equal to the set of accounts in EncryptedKeys.
 	createSecretRequest := api.CreateSecretRequest{
@@ -148,7 +148,7 @@ func TestCreateSecretRequest_Validate_EncryptedNameAndKeyForEachAccount(t *testi
 	}
 
 	result := createSecretRequest.Validate()
-	testutil.Compare(t, result, api.ErrNotEncryptedForAccounts)
+	assert.Equal(t, result, api.ErrNotEncryptedForAccounts)
 
 }
 
@@ -194,7 +194,7 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 			err := tc.EncryptedNameRequest.Validate()
 
 			// Assert
-			testutil.Compare(t, err, tc.expected)
+			assert.Equal(t, err, tc.expected)
 		})
 	}
 }
@@ -248,7 +248,7 @@ func TestSecretAccessRequest_Validate_AccountIDs(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			err := tc.Request.Validate()
-			testutil.Compare(t, err, tc.Expected)
+			assert.Equal(t, err, tc.Expected)
 		})
 	}
 }

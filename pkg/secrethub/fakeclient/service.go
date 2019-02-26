@@ -16,7 +16,7 @@ type ServiceService struct {
 }
 
 // Create implements the ServiceService interface Create function.
-func (s *ServiceService) Create(path api.RepoPath, description string, credential secrethub.Credential) (*api.Service, error) {
+func (s *ServiceService) Create(path string, description string, credential secrethub.Credential) (*api.Service, error) {
 	return s.Creater.Create(path, description, credential)
 }
 
@@ -31,13 +31,13 @@ func (s *ServiceService) Get(id string) (*api.Service, error) {
 }
 
 // List implements the ServiceService interface List function.
-func (s *ServiceService) List(path api.RepoPath) ([]*api.Service, error) {
+func (s *ServiceService) List(path string) ([]*api.Service, error) {
 	return s.Lister.List(path)
 }
 
 // ServiceCreater mocks the Create function.
 type ServiceCreater struct {
-	ArgPath        api.RepoPath
+	ArgPath        string
 	ArgDescription string
 	ArgCredential  secrethub.Credential
 	ReturnsService *api.Service
@@ -45,7 +45,7 @@ type ServiceCreater struct {
 }
 
 // Create saves the arguments it was called with and returns the mocked response.
-func (c *ServiceCreater) Create(path api.RepoPath, description string, credential secrethub.Credential) (*api.Service, error) {
+func (c *ServiceCreater) Create(path string, description string, credential secrethub.Credential) (*api.Service, error) {
 	c.ArgPath = path
 	c.ArgDescription = description
 	c.ArgCredential = credential

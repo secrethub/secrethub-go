@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 var (
@@ -150,10 +150,10 @@ func TestImport_Exported_ServiceKey(t *testing.T) {
 	}
 
 	pemKey, err := ReadPEM(private)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	_, err = pemKey.Decode()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 }
 
 func TestImport_ExportedWithPassphrase(t *testing.T) {
@@ -179,10 +179,10 @@ func TestImport_ExportedWithPassphrase(t *testing.T) {
 	}
 
 	pemKey, err := ReadPEM(encrypted)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	actual, err := pemKey.Decrypt([]byte(pass))
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	if !reflect.DeepEqual(actual, expected) {
 		t.Errorf("%+v (actual) != %+v (expected)", actual, expected)
@@ -203,19 +203,19 @@ func TestExportPrivateKeyWithEmptyPassphrase(t *testing.T) {
 
 func getTestKey1(t testing.TB) *RSAKey {
 	pemKey1, err := ReadPEM(testKey1)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	key1, err := pemKey1.Decode()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	return key1
 }
 
 func getTestKey2(t testing.TB) *RSAKey {
 	pemKey2, err := ReadPEM(testKey2)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	key2, err := pemKey2.Decrypt(passphraseKey2)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	return key2
 }
 
@@ -236,12 +236,12 @@ func TestCiphertextRSA_MarshalJSON(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// Act
 			actual, err := tc.ciphertext.MarshalJSON()
-			testutil.OK(t, err)
+			assert.OK(t, err)
 			expected, err := json.Marshal(tc.expected)
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			// Assert
-			testutil.Compare(t, actual, expected)
+			assert.Equal(t, actual, expected)
 		})
 	}
 }

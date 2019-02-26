@@ -8,11 +8,11 @@ import (
 // OrgService handles operations on organisations on SecretHub.
 type OrgService interface {
 	// Create creates an organization.
-	Create(name api.OrgName, description string) (*api.Org, error)
+	Create(name string, description string) (*api.Org, error)
 	// Delete removes an organization.
-	Delete(name api.OrgName) error
+	Delete(name string) error
 	// Get retrieves an organization.
-	Get(name api.OrgName) (*api.Org, error)
+	Get(name string) (*api.Org, error)
 	// Members returns an OrgMemberService.
 	Members() OrgMemberService
 	// ListMine returns the organizations of the current user.
@@ -30,9 +30,9 @@ type orgService struct {
 }
 
 // Create creates an organization and adds the current account as an admin member.
-func (s orgService) Create(name api.OrgName, description string) (*api.Org, error) {
+func (s orgService) Create(name string, description string) (*api.Org, error) {
 	in := &api.CreateOrgRequest{
-		Name:        name.String(),
+		Name:        name,
 		Description: description,
 	}
 
@@ -45,13 +45,23 @@ func (s orgService) Create(name api.OrgName, description string) (*api.Org, erro
 }
 
 // Delete permanently deletes an organization and all of its resources.
-func (s orgService) Delete(name api.OrgName) error {
-	return s.client.httpClient.DeleteOrg(name.String())
+func (s orgService) Delete(name string) error {
+	err := api.ValidateOrgName(name)
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	return s.client.httpClient.DeleteOrg(name)
 }
 
 // Get retrieves an organization.
-func (s orgService) Get(name api.OrgName) (*api.Org, error) {
-	return s.client.httpClient.GetOrg(name.String())
+func (s orgService) Get(name string) (*api.Org, error) {
+	err := api.ValidateOrgName(name)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.client.httpClient.GetOrg(name)
 }
 
 // Members returns an OrgMemberService.
