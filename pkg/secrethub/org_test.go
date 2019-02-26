@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestCreateOrg(t *testing.T) {
@@ -52,11 +52,11 @@ func TestCreateOrg(t *testing.T) {
 		// Assert
 		req := new(api.CreateOrgRequest)
 		err := json.NewDecoder(r.Body).Decode(&req)
-		testutil.OK(t, err)
+		assert.OK(t, err)
 
-		testutil.OK(t, req.Validate())
+		assert.OK(t, req.Validate())
 
-		testutil.Compare(t, req, expectedRequest)
+		assert.Equal(t, req, expectedRequest)
 
 		// Respond
 		w.Header().Set("Content-Type", "application/json")
@@ -68,8 +68,8 @@ func TestCreateOrg(t *testing.T) {
 	resp, err := client.Orgs().Create(name, descr)
 
 	// Assert
-	testutil.OK(t, err)
-	testutil.Compare(t, resp, expectedResponse)
+	assert.OK(t, err)
+	assert.Equal(t, resp, expectedResponse)
 }
 
 func TestCreateOrg_InvalidArgs(t *testing.T) {
@@ -100,7 +100,7 @@ func TestCreateOrg_InvalidArgs(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			_, err := client.Orgs().Create(tc.name, tc.descr)
 
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 		})
 	}
 }
@@ -155,7 +155,7 @@ func TestGetOrg(t *testing.T) {
 				// Assert
 				orgName := chi.URLParam(r, "org_name")
 
-				testutil.Compare(t, orgName, tc.name)
+				assert.Equal(t, orgName, tc.name)
 
 				// Respond
 				w.Header().Set("Content-Type", "application/json")
@@ -165,9 +165,9 @@ func TestGetOrg(t *testing.T) {
 
 			actual, err := client.Orgs().Get(tc.name)
 
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 			if tc.err == nil {
-				testutil.Compare(t, actual, tc.expected)
+				assert.Equal(t, actual, tc.expected)
 			}
 		})
 	}
@@ -239,9 +239,9 @@ func TestListMyOrgs(t *testing.T) {
 
 			actual, err := client.Orgs().ListMine()
 
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 			if tc.err == nil {
-				testutil.Compare(t, actual, tc.expected)
+				assert.Equal(t, actual, tc.expected)
 			}
 		})
 	}
@@ -291,7 +291,7 @@ func TestDeleteOrg(t *testing.T) {
 				// Assert
 				orgName := chi.URLParam(r, "org_name")
 
-				testutil.Compare(t, orgName, tc.name)
+				assert.Equal(t, orgName, tc.name)
 
 				// Respond
 				w.Header().Set("Content-Type", "application/json")
@@ -300,7 +300,7 @@ func TestDeleteOrg(t *testing.T) {
 			})
 
 			err := client.Orgs().Delete(tc.name)
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 		})
 	}
 }

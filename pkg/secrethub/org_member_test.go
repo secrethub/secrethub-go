@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestGetOrgMember(t *testing.T) {
@@ -89,8 +89,8 @@ func TestGetOrgMember(t *testing.T) {
 				orgName := chi.URLParam(r, "org_name")
 				username := chi.URLParam(r, "username")
 
-				testutil.Compare(t, orgName, tc.name)
-				testutil.Compare(t, username, tc.username)
+				assert.Equal(t, orgName, tc.name)
+				assert.Equal(t, username, tc.username)
 
 				// Respond
 				w.Header().Set("Content-Type", "application/json")
@@ -100,9 +100,9 @@ func TestGetOrgMember(t *testing.T) {
 
 			actual, err := client.Orgs().Members().Get(tc.name, tc.username)
 
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 			if tc.err == nil {
-				testutil.Compare(t, actual, tc.expected)
+				assert.Equal(t, actual, tc.expected)
 			}
 		})
 	}
@@ -194,7 +194,7 @@ func TestListOrgMembers(t *testing.T) {
 			router.Get("/orgs/{org_name}/members", func(w http.ResponseWriter, r *http.Request) {
 				orgName := chi.URLParam(r, "org_name")
 
-				testutil.Compare(t, orgName, tc.name)
+				assert.Equal(t, orgName, tc.name)
 
 				// Respond
 				w.Header().Set("Content-Type", "application/json")
@@ -204,9 +204,9 @@ func TestListOrgMembers(t *testing.T) {
 
 			actual, err := client.Orgs().Members().List(tc.name)
 
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 			if tc.err == nil {
-				testutil.Compare(t, actual, tc.expected)
+				assert.Equal(t, actual, tc.expected)
 			}
 		})
 	}
@@ -324,15 +324,15 @@ func TestInviteOrg(t *testing.T) {
 			router.Post("/orgs/{org_name}/members", func(w http.ResponseWriter, r *http.Request) {
 				// Assert
 				orgName := chi.URLParam(r, "org_name")
-				testutil.Compare(t, orgName, tc.name)
+				assert.Equal(t, orgName, tc.name)
 
 				req := new(api.CreateOrgMemberRequest)
 				err := json.NewDecoder(r.Body).Decode(&req)
-				testutil.OK(t, err)
+				assert.OK(t, err)
 
-				testutil.OK(t, req.Validate())
+				assert.OK(t, req.Validate())
 
-				testutil.Compare(t, req, tc.expectedRequest)
+				assert.Equal(t, req, tc.expectedRequest)
 
 				// Respond
 				w.Header().Set("Content-Type", "application/json")
@@ -342,9 +342,9 @@ func TestInviteOrg(t *testing.T) {
 
 			actual, err := client.Orgs().Members().Invite(tc.name, tc.username, tc.role)
 
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 			if tc.err == nil {
-				testutil.Compare(t, actual, tc.expected)
+				assert.Equal(t, actual, tc.expected)
 			}
 		})
 	}
@@ -461,18 +461,18 @@ func TestUpdateOrgMember(t *testing.T) {
 			router.Post("/orgs/{org_name}/members/{username}", func(w http.ResponseWriter, r *http.Request) {
 				// Assert
 				orgName := chi.URLParam(r, "org_name")
-				testutil.Compare(t, orgName, tc.name)
+				assert.Equal(t, orgName, tc.name)
 
 				username := chi.URLParam(r, "username")
-				testutil.Compare(t, username, tc.username)
+				assert.Equal(t, username, tc.username)
 
 				req := new(api.UpdateOrgMemberRequest)
 				err := json.NewDecoder(r.Body).Decode(&req)
-				testutil.OK(t, err)
+				assert.OK(t, err)
 
-				testutil.OK(t, req.Validate())
+				assert.OK(t, req.Validate())
 
-				testutil.Compare(t, req, tc.expectedRequest)
+				assert.Equal(t, req, tc.expectedRequest)
 
 				// Respond
 				w.Header().Set("Content-Type", "application/json")
@@ -482,9 +482,9 @@ func TestUpdateOrgMember(t *testing.T) {
 
 			actual, err := client.Orgs().Members().Update(tc.name, tc.username, tc.role)
 
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 			if tc.err == nil {
-				testutil.Compare(t, actual, tc.expected)
+				assert.Equal(t, actual, tc.expected)
 			}
 		})
 	}

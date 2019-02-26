@@ -7,7 +7,7 @@ import (
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 var (
@@ -44,7 +44,7 @@ func TestCreateRepoRequest_Validate(t *testing.T) {
 
 	for _, test := range tests {
 		err := test.crr.Validate()
-		testutil.Compare(t, err, test.expected)
+		assert.Equal(t, err, test.expected)
 	}
 }
 

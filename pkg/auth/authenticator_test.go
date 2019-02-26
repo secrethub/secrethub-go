@@ -7,8 +7,8 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 	"github.com/keylockerbv/secrethub-go/pkg/auth"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 func TestVerifyMultipleMethods(t *testing.T) {
@@ -17,9 +17,9 @@ func TestVerifyMultipleMethods(t *testing.T) {
 	// Arrange
 	key := clientKey
 	fingerprint, err := key.Fingerprint()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	pub, err := key.ExportPublicKey()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	fakeCredentialGetter := fakeCredentialGetter{
 		GetFunc: func(arg string) (*api.Credential, error) {
@@ -49,18 +49,18 @@ func TestVerifyMultipleMethods(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// Arrange
 			req, err := http.NewRequest("POST", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			err = tc.Credential.AddAuthentication(req)
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			// Act
 			actual, err := authenticator.Verify(req)
 
 			// Assert
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
-			testutil.Compare(t, actual.Fingerprint, tc.Expected)
+			assert.Equal(t, actual.Fingerprint, tc.Expected)
 		})
 	}
 }

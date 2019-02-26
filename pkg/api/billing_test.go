@@ -3,7 +3,7 @@ package api
 import (
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func strPtr(s string) *string {
@@ -52,7 +52,7 @@ func TestValidateBillingInfoParams(t *testing.T) {
 			err := tc.params.Validate()
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 		})
 	}
 }
@@ -154,7 +154,7 @@ func TestValidateCompanyDetailsParams(t *testing.T) {
 			err := tc.params.Validate()
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 		})
 	}
 }

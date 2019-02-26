@@ -1,16 +1,15 @@
-package testutil
+package assert
 
 import "testing"
 import "github.com/kylelemons/godebug/pretty"
 
-// Compare errors when actual and expected are not the same, printing out the diff.
-func Compare(tb testing.TB, actual, expected interface{}) {
+// Equal errors when actual and expected are not the same, printing out the diff.
+func Equal(tb testing.TB, actual, expected interface{}) {
 	tb.Helper()
 	diff := diff(actual, expected)
 	if diff != "" {
 		tb.Errorf("unexpected diff (-actual +expected):\n%s", diff)
 	}
-
 }
 
 // OK fails a test if the provided error is not nil.

@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 // TestReEncryptionRepoKey tests to wrap a new repo key, and ReWrap this into a AESKey for another user.
@@ -86,10 +86,10 @@ func TestImport_Exported_ServiceKey(t *testing.T) {
 	}
 
 	pemKey, err := crypto.ReadPEM(private)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	_, err = pemKey.Decode()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 }
 
 func TestImport_ExportedWithPassphrase(t *testing.T) {
@@ -115,10 +115,10 @@ func TestImport_ExportedWithPassphrase(t *testing.T) {
 	}
 
 	pemKey, err := crypto.ReadPEM(encrypted)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	actual, err := pemKey.Decrypt([]byte(pass))
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	if !reflect.DeepEqual(actual, expected) {
 		t.Errorf("%+v (actual) != %+v (expected)", actual, expected)
@@ -139,18 +139,18 @@ func TestExportPrivateKeyWithEmptyPassphrase(t *testing.T) {
 
 func getTestKey1(t testing.TB) *crypto.RSAKey {
 	pemKey1, err := crypto.ReadPEM(testKey1)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	key1, err := pemKey1.Decode()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	return key1
 }
 
 func getTestKey2(t testing.TB) *crypto.RSAKey {
 	pemKey2, err := crypto.ReadPEM(testKey2)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	key2, err := pemKey2.Decrypt(passphraseKey2)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	return key2
 }

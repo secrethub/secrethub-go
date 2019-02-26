@@ -11,8 +11,8 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 func TestSignup(t *testing.T) {
@@ -53,11 +53,11 @@ func TestSignup(t *testing.T) {
 		// Assert
 		req := new(api.CreateUserRequest)
 		err := json.NewDecoder(r.Body).Decode(&req)
-		testutil.OK(t, err)
+		assert.OK(t, err)
 
-		testutil.OK(t, req.Validate())
+		assert.OK(t, req.Validate())
 
-		testutil.Compare(t, req, expectedCreateUserRequest)
+		assert.Equal(t, req, expectedCreateUserRequest)
 
 		// Respond
 		w.Header().Set("Content-Type", "application/json")
@@ -66,21 +66,21 @@ func TestSignup(t *testing.T) {
 	})
 
 	accountKey, err := crypto.GenerateRSAKey(512)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	publicAccountKey, err := accountKey.ExportPublicKey()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	router.Post(fmt.Sprintf("/me/credentials/%s/key", cred1Fingerprint), func(w http.ResponseWriter, r *http.Request) {
 		// Assert
 		req := new(api.CreateAccountKeyRequest)
 		err := json.NewDecoder(r.Body).Decode(&req)
-		testutil.OK(t, err)
+		assert.OK(t, err)
 
-		testutil.OK(t, req.Validate())
+		assert.OK(t, req.Validate())
 
 		// We cannot predict the output of the encrypted key, therefore we do not test it here.
-		testutil.Compare(t, req.PublicKey, publicAccountKey)
+		assert.Equal(t, req.PublicKey, publicAccountKey)
 
 		// Respond
 		w.Header().Set("Content-Type", "application/json")
@@ -92,8 +92,8 @@ func TestSignup(t *testing.T) {
 	actual, err := userService.create(username, email, fullName, accountKey)
 
 	// Assert
-	testutil.OK(t, err)
-	testutil.Compare(t, actual, expectedResponse)
+	assert.OK(t, err)
+	assert.Equal(t, actual, expectedResponse)
 }
 
 func TestSignup_AlreadyExists(t *testing.T) {
@@ -116,13 +116,13 @@ func TestSignup_AlreadyExists(t *testing.T) {
 	})
 
 	key, err := crypto.GenerateRSAKey(512)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	// Act
 	_, err = userService.create("dev1", "dev1@testing.com", "Developer Uno", key)
 
 	// Assert
-	testutil.Compare(t, err, expected)
+	assert.Equal(t, err, expected)
 }
 
 func TestSignup_InvalidArgument(t *testing.T) {
@@ -136,13 +136,13 @@ func TestSignup_InvalidArgument(t *testing.T) {
 	}
 
 	key, err := crypto.GenerateRSAKey(512)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	// Act
 	_, err = userService.create("invalidname$#@%%", "dev1@testing.com", "Developer Uno", key)
 
 	// Assert
-	testutil.Compare(t, err, api.ErrInvalidUsername)
+	assert.Equal(t, err, api.ErrInvalidUsername)
 }
 
 func TestGetUser(t *testing.T) {
@@ -172,7 +172,7 @@ func TestGetUser(t *testing.T) {
 	router.Get("/users/{username}", func(w http.ResponseWriter, r *http.Request) {
 		// Assert
 		usernameParam := chi.URLParam(r, "username")
-		testutil.Compare(t, usernameParam, username)
+		assert.Equal(t, usernameParam, username)
 
 		// Respond
 		w.Header().Set("Content-Type", "application/json")
@@ -184,8 +184,8 @@ func TestGetUser(t *testing.T) {
 	actual, err := userService.Get(username)
 
 	// Assert
-	testutil.OK(t, err)
-	testutil.Compare(t, actual, expectedResponse)
+	assert.OK(t, err)
+	assert.Equal(t, actual, expectedResponse)
 }
 
 func TestGetUser_NotFound(t *testing.T) {
@@ -211,7 +211,7 @@ func TestGetUser_NotFound(t *testing.T) {
 	_, err := userService.Get("dev1")
 
 	// Assert
-	testutil.Compare(t, err, expected)
+	assert.Equal(t, err, expected)
 }
 
 func TestGetUser_InvalidArgument(t *testing.T) {
@@ -228,7 +228,7 @@ func TestGetUser_InvalidArgument(t *testing.T) {
 	_, err := userService.Get("invalidname$#@%%")
 
 	// Assert
-	testutil.Compare(t, err, api.ErrInvalidUsername)
+	assert.Equal(t, err, api.ErrInvalidUsername)
 }
 
 func TestGetMyUser(t *testing.T) {
@@ -266,8 +266,8 @@ func TestGetMyUser(t *testing.T) {
 	actual, err := userService.Me()
 
 	// Assert
-	testutil.OK(t, err)
-	testutil.Compare(t, actual, expected)
+	assert.OK(t, err)
+	assert.Equal(t, actual, expected)
 }
 
 func TestGetMyUser_NotFound(t *testing.T) {
@@ -293,5 +293,5 @@ func TestGetMyUser_NotFound(t *testing.T) {
 	_, err := userService.Me()
 
 	// Assert
-	testutil.Compare(t, err, expected)
+	assert.Equal(t, err, expected)
 }

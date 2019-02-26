@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 	"github.com/keylockerbv/secrethub-go/pkg/auth"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 var (
@@ -39,10 +39,10 @@ func init() {
 
 func TestVerify(t *testing.T) {
 	fingerprint1, err := clientKey.Fingerprint()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	pub1, err := clientKey.ExportPublicKey()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	key1 := &api.Credential{
 		AccountID:   uuid.New(),
@@ -128,7 +128,7 @@ func TestVerify(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// Arrange
 			req, err := http.NewRequest("GET", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			req.Header.Set("Authorization", tc.Authorization)
 			req.Header.Set("Date", tc.Date)
@@ -145,10 +145,10 @@ func TestVerify(t *testing.T) {
 			actual, err := authenticator.Verify(req)
 
 			// Assert
-			testutil.Compare(t, err, tc.Err)
+			assert.Equal(t, err, tc.Err)
 
 			if tc.Err == nil {
-				testutil.Compare(t, actual, tc.Expected)
+				assert.Equal(t, actual, tc.Expected)
 			}
 		})
 	}
@@ -159,13 +159,13 @@ func TestSignRequest(t *testing.T) {
 	// Arrange
 	key1 := clientKey
 	fingerprint1, err := key1.Fingerprint()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	pub1, err := key1.ExportPublicKey()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	key2 := diffClientKey
 	pub2, err := key2.ExportPublicKey()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	cases := map[string]struct {
 		ClientKey           *crypto.RSAKey
@@ -190,10 +190,10 @@ func TestSignRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// Arrange
 			req, err := http.NewRequest("POST", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			fingerprint, err := tc.ClientKey.Fingerprint()
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			fakeCredentialGetter := fakeCredentialGetter{
 				GetFunc: func(arg string) (*api.Credential, error) {
@@ -208,15 +208,15 @@ func TestSignRequest(t *testing.T) {
 			authenticator := auth.NewMethodSignature(fakeCredentialGetter)
 
 			err = auth.NewCredentialSignature(tc.ClientKey).AddAuthentication(req)
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			// Act
 			actual, err := authenticator.Verify(req)
 
 			// Assert
-			testutil.Compare(t, err, tc.Err)
+			assert.Equal(t, err, tc.Err)
 			if err == nil {
-				testutil.Compare(t, actual.Fingerprint, tc.ExpectedFingerprint)
+				assert.Equal(t, actual.Fingerprint, tc.ExpectedFingerprint)
 			}
 		})
 	}
@@ -226,11 +226,11 @@ func TestSignRequest_CheckHeadersAreSet(t *testing.T) {
 
 	// Arrange
 	req, err := http.NewRequest("GET", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	// Act
 	err = auth.NewCredentialSignature(clientKey).AddAuthentication(req)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	// Assert
 	if req.Header.Get("Date") == "" {
@@ -246,9 +246,9 @@ func TestReplayRequest(t *testing.T) {
 
 	// Arrange
 	fingerprint, err := clientKey.Fingerprint()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	pub, err := clientKey.ExportPublicKey()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	fakeCredentialGetter := fakeCredentialGetter{
 		GetFunc: func(arg string) (*api.Credential, error) {
@@ -307,13 +307,13 @@ func TestReplayRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// Arrange
 			original, err := http.NewRequest(tc.originalMethod, tc.originalURL, tc.originalBody)
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			err = auth.NewCredentialSignature(clientKey).AddAuthentication(original)
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			replay, err := http.NewRequest(tc.replayMethod, tc.replayURL, tc.replayBody)
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			// Copy the signed headers of the original request to the replay request.
 			replay.Header = original.Header
@@ -322,7 +322,7 @@ func TestReplayRequest(t *testing.T) {
 			_, err = authenticator.Verify(replay)
 
 			// Assert
-			testutil.Compare(t, err, api.ErrSignatureNotVerified)
+			assert.Equal(t, err, api.ErrSignatureNotVerified)
 		})
 	}
 }
@@ -338,5 +338,5 @@ func TestNewUser_InvalidName(t *testing.T) {
 	err := api.ValidateUsername(invalidName)
 
 	// Assert
-	testutil.Compare(t, err, api.ErrInvalidUsername)
+	assert.Equal(t, err, api.ErrInvalidUsername)
 }

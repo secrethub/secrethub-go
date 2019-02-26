@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestPermission_Set(t *testing.T) {
@@ -78,7 +78,7 @@ func TestPermission_Set(t *testing.T) {
 	for _, testCase := range testCases {
 		var accessLevel api.Permission
 		actual := accessLevel.Set(testCase.input)
-		testutil.Compare(t, actual, testCase.err)
-		testutil.Compare(t, accessLevel, testCase.value)
+		assert.Equal(t, actual, testCase.err)
+		assert.Equal(t, accessLevel, testCase.value)
 	}
 }

@@ -13,14 +13,14 @@ import (
 
 	"io/ioutil"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
 func TestGetMessage_Get(t *testing.T) {
 
 	// Arrange
 	req, err := http.NewRequest("GET", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	req.Header.Set("Date", "Fri, 10 Mar 2017 16:25:54 CET")
 
 	expected := "GET\n" +
@@ -30,7 +30,7 @@ func TestGetMessage_Get(t *testing.T) {
 
 	// Act
 	result, err := getMessage(req)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	// Assert
 	assertMessage(t, expected, string(result))
@@ -42,7 +42,7 @@ func TestGetMessage_Post(t *testing.T) {
 	body := bytes.NewBufferString("GRUMBYCAT")
 
 	req, err := http.NewRequest("POST", "https://api.secrethub.io/repos/jdoe/catpictures", body)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	req.Header.Set("Date", "Fri, 10 Mar 2017 16:25:54 CET")
 
 	bodySum := sha256.Sum256(body.Bytes())
@@ -56,7 +56,7 @@ func TestGetMessage_Post(t *testing.T) {
 
 	// Act
 	result, err := getMessage(req)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	// Assert
 	assertMessage(t, expected, string(result))
@@ -101,16 +101,16 @@ func TestGetPayloadToSign_ContentLength(t *testing.T) {
 	requestBody := bytes.NewBufferString("GRUMBYCAT")
 
 	req, err := http.NewRequest("POST", "https://api.secrethub.io/repos/jdoe/catpictures", requestBody)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	req.Header.Set("Date", "Fri, 10 Mar 2017 16:25:54 CET")
 
 	// Act
 	_, err = getMessage(req)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	// Assert
 	body, err := ioutil.ReadAll(req.Body)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	if len(body) != int(req.ContentLength) {
 		t.Fatal("Content-Length should equal body length.")
