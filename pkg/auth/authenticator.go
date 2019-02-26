@@ -13,27 +13,9 @@ var (
 	ErrNoAuthHeader          = errNamespace.Code("no_auth_header").StatusError("the authorization header should be set", http.StatusBadRequest)
 )
 
-// Result is the result object returned on an Authenticate method call.
-type Result struct {
-	AccountID   *uuid.UUID
-	Fingerprint string
-}
-
 // Authenticator can authenticate an account from an http request.
 type Authenticator interface {
 	Verify(r *http.Request) (*Result, error)
-}
-
-// Method defines a mechanism to authenticate an account from an http.Request.
-type Method interface {
-	Authenticator
-	// Tag returns the authorization header tag identifying the authentication mechanism.
-	Tag() string
-}
-
-// authenticator supports one or more methods for authenticating an account from HTTP requests.
-type authenticator struct {
-	methods map[string]Method
 }
 
 // NewAuthenticator returns a new Authenticator, supporting the given Methods.
@@ -47,6 +29,11 @@ func NewAuthenticator(methods ...Method) Authenticator {
 	}
 
 	return a
+}
+
+// authenticator supports one or more methods for authenticating an account from HTTP requests.
+type authenticator struct {
+	methods map[string]Method
 }
 
 // Verify verifies the authentication of an HTTP request.
@@ -74,4 +61,17 @@ func (a *authenticator) getMethod(r *http.Request) (Method, error) {
 		return nil, ErrUnsupportedAuthFormat
 	}
 	return method, nil
+}
+
+// Method defines a mechanism to authenticate an account from an http.Request.
+type Method interface {
+	Authenticator
+	// Tag returns the authorization header tag identifying the authentication mechanism.
+	Tag() string
+}
+
+// Result is the result object returned on an Authenticate method call.
+type Result struct {
+	AccountID   *uuid.UUID
+	Fingerprint string
 }
