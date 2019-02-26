@@ -68,7 +68,7 @@ func TestSignup(t *testing.T) {
 	accountKey, err := crypto.GenerateRSAKey(512)
 	assert.OK(t, err)
 
-	publicAccountKey, err := accountKey.ExportPublicKey()
+	publicAccountKey, err := accountKey.Public.ExportPublicKey()
 	assert.OK(t, err)
 
 	router.Post(fmt.Sprintf("/me/credentials/%s/key", cred1Fingerprint), func(w http.ResponseWriter, r *http.Request) {

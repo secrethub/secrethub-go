@@ -41,7 +41,7 @@ func TestVerify(t *testing.T) {
 	fingerprint1, err := clientKey.Fingerprint()
 	assert.OK(t, err)
 
-	pub1, err := clientKey.ExportPublicKey()
+	pub1, err := clientKey.Public.ExportPublicKey()
 	assert.OK(t, err)
 
 	key1 := &api.Credential{
@@ -160,11 +160,11 @@ func TestSignRequest(t *testing.T) {
 	key1 := clientKey
 	fingerprint1, err := key1.Fingerprint()
 	assert.OK(t, err)
-	pub1, err := key1.ExportPublicKey()
+	pub1, err := key1.Public.ExportPublicKey()
 	assert.OK(t, err)
 
 	key2 := diffClientKey
-	pub2, err := key2.ExportPublicKey()
+	pub2, err := key2.Public.ExportPublicKey()
 	assert.OK(t, err)
 
 	cases := map[string]struct {
@@ -247,7 +247,7 @@ func TestReplayRequest(t *testing.T) {
 	// Arrange
 	fingerprint, err := clientKey.Fingerprint()
 	assert.OK(t, err)
-	pub, err := clientKey.ExportPublicKey()
+	pub, err := clientKey.Public.ExportPublicKey()
 	assert.OK(t, err)
 
 	fakeCredentialGetter := fakeCredentialGetter{

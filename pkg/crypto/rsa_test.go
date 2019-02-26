@@ -82,12 +82,12 @@ func TestReEncryptionRepoKey(t *testing.T) {
 		t.Error(err)
 	}
 
-	exportedRepoKey1, err := key1.WrapBytes(repoKey1.Export())
+	exportedRepoKey1, err := key1.Public.WrapBytes(repoKey1.Export())
 	if err != nil {
 		t.Error(err)
 	}
 
-	exportedRepoKey2, err := key1.ReWrap(key2.RSAPublicKey, exportedRepoKey1)
+	exportedRepoKey2, err := key1.ReWrap(key2.Public, exportedRepoKey1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -107,7 +107,7 @@ func TestSign_Verify(t *testing.T) {
 		t.Error(err)
 
 	}
-	pk, _ := key1.ExportPublicKey()
+	pk, _ := key1.Public.ExportPublicKey()
 
 	err = Verify(pk, message, signature)
 	if err != nil {
@@ -118,7 +118,7 @@ func TestSign_Verify(t *testing.T) {
 func TestImport_Exported_PublicKey(t *testing.T) {
 	key1 := getTestKey1(t)
 
-	exportedPublicKey, err := key1.ExportPublicKey()
+	exportedPublicKey, err := key1.Public.ExportPublicKey()
 	if err != nil {
 		t.Error(err)
 	}
@@ -135,7 +135,7 @@ func TestImport_Exported_ServiceKey(t *testing.T) {
 		t.Errorf("generateServiceKey generates error: %s", err)
 	}
 
-	public, err := clientKey.ExportPublicKey()
+	public, err := clientKey.Public.ExportPublicKey()
 	if err != nil {
 		t.Errorf("cannot import generated public key: %s", err)
 	}

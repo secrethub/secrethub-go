@@ -171,18 +171,18 @@ func ImportRSAPublicKey(encodedPublicKey []byte) (RSAPublicKey, error) {
 // RSAKey wraps a RSA key.
 // It exposes all crypto functionality asymmetric keys.
 type RSAKey struct {
-	RSAPublicKey
-	privateKey *rsa.PrivateKey
+	Public  RSAPublicKey
+	private *rsa.PrivateKey
 }
 
 // NewRSAKey is used to create a new RSAKey.
 // Normally you create a RSAKey by DecodeKey
 func NewRSAKey(privateKey *rsa.PrivateKey) RSAKey {
 	return RSAKey{
-		RSAPublicKey: RSAPublicKey{
+		Public: RSAPublicKey{
 			publicKey: &privateKey.PublicKey,
 		},
-		privateKey: privateKey,
+		private: privateKey,
 	}
 }
 
@@ -200,7 +200,7 @@ func GenerateRSAKey(length int) (RSAKey, error) {
 func (k RSAKey) Sign(message []byte) ([]byte, error) {
 	hashedMessage := sha256.Sum256(message)
 
-	return rsa.SignPKCS1v15(rand.Reader, k.privateKey, crypto.SHA256, hashedMessage[:])
+	return rsa.SignPKCS1v15(rand.Reader, k.private, crypto.SHA256, hashedMessage[:])
 }
 
 // Decrypt decrypts provided data that is encrypted with AES-GCM
@@ -242,7 +242,7 @@ func (k RSAKey) UnwrapBytes(encryptedData []byte) ([]byte, error) {
 }
 
 func (k RSAKey) unwrap(encryptedData []byte) ([]byte, error) {
-	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, k.privateKey, encryptedData, []byte{})
+	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, k.private, encryptedData, []byte{})
 	if err != nil {
 		return nil, ErrRSADecrypt(err)
 	}
@@ -261,7 +261,7 @@ func GenerateServiceKey() (RSAKey, error) {
 
 // Fingerprint returns the SHA256 fingerprint of the public key
 func (k RSAKey) Fingerprint() (string, error) {
-	pub, err := k.ExportPublicKey()
+	pub, err := k.Public.ExportPublicKey()
 	if err != nil {
 		return "", errio.Error(err)
 	}
@@ -272,7 +272,7 @@ func (k RSAKey) Fingerprint() (string, error) {
 
 // ExportPrivateKey exports the rsa private key in an PKIX pem encoded format.
 func (k RSAKey) ExportPrivateKey() ([]byte, error) {
-	privateASN1 := x509.MarshalPKCS1PrivateKey(k.privateKey)
+	privateASN1 := x509.MarshalPKCS1PrivateKey(k.private)
 
 	privateBytes := pem.EncodeToMemory(&pem.Block{
 		Type:  "RSA PRIVATE KEY",
@@ -284,7 +284,7 @@ func (k RSAKey) ExportPrivateKey() ([]byte, error) {
 
 // Export exports the raw rsa private key.
 func (k RSAKey) Export() []byte {
-	return x509.MarshalPKCS1PrivateKey(k.privateKey)
+	return x509.MarshalPKCS1PrivateKey(k.private)
 }
 
 // ImportRSAPrivateKey imports a rsa private key from a pem encoded format.
@@ -314,7 +314,7 @@ func (k RSAKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
 
 	plain := &pem.Block{
 		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(k.privateKey),
+		Bytes: x509.MarshalPKCS1PrivateKey(k.private),
 	}
 
 	encrypted, err := x509.EncryptPEMBlock(rand.Reader, plain.Type, plain.Bytes, []byte(pass), x509.PEMCipherAES256)
