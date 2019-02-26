@@ -72,7 +72,12 @@ func NewCredential(credential string, passphrase string) (Credential, error) {
 			return nil, ErrEmptyCredentialPassphrase
 		}
 
-		credential, err := encoded.DecodeArmored(NewPassphraseUnarmorer([]byte(passphrase)))
+		key, err := NewPassBasedKey([]byte(passphrase))
+		if err != nil {
+			return nil, err
+		}
+
+		credential, err := encoded.DecodeArmored(key)
 		if crypto.IsWrongKey(err) {
 			return nil, ErrCannotDecryptCredential
 		}
@@ -357,27 +362,27 @@ type armoredCredentialHeader struct {
 	Nonce  []byte `json:"nonce"`
 }
 
-// passphraseArmorer wraps an scrypt derived key and implements
-// the Armorer interface.
-type passphraseArmorer struct {
+// passBasedKey wraps an scrypt derived key and implements
+// the PassBasedKey interface.
+type passBasedKey struct {
 	key *crypto.ScryptKey
 }
 
-// NewPassphraseArmorer generates a new armorer from a passphrase.
-func NewPassphraseArmorer(passphrase []byte) (PassBasedKey, error) {
+// NewPassBasedKey generates a new key from a passphrase.
+func NewPassBasedKey(passphrase []byte) (PassBasedKey, error) {
 	key, err := crypto.GenerateScryptKey(passphrase)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	return passphraseArmorer{
+	return passBasedKey{
 		key: key,
 	}, nil
 }
 
-// Encrypt implements the Armorer interface and encrypts a payload,
+// Encrypt implements the PassBasedKey interface and encrypts a payload,
 // returning the encrypted payload and header values.
-func (p passphraseArmorer) Encrypt(payload []byte) ([]byte, map[string]interface{}, error) {
+func (p passBasedKey) Encrypt(payload []byte) ([]byte, map[string]interface{}, error) {
 	ciphertext, err := p.key.Encrypt(payload, crypto.SaltOperationLocalCredentialEncryption)
 	if err != nil {
 		return nil, nil, errio.Error(err)
@@ -405,13 +410,13 @@ func (p passphraseArmorer) Encrypt(payload []byte) ([]byte, map[string]interface
 	return ciphertext.Data, headerMap, nil
 }
 
-// Name implements the Armorer interface.
-func (p passphraseArmorer) Name() string {
+// Name implements the PassBasedKey interface.
+func (p passBasedKey) Name() string {
 	return "scrypt"
 }
 
 // Decrypt decrypts an encrypted payload and reads values from the header when necessary.
-func (p passphraseArmorer) Decrypt(payload []byte, rawHeader []byte) ([]byte, error) {
+func (p passBasedKey) Decrypt(payload []byte, rawHeader []byte) ([]byte, error) {
 	header := armoredCredentialHeader{}
 	err := json.Unmarshal(rawHeader, &header)
 	if err != nil {

@@ -53,7 +53,7 @@ func TestPassphraseArmoring(t *testing.T) {
 	pass := []byte("Password123")
 	unarmorer := NewPassphraseUnarmorer(pass)
 
-	armorer, err := NewPassphraseArmorer(pass)
+	armorer, err := NewPassBasedKey(pass)
 	assert.OK(t, err)
 
 	RunArmorInterfaceTest(t, armorer, unarmorer)
@@ -273,7 +273,7 @@ func TestEncodeArmoredCredential(t *testing.T) {
 	pass := []byte("Password123")
 	unarmorer := NewPassphraseUnarmorer(pass)
 
-	armorer, err := NewPassphraseArmorer(pass)
+	armorer, err := NewPassBasedKey(pass)
 	assert.OK(t, err)
 
 	// Act
