@@ -185,10 +185,10 @@ func (k *ScryptKey) Encrypt(data []byte, operation SaltOperation) (CiphertextAES
 		return CiphertextAES{}, errio.Error(err)
 	}
 
-	cipher, err := k.key.Encrypt(data)
+	ciphertext, err := k.key.Encrypt(data)
 	if err != nil {
 		return CiphertextAES{}, err
 	}
 
-	return cipher, nil
+	return ciphertext, nil
 }
