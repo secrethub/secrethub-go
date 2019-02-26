@@ -73,8 +73,8 @@ func (k RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
 	}
 
 	return CiphertextRSAAES{
-		CiphertextAES: aesData,
-		CiphertextRSA: rsaData,
+		aes: aesData,
+		rsa: rsaData,
 	}, nil
 }
 
@@ -206,12 +206,12 @@ func (k RSAKey) Sign(message []byte) ([]byte, error) {
 // Decrypt decrypts provided data that is encrypted with AES-GCM
 // and then the AES-key used for encryption encrypted with RSA-OAEP.
 func (k RSAKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
-	aesKeyData, err := k.Unwrap(ciphertext.CiphertextRSA)
+	aesKeyData, err := k.Unwrap(ciphertext.rsa)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewAESKey(aesKeyData).decrypt(ciphertext.CiphertextAES.Data, ciphertext.CiphertextAES.Nonce)
+	return NewAESKey(aesKeyData).decrypt(ciphertext.aes.Data, ciphertext.aes.Nonce)
 }
 
 // Unwrap decrypts the encryptedData with RSA-OAEP using the RSAKey.
@@ -327,17 +327,17 @@ func (k RSAKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
 
 // CiphertextRSAAES represents data encrypted with AES-GCM, where the AES-key is encrypted with RSA-OAEP.
 type CiphertextRSAAES struct {
-	CiphertextAES
-	CiphertextRSA
+	aes CiphertextAES
+	rsa CiphertextRSA
 }
 
 // MarshalJSON encodes the ciphertext in a string.
 func (ct CiphertextRSAAES) MarshalJSON() ([]byte, error) {
-	data := base64.StdEncoding.EncodeToString(ct.CiphertextAES.Data)
+	data := base64.StdEncoding.EncodeToString(ct.aes.Data)
 
 	metadata := newEncodedCiphertextMetadata(map[string]string{
-		"nonce": base64.StdEncoding.EncodeToString(ct.CiphertextAES.Nonce),
-		"key":   base64.StdEncoding.EncodeToString(ct.CiphertextRSA.Data),
+		"nonce": base64.StdEncoding.EncodeToString(ct.aes.Nonce),
+		"key":   base64.StdEncoding.EncodeToString(ct.rsa.Data),
 	})
 
 	return json.Marshal(fmt.Sprintf("%s$%s$%s", algorithmRSAAES, data, metadata))
@@ -389,12 +389,12 @@ func (ct *CiphertextRSAAES) UnmarshalJSON(b []byte) error {
 		return errio.Error(err)
 	}
 
-	ct.CiphertextAES = CiphertextAES{
+	ct.aes = CiphertextAES{
 		Data:  encryptedData,
 		Nonce: aesNonce,
 	}
 
-	ct.CiphertextRSA = CiphertextRSA{
+	ct.rsa = CiphertextRSA{
 		Data: aesKey,
 	}
 

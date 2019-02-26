@@ -36,7 +36,7 @@ func TestRSAAES_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if bytes.Equal(ciphertext.CiphertextAES.Data, input) {
+	if bytes.Equal(ciphertext.aes.Data, input) {
 		t.Error("encrypted data equals the original data")
 	}
 
