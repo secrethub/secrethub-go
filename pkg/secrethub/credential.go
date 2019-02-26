@@ -379,7 +379,7 @@ func NewPassphraseArmorer(passphrase []byte) (Armorer, error) {
 // Armor implements the Armorer interface and encrypts a payload,
 // returning the encrypted payload and header values.
 func (p passphraseArmorer) Armor(payload []byte) ([]byte, map[string]interface{}, error) {
-	data, nonce, err := p.key.Encrypt(payload, crypto.SaltOperationLocalCredentialEncryption)
+	ciphertext, err := p.key.Encrypt(payload, crypto.SaltOperationLocalCredentialEncryption)
 	if err != nil {
 		return nil, nil, errio.Error(err)
 	}
@@ -390,7 +390,7 @@ func (p passphraseArmorer) Armor(payload []byte) ([]byte, map[string]interface{}
 		N:      p.key.N,
 		R:      p.key.R,
 		P:      p.key.P,
-		Nonce:  nonce,
+		Nonce:  ciphertext.Nonce,
 	}
 	raw, err := json.Marshal(header)
 	if err != nil {
@@ -403,7 +403,7 @@ func (p passphraseArmorer) Armor(payload []byte) ([]byte, map[string]interface{}
 		return nil, nil, errio.Error(err)
 	}
 
-	return data, headerMap, nil
+	return ciphertext.Data, headerMap, nil
 }
 
 // Name implements the Armorer interface.
