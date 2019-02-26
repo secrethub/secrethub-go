@@ -239,14 +239,14 @@ func (prv RSAKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
 
 // ReWrap re-encrypts the data for the given public key.
 // The RSAKey must be able to decrypt the original data for the function to succeed.
-func (prv RSAKey) ReWrap(pk RSAPublicKey, encData []byte) ([]byte, error) {
+func (prv RSAKey) ReWrap(pub RSAPublicKey, encData []byte) ([]byte, error) {
 
 	decData, err := prv.UnwrapBytes(encData)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	return pk.WrapBytes(decData)
+	return pub.WrapBytes(decData)
 }
 
 // UnwrapBytes decrypts the encrypted data with RSA-OAEP using the RSAKey.
