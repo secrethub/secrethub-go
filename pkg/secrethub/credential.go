@@ -365,7 +365,8 @@ type armoredCredentialHeader struct {
 // passBasedKey wraps an scrypt derived key and implements
 // the PassBasedKey interface.
 type passBasedKey struct {
-	key *crypto.ScryptKey
+	key        *crypto.ScryptKey
+	passphrase []byte
 }
 
 // NewPassBasedKey generates a new key from a passphrase.
@@ -376,7 +377,8 @@ func NewPassBasedKey(passphrase []byte) (PassBasedKey, error) {
 	}
 
 	return passBasedKey{
-		key: key,
+		key:        key,
+		passphrase: passphrase,
 	}, nil
 }
 
@@ -423,7 +425,7 @@ func (p passBasedKey) Decrypt(payload []byte, rawHeader []byte) ([]byte, error) 
 		return nil, errio.Error(err)
 	}
 
-	key, err := crypto.DeriveScryptKey(p, header.Salt, header.N, header.R, header.P, header.KeyLen)
+	key, err := crypto.DeriveScryptKey(p.passphrase, header.Salt, header.N, header.R, header.P, header.KeyLen)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
