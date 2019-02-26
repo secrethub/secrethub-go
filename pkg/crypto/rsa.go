@@ -263,16 +263,6 @@ func (prv RSAKey) unwrap(encryptedData []byte) ([]byte, error) {
 	return output, nil
 }
 
-// GenerateServiceKey generates an key pair for the Service and returns the private key and public key.
-// These keys are in an exported format.
-func GenerateServiceKey() (RSAKey, error) {
-	privateKey, err := GenerateRSAKey(ExternalKeyLength)
-	if err != nil {
-		return RSAKey{}, errio.Error(err)
-	}
-	return privateKey, nil
-}
-
 // ExportPrivateKey exports the rsa private key in an PKIX pem encoded format.
 func (prv RSAKey) ExportPrivateKey() ([]byte, error) {
 	privateASN1 := x509.MarshalPKCS1PrivateKey(prv.private)

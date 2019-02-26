@@ -130,7 +130,7 @@ func TestImport_Exported_PublicKey(t *testing.T) {
 }
 
 func TestImport_Exported_ServiceKey(t *testing.T) {
-	clientKey, err := GenerateServiceKey()
+	clientKey, err := GenerateRSAKey(ExternalKeyLength)
 	if err != nil {
 		t.Errorf("generateServiceKey generates error: %s", err)
 	}
