@@ -51,7 +51,7 @@ var (
 // RSAPublicKey wraps a RSA public key
 // It exposes all crypto functionality asymmetric keys.
 type RSAPublicKey struct {
-	publicKey *rsa.PublicKey
+	publicKey rsa.PublicKey
 }
 
 // Encrypt encrypts provided data with AES-GCM.
@@ -97,7 +97,7 @@ func (pub RSAPublicKey) WrapBytes(data []byte) ([]byte, error) {
 }
 
 func (pub RSAPublicKey) wrap(data []byte) ([]byte, error) {
-	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, pub.publicKey, data, []byte{})
+	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, &pub.publicKey, data, []byte{})
 	if err != nil {
 		return nil, ErrRSAEncrypt(err)
 	}
@@ -110,7 +110,7 @@ func (pub RSAPublicKey) wrap(data []byte) ([]byte, error) {
 func (pub RSAPublicKey) Verify(message, signature []byte) error {
 	hashedMessage := sha256.Sum256(message)
 
-	return rsa.VerifyPKCS1v15(pub.publicKey, crypto.SHA256, hashedMessage[:], signature)
+	return rsa.VerifyPKCS1v15(&pub.publicKey, crypto.SHA256, hashedMessage[:], signature)
 }
 
 // Verify will verify a message using the encoded public key and the signature.
@@ -169,7 +169,7 @@ func ImportRSAPublicKey(encodedPublicKey []byte) (RSAPublicKey, error) {
 		return RSAPublicKey{}, ErrNotPKCS1Format
 	}
 
-	rsaPublicKey, ok := publicKey.(*rsa.PublicKey)
+	rsaPublicKey, ok := publicKey.(rsa.PublicKey)
 	if !ok {
 		return RSAPublicKey{}, ErrKeyTypeNotSupported
 	}
@@ -182,7 +182,6 @@ func ImportRSAPublicKey(encodedPublicKey []byte) (RSAPublicKey, error) {
 // RSAKey wraps a RSA key.
 // It exposes all crypto functionality asymmetric keys.
 type RSAKey struct {
-	Public  RSAPublicKey
 	private *rsa.PrivateKey
 }
 
@@ -190,9 +189,6 @@ type RSAKey struct {
 // Normally you create a RSAKey by DecodeKey
 func NewRSAKey(privateKey *rsa.PrivateKey) RSAKey {
 	return RSAKey{
-		Public: RSAPublicKey{
-			publicKey: &privateKey.PublicKey,
-		},
 		private: privateKey,
 	}
 }
@@ -205,6 +201,13 @@ func GenerateRSAKey(length int) (RSAKey, error) {
 	}
 
 	return NewRSAKey(privateKey), nil
+}
+
+// Public returns the public part that belongs to this private key.
+func (prv RSAKey) Public() RSAPublicKey {
+	return RSAPublicKey{
+		publicKey: prv.private.PublicKey,
+	}
 }
 
 // Sign signs a message using the RSAKey.

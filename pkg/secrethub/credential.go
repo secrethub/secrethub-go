@@ -293,12 +293,12 @@ func (c RSACredential) AddAuthentication(r *http.Request) error {
 
 // Fingerprint returns the key identifier by which the server can identify the credential.
 func (c RSACredential) Fingerprint() (string, error) {
-	return c.RSAKey.Public.Fingerprint()
+	return c.RSAKey.Public().Fingerprint()
 }
 
 // Verifier returns the public key to be stored server side to verify an http request authenticated with this credential.
 func (c RSACredential) Verifier() ([]byte, error) {
-	return c.RSAKey.Public.Export()
+	return c.RSAKey.Public().Export()
 }
 
 // Decoder returns the decoder for the rsa private key.
@@ -308,7 +308,7 @@ func (c RSACredential) Decoder() CredentialDecoder {
 
 // Wrap encrypts data, typically an account key.
 func (c RSACredential) Wrap(plaintext []byte) (crypto.CiphertextRSAAES, error) {
-	return c.RSAKey.Public.Encrypt(plaintext)
+	return c.RSAKey.Public().Encrypt(plaintext)
 }
 
 // Unwrap decrypts data, typically an account key.

@@ -134,7 +134,7 @@ func (s repoService) Create(path string) (*api.Repo, error) {
 	if err != nil {
 		return nil, errio.Error(err)
 	}
-	repoEncryptionKey, err := accountKey.Public.WrapBytes(key.Export())
+	repoEncryptionKey, err := accountKey.Public().WrapBytes(key.Export())
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -145,7 +145,7 @@ func (s repoService) Create(path string) (*api.Repo, error) {
 		return nil, errio.Error(err)
 	}
 
-	repoIndexKey, err := accountKey.Public.WrapBytes(key.Export())
+	repoIndexKey, err := accountKey.Public().WrapBytes(key.Export())
 	if err != nil {
 		return nil, errio.Error(err)
 	}

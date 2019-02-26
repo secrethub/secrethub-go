@@ -117,7 +117,7 @@ func (c signer) AddAuthentication(r *http.Request) error {
 
 	base64EncodedSignature := base64.StdEncoding.EncodeToString(signature)
 
-	fingerprint, err := c.key.Public.Fingerprint()
+	fingerprint, err := c.key.Public().Fingerprint()
 	if err != nil {
 		return errio.Error(err)
 	}

@@ -31,7 +31,7 @@ func TestRSAAES_Success(t *testing.T) {
 
 	input := []byte("secret message")
 
-	ciphertext, err := rsaKey1.Public.Encrypt(input)
+	ciphertext, err := rsaKey1.Public().Encrypt(input)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +118,7 @@ func TestRSA_Success(t *testing.T) {
 
 	input := []byte("secret message")
 
-	ciphertext, err := rsaKey1.Public.Wrap(input)
+	ciphertext, err := rsaKey1.Public().Wrap(input)
 	if err != nil {
 		t.Fatal(err)
 	}
