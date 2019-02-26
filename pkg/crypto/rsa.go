@@ -140,6 +140,17 @@ func (k RSAPublicKey) Export() ([]byte, error) {
 	return bytes, nil
 }
 
+// Fingerprint returns the SHA256 fingerprint of the public key
+func (k RSAPublicKey) Fingerprint() (string, error) {
+	pub, err := k.Export()
+	if err != nil {
+		return "", errio.Error(err)
+	}
+
+	sum := sha256.Sum256(pub)
+	return hex.EncodeToString(sum[:]), nil
+}
+
 // ImportRSAPublicKey imports a RSAPublic key from an exported public key.
 func ImportRSAPublicKey(encodedPublicKey []byte) (RSAPublicKey, error) {
 	if len(encodedPublicKey) == 0 {
@@ -257,17 +268,6 @@ func GenerateServiceKey() (RSAKey, error) {
 		return RSAKey{}, errio.Error(err)
 	}
 	return privateKey, nil
-}
-
-// Fingerprint returns the SHA256 fingerprint of the public key
-func (k RSAPublicKey) Fingerprint() (string, error) {
-	pub, err := k.Export()
-	if err != nil {
-		return "", errio.Error(err)
-	}
-
-	sum := sha256.Sum256(pub)
-	return hex.EncodeToString(sum[:]), nil
 }
 
 // ExportPrivateKey exports the rsa private key in an PKIX pem encoded format.
