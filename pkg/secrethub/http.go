@@ -87,14 +87,14 @@ type ClientOptions struct {
 // httpClient is a raw client for the SecretHub http API.
 type httpClient struct {
 	client  *http.Client
-	signer  auth.Signer
+	signer  auth.Credential
 	base    string // base url
 	version string
 }
 
 // newHTTPClient configures a new httpClient and overrides default values
 // when opts is not nil.
-func newHTTPClient(signer auth.Signer, opts *ClientOptions) *httpClient {
+func newHTTPClient(signer auth.Credential, opts *ClientOptions) *httpClient {
 	serverURL := DefaultServerURL
 	timeout := DefaultTimeout
 	if opts != nil {

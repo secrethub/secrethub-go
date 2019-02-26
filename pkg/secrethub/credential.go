@@ -39,7 +39,7 @@ var (
 
 // Credential can be used to encrypt and decrypt data and to authenticate http requests.
 type Credential interface {
-	auth.Signer
+	auth.Credential
 	// Fingerprint returns an identifier by which the server can identify the credential, e.g. a username of a fingerprint.
 	Fingerprint() (string, error)
 	// Verifier returns the data to be stored server side to verify an http request authenticated with this credential.
