@@ -2,11 +2,12 @@ package secrethub
 
 import (
 	"fmt"
-	"github.com/keylockerbv/secrethub-go/pkg/auth"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/keylockerbv/secrethub-go/pkg/auth"
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
