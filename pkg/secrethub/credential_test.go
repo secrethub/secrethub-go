@@ -27,7 +27,7 @@ func RunArmorInterfaceTest(t *testing.T, armorer PassBasedKey, unarmorer PassBas
 	t.Run("encryption", func(t *testing.T) {
 		expected := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 
-		armored, header, err := armorer.Armor(expected)
+		armored, header, err := armorer.Encrypt(expected)
 		assert.OK(t, err)
 
 		if reflect.DeepEqual(armored, expected) {
@@ -41,7 +41,7 @@ func RunArmorInterfaceTest(t *testing.T, armorer PassBasedKey, unarmorer PassBas
 		headerBytes, err := json.Marshal(header)
 		assert.OK(t, err)
 
-		unarmored, err := unarmorer.Unarmor(armored, headerBytes)
+		unarmored, err := unarmorer.Decrypt(armored, headerBytes)
 		assert.OK(t, err)
 
 		assert.Equal(t, unarmored, expected)

@@ -101,7 +101,7 @@ type EncodedCredential struct {
 	RawHeader []byte
 	// Payload is the second part of the credential string.
 	Payload []byte
-	// Armor contains the name of the armoring algorithm if the payload is encrypted.
+	// Encrypt contains the name of the armoring algorithm if the payload is encrypted.
 	Armor string
 	// Decoder is used to decode the payload into a Credential.
 	// Populated when you Parse a credential string.
@@ -124,7 +124,7 @@ func (c EncodedCredential) DecodeArmored(unarmorer PassBasedKey) (Credential, er
 		return nil, ErrInvalidKey
 	}
 
-	payload, err := unarmorer.Unarmor(c.Payload, c.RawHeader)
+	payload, err := unarmorer.Decrypt(c.Payload, c.RawHeader)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -151,7 +151,7 @@ func EncodeArmoredCredential(credential Credential, armorer PassBasedKey) (strin
 	// Set the `enc` header so it can be used to decrypt later.
 	cred.Header["enc"] = armorer.Name()
 
-	payload, additionalheaders, err := armorer.Armor(cred.Payload)
+	payload, additionalheaders, err := armorer.Encrypt(cred.Payload)
 	if err != nil {
 		return "", errio.Error(err)
 	}
@@ -340,10 +340,10 @@ func (d RSAPrivateKeyDecoder) Name() string {
 type PassBasedKey interface {
 	// Name returns the name of the key derivation algorithm.
 	Name() string
-	// Armor encrypts a payload with and returns a header.
-	Armor(payload []byte) ([]byte, map[string]interface{}, error)
-	// Unarmor decrypts a payload with the key and accepts the raw JSON header to read values from.
-	Unarmor(payload []byte, header []byte) ([]byte, error)
+	// Encrypt encrypts a payload with and returns a header.
+	Encrypt(payload []byte) ([]byte, map[string]interface{}, error)
+	// Decrypt decrypts a payload with the key and accepts the raw JSON header to read values from.
+	Decrypt(payload []byte, header []byte) ([]byte, error)
 }
 
 // armoredCredentialHeader is a helper type to help encoding
@@ -375,9 +375,9 @@ func NewPassphraseArmorer(passphrase []byte) (PassBasedKey, error) {
 	}, nil
 }
 
-// Armor implements the Armorer interface and encrypts a payload,
+// Encrypt implements the Armorer interface and encrypts a payload,
 // returning the encrypted payload and header values.
-func (p passphraseArmorer) Armor(payload []byte) ([]byte, map[string]interface{}, error) {
+func (p passphraseArmorer) Encrypt(payload []byte) ([]byte, map[string]interface{}, error) {
 	ciphertext, err := p.key.Encrypt(payload, crypto.SaltOperationLocalCredentialEncryption)
 	if err != nil {
 		return nil, nil, errio.Error(err)
@@ -410,8 +410,8 @@ func (p passphraseArmorer) Name() string {
 	return "scrypt"
 }
 
-// Unarmor decrypts an encrypted payload and reads values from the header when necessary.
-func (p passphraseArmorer) Unarmor(payload []byte, rawHeader []byte) ([]byte, error) {
+// Decrypt decrypts an encrypted payload and reads values from the header when necessary.
+func (p passphraseArmorer) Decrypt(payload []byte, rawHeader []byte) ([]byte, error) {
 	header := armoredCredentialHeader{}
 	err := json.Unmarshal(rawHeader, &header)
 	if err != nil {
