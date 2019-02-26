@@ -2,8 +2,9 @@ package crypto
 
 import (
 	"bytes"
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 	"testing"
+
+	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 )
 
 func generateRSAKey(t *testing.T) *RSAKey {
