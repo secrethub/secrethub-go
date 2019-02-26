@@ -4,6 +4,7 @@ lint:
   stage: test
   image: mozgiii/gometalinter-docker
   script:
+    - go mod download
     - gometalinter --config=metalinter.config ./...
 
 test:
