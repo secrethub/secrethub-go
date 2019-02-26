@@ -36,7 +36,7 @@ func TestVerifyMultipleMethods(t *testing.T) {
 		Expected   string
 	}{
 		"success": {
-			Credential: auth.NewSigner(key),
+			Credential: auth.NewRSACredential(key),
 			Expected:   fingerprint,
 		},
 	}

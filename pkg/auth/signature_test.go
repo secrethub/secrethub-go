@@ -207,7 +207,7 @@ func TestSignRequest(t *testing.T) {
 
 			authenticator := auth.NewMethodSignature(fakeCredentialGetter)
 
-			err = auth.NewSigner(tc.ClientKey).AddAuthentication(req)
+			err = auth.NewRSACredential(tc.ClientKey).AddAuthentication(req)
 			assert.OK(t, err)
 
 			// Act
@@ -229,7 +229,7 @@ func TestSignRequest_CheckHeadersAreSet(t *testing.T) {
 	assert.OK(t, err)
 
 	// Act
-	err = auth.NewSigner(clientKey).AddAuthentication(req)
+	err = auth.NewRSACredential(clientKey).AddAuthentication(req)
 	assert.OK(t, err)
 
 	// Assert
@@ -309,7 +309,7 @@ func TestReplayRequest(t *testing.T) {
 			original, err := http.NewRequest(tc.originalMethod, tc.originalURL, tc.originalBody)
 			assert.OK(t, err)
 
-			err = auth.NewSigner(clientKey).AddAuthentication(original)
+			err = auth.NewRSACredential(clientKey).AddAuthentication(original)
 			assert.OK(t, err)
 
 			replay, err := http.NewRequest(tc.replayMethod, tc.replayURL, tc.replayBody)
