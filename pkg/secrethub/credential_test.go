@@ -17,43 +17,32 @@ var (
 	exampleHeaderEncoded = "eyJ0eXBlIjoidGVzdCJ9"
 )
 
-// RunPassBasedKeyTest tests whether an pass based key Encrypt and Decrypt work correctly.
-func RunPassBasedKeyTest(t *testing.T, encryptor PassBasedKey, decryptor PassBasedKey) {
-	t.Run("name_equality", func(t *testing.T) {
-		assert.Equal(t, encryptor.Name(), decryptor.Name())
-	})
-
-	t.Run("encryption", func(t *testing.T) {
-		expected := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
-
-		encrypted, header, err := encryptor.Encrypt(expected)
-		assert.OK(t, err)
-
-		if reflect.DeepEqual(encrypted, expected) {
-			t.Errorf(
-				"unexpected encrypted payload: %v (encrypted) == %v (expected)",
-				encrypted,
-				expected,
-			)
-		}
-
-		headerBytes, err := json.Marshal(header)
-		assert.OK(t, err)
-
-		actual, err := decryptor.Decrypt(encrypted, headerBytes)
-		assert.OK(t, err)
-
-		assert.Equal(t, actual, expected)
-	})
-}
-
 func TestPassBasedKey(t *testing.T) {
 
 	pass := []byte("Password123")
 	key, err := NewPassBasedKey(pass)
 	assert.OK(t, err)
 
-	RunPassBasedKeyTest(t, key, key)
+	expected := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+	encrypted, header, err := key.Encrypt(expected)
+	assert.OK(t, err)
+
+	if reflect.DeepEqual(encrypted, expected) {
+		t.Errorf(
+			"unexpected encrypted payload: %v (encrypted) == %v (expected)",
+			encrypted,
+			expected,
+		)
+	}
+
+	headerBytes, err := json.Marshal(header)
+	assert.OK(t, err)
+
+	actual, err := key.Decrypt(encrypted, headerBytes)
+	assert.OK(t, err)
+
+	assert.Equal(t, actual, expected)
 }
 
 // RunCredentialInterfaceTest tests whether a Credential interface
