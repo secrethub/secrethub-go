@@ -56,7 +56,7 @@ type RSAPublicKey struct {
 
 // Encrypt encrypts provided data with AES-GCM.
 // The used AES-key is then encrypted with RSA-OAEP.
-func (k *RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
+func (k RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
 	aesKey, err := GenerateAESKey()
 	if err != nil {
 		return CiphertextRSAAES{}, errio.Error(err)
@@ -79,7 +79,7 @@ func (k *RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
 }
 
 // Wrap encrypts the data with RSA-OAEP using the RSAKey.
-func (k *RSAPublicKey) Wrap(data []byte) (CiphertextRSA, error) {
+func (k RSAPublicKey) Wrap(data []byte) (CiphertextRSA, error) {
 	encrypted, err := k.wrap(data)
 	if err != nil {
 		return CiphertextRSA{}, err
@@ -92,11 +92,11 @@ func (k *RSAPublicKey) Wrap(data []byte) (CiphertextRSA, error) {
 
 // WrapBytes encrypts the data with RSA-OAEP using the RSAPublicKey.
 // The function will be deprecated. Directly use Wrap instead.
-func (k *RSAPublicKey) WrapBytes(data []byte) ([]byte, error) {
+func (k RSAPublicKey) WrapBytes(data []byte) ([]byte, error) {
 	return k.wrap(data)
 }
 
-func (k *RSAPublicKey) wrap(data []byte) ([]byte, error) {
+func (k RSAPublicKey) wrap(data []byte) ([]byte, error) {
 	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, k.publicKey, data, []byte{})
 	if err != nil {
 		return nil, ErrRSAEncrypt(err)
@@ -107,7 +107,7 @@ func (k *RSAPublicKey) wrap(data []byte) ([]byte, error) {
 // Verify will verify a message using the encoded public key and the signature.
 // A valid signature is indicated by returning a nil error
 // A public key must be importable by importPublicKey.
-func (k *RSAPublicKey) Verify(message, signature []byte) error {
+func (k RSAPublicKey) Verify(message, signature []byte) error {
 	hashedMessage := sha256.Sum256(message)
 
 	return rsa.VerifyPKCS1v15(k.publicKey, crypto.SHA256, hashedMessage[:], signature)
@@ -197,7 +197,7 @@ func GenerateRSAKey(length int) (RSAKey, error) {
 }
 
 // Sign signs a message using the RSAKey.
-func (k *RSAKey) Sign(message []byte) ([]byte, error) {
+func (k RSAKey) Sign(message []byte) ([]byte, error) {
 	hashedMessage := sha256.Sum256(message)
 
 	return rsa.SignPKCS1v15(rand.Reader, k.privateKey, crypto.SHA256, hashedMessage[:])
@@ -205,7 +205,7 @@ func (k *RSAKey) Sign(message []byte) ([]byte, error) {
 
 // Decrypt decrypts provided data that is encrypted with AES-GCM
 // and then the AES-key used for encryption encrypted with RSA-OAEP.
-func (k *RSAKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
+func (k RSAKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
 	aesKeyData, err := k.Unwrap(ciphertext.CiphertextRSA)
 	if err != nil {
 		return nil, err
@@ -215,7 +215,7 @@ func (k *RSAKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
 }
 
 // Unwrap decrypts the encryptedData with RSA-OAEP using the RSAKey.
-func (k *RSAKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
+func (k RSAKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
 	if len(ciphertext.Data) == 0 {
 		return []byte{}, nil
 	}
@@ -225,7 +225,7 @@ func (k *RSAKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
 
 // ReWrap re-encrypts the data for the given public key.
 // The RSAKey must be able to decrypt the original data for the function to succeed.
-func (k *RSAKey) ReWrap(pk RSAPublicKey, encData []byte) ([]byte, error) {
+func (k RSAKey) ReWrap(pk RSAPublicKey, encData []byte) ([]byte, error) {
 
 	decData, err := k.UnwrapBytes(encData)
 	if err != nil {
@@ -237,11 +237,11 @@ func (k *RSAKey) ReWrap(pk RSAPublicKey, encData []byte) ([]byte, error) {
 
 // UnwrapBytes decrypts the encrypted data with RSA-OAEP using the RSAKey.
 // This function will be deprecated. Directly use Unwrap instead.
-func (k *RSAKey) UnwrapBytes(encryptedData []byte) ([]byte, error) {
+func (k RSAKey) UnwrapBytes(encryptedData []byte) ([]byte, error) {
 	return k.unwrap(encryptedData)
 }
 
-func (k *RSAKey) unwrap(encryptedData []byte) ([]byte, error) {
+func (k RSAKey) unwrap(encryptedData []byte) ([]byte, error) {
 	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, k.privateKey, encryptedData, []byte{})
 	if err != nil {
 		return nil, ErrRSADecrypt(err)
@@ -260,7 +260,7 @@ func GenerateServiceKey() (RSAKey, error) {
 }
 
 // Fingerprint returns the SHA256 fingerprint of the public key
-func (k *RSAKey) Fingerprint() (string, error) {
+func (k RSAKey) Fingerprint() (string, error) {
 	pub, err := k.ExportPublicKey()
 	if err != nil {
 		return "", errio.Error(err)
