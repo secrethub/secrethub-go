@@ -56,7 +56,7 @@ type RSAPublicKey struct {
 
 // Encrypt encrypts provided data with AES-GCM.
 // The used AES-key is then encrypted with RSA-OAEP.
-func (k RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
+func (pub RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
 	aesKey, err := GenerateAESKey()
 	if err != nil {
 		return CiphertextRSAAES{}, errio.Error(err)
@@ -67,7 +67,7 @@ func (k RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
 		return CiphertextRSAAES{}, errio.Error(err)
 	}
 
-	rsaData, err := k.Wrap(aesKey.key)
+	rsaData, err := pub.Wrap(aesKey.key)
 	if err != nil {
 		return CiphertextRSAAES{}, errio.Error(err)
 	}
@@ -79,8 +79,8 @@ func (k RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
 }
 
 // Wrap encrypts the data with RSA-OAEP using the RSAKey.
-func (k RSAPublicKey) Wrap(data []byte) (CiphertextRSA, error) {
-	encrypted, err := k.wrap(data)
+func (pub RSAPublicKey) Wrap(data []byte) (CiphertextRSA, error) {
+	encrypted, err := pub.wrap(data)
 	if err != nil {
 		return CiphertextRSA{}, err
 	}
@@ -92,12 +92,12 @@ func (k RSAPublicKey) Wrap(data []byte) (CiphertextRSA, error) {
 
 // WrapBytes encrypts the data with RSA-OAEP using the RSAPublicKey.
 // The function will be deprecated. Directly use Wrap instead.
-func (k RSAPublicKey) WrapBytes(data []byte) ([]byte, error) {
-	return k.wrap(data)
+func (pub RSAPublicKey) WrapBytes(data []byte) ([]byte, error) {
+	return pub.wrap(data)
 }
 
-func (k RSAPublicKey) wrap(data []byte) ([]byte, error) {
-	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, k.publicKey, data, []byte{})
+func (pub RSAPublicKey) wrap(data []byte) ([]byte, error) {
+	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, pub.publicKey, data, []byte{})
 	if err != nil {
 		return nil, ErrRSAEncrypt(err)
 	}
@@ -107,10 +107,10 @@ func (k RSAPublicKey) wrap(data []byte) ([]byte, error) {
 // Verify will verify a message using the encoded public key and the signature.
 // A valid signature is indicated by returning a nil error
 // A public key must be importable by importPublicKey.
-func (k RSAPublicKey) Verify(message, signature []byte) error {
+func (pub RSAPublicKey) Verify(message, signature []byte) error {
 	hashedMessage := sha256.Sum256(message)
 
-	return rsa.VerifyPKCS1v15(k.publicKey, crypto.SHA256, hashedMessage[:], signature)
+	return rsa.VerifyPKCS1v15(pub.publicKey, crypto.SHA256, hashedMessage[:], signature)
 }
 
 // Verify will verify a message using the encoded public key and the signature.
@@ -126,8 +126,8 @@ func Verify(encodedPublicKey, message, signature []byte) error {
 }
 
 // Export exports the rsa public key in an PKIX pem encoded format.
-func (k RSAPublicKey) Export() ([]byte, error) {
-	asn1, err := x509.MarshalPKIXPublicKey(k.publicKey)
+func (pub RSAPublicKey) Export() ([]byte, error) {
+	asn1, err := x509.MarshalPKIXPublicKey(pub.publicKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -141,13 +141,13 @@ func (k RSAPublicKey) Export() ([]byte, error) {
 }
 
 // Fingerprint returns the SHA256 fingerprint of the public key
-func (k RSAPublicKey) Fingerprint() (string, error) {
-	pub, err := k.Export()
+func (pub RSAPublicKey) Fingerprint() (string, error) {
+	exported, err := pub.Export()
 	if err != nil {
 		return "", errio.Error(err)
 	}
 
-	sum := sha256.Sum256(pub)
+	sum := sha256.Sum256(exported)
 	return hex.EncodeToString(sum[:]), nil
 }
 
@@ -208,16 +208,16 @@ func GenerateRSAKey(length int) (RSAKey, error) {
 }
 
 // Sign signs a message using the RSAKey.
-func (k RSAKey) Sign(message []byte) ([]byte, error) {
+func (prv RSAKey) Sign(message []byte) ([]byte, error) {
 	hashedMessage := sha256.Sum256(message)
 
-	return rsa.SignPKCS1v15(rand.Reader, k.private, crypto.SHA256, hashedMessage[:])
+	return rsa.SignPKCS1v15(rand.Reader, prv.private, crypto.SHA256, hashedMessage[:])
 }
 
 // Decrypt decrypts provided data that is encrypted with AES-GCM
 // and then the AES-key used for encryption encrypted with RSA-OAEP.
-func (k RSAKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
-	aesKeyData, err := k.Unwrap(ciphertext.rsa)
+func (prv RSAKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
+	aesKeyData, err := prv.Unwrap(ciphertext.rsa)
 	if err != nil {
 		return nil, err
 	}
@@ -226,19 +226,19 @@ func (k RSAKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
 }
 
 // Unwrap decrypts the encryptedData with RSA-OAEP using the RSAKey.
-func (k RSAKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
+func (prv RSAKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
 	if len(ciphertext.Data) == 0 {
 		return []byte{}, nil
 	}
 
-	return k.unwrap(ciphertext.Data)
+	return prv.unwrap(ciphertext.Data)
 }
 
 // ReWrap re-encrypts the data for the given public key.
 // The RSAKey must be able to decrypt the original data for the function to succeed.
-func (k RSAKey) ReWrap(pk RSAPublicKey, encData []byte) ([]byte, error) {
+func (prv RSAKey) ReWrap(pk RSAPublicKey, encData []byte) ([]byte, error) {
 
-	decData, err := k.UnwrapBytes(encData)
+	decData, err := prv.UnwrapBytes(encData)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -248,12 +248,12 @@ func (k RSAKey) ReWrap(pk RSAPublicKey, encData []byte) ([]byte, error) {
 
 // UnwrapBytes decrypts the encrypted data with RSA-OAEP using the RSAKey.
 // This function will be deprecated. Directly use Unwrap instead.
-func (k RSAKey) UnwrapBytes(encryptedData []byte) ([]byte, error) {
-	return k.unwrap(encryptedData)
+func (prv RSAKey) UnwrapBytes(encryptedData []byte) ([]byte, error) {
+	return prv.unwrap(encryptedData)
 }
 
-func (k RSAKey) unwrap(encryptedData []byte) ([]byte, error) {
-	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, k.private, encryptedData, []byte{})
+func (prv RSAKey) unwrap(encryptedData []byte) ([]byte, error) {
+	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, prv.private, encryptedData, []byte{})
 	if err != nil {
 		return nil, ErrRSADecrypt(err)
 	}
@@ -271,8 +271,8 @@ func GenerateServiceKey() (RSAKey, error) {
 }
 
 // ExportPrivateKey exports the rsa private key in an PKIX pem encoded format.
-func (k RSAKey) ExportPrivateKey() ([]byte, error) {
-	privateASN1 := x509.MarshalPKCS1PrivateKey(k.private)
+func (prv RSAKey) ExportPrivateKey() ([]byte, error) {
+	privateASN1 := x509.MarshalPKCS1PrivateKey(prv.private)
 
 	privateBytes := pem.EncodeToMemory(&pem.Block{
 		Type:  "RSA PRIVATE KEY",
@@ -283,8 +283,8 @@ func (k RSAKey) ExportPrivateKey() ([]byte, error) {
 }
 
 // Export exports the raw rsa private key.
-func (k RSAKey) Export() []byte {
-	return x509.MarshalPKCS1PrivateKey(k.private)
+func (prv RSAKey) Export() []byte {
+	return x509.MarshalPKCS1PrivateKey(prv.private)
 }
 
 // ImportRSAPrivateKey imports a rsa private key from a pem encoded format.
@@ -307,14 +307,14 @@ func ImportRSAPrivateKey(privateKey []byte) (RSAKey, error) {
 
 // ExportPrivateKeyWithPassphrase exports the rsa private key in a
 // PKIX pem encoded format, encrypted with the given passphrase.
-func (k RSAKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
+func (prv RSAKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
 	if pass == "" {
 		return nil, ErrEmptyPassphrase
 	}
 
 	plain := &pem.Block{
 		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(k.private),
+		Bytes: x509.MarshalPKCS1PrivateKey(prv.private),
 	}
 
 	encrypted, err := x509.EncryptPEMBlock(rand.Reader, plain.Type, plain.Bytes, []byte(pass), x509.PEMCipherAES256)
