@@ -112,3 +112,19 @@ func TestCiphertextRSAAES_MarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func Test_generateNonce(t *testing.T) {
+	//  act
+	nonce1, err := generateNonce(32)
+	if err != nil {
+		t.Error(err)
+	}
+	nonce2, err := generateNonce(32)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if bytes.Equal(*nonce1, *nonce2) {
+		t.Fatal("Same Salt generated.")
+	}
+}

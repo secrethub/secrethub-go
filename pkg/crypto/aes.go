@@ -65,7 +65,7 @@ func (k *AESKey) Encrypt(data []byte) (CiphertextAES, error) {
 		return CiphertextAES{}, ErrInvalidCipher(err)
 	}
 
-	nonce, err := GenerateNonce(gcm.NonceSize())
+	nonce, err := generateNonce(gcm.NonceSize())
 	if err != nil {
 		return CiphertextAES{}, ErrAESEncrypt(err)
 	}
@@ -196,4 +196,13 @@ func (ct *CiphertextAES) UnmarshalJSON(b []byte) error {
 	ct.Nonce = aesNonce
 
 	return nil
+}
+
+// generateNonce generates a Nonce of a particular size.
+func generateNonce(size int) (*[]byte, error) {
+	nonce := make([]byte, size)
+	if _, err := rand.Read(nonce); err != nil {
+		return nil, errio.Error(err)
+	}
+	return &nonce, nil
 }
