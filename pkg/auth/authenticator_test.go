@@ -16,7 +16,7 @@ func TestVerifyMultipleMethods(t *testing.T) {
 
 	// Arrange
 	key := clientKey
-	fingerprint, err := key.Fingerprint()
+	fingerprint, err := key.Public.Fingerprint()
 	assert.OK(t, err)
 	pub, err := key.Public.Export()
 	assert.OK(t, err)

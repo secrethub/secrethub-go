@@ -260,8 +260,8 @@ func GenerateServiceKey() (RSAKey, error) {
 }
 
 // Fingerprint returns the SHA256 fingerprint of the public key
-func (k RSAKey) Fingerprint() (string, error) {
-	pub, err := k.Public.Export()
+func (k RSAPublicKey) Fingerprint() (string, error) {
+	pub, err := k.Export()
 	if err != nil {
 		return "", errio.Error(err)
 	}
