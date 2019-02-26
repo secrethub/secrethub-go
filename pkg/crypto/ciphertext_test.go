@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"bytes"
+	"github.com/keylockerbv/secrethub-go/pkg/testutil"
 	"testing"
 )
 
@@ -29,7 +30,7 @@ func TestRSAAES_Success(t *testing.T) {
 
 	input := []byte("secret message")
 
-	ciphertext, err := EncryptRSAAES(input, rsaKey1.RSAPublicKey)
+	ciphertext, err := rsaKey1.RSAPublicKey.Encrypt(input)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,7 +39,7 @@ func TestRSAAES_Success(t *testing.T) {
 		t.Error("encrypted data equals the original data")
 	}
 
-	decData, err := ciphertext.decrypt(*rsaKey1)
+	decData, err := rsaKey1.Decrypt(ciphertext)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +47,7 @@ func TestRSAAES_Success(t *testing.T) {
 		t.Error("decrypted data does not equal the original data")
 	}
 
-	decDataWrongKey, err := ciphertext.decrypt(*rsaKey2)
+	decDataWrongKey, err := rsaKey2.Decrypt(ciphertext)
 	if err == nil {
 		t.Error("did not return an error for decrypting with different key")
 	}
@@ -60,11 +61,9 @@ func TestRSAAES_DecryptNilData(t *testing.T) {
 
 	ciphertext := CiphertextRSAAES{}
 
-	_, err := ciphertext.decrypt(*rsaKey)
+	_, err := rsaKey.Decrypt(ciphertext)
 
-	if err != ErrInvalidCiphertext {
-		t.Error("did not return an error for decrypting with nil ciphertext")
-	}
+	testutil.Compare(t, err, ErrInvalidCipher("crypto/aes: invalid key size 0"))
 }
 
 func TestAES_Success(t *testing.T) {
@@ -106,11 +105,10 @@ func TestAES_DecryptNilData(t *testing.T) {
 		Nonce: []byte("aa"),
 	}
 
-	_, err := aesKey.Decrypt(ciphertext)
+	data, err := aesKey.Decrypt(ciphertext)
 
-	if err != ErrInvalidCiphertext {
-		t.Error("did not return an error for decrypting with wrong key type")
-	}
+	testutil.Compare(t, data, []byte{})
+	testutil.Compare(t, err, nil)
 }
 
 func TestRSA_Success(t *testing.T) {
@@ -128,7 +126,7 @@ func TestRSA_Success(t *testing.T) {
 		t.Error("encrypted data equals the original data")
 	}
 
-	decData, err := ciphertext.decrypt(*rsaKey1)
+	decData, err := rsaKey1.Unwrap(ciphertext)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +134,7 @@ func TestRSA_Success(t *testing.T) {
 		t.Error("decrypted data does not equal the original data")
 	}
 
-	decDataWrongKey, err := ciphertext.decrypt(*rsaKey2)
+	decDataWrongKey, err := rsaKey2.Unwrap(ciphertext)
 	if err == nil {
 		t.Error("did not return an error for decrypting with different key")
 	}
@@ -150,11 +148,10 @@ func TestRSA_DecryptNilData(t *testing.T) {
 
 	ciphertext := CiphertextRSA{}
 
-	_, err := ciphertext.decrypt(*rsaKey)
+	data, err := rsaKey.Unwrap(ciphertext)
 
-	if err != ErrInvalidCiphertext {
-		t.Error("did not return an error for decrypting nil ciphertext")
-	}
+	testutil.Compare(t, data, []byte{})
+	testutil.Compare(t, err, nil)
 }
 
 func TestEncodedCiphertext_Validate(t *testing.T) {

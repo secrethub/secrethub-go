@@ -298,12 +298,12 @@ func (c RSACredential) Decoder() CredentialDecoder {
 
 // Wrap encrypts data, typically an account key.
 func (c RSACredential) Wrap(plaintext []byte) (crypto.CiphertextRSAAES, error) {
-	return crypto.EncryptRSAAES(plaintext, c.RSAKey.RSAPublicKey)
+	return c.RSAKey.RSAPublicKey.Encrypt(plaintext)
 }
 
 // Unwrap decrypts data, typically an account key.
 func (c RSACredential) Unwrap(ciphertext crypto.CiphertextRSAAES) ([]byte, error) {
-	return crypto.DecryptRSAAES(ciphertext, *c.RSAKey)
+	return c.RSAKey.Decrypt(ciphertext)
 }
 
 // Type returns what type of credential this is.
