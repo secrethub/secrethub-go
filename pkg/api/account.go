@@ -63,7 +63,13 @@ func (n *AccountName) Set(value string) error {
 	return nil
 }
 
-// String returns the AccountName as a string.
+// String returns the accounts name as a string to be used for printing.
 func (n AccountName) String() string {
+	return string(n)
+}
+
+// Marshal returns the accounts name as a string to be used in communication
+// with the client and in transportation to the server.
+func (n AccountName) Marshal() string {
 	return string(n)
 }
