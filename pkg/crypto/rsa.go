@@ -80,12 +80,8 @@ func (pub RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
 
 // Wrap uses the public key to encrypt a small number of bytes with the RSA-OAEP
 // algorithm, returning the resulting ciphertext. The number of bytes may not exceed
-// the maximum input length of the key, which can be calculated using the MaxInputLen
+// the maximum input length of the key, which can be calculated using the MaxWrapSize
 // function. To encrypt an arbitrary number of bytes, use the Encrypt function instead.
-//
-// TODO: implement a pub.MaxInputLen() int function that returns the max length of data to be used for the Wrap function.
-// The message must be no longer than the length of the public modulus minus twice the hash length, minus a further 2.
-// https://crypto.stackexchange.com/questions/42097/what-is-the-maximum-size-of-the-plaintext-message-for-rsa-oaep
 func (pub RSAPublicKey) Wrap(data []byte) (CiphertextRSA, error) {
 	encrypted, err := pub.wrap(data)
 	if err != nil {
@@ -95,6 +91,17 @@ func (pub RSAPublicKey) Wrap(data []byte) (CiphertextRSA, error) {
 	return CiphertextRSA{
 		Data: encrypted,
 	}, nil
+}
+
+// MaxWrapSize returns the maximum number of bytes that can be used as input
+// of the Wrap function. To encrypt an arbitrary number of bytes, use the Encrypt
+// function instead.
+//
+// The maximum size for RSA-OAEP is defined RFC8017 section 7.1.1 and is related
+// to the key length used and padding overhead of the encryption and hashing
+// algorithms chosen.
+func (pub RSAPublicKey) MaxWrapSize() int {
+	return pub.publicKey.Size() - 2*sha256.Size - 2
 }
 
 // WrapBytes uses the public key to encrypt a small number of bytes with the RSA-OAEP
