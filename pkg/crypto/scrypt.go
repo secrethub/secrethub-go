@@ -119,6 +119,35 @@ func DeriveScryptKey(passphrase []byte, salt Salt, N, r, p, keyLen int) (*Scrypt
 	return key, nil
 }
 
+// Decrypt uses the key with the provided nonce to decrypt a given ciphertext
+// with the AES-GCM algorithm, returning the resulting decrypted bytes. The
+// key's salt purpose must allow for the given operation.
+func (k *ScryptKey) Decrypt(ciphertext CiphertextAES, operation SaltOperation) ([]byte, error) {
+	err := k.Salt.Purpose().Verify(k.KeyLen, "aesgcm", operation)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return k.key.Decrypt(ciphertext)
+}
+
+// Encrypt uses the key to encrypt given bytes with the AES-GCM algorithm,
+// returning the resulting ciphertext. The key's salt purpose must allow for
+// the given operation.
+func (k *ScryptKey) Encrypt(data []byte, operation SaltOperation) (CiphertextAES, error) {
+	err := k.Salt.Purpose().Verify(k.KeyLen, "aesgcm", operation)
+	if err != nil {
+		return CiphertextAES{}, errio.Error(err)
+	}
+
+	ciphertext, err := k.key.Encrypt(data)
+	if err != nil {
+		return CiphertextAES{}, err
+	}
+
+	return ciphertext, nil
+}
+
 // Validate validates the key's parameters.
 func (k ScryptKey) Validate() error {
 	if k.KeyLen != 16 && k.KeyLen != 24 && k.KeyLen != 32 {
@@ -166,35 +195,4 @@ func ValidatePassphrase(passphrase []byte) error {
 // isPowerOf2 returns true when n is a power of two.
 func isPowerOf2(n int) bool {
 	return ((n & (n - 1)) == 0) && (n > 0)
-}
-
-// Decrypt uses the key with the provided nonce to decrypt a given ciphertext
-// with the AES-GCM algorithm, returning the resulting decrypted bytes. The
-// key's salt purpose must allow for the given operation.
-//
-// TODO: move these functions to the top
-func (k *ScryptKey) Decrypt(ciphertext CiphertextAES, operation SaltOperation) ([]byte, error) {
-	err := k.Salt.Purpose().Verify(k.KeyLen, "aesgcm", operation)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return k.key.Decrypt(ciphertext)
-}
-
-// Encrypt uses the key to encrypt given bytes with the AES-GCM algorithm,
-// returning the resulting ciphertext. The key's salt purpose must allow for
-// the given operation.
-func (k *ScryptKey) Encrypt(data []byte, operation SaltOperation) (CiphertextAES, error) {
-	err := k.Salt.Purpose().Verify(k.KeyLen, "aesgcm", operation)
-	if err != nil {
-		return CiphertextAES{}, errio.Error(err)
-	}
-
-	ciphertext, err := k.key.Encrypt(data)
-	if err != nil {
-		return CiphertextAES{}, err
-	}
-
-	return ciphertext, nil
 }
