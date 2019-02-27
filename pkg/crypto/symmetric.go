@@ -25,7 +25,7 @@ var (
 const (
 	// HMACSize defines the number of bytes in the resulting hash,
 	//  i.e. the number of bits divided by 8.
-	HMACSize = 32
+	HMACSize = SymmetricKeyLength
 
 	// SymmetricKeyLength defines number of bytes to use as key length (256 bits)
 	// for symmetric encryption, i.e. the number of bits divided by 8.
