@@ -29,7 +29,7 @@ type Account struct {
 // AccountName represents the name of either a user or a service.
 type AccountName string
 
-// NewAccountName validates an accounts name and returns it as a typed AccountName when valid.
+// NewAccountName validates an account's name and returns it as a typed AccountName when valid.
 func NewAccountName(name string) (AccountName, error) {
 	err := ValidateAccountName(name)
 	if err != nil {
@@ -63,12 +63,12 @@ func (n *AccountName) Set(value string) error {
 	return nil
 }
 
-// String returns the accounts name as a string to be used for printing.
+// String returns the account's name as a string to be used for printing.
 func (n AccountName) String() string {
 	return string(n)
 }
 
-// Marshal returns the accounts name as a string to be used in communication
+// Marshal returns the account's name as a string to be used in communication
 // with the client and in transportation to the server.
 func (n AccountName) Marshal() string {
 	return string(n)

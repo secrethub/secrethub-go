@@ -443,12 +443,12 @@ func (rp *RepoPath) Set(value string) error {
 	return nil
 }
 
-// String returns the repositories path as a string to be used for printing.
+// String returns the repository's path as a string to be used for printing.
 func (rp RepoPath) String() string {
 	return string(rp)
 }
 
-// Marshal returns the repositories path as a string to be used in communication
+// Marshal returns the repository's path as a string to be used in communication
 // with the client and in transportation to the server.
 func (rp RepoPath) Marshal() string {
 	return string(rp)
@@ -542,12 +542,12 @@ func (n *OrgName) Set(value string) error {
 	return nil
 }
 
-// String returns the organisations name as a string to be used for printing.
+// String returns the organisation's name as a string to be used for printing.
 func (n OrgName) String() string {
 	return string(n)
 }
 
-// Marshal returns the organisations name as a string to be used in communication
+// Marshal returns the organisation's name as a string to be used in communication
 // with the client and in transportation to the server.
 func (n OrgName) Marshal() string {
 	return string(n)
