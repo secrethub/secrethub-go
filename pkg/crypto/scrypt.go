@@ -64,7 +64,7 @@ const (
 // ScryptKey is a key derived using the scrypt algorithm
 // with configured parameters.
 type ScryptKey struct {
-	key    *AESKey
+	key    *SymmetricKey
 	KeyLen int
 	Salt   Salt
 	N      int
@@ -116,7 +116,7 @@ func DeriveScryptKey(passphrase []byte, salt Salt, N, r, p, keyLen int) (*Scrypt
 		return nil, errio.Error(err)
 	}
 
-	key.key = NewAESKey(derived)
+	key.key = NewSymmetricKey(derived)
 
 	return key, nil
 }

@@ -496,7 +496,7 @@ func TestSecretPath_BlindName_IgnoreVersion(t *testing.T) {
 	path := api.SecretPath("owner/repo/secret")
 	pathWithVersion := api.SecretPath("owner/repo/secret:latest")
 
-	key, err := crypto.GenerateAESKey()
+	key, err := crypto.GenerateSymmetricKey()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -524,7 +524,7 @@ func TestBlindNameCaseSensitivity(t *testing.T) {
 		"Owner/repo/secret",
 	}
 
-	key, err := crypto.GenerateAESKey()
+	key, err := crypto.GenerateSymmetricKey()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -555,12 +555,12 @@ func TestBlindName_DifferentKey(t *testing.T) {
 		"Owner/repo/dir/secret",
 	}
 
-	key1, err := crypto.GenerateAESKey()
+	key1, err := crypto.GenerateSymmetricKey()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	key2, err := crypto.GenerateAESKey()
+	key2, err := crypto.GenerateSymmetricKey()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -9,7 +9,7 @@ import (
 )
 
 func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {
-	encryptionKey, err := GenerateAESKey()
+	encryptionKey, err := GenerateSymmetricKey()
 	assert.Equal(t, err, nil)
 
 	testData := []byte("testdata")
@@ -31,7 +31,7 @@ func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {
 
 func TestSymmetricKey_HMAC(t *testing.T) {
 	// Setup
-	indexKey, err := GenerateAESKey()
+	indexKey, err := GenerateSymmetricKey()
 	assert.OK(t, err)
 	testData := []byte("testDataString")
 

@@ -16,8 +16,8 @@ func generateRSAKey(t *testing.T) RSAKey {
 	return key
 }
 
-func generateAESKey(t *testing.T) *AESKey {
-	key, err := GenerateAESKey()
+func generateAESKey(t *testing.T) *SymmetricKey {
+	key, err := GenerateSymmetricKey()
 	if err != nil {
 		t.Fatal(err)
 	}

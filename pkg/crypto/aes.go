@@ -32,35 +32,35 @@ const (
 	SymmetricKeyLength = 32
 )
 
-// AESKey provides symmetric encryption functions that use the AES algorithm.
-type AESKey struct {
+// SymmetricKey provides symmetric encryption functions that use the AES algorithm.
+type SymmetricKey struct {
 	key []byte
 }
 
-// NewAESKey is used to construct a symmetric AES key from given bytes. Make sure
-// the key bytes have enough entropy. When in doubt, use GenerateAESKey instead.
-func NewAESKey(key []byte) *AESKey {
-	return &AESKey{
+// NewSymmetricKey is used to construct a symmetric AES key from given bytes. Make sure
+// the key bytes have enough entropy. When in doubt, use GenerateSymmetricKey instead.
+func NewSymmetricKey(key []byte) *SymmetricKey {
+	return &SymmetricKey{
 		key: key,
 	}
 }
 
-// GenerateAESKey generates a 256-bit AES-key.
-func GenerateAESKey() (*AESKey, error) {
+// GenerateSymmetricKey generates a 256-bit AES-key.
+func GenerateSymmetricKey() (*SymmetricKey, error) {
 	key := make([]byte, SymmetricKeyLength)
 	_, err := rand.Reader.Read(key)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	return &AESKey{
+	return &SymmetricKey{
 		key: key,
 	}, nil
 }
 
 // Encrypt uses the key to encrypt given data with the AES-GCM algorithm,
 // returning the resulting ciphertext.
-func (k *AESKey) Encrypt(data []byte) (CiphertextAES, error) {
+func (k *SymmetricKey) Encrypt(data []byte) (CiphertextAES, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
 		return CiphertextAES{}, ErrInvalidCipher(err)
@@ -87,7 +87,7 @@ func (k *AESKey) Encrypt(data []byte) (CiphertextAES, error) {
 
 // Decrypt uses the key to decrypt a given ciphertext with teh AES-GCM algorithm,
 // returning the decrypted bytes.
-func (k *AESKey) Decrypt(ciphertext CiphertextAES) ([]byte, error) {
+func (k *SymmetricKey) Decrypt(ciphertext CiphertextAES) ([]byte, error) {
 	if len(ciphertext.Data) == 0 {
 		return []byte{}, nil
 	}
@@ -101,9 +101,7 @@ func (k *AESKey) Decrypt(ciphertext CiphertextAES) ([]byte, error) {
 
 // HMAC uses the key to create a Hash-based Message Authentication Code of the
 // given data with the SHA256 hashing algorithm, returning the given hash bytes.
-//
-// TODO: AESKey is actually a SymmetricKey that is used with the AES algorithm. Here it's used with the HMAC algorithm, making it a non-AES operation.
-func (k AESKey) HMAC(data []byte) ([]byte, error) {
+func (k SymmetricKey) HMAC(data []byte) ([]byte, error) {
 	mac := hmac.New(sha256.New, k.key)
 	_, err := mac.Write(data)
 	if err != nil {
@@ -114,13 +112,13 @@ func (k AESKey) HMAC(data []byte) ([]byte, error) {
 
 // Export returns the bytes that form the basis of the symmetric key.
 // After using Export, make sure to keep the result private.
-func (k *AESKey) Export() []byte {
+func (k *SymmetricKey) Export() []byte {
 	return k.key
 }
 
 // decrypt is a helper function that uses the key to decrypt given
 // data with the AES-GCM algorithm and a given nonce.
-func (k AESKey) decrypt(data, nonce []byte) ([]byte, error) {
+func (k SymmetricKey) decrypt(data, nonce []byte) ([]byte, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
 		return nil, ErrInvalidCipher(err)

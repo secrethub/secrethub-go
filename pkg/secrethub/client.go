@@ -92,7 +92,7 @@ type client struct {
 
 	// repoindexKeys are the keys used to generate blind names in the repo.
 	// These are cached
-	repoIndexKeys map[api.RepoPath]*crypto.AESKey
+	repoIndexKeys map[api.RepoPath]*crypto.SymmetricKey
 }
 
 // newClient configures a new client, overriding defaults with options when given.
@@ -102,6 +102,6 @@ func newClient(credential Credential, opts *ClientOptions) client {
 	return client{
 		httpClient:    httpClient,
 		credential:    credential,
-		repoIndexKeys: make(map[api.RepoPath]*crypto.AESKey),
+		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
 }

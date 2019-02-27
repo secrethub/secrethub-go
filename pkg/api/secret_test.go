@@ -56,7 +56,7 @@ func TestSortSecretByName(t *testing.T) {
 
 func TestCreateSecretRequest_Validate_Unique(t *testing.T) {
 	// the set of accounts in EncryptedNames is equal to the set of accounts in EncryptedKeys.
-	blindKey, err := crypto.GenerateAESKey()
+	blindKey, err := crypto.GenerateSymmetricKey()
 	assert.OK(t, err)
 
 	secretPath := api.SecretPath("owner/repo/dir/secret")
@@ -122,7 +122,7 @@ func TestCreateSecretRequest_Validate_Unique(t *testing.T) {
 }
 
 func TestCreateSecretRequest_Validate_EncryptedNameAndKeyForEachAccount(t *testing.T) {
-	blindKey, err := crypto.GenerateAESKey()
+	blindKey, err := crypto.GenerateSymmetricKey()
 	assert.OK(t, err)
 
 	secretPath := api.SecretPath("owner/repo/dir/secret")

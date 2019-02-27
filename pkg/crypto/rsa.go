@@ -59,7 +59,7 @@ type RSAPublicKey struct {
 // the data. Then, it uses the RSA public key to encrypt the intermediate symmetric
 // key with the RSA-OAEP algorithm and combines both ciphertexts into one result.
 func (pub RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
-	aesKey, err := GenerateAESKey()
+	aesKey, err := GenerateSymmetricKey()
 	if err != nil {
 		return CiphertextRSAAES{}, errio.Error(err)
 	}
@@ -248,7 +248,7 @@ func (prv RSAKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
 		return nil, err
 	}
 
-	return NewAESKey(aesKeyData).decrypt(ciphertext.aes.Data, ciphertext.aes.Nonce)
+	return NewSymmetricKey(aesKeyData).decrypt(ciphertext.aes.Data, ciphertext.aes.Nonce)
 }
 
 // Unwrap uses the private key to decrypt a small ciphertext that has been encrypted

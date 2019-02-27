@@ -8,10 +8,10 @@ import (
 
 // SecretKey represents a secret key that is intended to be used by a specific account.
 type SecretKey struct {
-	SecretKeyID *uuid.UUID     `json:"secret_key_id"`
-	AccountID   *uuid.UUID     `json:"account_id"`
-	Key         *crypto.AESKey `json:"key"`
-	Status      string         `json:"status"` // TODO SHDEV-702: actually set this in the response
+	SecretKeyID *uuid.UUID           `json:"secret_key_id"`
+	AccountID   *uuid.UUID           `json:"account_id"`
+	Key         *crypto.SymmetricKey `json:"key"`
+	Status      string               `json:"status"` // TODO SHDEV-702: actually set this in the response
 }
 
 // EncryptedSecretKey represents a secret key, encrypted for a specific account.
@@ -32,7 +32,7 @@ func (k *EncryptedSecretKey) Decrypt(accountKey *crypto.RSAKey) (*SecretKey, err
 	return &SecretKey{
 		SecretKeyID: k.SecretKeyID,
 		AccountID:   k.AccountID,
-		Key:         crypto.NewAESKey(keyBytes),
+		Key:         crypto.NewSymmetricKey(keyBytes),
 		Status:      k.Status,
 	}, nil
 }
