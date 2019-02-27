@@ -23,26 +23,35 @@ var (
 )
 
 const (
-	// HMACByteSize is a constant that contains the size of an hmac byte slice.
+	// HMACByteSize defines the number of bytes in the resulting hash,
+	//  i.e. the number of bits divided by 8.
+	//
+	// TODO: refactor to HMACSize anc consider moving it to the `HMAC` function.
 	HMACByteSize = 32
+
+	// SymmetricKeyLength defines number of bytes to use as key length (256 bits)
+	// for symmetric encryption, i.e. the number of bits divided by 8.
+	SymmetricKeyLength = 32
 )
 
-// AESKey provides all cryptographic functions for a directory.
-// The AESKey contains the directory key.
+// AESKey provides symmetric encryption functions that use the AES algorithm.
 type AESKey struct {
 	key []byte
 }
 
-// NewAESKey is used to create a new AESKey.
-func NewAESKey(keyData []byte) *AESKey {
+// NewAESKey is used to construct a symmetric AES key from given bytes. Make sure
+// the key bytes have enough entropy. When in doubt, use GenerateAESKey instead.
+//
+// TODO: consider making this private
+func NewAESKey(key []byte) *AESKey {
 	return &AESKey{
-		key: keyData,
+		key: key,
 	}
 }
 
 // GenerateAESKey generates a 256-bit AES-key.
 func GenerateAESKey() (*AESKey, error) {
-	key := make([]byte, 32)
+	key := make([]byte, SymmetricKeyLength)
 	_, err := rand.Reader.Read(key)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -53,7 +62,8 @@ func GenerateAESKey() (*AESKey, error) {
 	}, nil
 }
 
-// Encrypt encrypts the data with AES-GCM using the AESKey.
+// Encrypt uses the key to encrypt given data with the AES-GCM algorithm,
+// returning the resulting ciphertext.
 func (k *AESKey) Encrypt(data []byte) (CiphertextAES, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
@@ -79,7 +89,8 @@ func (k *AESKey) Encrypt(data []byte) (CiphertextAES, error) {
 	}, nil
 }
 
-// Decrypt decrypts the encryptedData with AES-GCM using the AESKey and the provided nonce.
+// Decrypt uses the key to decrypt a given ciphertext with teh AES-GCM algorithm,
+// returning the decrypted bytes.
 func (k *AESKey) Decrypt(ciphertext CiphertextAES) ([]byte, error) {
 	if len(ciphertext.Data) == 0 {
 		return []byte{}, nil
@@ -92,7 +103,10 @@ func (k *AESKey) Decrypt(ciphertext CiphertextAES) ([]byte, error) {
 	return k.decrypt(ciphertext.Data, ciphertext.Nonce)
 }
 
-// HMAC creates an HMAC of the data.
+// HMAC uses the key to create a Hash-based Message Authentication Code of the
+// given data with the SHA256 hashing algorithm, returning the given hash bytes.
+//
+// TODO: AESKey is actually a SymmetricKey that is used with the AES algorithm. Here it's used with the HMAC algorithm, making it a non-AES operation.
 func (k AESKey) HMAC(data []byte) ([]byte, error) {
 	mac := hmac.New(sha256.New, k.key)
 	_, err := mac.Write(data)
@@ -102,12 +116,14 @@ func (k AESKey) HMAC(data []byte) ([]byte, error) {
 	return mac.Sum(nil), nil
 }
 
-// Export will export the AESKey.
-// No format is used.
+// Export returns the bytes that form the basis of the symmetric key.
+// After using Export, make sure to keep the result private.
 func (k *AESKey) Export() []byte {
 	return k.key
 }
 
+// decrypt is a helper function that uses the key to decrypt given
+// data with the AES-GCM algorithm and a given nonce.
 func (k AESKey) decrypt(data, nonce []byte) ([]byte, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
@@ -198,7 +214,9 @@ func (ct *CiphertextAES) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// generateNonce generates a Nonce of a particular size.
+// generateNonce generates a nonce of a given length.
+//
+// TODO: why does it return a pointer to bytes?
 func generateNonce(size int) (*[]byte, error) {
 	nonce := make([]byte, size)
 	if _, err := rand.Read(nonce); err != nil {

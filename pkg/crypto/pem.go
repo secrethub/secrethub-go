@@ -15,6 +15,8 @@ var (
 )
 
 // PEMKey contains a PEM encoded key and provides decode functions to RSAKey.
+// Note that PEM encoded keys will be deprecated, so only decoding functions
+// remain in the code base. To encode keys, check out RSAKey.Export instead.
 type PEMKey struct {
 	block *pem.Block
 }
@@ -53,7 +55,7 @@ func (k PEMKey) IsEncrypted() bool {
 	return false
 }
 
-// Decrypt decrypts the key using the password and decodes the pem key to an RSA Key.
+// Decrypt decrypts the key using the password and decodes the PEM key to an RSA Key.
 // If the key is not encrypted it returns ErrDecryptionUnarmoredKey and Decode should
 // have been called instead. Use IsEncrypted to determine whether to Decrypt or only
 // Decode the key.

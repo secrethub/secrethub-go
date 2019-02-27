@@ -27,6 +27,8 @@ var (
 	// 	regexp, err := regexp.Compile(pattern)
 	// 	matches := regexp.FindStringSubmatch(string(m))
 	//  parameterValue = matches[1]
+	//
+	// TODO: the fact that we need this usage tips is a code smell, see also getValue
 	encodedCiphertextMetadataPattern = `(?:^|,)%s=([a-zA-Z0-9\+/]+(?:={0,2}?))(?:$|,)`
 )
 
@@ -48,6 +50,7 @@ const (
 // E.g. nonce=abcd,length=1024
 type encodedCiphertextMetadata string
 
+// TODO: why don't we just call this `parseCiphertext` or something similar?
 func newEncodedCiphertext(from string) (encodedCiphertext, error) {
 	ct := encodedCiphertext(from)
 	return ct, ct.validate()
@@ -123,6 +126,8 @@ func newEncodedCiphertextMetadata(metadataList map[string]string) encodedCiphert
 
 // getValue returns a value from metadata.
 // E.g. when the metadata is "first=foo,second=bar", then getValue("second") => "bar".
+//
+// TODO: this stuff should be refactored to just map[string]string parsing logic. This is really wonky.
 func (m encodedCiphertextMetadata) getValue(name string) (string, error) {
 	pattern := fmt.Sprintf(encodedCiphertextMetadataPattern, name)
 	regexp, err := regexp.Compile(pattern)
