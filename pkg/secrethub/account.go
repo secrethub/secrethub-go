@@ -126,7 +126,7 @@ func (c *client) fetchAccountDetails() error {
 		return errio.Error(err)
 	}
 
-	accountKey, err := crypto.ImportRSAPrivateKey(data)
+	accountKey, err := crypto.ImportRSAPrivateKeyPEM(data)
 	if err != nil {
 		return errio.Error(err)
 	}

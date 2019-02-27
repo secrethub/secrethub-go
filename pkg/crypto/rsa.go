@@ -314,10 +314,8 @@ func (prv RSAPrivateKey) Export() []byte {
 	return x509.MarshalPKCS1PrivateKey(prv.private)
 }
 
-// ImportRSAPrivateKey decodes a given PEM encoded private key into an RSA private key.
-//
-// TODO: rename to ImportRSAPrivateKeyPEM
-func ImportRSAPrivateKey(privateKey []byte) (RSAPrivateKey, error) {
+// ImportRSAPrivateKeyPEM decodes a given PEM encoded private key into an RSA private key.
+func ImportRSAPrivateKeyPEM(privateKey []byte) (RSAPrivateKey, error) {
 	pemBlock, rest := pem.Decode(privateKey)
 	if pemBlock == nil {
 		return RSAPrivateKey{}, ErrNoKeyInFile
