@@ -82,7 +82,7 @@ func TestAES_Success(t *testing.T) {
 		t.Error("encrypted data equals the original data")
 	}
 
-	decData, err := aesKey1.decrypt(ciphertext.Data, ciphertext.Nonce)
+	decData, err := aesKey1.Decrypt(ciphertext)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +90,7 @@ func TestAES_Success(t *testing.T) {
 		t.Error("decrypted data does not equal the original data")
 	}
 
-	decDataWrongKey, err := aesKey2.decrypt(ciphertext.Data, ciphertext.Nonce)
+	decDataWrongKey, err := aesKey2.Decrypt(ciphertext)
 	if err == nil {
 		t.Error("did not return an error for decrypting with different key")
 	}

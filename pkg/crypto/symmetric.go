@@ -85,7 +85,7 @@ func (k *SymmetricKey) Encrypt(data []byte) (CiphertextAES, error) {
 	}, nil
 }
 
-// Decrypt uses the key to decrypt a given ciphertext with teh AES-GCM algorithm,
+// Decrypt uses the key to decrypt a given ciphertext with the AES-GCM algorithm,
 // returning the decrypted bytes.
 func (k *SymmetricKey) Decrypt(ciphertext CiphertextAES) ([]byte, error) {
 	if len(ciphertext.Data) == 0 {
@@ -96,7 +96,22 @@ func (k *SymmetricKey) Decrypt(ciphertext CiphertextAES) ([]byte, error) {
 		return nil, ErrInvalidCiphertext
 	}
 
-	return k.decrypt(ciphertext.Data, ciphertext.Nonce)
+	key, err := aes.NewCipher(k.key)
+	if err != nil {
+		return nil, ErrInvalidCipher(err)
+	}
+
+	gcm, err := cipher.NewGCM(key)
+	if err != nil {
+		return nil, ErrInvalidCipher(err)
+	}
+
+	output, err := gcm.Open(nil, ciphertext.Nonce, ciphertext.Data, nil)
+	if err != nil {
+		return nil, ErrAESDecrypt(err)
+	}
+
+	return output, nil
 }
 
 // HMAC uses the key to create a Hash-based Message Authentication Code of the
@@ -114,28 +129,6 @@ func (k SymmetricKey) HMAC(data []byte) ([]byte, error) {
 // After using Export, make sure to keep the result private.
 func (k *SymmetricKey) Export() []byte {
 	return k.key
-}
-
-// decrypt is a helper function that uses the key to decrypt given
-// data with the AES-GCM algorithm and a given nonce.
-func (k SymmetricKey) decrypt(data, nonce []byte) ([]byte, error) {
-	key, err := aes.NewCipher(k.key)
-	if err != nil {
-		return nil, ErrInvalidCipher(err)
-	}
-
-	gcm, err := cipher.NewGCM(key)
-	if err != nil {
-		return nil, ErrInvalidCipher(err)
-	}
-
-	output, err := gcm.Open(nil, nonce, data, nil)
-	if err != nil {
-		return nil, ErrAESDecrypt(err)
-	}
-
-	// We do not use a destination []byte, but a return value.
-	return output, nil
 }
 
 // IsWrongKey returns true when the error can be

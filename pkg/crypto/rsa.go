@@ -251,7 +251,7 @@ func (prv RSAPrivateKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
 		return nil, err
 	}
 
-	return NewSymmetricKey(aesKeyData).decrypt(ciphertext.aes.Data, ciphertext.aes.Nonce)
+	return NewSymmetricKey(aesKeyData).Decrypt(ciphertext.aes)
 }
 
 // Unwrap uses the private key to decrypt a small ciphertext that has been encrypted
