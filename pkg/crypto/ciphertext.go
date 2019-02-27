@@ -50,7 +50,6 @@ const (
 // E.g. nonce=abcd,length=1024
 type encodedCiphertextMetadata string
 
-// TODO: why don't we just call this `parseCiphertext` or something similar?
 func newEncodedCiphertext(from string) (encodedCiphertext, error) {
 	ct := encodedCiphertext(from)
 	return ct, ct.validate()
