@@ -62,9 +62,12 @@ func TestRSAAES_DecryptNilData(t *testing.T) {
 
 	ciphertext := CiphertextRSAAES{}
 
-	_, err := rsaKey.Decrypt(ciphertext)
+	// Act
+	actual, err := rsaKey.Decrypt(ciphertext)
 
-	assert.Equal(t, err, ErrInvalidCipher("crypto/aes: invalid key size 0"))
+	// Assert
+	assert.OK(t, err)
+	assert.Equal(t, actual, []byte{})
 }
 
 func TestAES_Success(t *testing.T) {
