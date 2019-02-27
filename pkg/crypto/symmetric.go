@@ -32,12 +32,12 @@ const (
 	SymmetricKeyLength = sha256.Size // 32
 )
 
-// SymmetricKey provides symmetric encryption functions that use the AES algorithm.
+// SymmetricKey provides symmetric encryption functions.
 type SymmetricKey struct {
 	key []byte
 }
 
-// NewSymmetricKey is used to construct a symmetric AES key from given bytes. Make sure
+// NewSymmetricKey is used to construct a symmetric key from given bytes. Make sure
 // the key bytes have enough entropy. When in doubt, use GenerateSymmetricKey instead.
 func NewSymmetricKey(key []byte) *SymmetricKey {
 	return &SymmetricKey{
@@ -45,7 +45,7 @@ func NewSymmetricKey(key []byte) *SymmetricKey {
 	}
 }
 
-// GenerateSymmetricKey generates a 256-bit AES-key.
+// GenerateSymmetricKey generates a 256-bit symmetric key.
 func GenerateSymmetricKey() (*SymmetricKey, error) {
 	key := make([]byte, SymmetricKeyLength)
 	_, err := rand.Reader.Read(key)
