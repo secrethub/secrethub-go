@@ -71,8 +71,8 @@ type ScryptKey struct {
 }
 
 // GenerateScryptKey derives a key from a passphrase, using the default parameters
-// and a randomly generated salt for the key derivation function.
-// TODO: make difference between GenerateScryptKey and DeriveScryptKey clear.
+// and a randomly generated salt for the key derivation function. To use other
+// parameters or to supply an elsewhere generated salt, use DeriveScryptKey.
 func GenerateScryptKey(passphrase []byte) (*ScryptKey, error) {
 	keyLen := DefaultScryptKeyLength
 	saltLen := DefaultSaltLength
