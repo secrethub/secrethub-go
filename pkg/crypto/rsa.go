@@ -335,7 +335,7 @@ func ImportRSAPrivateKeyPEM(privateKey []byte) (RSAPrivateKey, error) {
 // ExportPrivateKeyWithPassphrase exports the rsa private key in a
 // PKIX pem encoded format, encrypted with the given passphrase.
 //
-// TODO: this should be removed or deprecated if not possible.
+// Note that this function will be deprecated. Use Export instead.
 func (prv RSAPrivateKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
 	if pass == "" {
 		return nil, ErrEmptyPassphrase
