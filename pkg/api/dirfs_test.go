@@ -39,7 +39,7 @@ func TestAbsDirPath(t *testing.T) {
 	cases := map[string]struct {
 		dirID    *uuid.UUID
 		tree     Tree
-		expected *DirPath
+		expected DirPath
 		err      error
 	}{
 		"path of repo with tree rooted at repo": {
@@ -52,7 +52,7 @@ func TestAbsDirPath(t *testing.T) {
 				},
 				Secrets: map[uuid.UUID]*Secret{},
 			},
-			expected: &repoPath,
+			expected: repoPath,
 			err:      nil,
 		},
 		"path of dir with tree rooted at repo": {
@@ -65,7 +65,7 @@ func TestAbsDirPath(t *testing.T) {
 				},
 				Secrets: map[uuid.UUID]*Secret{},
 			},
-			expected: &dirPath,
+			expected: dirPath,
 			err:      nil,
 		},
 		"path of dir with tree rooted at dir": {
@@ -79,7 +79,7 @@ func TestAbsDirPath(t *testing.T) {
 				},
 				Secrets: map[uuid.UUID]*Secret{},
 			},
-			expected: &dirPath,
+			expected: dirPath,
 			err:      nil,
 		},
 		"path of subdir with tree rooted at dir": {
@@ -93,7 +93,7 @@ func TestAbsDirPath(t *testing.T) {
 				},
 				Secrets: map[uuid.UUID]*Secret{},
 			},
-			expected: &subdirPath,
+			expected: subdirPath,
 			err:      nil,
 		},
 		"path of dir with dir not in tree": {
@@ -104,7 +104,7 @@ func TestAbsDirPath(t *testing.T) {
 				Dirs:       map[uuid.UUID]*Dir{},
 				Secrets:    map[uuid.UUID]*Secret{},
 			},
-			expected: nil,
+			expected: "",
 			err:      ErrDirNotFound,
 		},
 	}
