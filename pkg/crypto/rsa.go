@@ -6,9 +6,12 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
+	"fmt"
 
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
@@ -51,22 +54,63 @@ type RSAPublicKey struct {
 	publicKey *rsa.PublicKey
 }
 
-// Encrypt encrypts the data with RSA-OAEP using the RSAKey.
-func (k *RSAPublicKey) Encrypt(data []byte) ([]byte, error) {
-	output, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, k.publicKey, data, []byte{})
+// Encrypt encrypts provided data with AES-GCM.
+// The used AES-key is then encrypted with RSA-OAEP.
+func (pub RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
+	aesKey, err := GenerateAESKey()
+	if err != nil {
+		return CiphertextRSAAES{}, errio.Error(err)
+	}
+
+	aesData, err := aesKey.Encrypt(data)
+	if err != nil {
+		return CiphertextRSAAES{}, errio.Error(err)
+	}
+
+	rsaData, err := pub.Wrap(aesKey.key)
+	if err != nil {
+		return CiphertextRSAAES{}, errio.Error(err)
+	}
+
+	return CiphertextRSAAES{
+		aes: aesData,
+		rsa: rsaData,
+	}, nil
+}
+
+// Wrap encrypts the data with RSA-OAEP using the RSAKey.
+func (pub RSAPublicKey) Wrap(data []byte) (CiphertextRSA, error) {
+	encrypted, err := pub.wrap(data)
+	if err != nil {
+		return CiphertextRSA{}, err
+	}
+
+	return CiphertextRSA{
+		Data: encrypted,
+	}, nil
+}
+
+// WrapBytes encrypts the data with RSA-OAEP using the RSAPublicKey.
+// The function will be deprecated. Directly use Wrap instead.
+func (pub RSAPublicKey) WrapBytes(data []byte) ([]byte, error) {
+	return pub.wrap(data)
+}
+
+func (pub RSAPublicKey) wrap(data []byte) ([]byte, error) {
+	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, pub.publicKey, data, []byte{})
 	if err != nil {
 		return nil, ErrRSAEncrypt(err)
 	}
-	return output, nil
+	return encrypted, nil
 }
 
 // Verify will verify a message using the encoded public key and the signature.
 // A valid signature is indicated by returning a nil error
 // A public key must be importable by importPublicKey.
-func (k *RSAPublicKey) Verify(message, signature []byte) error {
+func (pub RSAPublicKey) Verify(message, signature []byte) error {
 	hashedMessage := sha256.Sum256(message)
 
-	return rsa.VerifyPKCS1v15(k.publicKey, crypto.SHA256, hashedMessage[:], signature)
+	return rsa.VerifyPKCS1v15(pub.publicKey, crypto.SHA256, hashedMessage[:], signature)
 }
 
 // Verify will verify a message using the encoded public key and the signature.
@@ -81,9 +125,9 @@ func Verify(encodedPublicKey, message, signature []byte) error {
 	return publicKey.Verify(message, signature)
 }
 
-// ExportPublicKey exports the rsa public key in an PKIX pem encoded format.
-func (k RSAPublicKey) ExportPublicKey() ([]byte, error) {
-	asn1, err := x509.MarshalPKIXPublicKey(k.publicKey)
+// Export exports the rsa public key in an PKIX pem encoded format.
+func (pub RSAPublicKey) Export() ([]byte, error) {
+	asn1, err := x509.MarshalPKIXPublicKey(pub.publicKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -96,30 +140,41 @@ func (k RSAPublicKey) ExportPublicKey() ([]byte, error) {
 	return bytes, nil
 }
 
+// Fingerprint returns the SHA256 fingerprint of the public key
+func (pub RSAPublicKey) Fingerprint() (string, error) {
+	exported, err := pub.Export()
+	if err != nil {
+		return "", errio.Error(err)
+	}
+
+	sum := sha256.Sum256(exported)
+	return hex.EncodeToString(sum[:]), nil
+}
+
 // ImportRSAPublicKey imports a RSAPublic key from an exported public key.
-func ImportRSAPublicKey(encodedPublicKey []byte) (*RSAPublicKey, error) {
+func ImportRSAPublicKey(encodedPublicKey []byte) (RSAPublicKey, error) {
 	if len(encodedPublicKey) == 0 {
-		return nil, ErrEmptyPublicKey
+		return RSAPublicKey{}, ErrEmptyPublicKey
 	}
 
 	pemBlock, rest := pem.Decode(encodedPublicKey)
 	if pemBlock == nil {
-		return nil, ErrNoPublicKeyFoundInImport
+		return RSAPublicKey{}, ErrNoPublicKeyFoundInImport
 	} else if len(rest) > 0 {
-		return nil, ErrMultiplePublicKeysFoundInImport
+		return RSAPublicKey{}, ErrMultiplePublicKeysFoundInImport
 	}
 
 	publicKey, err := x509.ParsePKIXPublicKey(pemBlock.Bytes)
 	if err != nil {
-		return nil, ErrNotPKCS1Format
+		return RSAPublicKey{}, ErrNotPKCS1Format
 	}
 
 	rsaPublicKey, ok := publicKey.(*rsa.PublicKey)
 	if !ok {
-		return nil, ErrKeyTypeNotSupported
+		return RSAPublicKey{}, ErrKeyTypeNotSupported
 	}
 
-	return &RSAPublicKey{
+	return RSAPublicKey{
 		publicKey: rsaPublicKey,
 	}, nil
 }
@@ -127,83 +182,90 @@ func ImportRSAPublicKey(encodedPublicKey []byte) (*RSAPublicKey, error) {
 // RSAKey wraps a RSA key.
 // It exposes all crypto functionality asymmetric keys.
 type RSAKey struct {
-	*RSAPublicKey
-	privateKey *rsa.PrivateKey
+	private *rsa.PrivateKey
 }
 
 // NewRSAKey is used to create a new RSAKey.
 // Normally you create a RSAKey by DecodeKey
-func NewRSAKey(privateKey *rsa.PrivateKey) *RSAKey {
-	return &RSAKey{
-		RSAPublicKey: &RSAPublicKey{
-			publicKey: &privateKey.PublicKey,
-		},
-		privateKey: privateKey,
+func NewRSAKey(privateKey *rsa.PrivateKey) RSAKey {
+	return RSAKey{
+		private: privateKey,
 	}
 }
 
 // GenerateRSAKey generates a new RSAKey with the given length
-func GenerateRSAKey(length int) (*RSAKey, error) {
+func GenerateRSAKey(length int) (RSAKey, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, length)
 	if err != nil {
-		return nil, ErrGenerateRSAKey
+		return RSAKey{}, ErrGenerateRSAKey
 	}
 
 	return NewRSAKey(privateKey), nil
 }
 
-// Sign signs a message using the RSAKey.
-func (k *RSAKey) Sign(message []byte) ([]byte, error) {
-	hashedMessage := sha256.Sum256(message)
-
-	return rsa.SignPKCS1v15(rand.Reader, k.privateKey, crypto.SHA256, hashedMessage[:])
+// Public returns the public part that belongs to this private key.
+func (prv RSAKey) Public() RSAPublicKey {
+	return RSAPublicKey{
+		publicKey: &prv.private.PublicKey,
+	}
 }
 
-// Decrypt decrypts the encryptedData with RSA-OAEP using the RSAKey.
-func (k *RSAKey) Decrypt(encryptedData []byte) ([]byte, error) {
-	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, k.privateKey, encryptedData, []byte{})
+// Sign signs a message using the RSAKey.
+func (prv RSAKey) Sign(message []byte) ([]byte, error) {
+	hashedMessage := sha256.Sum256(message)
+
+	return rsa.SignPKCS1v15(rand.Reader, prv.private, crypto.SHA256, hashedMessage[:])
+}
+
+// Decrypt decrypts provided data that is encrypted with AES-GCM
+// and then the AES-key used for encryption encrypted with RSA-OAEP.
+func (prv RSAKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
+	aesKeyData, err := prv.Unwrap(ciphertext.rsa)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewAESKey(aesKeyData).decrypt(ciphertext.aes.Data, ciphertext.aes.Nonce)
+}
+
+// Unwrap decrypts the encryptedData with RSA-OAEP using the RSAKey.
+func (prv RSAKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
+	if len(ciphertext.Data) == 0 {
+		return []byte{}, nil
+	}
+
+	return prv.unwrap(ciphertext.Data)
+}
+
+// ReWrap re-encrypts the data for the given public key.
+// The RSAKey must be able to decrypt the original data for the function to succeed.
+func (prv RSAKey) ReWrap(pub RSAPublicKey, encData []byte) ([]byte, error) {
+
+	decData, err := prv.UnwrapBytes(encData)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return pub.WrapBytes(decData)
+}
+
+// UnwrapBytes decrypts the encrypted data with RSA-OAEP using the RSAKey.
+// This function will be deprecated. Directly use Unwrap instead.
+func (prv RSAKey) UnwrapBytes(encryptedData []byte) ([]byte, error) {
+	return prv.unwrap(encryptedData)
+}
+
+func (prv RSAKey) unwrap(encryptedData []byte) ([]byte, error) {
+	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, prv.private, encryptedData, []byte{})
 	if err != nil {
 		return nil, ErrRSADecrypt(err)
 	}
 	return output, nil
 }
 
-// ReEncrypt re-encrypts the data for the given public key.
-// The RSAKey must be able to decrypt the original data for the function to succeed.
-func (k *RSAKey) ReEncrypt(pk *RSAPublicKey, encData []byte) ([]byte, error) {
-
-	decData, err := k.Decrypt(encData)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return pk.Encrypt(decData)
-}
-
-// GenerateServiceKey generates an key pair for the Service and returns the private key and public key.
-// These keys are in an exported format.
-func GenerateServiceKey() (*RSAKey, error) {
-	privateKey, err := GenerateRSAKey(ExternalKeyLength)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-	return privateKey, nil
-}
-
-// Fingerprint returns the SHA256 fingerprint of the public key
-func (k *RSAKey) Fingerprint() (string, error) {
-	pub, err := k.ExportPublicKey()
-	if err != nil {
-		return "", errio.Error(err)
-	}
-
-	sum := sha256.Sum256(pub)
-	return hex.EncodeToString(sum[:]), nil
-}
-
 // ExportPrivateKey exports the rsa private key in an PKIX pem encoded format.
-func (k RSAKey) ExportPrivateKey() ([]byte, error) {
-	privateASN1 := x509.MarshalPKCS1PrivateKey(k.privateKey)
+func (prv RSAKey) ExportPrivateKey() ([]byte, error) {
+	privateASN1 := x509.MarshalPKCS1PrivateKey(prv.private)
 
 	privateBytes := pem.EncodeToMemory(&pem.Block{
 		Type:  "RSA PRIVATE KEY",
@@ -214,23 +276,23 @@ func (k RSAKey) ExportPrivateKey() ([]byte, error) {
 }
 
 // Export exports the raw rsa private key.
-func (k RSAKey) Export() []byte {
-	return x509.MarshalPKCS1PrivateKey(k.privateKey)
+func (prv RSAKey) Export() []byte {
+	return x509.MarshalPKCS1PrivateKey(prv.private)
 }
 
 // ImportRSAPrivateKey imports a rsa private key from a pem encoded format.
-func ImportRSAPrivateKey(privateKey []byte) (*RSAKey, error) {
+func ImportRSAPrivateKey(privateKey []byte) (RSAKey, error) {
 	pemBlock, rest := pem.Decode(privateKey)
 	if pemBlock == nil {
-		return nil, ErrNoKeyInFile
+		return RSAKey{}, ErrNoKeyInFile
 
 	} else if len(rest) > 0 {
-		return nil, ErrMultipleKeysInFile
+		return RSAKey{}, ErrMultipleKeysInFile
 	}
 
 	privateRSAKey, err := x509.ParsePKCS1PrivateKey(pemBlock.Bytes)
 	if err != nil {
-		return nil, ErrNotPKCS1Format
+		return RSAKey{}, ErrNotPKCS1Format
 	}
 
 	return NewRSAKey(privateRSAKey), nil
@@ -238,14 +300,14 @@ func ImportRSAPrivateKey(privateKey []byte) (*RSAKey, error) {
 
 // ExportPrivateKeyWithPassphrase exports the rsa private key in a
 // PKIX pem encoded format, encrypted with the given passphrase.
-func (k RSAKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
+func (prv RSAKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
 	if pass == "" {
 		return nil, ErrEmptyPassphrase
 	}
 
 	plain := &pem.Block{
 		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(k.privateKey),
+		Bytes: x509.MarshalPKCS1PrivateKey(prv.private),
 	}
 
 	encrypted, err := x509.EncryptPEMBlock(rand.Reader, plain.Type, plain.Bytes, []byte(pass), x509.PEMCipherAES256)
@@ -254,4 +316,128 @@ func (k RSAKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
 	}
 
 	return pem.EncodeToMemory(encrypted), nil
+}
+
+// CiphertextRSAAES represents data encrypted with AES-GCM, where the AES-key is encrypted with RSA-OAEP.
+type CiphertextRSAAES struct {
+	aes CiphertextAES
+	rsa CiphertextRSA
+}
+
+// MarshalJSON encodes the ciphertext in a string.
+func (ct CiphertextRSAAES) MarshalJSON() ([]byte, error) {
+	data := base64.StdEncoding.EncodeToString(ct.aes.Data)
+
+	metadata := newEncodedCiphertextMetadata(map[string]string{
+		"nonce": base64.StdEncoding.EncodeToString(ct.aes.Nonce),
+		"key":   base64.StdEncoding.EncodeToString(ct.rsa.Data),
+	})
+
+	return json.Marshal(fmt.Sprintf("%s$%s$%s", algorithmRSAAES, data, metadata))
+}
+
+// UnmarshalJSON decodes a string into a ciphertext.
+func (ct *CiphertextRSAAES) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		return err
+	}
+
+	if s == "" {
+		return nil
+	}
+
+	encoded, err := newEncodedCiphertext(s)
+	if err != nil {
+		return err
+	}
+
+	algorithm, err := encoded.algorithm()
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	if algorithm != algorithmRSAAES {
+		return ErrWrongAlgorithm
+	}
+
+	encryptedData, err := encoded.data()
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	metadata, err := encoded.metadata()
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	aesNonce, err := metadata.getDecodedValue("nonce")
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	aesKey, err := metadata.getDecodedValue("key")
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	ct.aes = CiphertextAES{
+		Data:  encryptedData,
+		Nonce: aesNonce,
+	}
+
+	ct.rsa = CiphertextRSA{
+		Data: aesKey,
+	}
+
+	return nil
+}
+
+// CiphertextRSA represents data encrypted with RSA-OAEP.
+type CiphertextRSA struct {
+	Data []byte
+}
+
+// MarshalJSON encodes the ciphertext in a string.
+func (ct CiphertextRSA) MarshalJSON() ([]byte, error) {
+	encodedKey := base64.StdEncoding.EncodeToString(ct.Data)
+
+	return json.Marshal(fmt.Sprintf("%s$%s$", algorithmRSA, encodedKey))
+}
+
+// UnmarshalJSON decodes a string into a ciphertext.
+func (ct *CiphertextRSA) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		return err
+	}
+
+	if s == "" {
+		return nil
+	}
+
+	encoded, err := newEncodedCiphertext(s)
+	if err != nil {
+		return err
+	}
+
+	algorithm, err := encoded.algorithm()
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	if algorithm != algorithmRSA {
+		return ErrWrongAlgorithm
+	}
+
+	encryptedData, err := encoded.data()
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	ct.Data = encryptedData
+
+	return nil
 }

@@ -20,8 +20,8 @@ import (
 )
 
 var (
-	clientKey     *crypto.RSAKey
-	diffClientKey *crypto.RSAKey
+	clientKey     crypto.RSAKey
+	diffClientKey crypto.RSAKey
 )
 
 func init() {
@@ -38,10 +38,10 @@ func init() {
 }
 
 func TestVerify(t *testing.T) {
-	fingerprint1, err := clientKey.Fingerprint()
+	fingerprint1, err := clientKey.Public().Fingerprint()
 	assert.OK(t, err)
 
-	pub1, err := clientKey.ExportPublicKey()
+	pub1, err := clientKey.Public().Export()
 	assert.OK(t, err)
 
 	key1 := &api.Credential{
@@ -158,17 +158,17 @@ func TestSignRequest(t *testing.T) {
 
 	// Arrange
 	key1 := clientKey
-	fingerprint1, err := key1.Fingerprint()
+	fingerprint1, err := key1.Public().Fingerprint()
 	assert.OK(t, err)
-	pub1, err := key1.ExportPublicKey()
+	pub1, err := key1.Public().Export()
 	assert.OK(t, err)
 
 	key2 := diffClientKey
-	pub2, err := key2.ExportPublicKey()
+	pub2, err := key2.Public().Export()
 	assert.OK(t, err)
 
 	cases := map[string]struct {
-		ClientKey           *crypto.RSAKey
+		ClientKey           crypto.RSAKey
 		StoredPub           []byte
 		ExpectedFingerprint string
 		Err                 error
@@ -192,7 +192,7 @@ func TestSignRequest(t *testing.T) {
 			req, err := http.NewRequest("POST", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
 			assert.OK(t, err)
 
-			fingerprint, err := tc.ClientKey.Fingerprint()
+			fingerprint, err := tc.ClientKey.Public().Fingerprint()
 			assert.OK(t, err)
 
 			fakeCredentialGetter := fakeCredentialGetter{
@@ -207,7 +207,7 @@ func TestSignRequest(t *testing.T) {
 
 			authenticator := auth.NewMethodSignature(fakeCredentialGetter)
 
-			err = auth.NewCredentialSignature(tc.ClientKey).AddAuthentication(req)
+			err = auth.NewRSACredential(tc.ClientKey).AddAuthentication(req)
 			assert.OK(t, err)
 
 			// Act
@@ -229,7 +229,7 @@ func TestSignRequest_CheckHeadersAreSet(t *testing.T) {
 	assert.OK(t, err)
 
 	// Act
-	err = auth.NewCredentialSignature(clientKey).AddAuthentication(req)
+	err = auth.NewRSACredential(clientKey).AddAuthentication(req)
 	assert.OK(t, err)
 
 	// Assert
@@ -245,9 +245,9 @@ func TestSignRequest_CheckHeadersAreSet(t *testing.T) {
 func TestReplayRequest(t *testing.T) {
 
 	// Arrange
-	fingerprint, err := clientKey.Fingerprint()
+	fingerprint, err := clientKey.Public().Fingerprint()
 	assert.OK(t, err)
-	pub, err := clientKey.ExportPublicKey()
+	pub, err := clientKey.Public().Export()
 	assert.OK(t, err)
 
 	fakeCredentialGetter := fakeCredentialGetter{
@@ -309,7 +309,7 @@ func TestReplayRequest(t *testing.T) {
 			original, err := http.NewRequest(tc.originalMethod, tc.originalURL, tc.originalBody)
 			assert.OK(t, err)
 
-			err = auth.NewCredentialSignature(clientKey).AddAuthentication(original)
+			err = auth.NewRSACredential(clientKey).AddAuthentication(original)
 			assert.OK(t, err)
 
 			replay, err := http.NewRequest(tc.replayMethod, tc.replayURL, tc.replayBody)

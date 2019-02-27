@@ -57,14 +57,19 @@ var (
 	ErrSignatureFuture    = errNamespace.Code("signature_future").StatusError("could not authenticate request because signature timestamp is too far in the future", http.StatusUnauthorized)
 )
 
-// CredentialSignature contains all necessary credentials to sign a request.
-type CredentialSignature struct {
-	key *crypto.RSAKey
+// Credential provides a mechanism of adding authentication to an http request.
+type Credential interface {
+	AddAuthentication(r *http.Request) error
 }
 
-// NewCredentialSignature initializes a new signing credentials struct.
-func NewCredentialSignature(key *crypto.RSAKey) Credential {
-	return CredentialSignature{
+// signer contains all necessary credentials to sign a request.
+type signer struct {
+	key crypto.RSAKey
+}
+
+// NewRSACredential initializes a new signing credentials struct.
+func NewRSACredential(key crypto.RSAKey) Credential {
+	return signer{
 		key: key,
 	}
 }
@@ -101,7 +106,7 @@ func NewCredentialSignature(key *crypto.RSAKey) Credential {
 // this risk by using TLS, which encrypts HTTP Headers as well. This makes
 // a MitM attack impossible without an attacker having access to the server's
 // private TLS key. This solution is also proposed in RFC 4521 Section-4.1.
-func (c CredentialSignature) AddAuthentication(r *http.Request) error {
+func (c signer) AddAuthentication(r *http.Request) error {
 	formattedTime := time.Now().UTC().Format(time.RFC1123)
 	r.Header.Set("Date", formattedTime)
 
@@ -117,7 +122,7 @@ func (c CredentialSignature) AddAuthentication(r *http.Request) error {
 
 	base64EncodedSignature := base64.StdEncoding.EncodeToString(signature)
 
-	fingerprint, err := c.key.Fingerprint()
+	fingerprint, err := c.key.Public().Fingerprint()
 	if err != nil {
 		return errio.Error(err)
 	}

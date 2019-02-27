@@ -12,7 +12,6 @@ import (
 var (
 	ErrInvalidAccountName = errAPI.Code("invalid_account_name").Error("An account name either needs to be an username or a servicename")
 	ErrInvalidKeyID       = errAPI.Code("invalid_key_id").Error("id of the provided account key is invalid")
-	ErrInvalidMetadata    = errAPI.Code("invalid_metadata").Error("metadata of encrypted key is invalid")
 
 	ServiceNamePrefix = "s-"
 )

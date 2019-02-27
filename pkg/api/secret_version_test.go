@@ -7,7 +7,7 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 )
 
-func TestCreateSecretVersionRequest_Validate(t *testing.T) {
+func TestCreateSecretVersionRequest_Validate_MaxSize(t *testing.T) {
 
 	tests := []struct {
 		dataSize      int
@@ -27,7 +27,7 @@ func TestCreateSecretVersionRequest_Validate(t *testing.T) {
 		},
 	}
 
-	rsaKey, err := crypto.GenerateRSAKey(2048)
+	aesKey, err := crypto.GenerateAESKey()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,19 +39,14 @@ func TestCreateSecretVersionRequest_Validate(t *testing.T) {
 			slice[i] = 0x1
 		}
 
-		cipherText, err := crypto.EncryptRSAAES(slice, rsaKey.RSAPublicKey)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		encCipherText, err := EncodeCiphertext(cipherText)
+		ciphertext, err := aesKey.Encrypt(slice)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		r := CreateSecretVersionRequest{
 			SecretKeyID:   uuid.New(),
-			EncryptedData: encCipherText,
+			EncryptedData: ciphertext,
 		}
 
 		err = r.Validate()

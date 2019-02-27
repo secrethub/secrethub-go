@@ -45,9 +45,9 @@ type Credential interface {
 	// Verifier returns the data to be stored server side to verify an http request authenticated with this credential.
 	Verifier() ([]byte, error)
 	// Wrap encrypts data, typically an account key.
-	Wrap(plaintext []byte) (crypto.Ciphertext, error)
+	Wrap(plaintext []byte) (crypto.CiphertextRSAAES, error)
 	// Unwrap decrypts data, typically an account key.
-	Unwrap(ciphertext crypto.Ciphertext) ([]byte, error)
+	Unwrap(ciphertext crypto.CiphertextRSAAES) ([]byte, error)
 	// Export exports the credential in a format that can be decoded by its Decoder.
 	Export() []byte
 	// Decoder returns a decoder that can decode an exported key back into a Credential.
@@ -72,7 +72,12 @@ func NewCredential(credential string, passphrase string) (Credential, error) {
 			return nil, ErrEmptyCredentialPassphrase
 		}
 
-		credential, err := encoded.DecodeArmored(NewPassphraseUnarmorer([]byte(passphrase)))
+		key, err := NewPassBasedKey([]byte(passphrase))
+		if err != nil {
+			return nil, err
+		}
+
+		credential, err := encoded.DecodeEncrypted(key)
 		if crypto.IsWrongKey(err) {
 			return nil, ErrCannotDecryptCredential
 		}
@@ -101,14 +106,14 @@ type EncodedCredential struct {
 	RawHeader []byte
 	// Payload is the second part of the credential string.
 	Payload []byte
-	// Armor contains the name of the armoring algorithm if the payload is encrypted.
-	Armor string
+	// EncryptionAlgorithm contains the name of the encryption algorithm if the payload is encrypted.
+	EncryptionAlgorithm string
 	// Decoder is used to decode the payload into a Credential.
 	// Populated when you Parse a credential string.
 	Decoder CredentialDecoder
 }
 
-// Decode decodes an unarmored credential string into a Credential.
+// Decode decodes an unencrypted credential string into a Credential.
 func (c EncodedCredential) Decode() (Credential, error) {
 	if c.IsEncrypted() {
 		return nil, ErrCannotDecodeEncryptedCredential
@@ -117,14 +122,14 @@ func (c EncodedCredential) Decode() (Credential, error) {
 	return c.Decoder.Decode(c.Payload)
 }
 
-// DecodeArmored decodes an armored credential string into a Credential
-// using the given Unarmorer.
-func (c EncodedCredential) DecodeArmored(unarmorer Unarmorer) (Credential, error) {
-	if unarmorer.Name() != c.Armor {
+// DecodeEncrypted decodes and decrypts an encrypted credential string
+// using the given key.
+func (c EncodedCredential) DecodeEncrypted(key PassBasedKey) (Credential, error) {
+	if key.Name() != c.EncryptionAlgorithm {
 		return nil, ErrInvalidKey
 	}
 
-	payload, err := unarmorer.Unarmor(c.Payload, c.RawHeader)
+	payload, err := key.Decrypt(c.Payload, c.RawHeader)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -134,7 +139,7 @@ func (c EncodedCredential) DecodeArmored(unarmorer Unarmorer) (Credential, error
 
 // IsEncrypted returns true when the credential is encrypted.
 func (c EncodedCredential) IsEncrypted() bool {
-	return c.Armor != ""
+	return c.EncryptionAlgorithm != ""
 }
 
 // EncodeCredential encodes a Credential as a one line string that can be transferred.
@@ -144,14 +149,14 @@ func EncodeCredential(credential Credential) (string, error) {
 	return encodeCredentialPartsToString(cred.Header, cred.Payload)
 }
 
-// EncodeArmoredCredential armors and encodes a Credential as a one line string token that can be transferred.
-func EncodeArmoredCredential(credential Credential, armorer Armorer) (string, error) {
+// EncodeEncryptedCredential encrypts and encodes a Credential as a one line string token that can be transferred.
+func EncodeEncryptedCredential(credential Credential, key PassBasedKey) (string, error) {
 	cred := newEncodedCredential(credential)
 
 	// Set the `enc` header so it can be used to decrypt later.
-	cred.Header["enc"] = armorer.Name()
+	cred.Header["enc"] = key.Name()
 
-	payload, additionalheaders, err := armorer.Armor(cred.Payload)
+	payload, additionalheaders, err := key.Encrypt(cred.Payload)
 	if err != nil {
 		return "", errio.Error(err)
 	}
@@ -251,9 +256,9 @@ func (p Parser) Parse(raw string) (*EncodedCredential, error) {
 		return nil, ErrCannotDecodeCredentialPayload(err)
 	}
 
-	armor, ok := cred.Header["enc"].(string)
+	encryptionAlgorithm, ok := cred.Header["enc"].(string)
 	if ok {
-		cred.Armor = armor
+		cred.EncryptionAlgorithm = encryptionAlgorithm
 	}
 
 	return cred, nil
@@ -261,7 +266,7 @@ func (p Parser) Parse(raw string) (*EncodedCredential, error) {
 
 // RSACredential implements a Credential for an RSA key.
 type RSACredential struct {
-	*crypto.RSAKey
+	crypto.RSAKey
 }
 
 // GenerateCredential generates a new credential to be used to
@@ -283,17 +288,17 @@ func generateRSACredential(keyLength int) (RSACredential, error) {
 
 // AddAuthentication adds authentication to an http request.
 func (c RSACredential) AddAuthentication(r *http.Request) error {
-	return auth.NewCredentialSignature(c.RSAKey).AddAuthentication(r)
+	return auth.NewRSACredential(c.RSAKey).AddAuthentication(r)
 }
 
 // Fingerprint returns the key identifier by which the server can identify the credential.
 func (c RSACredential) Fingerprint() (string, error) {
-	return c.RSAKey.Fingerprint()
+	return c.RSAKey.Public().Fingerprint()
 }
 
 // Verifier returns the public key to be stored server side to verify an http request authenticated with this credential.
 func (c RSACredential) Verifier() ([]byte, error) {
-	return c.RSAKey.ExportPublicKey()
+	return c.RSAKey.Public().Export()
 }
 
 // Decoder returns the decoder for the rsa private key.
@@ -302,13 +307,13 @@ func (c RSACredential) Decoder() CredentialDecoder {
 }
 
 // Wrap encrypts data, typically an account key.
-func (c RSACredential) Wrap(plaintext []byte) (crypto.Ciphertext, error) {
-	return crypto.EncryptRSAAES(plaintext, c.RSAKey.RSAPublicKey)
+func (c RSACredential) Wrap(plaintext []byte) (crypto.CiphertextRSAAES, error) {
+	return c.RSAKey.Public().Encrypt(plaintext)
 }
 
 // Unwrap decrypts data, typically an account key.
-func (c RSACredential) Unwrap(ciphertext crypto.Ciphertext) ([]byte, error) {
-	return ciphertext.Decrypt(c.RSAKey)
+func (c RSACredential) Unwrap(ciphertext crypto.CiphertextRSAAES) ([]byte, error) {
+	return c.RSAKey.Decrypt(ciphertext)
 }
 
 // Type returns what type of credential this is.
@@ -336,25 +341,19 @@ func (d RSAPrivateKeyDecoder) Name() string {
 	return "rsa"
 }
 
-// Armorer can armor a Credential into token values.
-type Armorer interface {
-	// Name returns the name of the algorithm.
+// PassBasedKey can encrypt a Credential into token values.
+type PassBasedKey interface {
+	// Name returns the name of the key derivation algorithm.
 	Name() string
-	// Armor encrypts a payload with and returns a header.
-	Armor(payload []byte) ([]byte, map[string]interface{}, error)
+	// Encrypt encrypts a given payload with the passphrase derived key and returns encrypted bytes and header with encryption parameter values.
+	Encrypt(payload []byte) ([]byte, map[string]interface{}, error)
+	// Decrypt decrypts a payload with the key and accepts the raw JSON header to read values from.
+	Decrypt(payload []byte, header []byte) ([]byte, error)
 }
 
-// Unarmorer can unarmor token values into a Credential.
-type Unarmorer interface {
-	// Name returns the name of the algorithm.
-	Name() string
-	// Unarmor decrypts a payload with the key and accepts the raw JSON header to read values from.
-	Unarmor(payload []byte, header []byte) ([]byte, error)
-}
-
-// armoredCredentialHeader is a helper type to help encoding
-// and decoding header values for the Scrypt armoring.
-type armoredCredentialHeader struct {
+// passbasedKeyHeader is a helper type to help encoding
+// and decoding header values for the Scrypt encryption.
+type passbasedKeyHeader struct {
 	KeyLen int    `json:"klen"`
 	Salt   []byte `json:"salt"`
 	N      int    `json:"n"`
@@ -363,39 +362,41 @@ type armoredCredentialHeader struct {
 	Nonce  []byte `json:"nonce"`
 }
 
-// passphraseArmorer wraps an scrypt derived key and implements
-// the Armorer interface.
-type passphraseArmorer struct {
-	key *crypto.ScryptKey
+// passBasedKey wraps an scrypt derived key and implements
+// the PassBasedKey interface.
+type passBasedKey struct {
+	key        *crypto.ScryptKey
+	passphrase []byte
 }
 
-// NewPassphraseArmorer generates a new armorer from a passphrase.
-func NewPassphraseArmorer(passphrase []byte) (Armorer, error) {
+// NewPassBasedKey generates a new key from a passphrase.
+func NewPassBasedKey(passphrase []byte) (PassBasedKey, error) {
 	key, err := crypto.GenerateScryptKey(passphrase)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	return passphraseArmorer{
-		key: key,
+	return passBasedKey{
+		key:        key,
+		passphrase: passphrase,
 	}, nil
 }
 
-// Armor implements the Armorer interface and encrypts a payload,
+// Encrypt implements the PassBasedKey interface and encrypts a payload,
 // returning the encrypted payload and header values.
-func (p passphraseArmorer) Armor(payload []byte) ([]byte, map[string]interface{}, error) {
-	encrypted, nonce, err := p.key.Encrypt(payload, crypto.SaltOperationLocalCredentialEncryption)
+func (p passBasedKey) Encrypt(payload []byte) ([]byte, map[string]interface{}, error) {
+	ciphertext, err := p.key.Encrypt(payload, crypto.SaltOperationLocalCredentialEncryption)
 	if err != nil {
 		return nil, nil, errio.Error(err)
 	}
 
-	header := armoredCredentialHeader{
+	header := passbasedKeyHeader{
 		KeyLen: p.key.KeyLen,
 		Salt:   p.key.Salt,
 		N:      p.key.N,
 		R:      p.key.R,
 		P:      p.key.P,
-		Nonce:  nonce,
+		Nonce:  ciphertext.Nonce,
 	}
 	raw, err := json.Marshal(header)
 	if err != nil {
@@ -408,39 +409,26 @@ func (p passphraseArmorer) Armor(payload []byte) ([]byte, map[string]interface{}
 		return nil, nil, errio.Error(err)
 	}
 
-	return encrypted, headerMap, nil
+	return ciphertext.Data, headerMap, nil
 }
 
-// Name implements the Armorer interface.
-func (p passphraseArmorer) Name() string {
+// Name implements the PassBasedKey interface.
+func (p passBasedKey) Name() string {
 	return "scrypt"
 }
 
-// passphraseUnarmorer implements the Unarmorer interface for the scrypt algorithm.
-type passphraseUnarmorer []byte
-
-// NewPassphraseUnarmorer returns an unarmorer for the given passphrase.
-func NewPassphraseUnarmorer(passphrase []byte) Unarmorer {
-	return passphraseUnarmorer(passphrase)
-}
-
-// Unarmor decrypts an encrypted payload and reads values from the header when necessary.
-func (p passphraseUnarmorer) Unarmor(payload []byte, rawHeader []byte) ([]byte, error) {
-	header := armoredCredentialHeader{}
+// Decrypt decrypts an encrypted payload and reads values from the header when necessary.
+func (p passBasedKey) Decrypt(payload []byte, rawHeader []byte) ([]byte, error) {
+	header := passbasedKeyHeader{}
 	err := json.Unmarshal(rawHeader, &header)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	key, err := crypto.DeriveScryptKey(p, header.Salt, header.N, header.R, header.P, header.KeyLen)
+	key, err := crypto.DeriveScryptKey(p.passphrase, header.Salt, header.N, header.R, header.P, header.KeyLen)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
 	return key.Decrypt(payload, header.Nonce, crypto.SaltOperationLocalCredentialEncryption)
-}
-
-// Name returns the unarmoring algorithm.
-func (p passphraseUnarmorer) Name() string {
-	return "scrypt"
 }

@@ -166,18 +166,13 @@ func (c *client) createSecretVersion(secretPath api.SecretPath, data []byte, sec
 		}
 	}
 
-	encryptedData, err := crypto.EncryptAES(data, secretKey.Key)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	encodedData, err := api.EncodeCiphertext(encryptedData)
+	encryptedData, err := secretKey.Key.Encrypt(data)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
 	in := &api.CreateSecretVersionRequest{
-		EncryptedData: encodedData,
+		EncryptedData: encryptedData,
 		SecretKeyID:   secretKey.SecretKeyID,
 	}
 
@@ -229,12 +224,7 @@ func (c *client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 		return nil, errio.Error(err)
 	}
 
-	encryptedData, err := crypto.EncryptAES(data, secretKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	encodedData, err := api.EncodeCiphertext(encryptedData)
+	encryptedData, err := secretKey.Encrypt(data)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -246,7 +236,7 @@ func (c *client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 
 	in := &api.CreateSecretRequest{
 		BlindName:     blindName,
-		EncryptedData: encodedData,
+		EncryptedData: encryptedData,
 
 		EncryptedNames: encryptedNames,
 		EncryptedKeys:  encryptedKeys,

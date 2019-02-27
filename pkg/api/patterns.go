@@ -47,18 +47,6 @@ var (
 	whitelistSecretPathInDirPath                 = regexp.MustCompile(fmt.Sprintf(`((?i)^(%s\/%s\/%s(\/%s)*(?:\:.+)?)$)`, patternUniformName, patternUniformName, patternUniformName, patternUniformName))
 	whitelistSecretVersionIdentifierInSecretPath = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s)\/(%s)\/(%s\/)*(%s)(:(.+)?)$`, patternUniformName, patternUniformName, patternUniformName, patternUniformName))
 	whitelistSecretVersionInSecretPath           = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s)\/(%s)\/(%s\/)*(%s)(:([0-9]{1,9}|latest))$`, patternUniformName, patternUniformName, patternUniformName, patternUniformName))
-
-	// encodedCiphertextPattern matches "<algorithm name>$<base64 encoded string>$<parameter name>=<parameter value>,<parameter name>=<parameter value>...".
-	encodedCiphertextPattern = regexp.MustCompile(`^([a-zA-Z0-9\-+]+)\$([A-Za-z0-9+/]+(?:={0,2})?)\$((?:[a-zA-Z]+=[a-zA-Z0-9+/]+(?:={0,2})?(?:$|,))*)$`)
-
-	// encodedCiphertextMetadataPattern matches "<parameter name>=<parameter value>".
-	// Can be used to find the value of a parameter, as this is captured.
-	// Usage:
-	// 	pattern := fmt.Sprintf(encodedCiphertextMetadataPattern, "<parameter name>")
-	// 	regexp, err := regexp.Compile(pattern)
-	// 	matches := regexp.FindStringSubmatch(string(m))
-	//  parameterValue = matches[1]
-	encodedCiphertextMetadataPattern = `(?:^|,)%s=([a-zA-Z0-9\+/]+(?:={0,2}?))(?:$|,)`
 )
 
 // Errors

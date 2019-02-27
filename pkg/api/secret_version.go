@@ -34,13 +34,13 @@ var (
 // EncryptedSecretVersion represents a version of an encrypted Secret.
 // It contains the encrypted data and the corresponding key.
 type EncryptedSecretVersion struct {
-	SecretVersionID *uuid.UUID          `json:"secret_version_id"`
-	Secret          *EncryptedSecret    `json:"secret"`
-	Version         int                 `json:"version"`
-	SecretKey       *EncryptedSecretKey `json:"secret_key,omitempty"`
-	EncryptedData   EncodedCiphertext   `json:"encrypted_data,omitempty"`
-	CreatedAt       time.Time           `json:"created_at"`
-	Status          string              `json:"status"`
+	SecretVersionID *uuid.UUID            `json:"secret_version_id"`
+	Secret          *EncryptedSecret      `json:"secret"`
+	Version         int                   `json:"version"`
+	SecretKey       *EncryptedSecretKey   `json:"secret_key,omitempty"`
+	EncryptedData   *crypto.CiphertextAES `json:"encrypted_data,omitempty"`
+	CreatedAt       time.Time             `json:"created_at"`
+	Status          string                `json:"status"`
 }
 
 // Decrypt decrypts an EncryptedSecretVersion into a SecretVersion.
@@ -52,22 +52,15 @@ func (esv *EncryptedSecretVersion) Decrypt(accountKey *crypto.RSAKey) (*SecretVe
 
 	var secretKey *SecretKey
 	var data []byte
-	if esv.SecretKey != nil && esv.EncryptedData != "" {
+	if esv.SecretKey != nil && esv.EncryptedData != nil {
 		secretKey, err = esv.SecretKey.Decrypt(accountKey)
 		if err != nil {
 			return nil, errio.Error(err)
 		}
 
-		dataCiphertext, err := esv.EncryptedData.Decode()
+		data, err = secretKey.Key.Decrypt(*esv.EncryptedData)
 		if err != nil {
-			log.Debugf("cannot decode EncryptedData: %v", esv.EncryptedData)
-			return nil, errio.Error(err)
-		}
-
-		data, err = dataCiphertext.Decrypt(secretKey.Key)
-		if err != nil {
-			log.Debugf("cannot decrypt EncryptedData: %v", dataCiphertext)
-			return nil, errio.Error(err)
+			return nil, err
 		}
 	}
 
@@ -131,8 +124,8 @@ func (esv *EncryptedSecretVersion) ToAuditSubject() *AuditSubject {
 // CreateSecretVersionRequest contains the request fields for creating a
 // secret version with a secret key.
 type CreateSecretVersionRequest struct {
-	EncryptedData EncodedCiphertext `json:"encrypted_data"`
-	SecretKeyID   *uuid.UUID        `json:"secret_key_id"`
+	EncryptedData crypto.CiphertextAES `json:"encrypted_data"`
+	SecretKeyID   *uuid.UUID           `json:"secret_key_id"`
 }
 
 // Validate validates the request fields.
@@ -141,9 +134,14 @@ func (csvr *CreateSecretVersionRequest) Validate() error {
 		return ErrInvalidSecretKeyID
 	}
 
-	if len(csvr.EncryptedData) > MaxEncryptedSecretSize {
+	encoded, err := csvr.EncryptedData.MarshalJSON()
+	if err != nil {
+		return err
+	}
+
+	if len(encoded) > MaxEncryptedSecretSize {
 		return ErrEncryptedDataTooBig
 	}
 
-	return csvr.EncryptedData.Validate()
+	return nil
 }

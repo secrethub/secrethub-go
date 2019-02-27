@@ -7,7 +7,6 @@ import (
 	"bitbucket.org/zombiezen/cardcpx/natsort"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
 // Errors
@@ -25,31 +24,26 @@ var (
 // The names are encrypted and so are the names of SubDirs and Secrets.
 // The secrets contain no encrypted data, only the encrypted name.
 type EncryptedDir struct {
-	DirID          *uuid.UUID        `json:"dir_id"`
-	BlindName      string            `json:"blind_name"`
-	EncryptedName  EncodedCiphertext `json:"encrypted_name"`
-	ParentID       *uuid.UUID        `json:"parent_id"`
-	Status         string            `json:"status"`
-	CreatedAt      time.Time         `json:"created_at"`
-	LastModifiedAt time.Time         `json:"last_modified_at"`
+	DirID          *uuid.UUID           `json:"dir_id"`
+	BlindName      string               `json:"blind_name"`
+	EncryptedName  crypto.CiphertextRSA `json:"encrypted_name"`
+	ParentID       *uuid.UUID           `json:"parent_id"`
+	Status         string               `json:"status"`
+	CreatedAt      time.Time            `json:"created_at"`
+	LastModifiedAt time.Time            `json:"last_modified_at"`
 }
 
 // Decrypt decrypts an EncryptedDir into a Dir.
 func (ed *EncryptedDir) Decrypt(accountKey *crypto.RSAKey) (*Dir, error) {
-	decodedName, err := ed.EncryptedName.Decode()
+	name, err := accountKey.Unwrap(ed.EncryptedName)
 	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	decryptedName, err := decodedName.Decrypt(accountKey)
-	if err != nil {
-		return nil, errio.Error(err)
+		return nil, err
 	}
 
 	result := &Dir{
 		DirID:          ed.DirID,
 		BlindName:      ed.BlindName,
-		Name:           string(decryptedName),
+		Name:           string(name),
 		ParentID:       ed.ParentID,
 		Status:         ed.Status,
 		CreatedAt:      ed.CreatedAt,

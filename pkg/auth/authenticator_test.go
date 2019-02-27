@@ -16,9 +16,9 @@ func TestVerifyMultipleMethods(t *testing.T) {
 
 	// Arrange
 	key := clientKey
-	fingerprint, err := key.Fingerprint()
+	fingerprint, err := key.Public().Fingerprint()
 	assert.OK(t, err)
-	pub, err := key.ExportPublicKey()
+	pub, err := key.Public().Export()
 	assert.OK(t, err)
 
 	fakeCredentialGetter := fakeCredentialGetter{
@@ -36,7 +36,7 @@ func TestVerifyMultipleMethods(t *testing.T) {
 		Expected   string
 	}{
 		"success": {
-			Credential: auth.NewCredentialSignature(key),
+			Credential: auth.NewRSACredential(key),
 			Expected:   fingerprint,
 		},
 	}

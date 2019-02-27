@@ -9,13 +9,10 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
-	logging "github.com/op/go-logging"
 )
 
 // Errors
 var (
-	log = logging.MustGetLogger("log")
-
 	ErrInvalidSecretName = errAPI.Code("invalid_secret_name").StatusError(
 		"secret names must be between 1 and 32 characters and "+
 			"may only contain letters, numbers, dashes (-), underscores (_), and dots (.)",
@@ -43,25 +40,20 @@ var (
 // EncryptedSecret represents an encrypted Secret
 // It does not contain the encrypted data. Only the encrypted name.
 type EncryptedSecret struct {
-	SecretID      *uuid.UUID        `json:"secret_id"`
-	DirID         *uuid.UUID        `json:"dir_id"`
-	RepoID        *uuid.UUID        `json:"repo_id"`
-	EncryptedName EncodedCiphertext `json:"encrypted_name"`
-	BlindName     string            `json:"blind_name"`
-	VersionCount  int               `json:"version_count"`
-	LatestVersion int               `json:"latest_version"`
-	Status        string            `json:"status"`
-	CreatedAt     time.Time         `json:"created_at"`
+	SecretID      *uuid.UUID           `json:"secret_id"`
+	DirID         *uuid.UUID           `json:"dir_id"`
+	RepoID        *uuid.UUID           `json:"repo_id"`
+	EncryptedName crypto.CiphertextRSA `json:"encrypted_name"`
+	BlindName     string               `json:"blind_name"`
+	VersionCount  int                  `json:"version_count"`
+	LatestVersion int                  `json:"latest_version"`
+	Status        string               `json:"status"`
+	CreatedAt     time.Time            `json:"created_at"`
 }
 
 // Decrypt decrypts an EncryptedSecret into a Secret.
 func (es *EncryptedSecret) Decrypt(accountKey *crypto.RSAKey) (*Secret, error) {
-	nameCiphertext, err := es.EncryptedName.Decode()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	name, err := nameCiphertext.Decrypt(accountKey)
+	name, err := accountKey.Unwrap(es.EncryptedName)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -100,8 +92,8 @@ func (s *Secret) HasName(name string) bool {
 // CreateSecretRequest contains the request fields for creating a new secret,
 // together with its first version, encrypted for accounts that need access.
 type CreateSecretRequest struct {
-	BlindName     string            `json:"blind_name"`
-	EncryptedData EncodedCiphertext `json:"encrypted_data"`
+	BlindName     string               `json:"blind_name"`
+	EncryptedData crypto.CiphertextAES `json:"encrypted_data"`
 
 	EncryptedNames []EncryptedNameRequest `json:"encrypted_names"`
 	EncryptedKeys  []EncryptedKeyRequest  `json:"encrypted_keys"`
@@ -112,11 +104,6 @@ func (csr *CreateSecretRequest) Validate() error {
 	err := ValidateBlindName(csr.BlindName)
 	if err != nil {
 		return ErrInvalidSecretBlindName
-	}
-
-	err = csr.EncryptedData.Validate()
-	if err != nil {
-		return err
 	}
 
 	if len(csr.EncryptedNames) < 1 {
@@ -217,9 +204,9 @@ func (r *SecretAccessRequest) Validate() error {
 
 // SecretKeyMemberRequest contains the request fields to grant access to a secret key.
 type SecretKeyMemberRequest struct {
-	AccountID    *uuid.UUID        `json:"account_id"`
-	SecretKeyID  *uuid.UUID        `json:"secret_key_id"`
-	EncryptedKey EncodedCiphertext `json:"encrypted_key"`
+	AccountID    *uuid.UUID           `json:"account_id"`
+	SecretKeyID  *uuid.UUID           `json:"secret_key_id"`
+	EncryptedKey crypto.CiphertextRSA `json:"encrypted_key"`
 }
 
 // Validate validates the request fields.
@@ -232,5 +219,5 @@ func (skmr *SecretKeyMemberRequest) Validate() error {
 		return ErrInvalidKeyID
 	}
 
-	return skmr.EncryptedKey.Validate()
+	return nil
 }

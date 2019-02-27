@@ -2,23 +2,19 @@ package api
 
 import (
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
+	"github.com/keylockerbv/secrethub-go/pkg/crypto"
 )
 
 // EncryptedNameRequest contains an EncryptedName for an Account.
 type EncryptedNameRequest struct {
-	AccountID     *uuid.UUID        `json:"account_id"`
-	EncryptedName EncodedCiphertext `json:"encrypted_name"`
+	AccountID     *uuid.UUID           `json:"account_id"`
+	EncryptedName crypto.CiphertextRSA `json:"encrypted_name"`
 }
 
 // Validate validates the EncryptedNameRequest to be valid.
 func (enr *EncryptedNameRequest) Validate() error {
 	if enr.AccountID == nil {
 		return ErrInvalidAccountID
-	}
-
-	err := enr.EncryptedName.Validate()
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -36,11 +32,7 @@ func (nnr EncryptedNameForNodeRequest) Validate() error {
 		return ErrInvalidNodeID
 	}
 
-	if nnr.AccountID == nil {
-		return ErrInvalidAccountID
-	}
-
-	err := nnr.EncryptedName.Validate()
+	err := nnr.EncryptedNameRequest.Validate()
 	if err != nil {
 		return err
 	}

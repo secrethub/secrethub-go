@@ -43,8 +43,8 @@ func (s accountService) Keys() AccountKeyService {
 // The public key of the intermediate key is returned.
 // The intermediate key is returned in an CreateAccountKeyRequest ready to be sent to the API.
 // If an error has occured, it will be returned and the other result should be considered invalid.
-func (c *client) createAccountKeyRequest(credential Credential, accountKey *crypto.RSAKey) (*api.CreateAccountKeyRequest, error) {
-	publicAccountKey, err := accountKey.ExportPublicKey()
+func (c *client) createAccountKeyRequest(credential Credential, accountKey crypto.RSAKey) (*api.CreateAccountKeyRequest, error) {
+	publicAccountKey, err := accountKey.Public().Export()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -59,14 +59,9 @@ func (c *client) createAccountKeyRequest(credential Credential, accountKey *cryp
 		return nil, errio.Error(err)
 	}
 
-	encodedWrappedAccountKey, err := api.EncodeCiphertext(wrappedAccountKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
 	return &api.CreateAccountKeyRequest{
 		PublicKey:           publicAccountKey,
-		EncryptedPrivateKey: encodedWrappedAccountKey,
+		EncryptedPrivateKey: wrappedAccountKey,
 	}, nil
 }
 
@@ -126,12 +121,7 @@ func (c *client) fetchAccountDetails() error {
 		return errio.Error(err)
 	}
 
-	ciphertext, err := resp.EncryptedPrivateKey.Decode()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	data, err := c.credential.Unwrap(ciphertext)
+	data, err := c.credential.Unwrap(resp.EncryptedPrivateKey)
 	if err != nil {
 		return errio.Error(err)
 	}
@@ -143,7 +133,7 @@ func (c *client) fetchAccountDetails() error {
 
 	// Cache the account and account key
 	c.account = resp.Account
-	c.accountKey = accountKey
+	c.accountKey = &accountKey
 
 	return nil
 }

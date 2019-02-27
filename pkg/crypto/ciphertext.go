@@ -1,175 +1,151 @@
 package crypto
 
 import (
+	"encoding/base64"
+	"fmt"
+	"regexp"
+	"sort"
+
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
 // Errors
 var (
-	ErrWrongKeyType      = errCrypto.Code("wrong_key_type").Error("received wrong key type")
 	ErrInvalidCiphertext = errCrypto.Code("invalid_ciphertext").Error("ciphertext contains invalid data")
+	ErrWrongAlgorithm    = errCrypto.Code("wrong_algorithm").Error("unexpected algorithm of the encoded ciphertext")
+	ErrInvalidMetadata   = errCrypto.Code("invalid_metadata").Error("metadata of encrypted key is invalid")
 )
 
-// Key represents a key that can be used to decrypt data.
-type Key interface{}
+var (
+	// encodedCiphertextPattern matches "<algorithm name>$<base64 encoded string>$<parameter name>=<parameter value>,<parameter name>=<parameter value>...".
+	encodedCiphertextPattern = regexp.MustCompile(`^([a-zA-Z0-9\-+]+)\$([A-Za-z0-9+/]+(?:={0,2})?)\$((?:[a-zA-Z]+=[a-zA-Z0-9+/]+(?:={0,2})?(?:$|,))*)$`)
 
-// Ciphertext is an interface for to decrypt encrypted data.
-type Ciphertext interface {
-	Decrypt(k Key) ([]byte, error)
-	ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error)
+	// encodedCiphertextMetadataPattern matches "<parameter name>=<parameter value>".
+	// Can be used to find the value of a parameter, as this is captured.
+	// Usage:
+	// 	pattern := fmt.Sprintf(encodedCiphertextMetadataPattern, "<parameter name>")
+	// 	regexp, err := regexp.Compile(pattern)
+	// 	matches := regexp.FindStringSubmatch(string(m))
+	//  parameterValue = matches[1]
+	encodedCiphertextMetadataPattern = `(?:^|,)%s=([a-zA-Z0-9\+/]+(?:={0,2}?))(?:$|,)`
+)
+
+// encodedCiphertext contains a string in the format <algorithm>$<base64-encoded-encrypted-data>$<metadata>.
+type encodedCiphertext string
+
+// encryptionAlgorithm represents the algorithm an EncodedCiphertext is encrypted with.
+type encryptionAlgorithm string
+
+// encryptionAlgorithm definitions
+const (
+	algorithmRSAAES encryptionAlgorithm = "RSA-OAEP+AES-GCM"
+	algorithmRSA    encryptionAlgorithm = "RSA-OAEP"
+	algorithmAES    encryptionAlgorithm = "AES-GCM"
+)
+
+// encodedCiphertextMetadata represents the metadata of an EncodedCiphertext.
+// Has the form of <name>=<value>,<name>=<value>.
+// E.g. nonce=abcd,length=1024
+type encodedCiphertextMetadata string
+
+func newEncodedCiphertext(from string) (encodedCiphertext, error) {
+	ct := encodedCiphertext(from)
+	return ct, ct.validate()
 }
 
-// CiphertextRSAAES represents data encrypted with AES-GCM, where the AES-key is encrypted with RSA-OAEP.
-type CiphertextRSAAES struct {
-	*CiphertextAES
-	*CiphertextRSA
-}
-
-// CiphertextAES represents data encrypted with AES-GCM.
-type CiphertextAES struct {
-	Data  []byte
-	Nonce []byte
-}
-
-// CiphertextRSA represents data encrypted with RSA-OAEP.
-type CiphertextRSA struct {
-	Data []byte
-}
-
-// EncryptRSAAES encrypts provided data with AES-GCM.
-// The used AES-key is then encrypted with RSA-OAEP.
-func EncryptRSAAES(data []byte, k *RSAPublicKey) (*CiphertextRSAAES, error) {
-	aesKey, err := GenerateAESKey()
-	if err != nil {
-		return nil, errio.Error(err)
+// validate verifies the EncodedCiphertext has a valid format.
+func (ec encodedCiphertext) validate() error {
+	if !encodedCiphertextPattern.MatchString(string(ec)) {
+		return ErrInvalidCiphertext
 	}
 
-	aesData, err := EncryptAES(data, aesKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	rsaData, err := EncryptRSA(aesKey.key, k)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return &CiphertextRSAAES{
-		CiphertextAES: aesData,
-		CiphertextRSA: rsaData,
-	}, nil
+	return nil
 }
 
-// Decrypt decrypts the key in CiphertextRSAAES with RSA-OAEP and then decrypts the data in CiphertextRSAAES with AES-GCM.
-func (b *CiphertextRSAAES) Decrypt(k Key) ([]byte, error) {
-	if b.CiphertextRSA == nil || b.CiphertextAES == nil {
+// parseRegex finds all matches of the encryptedKeyPattern regex on the EncodedCiphertext.
+func (ec encodedCiphertext) parseRegex() ([]string, error) {
+	matches := encodedCiphertextPattern.FindStringSubmatch(string(ec))
+	if len(matches) < 4 {
 		return nil, ErrInvalidCiphertext
 	}
+	return matches, nil
+}
 
-	aesKeyData, err := b.CiphertextRSA.Decrypt(k)
+// algorithm returns the algorithm part of the EncodedCiphertext.
+func (ec encodedCiphertext) algorithm() (encryptionAlgorithm, error) {
+	matches, err := ec.parseRegex()
+	if err != nil {
+		return "", errio.Error(err)
+	}
+	return encryptionAlgorithm(matches[1]), nil
+}
+
+// data returns the encrypted data part of the EncodedCiphertext.
+func (ec encodedCiphertext) data() ([]byte, error) {
+	matches, err := ec.parseRegex()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
-
-	aesKey := &AESKey{aesKeyData}
-
-	return b.CiphertextAES.Decrypt(aesKey)
+	return base64.StdEncoding.DecodeString(matches[2])
 }
 
-// ReEncrypt reencrypts the ciphertext using RSA+AES for the given encryption key.
-func (b *CiphertextRSAAES) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error) {
-	decrypted, err := b.Decrypt(decryptKey)
+// metadata returns the metadata part of the EncodedCiphertext.
+func (ec encodedCiphertext) metadata() (encodedCiphertextMetadata, error) {
+	matches, err := ec.parseRegex()
 	if err != nil {
-		return nil, errio.Error(err)
+		return "", errio.Error(err)
 	}
-
-	rsaKey, ok := encryptKey.(*RSAPublicKey)
-	if !ok {
-		return nil, ErrWrongKeyType
-	}
-
-	return EncryptRSAAES(decrypted, rsaKey)
+	return encodedCiphertextMetadata(matches[3]), nil
 }
 
-// EncryptAES encrypts the provided data with AES-GCM.
-func EncryptAES(data []byte, k *AESKey) (*CiphertextAES, error) {
-	encryptedData, nonce, err := k.Encrypt(data)
+// newEncodedCiphertextMetadata creates a new encodedCiphertextMetadata from a map of metadata.
+// Input of {"param": "foo", "second": "bar"} outputs "param=foo,second=bar".
+func newEncodedCiphertextMetadata(metadataList map[string]string) encodedCiphertextMetadata {
+	metadata := ""
+
+	// Sort all the keys of the metadataList so that metadata is always in alphabetical order.
+	var keys []string
+	for k := range metadataList {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		separator := ""
+		if len(metadata) > 0 {
+			separator = ","
+		}
+		metadata = fmt.Sprintf("%s%s%s=%s", metadata, separator, k, metadataList[k])
+	}
+
+	return encodedCiphertextMetadata(metadata)
+}
+
+// getValue returns a value from metadata.
+// E.g. when the metadata is "first=foo,second=bar", then getValue("second") => "bar".
+func (m encodedCiphertextMetadata) getValue(name string) (string, error) {
+	pattern := fmt.Sprintf(encodedCiphertextMetadataPattern, name)
+	regexp, err := regexp.Compile(pattern)
+
 	if err != nil {
-		return nil, errio.Error(err)
+		return "", ErrInvalidMetadata
 	}
 
-	return &CiphertextAES{
-		Data:  encryptedData,
-		Nonce: nonce,
-	}, nil
+	matches := regexp.FindStringSubmatch(string(m))
+
+	if len(matches) < 2 {
+		return "", ErrInvalidMetadata
+	}
+
+	return matches[1], nil
 }
 
-// Decrypt decrypts the data in CiphertextAES with AES-GCM using the provided key.
-func (b *CiphertextAES) Decrypt(k Key) ([]byte, error) {
-	aesKey, ok := k.(*AESKey)
-	if !ok {
-		return nil, ErrWrongKeyType
-	}
-
-	if b.Data == nil || b.Nonce == nil {
-		return nil, ErrInvalidCiphertext
-	}
-
-	return aesKey.Decrypt(b.Data, b.Nonce)
-}
-
-// ReEncrypt reencrypts the ciphertext using AES for the given encryption key.
-func (b *CiphertextAES) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error) {
-	decrypted, err := b.Decrypt(decryptKey)
+// getDecodedValue gets the value as if getValue and also decodes it from base64.
+func (m encodedCiphertextMetadata) getDecodedValue(name string) ([]byte, error) {
+	dataStr, err := m.getValue(name)
 	if err != nil {
-		return nil, errio.Error(err)
+		return nil, ErrInvalidMetadata
 	}
 
-	aesKey, ok := encryptKey.(*AESKey)
-	if !ok {
-		return nil, ErrWrongKeyType
-	}
-
-	return EncryptAES(decrypted, aesKey)
-}
-
-// EncryptRSA encrypts the provided data with RSA-OAEP.
-func EncryptRSA(data []byte, k *RSAPublicKey) (*CiphertextRSA, error) {
-	encryptedData, err := k.Encrypt(data)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return &CiphertextRSA{
-		Data: encryptedData,
-	}, nil
-}
-
-// Decrypt decrypts the data in CiphertextRSA with RSA-OAEP using the provided key.
-func (b *CiphertextRSA) Decrypt(k Key) ([]byte, error) {
-	rsaKey, ok := k.(*RSAKey)
-	if !ok {
-		return nil, ErrWrongKeyType
-	}
-
-	if b.Data == nil {
-		return nil, ErrInvalidCiphertext
-	}
-
-	return rsaKey.Decrypt(b.Data)
-}
-
-// ReEncrypt reencrypts the ciphertext using RSA for the given encryption key.
-func (b *CiphertextRSA) ReEncrypt(decryptKey, encryptKey Key) (Ciphertext, error) {
-	decrypted, err := b.Decrypt(decryptKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	rsaKey, ok := encryptKey.(*RSAPublicKey)
-	if !ok {
-		return nil, ErrWrongKeyType
-	}
-
-	return EncryptRSA(decrypted, rsaKey)
+	return base64.StdEncoding.DecodeString(dataStr)
 }
