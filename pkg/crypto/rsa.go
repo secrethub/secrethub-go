@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	// ExternalKeyLength defines the number of bits to use as key length for RSA keys.
+	// RSAKeyLength defines the number of bits to use as key length for RSA keys.
 	//
 	// The size of 4096 bits has been chosen because 2048 bits is assumed to
 	// last up to the year 2020. Have a look at https://keylength.org
@@ -25,9 +25,7 @@ const (
 	// key lengths, we expect those key lengths to be more future proof in terms
 	// of usability and we expect (more) efficient implementations to be developed
 	// for those key lengths over less frequently used ones (e.g. 3072).
-	//
-	// TODO: rename this to RSAKeyLength
-	ExternalKeyLength = 4096
+	RSAKeyLength = 4096
 )
 
 // Errors
