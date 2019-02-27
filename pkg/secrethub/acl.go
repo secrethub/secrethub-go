@@ -12,14 +12,11 @@ type AccessRuleService interface {
 	Delete(path string, accountName string) error
 	// Get retrieves the access rule for the given account on the given directory.
 	Get(path string, accountName string) (*api.AccessRule, error)
-	// List retrieves all access rules that apply to a directory.
+	// List etrieves all access rules that apply to a directory, including
+	// rules that apply to its children up to a specified depth. When ancestors is set
+	// to true, it also includes rules for any parent directories. When the depth is
+	// set to -1, all children are retrieved without limit.
 	List(path string, depth int, ancestors bool) ([]*api.AccessRule, error)
-	// ListWithPaths retrieves all access rules that apply to a directory,
-	// mapped to their respective paths, including rules that apply to its children
-	// up to a specified depth. When ancestors is set to true, it also includes rules
-	// for any parent directories. When the depth is set to -1, all children are
-	// retrieved without limit.
-	ListWithPaths(path string, depth int, ancestors bool) (map[string][]*api.AccessRule, error)
 	// ListLevels lists the access levels on the given directory.
 	ListLevels(path string) ([]*api.AccessLevel, error)
 	// Set sets an access rule with a certain permission level for an account to a path.
@@ -111,53 +108,6 @@ func (s accessRuleService) List(path string, depth int, ancestors bool) ([]*api.
 	}
 
 	return rules, nil
-}
-
-// ListWithPaths retrieves all access rules that apply to a directory,
-// mapped to their respective paths, including rules that apply to its children
-// up to a specified depth. When ancestors is set to true, it also includes rules
-// for any parent directories. When the depth is set to -1, all children are
-// retrieved without limit.
-func (s accessRuleService) ListWithPaths(path string, depth int, ancestors bool) (map[string][]*api.AccessRule, error) {
-	rules, err := s.List(path, depth, ancestors)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	err = api.ValidateDirPath(path)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	dirFS, err := s.dirService.GetTree(path, depth, ancestors)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	// Separate all rules into lists of rules per directory.
-	ruleMap := make(map[uuid.UUID][]int)
-	for i, rule := range rules {
-		list := ruleMap[*rule.DirID]
-		ruleMap[*rule.DirID] = append(list, i)
-	}
-
-	// Map the directories to rule lists.
-	result := make(map[string][]*api.AccessRule)
-	for dirID, list := range ruleMap {
-		dirPath, err := dirFS.AbsDirPath(&dirID)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		dirRules := make([]*api.AccessRule, len(list))
-		for i, ruleIndex := range list {
-			dirRules[i] = rules[ruleIndex]
-		}
-
-		result[dirPath.String()] = dirRules
-	}
-
-	return result, nil
 }
 
 // List lists the access rules on the given directory.
