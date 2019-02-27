@@ -15,9 +15,7 @@ var (
 
 const (
 	// DefaultScryptKeyLength defines the default key length (256 bits) of the derived key.
-	//
-	// TODO: refactor this to use SymmetricKeyLength
-	DefaultScryptKeyLength = 32
+	DefaultScryptKeyLength = SymmetricKeyLength
 
 	// DefaultScryptN is the work factor of the scrypt key derivation
 	// function. Changing the work factor N linearly scales the memory
