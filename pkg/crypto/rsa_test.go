@@ -72,7 +72,7 @@ var (
 		"-----END RSA PRIVATE KEY-----\n")
 )
 
-// TestReEncryptionRepoKey tests to wrap a new repo key, and ReWrap this into a SymmetricKey for another user.
+// TestReEncryptionRepoKey tests to wrap a new repo key, and re-wrap this into a SymmetricKey for another user.
 func TestReEncryptionRepoKey(t *testing.T) {
 	key1 := getTestKey1(t)
 	key2 := getTestKey2(t)
@@ -87,7 +87,7 @@ func TestReEncryptionRepoKey(t *testing.T) {
 		t.Error(err)
 	}
 
-	exportedRepoKey2, err := key1.ReWrap(key2.Public(), exportedRepoKey1)
+	exportedRepoKey2, err := key1.ReWrapBytes(key2.Public(), exportedRepoKey1)
 	if err != nil {
 		t.Error(err)
 	}

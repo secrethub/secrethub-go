@@ -266,12 +266,10 @@ func (prv RSAPrivateKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
 	return prv.unwrap(ciphertext.Data)
 }
 
-// ReWrap uses the private key to re-encrypt a small number of encrypted bytes for
+// ReWrapBytes uses the private key to re-encrypt a small number of encrypted bytes for
 // the given public key. Note that this function will be deprecated. Directly use
 // Unwrap and Wrap when possible.
-//
-// TODO: rename this to `ReWrapBytes`
-func (prv RSAPrivateKey) ReWrap(pub RSAPublicKey, encData []byte) ([]byte, error) {
+func (prv RSAPrivateKey) ReWrapBytes(pub RSAPublicKey, encData []byte) ([]byte, error) {
 
 	decData, err := prv.UnwrapBytes(encData)
 	if err != nil {

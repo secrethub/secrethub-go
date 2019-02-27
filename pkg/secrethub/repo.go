@@ -219,12 +219,12 @@ func (c *client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey
 		return nil, errio.Error(err)
 	}
 
-	accountRepoEncryptionKey, err := accountKey.ReWrap(rsaPublicKey, repoKey.RepoEncryptionKey)
+	accountRepoEncryptionKey, err := accountKey.ReWrapBytes(rsaPublicKey, repoKey.RepoEncryptionKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	accountRepoIndexKey, err := accountKey.ReWrap(rsaPublicKey, repoKey.RepoIndexKey)
+	accountRepoIndexKey, err := accountKey.ReWrapBytes(rsaPublicKey, repoKey.RepoIndexKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
