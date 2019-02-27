@@ -4,6 +4,8 @@
 
 The official [SecretHub][secrethub] Go client library.
 
+> SecretHub is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts. 
+
 ## Installation
 
 Install secrethub-go with:
@@ -48,6 +50,8 @@ fmt.Println(secret.Data) // prints password123
 data, err := randchar.NewGenerator(false).Generate(32) // Generate a slice of 32 alphanumeric characters.
 secret, err = client.Secrets().Write(api.SecretPath("path/to/secret"), data)
 ```
+
+Note that only packages inside the `/pkg` directory should be considered library code that you can use in your projects. All other code is not guaranteed to be backwards compatible and may change in the future.  
 
 ## Development
 
