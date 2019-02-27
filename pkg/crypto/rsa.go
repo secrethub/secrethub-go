@@ -143,6 +143,17 @@ func Verify(encodedPublicKey, message, signature []byte) error {
 	return publicKey.Verify(message, signature)
 }
 
+// Fingerprint returns the SHA256 hash of the public key, encoded as a hexadecimal string.
+func (pub RSAPublicKey) Fingerprint() (string, error) {
+	exported, err := pub.Export()
+	if err != nil {
+		return "", errio.Error(err)
+	}
+
+	sum := sha256.Sum256(exported)
+	return hex.EncodeToString(sum[:]), nil
+}
+
 // Export uses PEM encoding to encode the public key as bytes so it
 // can be easily stored and transferred between systems.
 func (pub RSAPublicKey) Export() ([]byte, error) {
@@ -159,21 +170,8 @@ func (pub RSAPublicKey) Export() ([]byte, error) {
 	return bytes, nil
 }
 
-// Fingerprint returns the SHA256 hash of the public key, encoded as a hexadecimal string.
-func (pub RSAPublicKey) Fingerprint() (string, error) {
-	exported, err := pub.Export()
-	if err != nil {
-		return "", errio.Error(err)
-	}
-
-	sum := sha256.Sum256(exported)
-	return hex.EncodeToString(sum[:]), nil
-}
-
 // ImportRSAPublicKey decodes a PEM encoded RSA public key into a public key that can be
 // used for encryption and signature verification.
-//
-// TODO: move Import and Export together
 func ImportRSAPublicKey(encodedPublicKey []byte) (RSAPublicKey, error) {
 	if len(encodedPublicKey) == 0 {
 		return RSAPublicKey{}, ErrEmptyPublicKey
@@ -207,14 +205,6 @@ type RSAPrivateKey struct {
 	private *rsa.PrivateKey
 }
 
-// NewRSAKey is used to construct an RSA key from the given private key.
-// Use GenerateRSAKey to randomly generate a new RSA key.
-func NewRSAKey(privateKey *rsa.PrivateKey) RSAPrivateKey {
-	return RSAPrivateKey{
-		private: privateKey,
-	}
-}
-
 // GenerateRSAKey generates a new RSA key with the given key length.
 func GenerateRSAKey(length int) (RSAPrivateKey, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, length)
@@ -225,19 +215,12 @@ func GenerateRSAKey(length int) (RSAPrivateKey, error) {
 	return NewRSAKey(privateKey), nil
 }
 
-// Public returns the public part of the RSA key pair.
-func (prv RSAPrivateKey) Public() RSAPublicKey {
-	return RSAPublicKey{
-		publicKey: &prv.private.PublicKey,
+// NewRSAKey is used to construct an RSA key from the given private key.
+// Use GenerateRSAKey to randomly generate a new RSA key.
+func NewRSAKey(privateKey *rsa.PrivateKey) RSAPrivateKey {
+	return RSAPrivateKey{
+		private: privateKey,
 	}
-}
-
-// Sign creates a SHA256 hash of the given message and uses the private key to
-// sign the hash, returning the resulting signature.
-func (prv RSAPrivateKey) Sign(message []byte) ([]byte, error) {
-	hashedMessage := sha256.Sum256(message)
-
-	return rsa.SignPKCS1v15(rand.Reader, prv.private, crypto.SHA256, hashedMessage[:])
 }
 
 // Decrypt uses the private key to decrypt the provided ciphertext, returning
@@ -264,6 +247,21 @@ func (prv RSAPrivateKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
 	}
 
 	return prv.unwrap(ciphertext.Data)
+}
+
+// Sign creates a SHA256 hash of the given message and uses the private key to
+// sign the hash, returning the resulting signature.
+func (prv RSAPrivateKey) Sign(message []byte) ([]byte, error) {
+	hashedMessage := sha256.Sum256(message)
+
+	return rsa.SignPKCS1v15(rand.Reader, prv.private, crypto.SHA256, hashedMessage[:])
+}
+
+// Public returns the public part of the RSA key pair.
+func (prv RSAPrivateKey) Public() RSAPublicKey {
+	return RSAPublicKey{
+		publicKey: &prv.private.PublicKey,
+	}
 }
 
 // ReWrapBytes uses the private key to re-encrypt a small number of encrypted bytes for
@@ -296,6 +294,11 @@ func (prv RSAPrivateKey) unwrap(encryptedData []byte) ([]byte, error) {
 	return output, nil
 }
 
+// Export returns the private key in ASN.1 DER encoded format.
+func (prv RSAPrivateKey) Export() []byte {
+	return x509.MarshalPKCS1PrivateKey(prv.private)
+}
+
 // ExportPEM returns the private key in PEM encoded format. After using ExportPEM,
 // make sure to keep the result private.
 func (prv RSAPrivateKey) ExportPEM() ([]byte, error) {
@@ -307,11 +310,6 @@ func (prv RSAPrivateKey) ExportPEM() ([]byte, error) {
 	})
 
 	return privateBytes, nil
-}
-
-// Export returns the private key in ASN.1 DER encoded format.
-func (prv RSAPrivateKey) Export() []byte {
-	return x509.MarshalPKCS1PrivateKey(prv.private)
 }
 
 // ImportRSAPrivateKeyPEM decodes a given PEM encoded private key into an RSA private key.
