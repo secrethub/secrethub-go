@@ -29,7 +29,7 @@ var (
 )
 
 // blindNameSize in bits
-var blindNameByteSize = crypto.HMACByteSize
+var blindNameByteSize = crypto.HMACSize
 
 // BlindNamePath
 
