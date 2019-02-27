@@ -49,6 +49,8 @@ data, err := randchar.NewGenerator(false).Generate(32) // Generate a slice of 32
 secret, err = client.Secrets().Write(api.SecretPath("path/to/secret"), data)
 ```
 
+Note that only packages inside the `/pkg` directory should be considered library code that you can use in your projects. All other code is not guaranteed to be backwards compatible and may change in the future.  
+
 ## Development
 
 Pull requests from the community are welcome.
