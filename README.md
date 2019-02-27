@@ -4,6 +4,8 @@
 
 The official [SecretHub][secrethub] Go client library.
 
+> SecretHub is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts. 
+
 ## Installation
 
 Install secrethub-go with:
