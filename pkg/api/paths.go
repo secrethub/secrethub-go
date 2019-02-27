@@ -228,7 +228,14 @@ func (sp *SecretPath) Set(value string) error {
 	return nil
 }
 
+// String returns the secret path as a string to be used for printing.
 func (sp SecretPath) String() string {
+	return string(sp)
+}
+
+// Marshal returns the secret path as a string to be used in communication
+// with the client and in transportation to the server.
+func (sp SecretPath) Marshal() string {
 	return string(sp)
 }
 
@@ -318,7 +325,14 @@ func (dp *DirPath) Set(value string) error {
 	return nil
 }
 
+// String returns the dir path as a string to be used for printing.
 func (dp DirPath) String() string {
+	return string(dp)
+}
+
+// Marshal returns the dir path as a string to be used in communication
+// with the client and in transportation to the server.
+func (dp DirPath) Marshal() string {
 	return string(dp)
 }
 
@@ -429,7 +443,14 @@ func (rp *RepoPath) Set(value string) error {
 	return nil
 }
 
+// String returns the repository's path as a string to be used for printing.
 func (rp RepoPath) String() string {
+	return string(rp)
+}
+
+// Marshal returns the repository's path as a string to be used in communication
+// with the client and in transportation to the server.
+func (rp RepoPath) Marshal() string {
 	return string(rp)
 }
 
@@ -449,7 +470,14 @@ func (n *Namespace) Set(value string) error {
 	return nil
 }
 
+// String returns the namespace as a string to be used for printing.
 func (n Namespace) String() string {
+	return string(n)
+}
+
+// Marshal returns the namespace as a string to be used in communication
+// with the client and in transportation to the server.
+func (n Namespace) Marshal() string {
 	return string(n)
 }
 
@@ -514,7 +542,14 @@ func (n *OrgName) Set(value string) error {
 	return nil
 }
 
+// String returns the organisation's name as a string to be used for printing.
 func (n OrgName) String() string {
+	return string(n)
+}
+
+// Marshal returns the organisation's name as a string to be used in communication
+// with the client and in transportation to the server.
+func (n OrgName) Marshal() string {
 	return string(n)
 }
 
