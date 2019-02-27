@@ -7,7 +7,7 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
-func generateRSAKey(t *testing.T) RSAKey {
+func generateRSAKey(t *testing.T) RSAPrivateKey {
 	key, err := GenerateRSAKey(1024)
 	if err != nil {
 		t.Fatal(err)

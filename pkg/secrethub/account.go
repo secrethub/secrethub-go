@@ -43,7 +43,7 @@ func (s accountService) Keys() AccountKeyService {
 // The public key of the intermediate key is returned.
 // The intermediate key is returned in an CreateAccountKeyRequest ready to be sent to the API.
 // If an error has occured, it will be returned and the other result should be considered invalid.
-func (c *client) createAccountKeyRequest(credential Credential, accountKey crypto.RSAKey) (*api.CreateAccountKeyRequest, error) {
+func (c *client) createAccountKeyRequest(credential Credential, accountKey crypto.RSAPrivateKey) (*api.CreateAccountKeyRequest, error) {
 	publicAccountKey, err := accountKey.Public().Export()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -85,7 +85,7 @@ func (c *client) createCredentialRequest(credential Credential) (*api.CreateCred
 
 // getAccountKey attempts to get the account key from the cache,
 // getting it from the API if not found in the cache.
-func (c *client) getAccountKey() (*crypto.RSAKey, error) {
+func (c *client) getAccountKey() (*crypto.RSAPrivateKey, error) {
 	if c.accountKey == nil {
 		err := c.fetchAccountDetails()
 		if err != nil {

@@ -201,34 +201,32 @@ func ImportRSAPublicKey(encodedPublicKey []byte) (RSAPublicKey, error) {
 	}, nil
 }
 
-// RSAKey provides asymmetric decryption and signing functionality using the RSA algorithm.
+// RSAPrivateKey provides asymmetric decryption and signing functionality using the RSA algorithm.
 // For encryption and signature verification, see RSAPublicKey instead.
-//
-// TODO: rename this to RSAPrivateKey, then the RSAPrivateKey.Export function makes more sense. We don't have to be explicit about it being a private key because the type already is.
-type RSAKey struct {
+type RSAPrivateKey struct {
 	private *rsa.PrivateKey
 }
 
 // NewRSAKey is used to construct an RSA key from the given private key.
 // Use GenerateRSAKey to randomly generate a new RSA key.
-func NewRSAKey(privateKey *rsa.PrivateKey) RSAKey {
-	return RSAKey{
+func NewRSAKey(privateKey *rsa.PrivateKey) RSAPrivateKey {
+	return RSAPrivateKey{
 		private: privateKey,
 	}
 }
 
 // GenerateRSAKey generates a new RSA key with the given key length.
-func GenerateRSAKey(length int) (RSAKey, error) {
+func GenerateRSAKey(length int) (RSAPrivateKey, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, length)
 	if err != nil {
-		return RSAKey{}, ErrGenerateRSAKey
+		return RSAPrivateKey{}, ErrGenerateRSAKey
 	}
 
 	return NewRSAKey(privateKey), nil
 }
 
 // Public returns the public part of the RSA key pair.
-func (prv RSAKey) Public() RSAPublicKey {
+func (prv RSAPrivateKey) Public() RSAPublicKey {
 	return RSAPublicKey{
 		publicKey: &prv.private.PublicKey,
 	}
@@ -236,7 +234,7 @@ func (prv RSAKey) Public() RSAPublicKey {
 
 // Sign creates a SHA256 hash of the given message and uses the private key to
 // sign the hash, returning the resulting signature.
-func (prv RSAKey) Sign(message []byte) ([]byte, error) {
+func (prv RSAPrivateKey) Sign(message []byte) ([]byte, error) {
 	hashedMessage := sha256.Sum256(message)
 
 	return rsa.SignPKCS1v15(rand.Reader, prv.private, crypto.SHA256, hashedMessage[:])
@@ -247,7 +245,7 @@ func (prv RSAKey) Sign(message []byte) ([]byte, error) {
 // first unwraps the encrypted symmetric key using the RSA-OAEP algorithm and
 // then uses the decrypted symmetric key to decrypt the rest of the ciphertext
 // with the AES-GCM algorithm.
-func (prv RSAKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
+func (prv RSAPrivateKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
 	aesKeyData, err := prv.Unwrap(ciphertext.rsa)
 	if err != nil {
 		return nil, err
@@ -260,7 +258,7 @@ func (prv RSAKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
 // with the RSA-OAEP algorithm, returning the resulting decrypted bytes. Note that
 // this should only be used for ciphertexts encrypted with RSA-OAEP. Use the Decrypt
 // function for decrypting large ciphertexts.
-func (prv RSAKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
+func (prv RSAPrivateKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
 	if len(ciphertext.Data) == 0 {
 		return []byte{}, nil
 	}
@@ -273,7 +271,7 @@ func (prv RSAKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
 // Unwrap and Wrap when possible.
 //
 // TODO: rename this to `ReWrapBytes`
-func (prv RSAKey) ReWrap(pub RSAPublicKey, encData []byte) ([]byte, error) {
+func (prv RSAPrivateKey) ReWrap(pub RSAPublicKey, encData []byte) ([]byte, error) {
 
 	decData, err := prv.UnwrapBytes(encData)
 	if err != nil {
@@ -286,13 +284,13 @@ func (prv RSAKey) ReWrap(pub RSAPublicKey, encData []byte) ([]byte, error) {
 // UnwrapBytes uses the private key to decrypt a small number of encrypted bytes with
 // the RSA-OAEP algorithm, returning the resulting decrypted bytes. Note that this
 // function will be deprecated. Directly use Unwrap instead when possible.
-func (prv RSAKey) UnwrapBytes(encryptedData []byte) ([]byte, error) {
+func (prv RSAPrivateKey) UnwrapBytes(encryptedData []byte) ([]byte, error) {
 	return prv.unwrap(encryptedData)
 }
 
 // unwrap is a helper function that uses the private key to decrypt a small number of
 // encrypted bytes with the RSA-OAEP algorithm, returning the resulting decrypted bytes.
-func (prv RSAKey) unwrap(encryptedData []byte) ([]byte, error) {
+func (prv RSAPrivateKey) unwrap(encryptedData []byte) ([]byte, error) {
 	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, prv.private, encryptedData, []byte{})
 	if err != nil {
 		return nil, ErrRSADecrypt(err)
@@ -304,7 +302,7 @@ func (prv RSAKey) unwrap(encryptedData []byte) ([]byte, error) {
 // make sure to keep the result private.
 //
 // TODO: rename this to ExportPEM()
-func (prv RSAKey) ExportPrivateKey() ([]byte, error) {
+func (prv RSAPrivateKey) ExportPrivateKey() ([]byte, error) {
 	privateASN1 := x509.MarshalPKCS1PrivateKey(prv.private)
 
 	privateBytes := pem.EncodeToMemory(&pem.Block{
@@ -316,25 +314,25 @@ func (prv RSAKey) ExportPrivateKey() ([]byte, error) {
 }
 
 // Export returns the private key in ASN.1 DER encoded format.
-func (prv RSAKey) Export() []byte {
+func (prv RSAPrivateKey) Export() []byte {
 	return x509.MarshalPKCS1PrivateKey(prv.private)
 }
 
 // ImportRSAPrivateKey decodes a given PEM encoded private key into an RSA private key.
 //
 // TODO: rename to ImportRSAPrivateKeyPEM
-func ImportRSAPrivateKey(privateKey []byte) (RSAKey, error) {
+func ImportRSAPrivateKey(privateKey []byte) (RSAPrivateKey, error) {
 	pemBlock, rest := pem.Decode(privateKey)
 	if pemBlock == nil {
-		return RSAKey{}, ErrNoKeyInFile
+		return RSAPrivateKey{}, ErrNoKeyInFile
 
 	} else if len(rest) > 0 {
-		return RSAKey{}, ErrMultipleKeysInFile
+		return RSAPrivateKey{}, ErrMultipleKeysInFile
 	}
 
 	privateRSAKey, err := x509.ParsePKCS1PrivateKey(pemBlock.Bytes)
 	if err != nil {
-		return RSAKey{}, ErrNotPKCS1Format
+		return RSAPrivateKey{}, ErrNotPKCS1Format
 	}
 
 	return NewRSAKey(privateRSAKey), nil
@@ -344,7 +342,7 @@ func ImportRSAPrivateKey(privateKey []byte) (RSAKey, error) {
 // PKIX pem encoded format, encrypted with the given passphrase.
 //
 // TODO: this should be removed or deprecated if not possible.
-func (prv RSAKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
+func (prv RSAPrivateKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
 	if pass == "" {
 		return nil, ErrEmptyPassphrase
 	}

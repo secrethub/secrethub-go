@@ -8,7 +8,7 @@ import (
 // DefaultAccountKeyLength defines the default bit size for account keys.
 const DefaultAccountKeyLength = 4096
 
-func generateAccountKey() (crypto.RSAKey, error) {
+func generateAccountKey() (crypto.RSAPrivateKey, error) {
 	return crypto.GenerateRSAKey(DefaultAccountKeyLength)
 }
 

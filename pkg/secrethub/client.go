@@ -88,7 +88,7 @@ type client struct {
 
 	// accountKey is the intermediate key for this SecretHub account.
 	// Do not use this field directly, but use client.getAccountKey() instead.
-	accountKey *crypto.RSAKey
+	accountKey *crypto.RSAPrivateKey
 
 	// repoindexKeys are the keys used to generate blind names in the repo.
 	// These are cached

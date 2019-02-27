@@ -22,7 +22,7 @@ type EncryptedTree struct {
 }
 
 // DecryptContents decrypts every directory and Secret.
-func (t EncryptedTree) DecryptContents(accountKey *crypto.RSAKey) ([]*Dir, []*Secret, error) {
+func (t EncryptedTree) DecryptContents(accountKey *crypto.RSAPrivateKey) ([]*Dir, []*Secret, error) {
 	dirs := make([]*Dir, len(t.Directories))
 	i := 0
 	for _, encryptedDir := range t.Directories {
@@ -51,7 +51,7 @@ func (t EncryptedTree) DecryptContents(accountKey *crypto.RSAKey) ([]*Dir, []*Se
 
 // Decrypt decrypts and constructs a tree of the directories and secrets.
 // Decrypt does not set the ParentPath.
-func (t EncryptedTree) Decrypt(accountKey *crypto.RSAKey) (*Tree, error) {
+func (t EncryptedTree) Decrypt(accountKey *crypto.RSAPrivateKey) (*Tree, error) {
 	// This could be done in a single for loop but for maintainability this structure has been adopted.
 	var rootDir *Dir
 	var err error

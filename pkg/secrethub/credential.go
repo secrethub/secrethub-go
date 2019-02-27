@@ -266,7 +266,7 @@ func (p Parser) Parse(raw string) (*EncodedCredential, error) {
 
 // RSACredential implements a Credential for an RSA key.
 type RSACredential struct {
-	crypto.RSAKey
+	crypto.RSAPrivateKey
 }
 
 // GenerateCredential generates a new credential to be used to
@@ -282,23 +282,23 @@ func generateRSACredential(keyLength int) (RSACredential, error) {
 	}
 
 	return RSACredential{
-		RSAKey: key,
+		RSAPrivateKey: key,
 	}, nil
 }
 
 // AddAuthentication adds authentication to an http request.
 func (c RSACredential) AddAuthentication(r *http.Request) error {
-	return auth.NewRSACredential(c.RSAKey).AddAuthentication(r)
+	return auth.NewRSACredential(c.RSAPrivateKey).AddAuthentication(r)
 }
 
 // Fingerprint returns the key identifier by which the server can identify the credential.
 func (c RSACredential) Fingerprint() (string, error) {
-	return c.RSAKey.Public().Fingerprint()
+	return c.RSAPrivateKey.Public().Fingerprint()
 }
 
 // Verifier returns the public key to be stored server side to verify an http request authenticated with this credential.
 func (c RSACredential) Verifier() ([]byte, error) {
-	return c.RSAKey.Public().Export()
+	return c.RSAPrivateKey.Public().Export()
 }
 
 // Decoder returns the decoder for the rsa private key.
@@ -308,12 +308,12 @@ func (c RSACredential) Decoder() CredentialDecoder {
 
 // Wrap encrypts data, typically an account key.
 func (c RSACredential) Wrap(plaintext []byte) (crypto.CiphertextRSAAES, error) {
-	return c.RSAKey.Public().Encrypt(plaintext)
+	return c.RSAPrivateKey.Public().Encrypt(plaintext)
 }
 
 // Unwrap decrypts data, typically an account key.
 func (c RSACredential) Unwrap(ciphertext crypto.CiphertextRSAAES) ([]byte, error) {
-	return c.RSAKey.Decrypt(ciphertext)
+	return c.RSAPrivateKey.Decrypt(ciphertext)
 }
 
 // Type returns what type of credential this is.
@@ -332,7 +332,7 @@ func (d RSAPrivateKeyDecoder) Decode(payload []byte) (Credential, error) {
 	}
 
 	return RSACredential{
-		RSAKey: crypto.NewRSAKey(key),
+		RSAPrivateKey: crypto.NewRSAKey(key),
 	}, nil
 }
 

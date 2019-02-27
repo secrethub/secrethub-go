@@ -34,7 +34,7 @@ type EncryptedDir struct {
 }
 
 // Decrypt decrypts an EncryptedDir into a Dir.
-func (ed *EncryptedDir) Decrypt(accountKey *crypto.RSAKey) (*Dir, error) {
+func (ed *EncryptedDir) Decrypt(accountKey *crypto.RSAPrivateKey) (*Dir, error) {
 	name, err := accountKey.Unwrap(ed.EncryptedName)
 	if err != nil {
 		return nil, err
