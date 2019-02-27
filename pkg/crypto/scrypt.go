@@ -172,15 +172,14 @@ func isPowerOf2(n int) bool {
 // with the AES-GCM algorithm, returning the resulting decrypted bytes. The
 // key's salt purpose must allow for the given operation.
 //
-// TODO: why does this accept `[]byte` and not `CiphertextAES`?
 // TODO: move these functions to the top
-func (k *ScryptKey) Decrypt(encryptedData, nonce []byte, operation SaltOperation) ([]byte, error) {
+func (k *ScryptKey) Decrypt(ciphertext CiphertextAES, operation SaltOperation) ([]byte, error) {
 	err := k.Salt.Purpose().Verify(k.KeyLen, "aesgcm", operation)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	return k.key.decrypt(encryptedData, nonce)
+	return k.key.Decrypt(ciphertext)
 }
 
 // Encrypt uses the key to encrypt given bytes with the AES-GCM algorithm,

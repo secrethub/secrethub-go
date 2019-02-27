@@ -430,5 +430,11 @@ func (p passBasedKey) Decrypt(payload []byte, rawHeader []byte) ([]byte, error) 
 		return nil, errio.Error(err)
 	}
 
-	return key.Decrypt(payload, header.Nonce, crypto.SaltOperationLocalCredentialEncryption)
+	return key.Decrypt(
+		crypto.CiphertextAES{
+			Data:  payload,
+			Nonce: header.Nonce,
+		},
+		crypto.SaltOperationLocalCredentialEncryption,
+	)
 }
