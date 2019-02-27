@@ -149,22 +149,21 @@ func (t Tree) AbsSecretPath(secretID *uuid.UUID) (*SecretPath, error) {
 // AbsDirPath returns the full path of dir
 // This function makes the assumption that only the root dir has no parentID.
 // If not, an error will occur.
-func (t Tree) AbsDirPath(dirID *uuid.UUID) (*DirPath, error) {
+func (t Tree) AbsDirPath(dirID *uuid.UUID) (DirPath, error) {
 	if uuid.Equal(dirID, t.RootDir.DirID) {
 		dirPath := t.ParentPath.JoinDir(t.RootDir.Name)
-		return &dirPath, nil
+		return dirPath, nil
 	}
 
 	dir, ok := t.Dirs[*dirID]
 	if !ok {
-		return nil, ErrDirNotFound
+		return "", ErrDirNotFound
 	}
 
 	parentPath, err := t.AbsDirPath(dir.ParentID)
 	if err != nil {
-		return nil, errio.Error(err)
+		return "", errio.Error(err)
 	}
 
-	dirPath := parentPath.JoinDir(dir.Name)
-	return &dirPath, nil
+	return parentPath.JoinDir(dir.Name), nil
 }
