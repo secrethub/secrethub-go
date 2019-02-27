@@ -296,11 +296,9 @@ func (prv RSAPrivateKey) unwrap(encryptedData []byte) ([]byte, error) {
 	return output, nil
 }
 
-// ExportPrivateKey returns the private key in PEM encoded format. After using ExportPrivateKey,
+// ExportPEM returns the private key in PEM encoded format. After using ExportPEM,
 // make sure to keep the result private.
-//
-// TODO: rename this to ExportPEM()
-func (prv RSAPrivateKey) ExportPrivateKey() ([]byte, error) {
+func (prv RSAPrivateKey) ExportPEM() ([]byte, error) {
 	privateASN1 := x509.MarshalPKCS1PrivateKey(prv.private)
 
 	privateBytes := pem.EncodeToMemory(&pem.Block{

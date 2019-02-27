@@ -49,7 +49,7 @@ func (c *client) createAccountKeyRequest(credential Credential, accountKey crypt
 		return nil, errio.Error(err)
 	}
 
-	privateAccountKey, err := accountKey.ExportPrivateKey()
+	privateAccountKey, err := accountKey.ExportPEM()
 	if err != nil {
 		return nil, errio.Error(err)
 	}

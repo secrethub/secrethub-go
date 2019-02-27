@@ -144,7 +144,7 @@ func TestImport_Exported_ServiceKey(t *testing.T) {
 		t.Errorf("cannot import generated public key: %s", err)
 	}
 
-	private, err := clientKey.ExportPrivateKey()
+	private, err := clientKey.ExportPEM()
 	if err != nil {
 		t.Errorf("cannot import generated public key: %s", err)
 	}
@@ -169,7 +169,7 @@ func TestImport_ExportedWithPassphrase(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	plain, err := expected.ExportPrivateKey()
+	plain, err := expected.ExportPEM()
 	if err != nil {
 		t.Fatal(err)
 	}
