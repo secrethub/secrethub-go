@@ -12,7 +12,10 @@ type AccessRuleService interface {
 	Delete(path string, accountName string) error
 	// Get retrieves the access rule for the given account on the given directory.
 	Get(path string, accountName string) (*api.AccessRule, error)
-	// List retrieves all access rules that apply to a directory.
+	// List etrieves all access rules that apply to a directory, including
+	// rules that apply to its children up to a specified depth. When ancestors is set
+	// to true, it also includes rules for any parent directories. When the depth is
+	// set to -1, all children are retrieved without limit.
 	List(path string, depth int, ancestors bool) ([]*api.AccessRule, error)
 	// ListLevels lists the access levels on the given directory.
 	ListLevels(path string) ([]*api.AccessLevel, error)
