@@ -41,8 +41,6 @@ type AESKey struct {
 
 // NewAESKey is used to construct a symmetric AES key from given bytes. Make sure
 // the key bytes have enough entropy. When in doubt, use GenerateAESKey instead.
-//
-// TODO: consider making this private
 func NewAESKey(key []byte) *AESKey {
 	return &AESKey{
 		key: key,
