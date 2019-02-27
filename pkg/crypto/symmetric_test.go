@@ -124,7 +124,7 @@ func Test_generateNonce(t *testing.T) {
 		t.Error(err)
 	}
 
-	if bytes.Equal(*nonce1, *nonce2) {
+	if bytes.Equal(nonce1, nonce2) {
 		t.Fatal("Same Salt generated.")
 	}
 }

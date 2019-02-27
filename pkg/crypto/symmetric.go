@@ -77,11 +77,11 @@ func (k *SymmetricKey) Encrypt(data []byte) (CiphertextAES, error) {
 	}
 
 	// We do not use a destination []byte, but a return value.
-	encData := gcm.Seal(nil, *nonce, data, nil)
+	encData := gcm.Seal(nil, nonce, data, nil)
 
 	return CiphertextAES{
 		Data:  encData,
-		Nonce: *nonce,
+		Nonce: nonce,
 	}, nil
 }
 
@@ -209,12 +209,10 @@ func (ct *CiphertextAES) UnmarshalJSON(b []byte) error {
 }
 
 // generateNonce generates a nonce of a given length.
-//
-// TODO: why does it return a pointer to bytes?
-func generateNonce(size int) (*[]byte, error) {
+func generateNonce(size int) ([]byte, error) {
 	nonce := make([]byte, size)
 	if _, err := rand.Read(nonce); err != nil {
 		return nil, errio.Error(err)
 	}
-	return &nonce, nil
+	return nonce, nil
 }
