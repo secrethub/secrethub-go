@@ -9,7 +9,6 @@ require (
 	github.com/go-chi/chi v4.0.1+incompatible
 	github.com/google/go-querystring v1.0.0
 	github.com/kr/pretty v0.1.0 // indirect
-	github.com/kr/pty v1.1.3 // indirect
 	github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/pkg/errors v0.8.1 // indirect
