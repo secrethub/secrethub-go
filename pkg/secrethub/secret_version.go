@@ -156,16 +156,10 @@ func (s secretVersionService) ListWithoutData(path string) ([]*api.SecretVersion
 }
 
 // createSecretVersion creates a new version of an existing secret.
-// It creates a new secret key if the provided key is flagged.
+// The provided key should not be a flagged key. When it is,
+// createSecretVersion will return an error.
 func (c *client) createSecretVersion(secretPath api.SecretPath, data []byte, secretKey *api.SecretKey) (*api.SecretVersion, error) {
 	var err error
-	if secretKey.Status == api.StatusFlagged {
-		secretKey, err = c.createSecretKey(secretPath)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-	}
-
 	encryptedData, err := secretKey.Key.Encrypt(data)
 	if err != nil {
 		return nil, errio.Error(err)
