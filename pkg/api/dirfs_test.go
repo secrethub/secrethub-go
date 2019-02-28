@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	"github.com/keylockerbv/secrethub-go/pkg/assert"
+	"github.com/keylockerbv/secrethub-go/internals/assert"
 )
 
 func TestAbsDirPath(t *testing.T) {

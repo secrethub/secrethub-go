@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/assert"
+	"github.com/keylockerbv/secrethub-go/internals/assert"
 )
 
 func TestValidateUsername(t *testing.T) {

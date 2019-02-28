@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/assert"
+	"github.com/keylockerbv/secrethub-go/internals/assert"
 )
 
 func TestPermission_Set(t *testing.T) {

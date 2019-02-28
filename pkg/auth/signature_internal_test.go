@@ -13,7 +13,7 @@ import (
 
 	"io/ioutil"
 
-	"github.com/keylockerbv/secrethub-go/pkg/assert"
+	"github.com/keylockerbv/secrethub-go/internals/assert"
 )
 
 func TestGetMessage_Get(t *testing.T) {

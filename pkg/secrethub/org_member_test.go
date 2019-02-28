@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	"github.com/keylockerbv/secrethub-go/pkg/assert"
+	"github.com/keylockerbv/secrethub-go/internals/assert"
 )
 
 func TestGetOrgMember(t *testing.T) {
