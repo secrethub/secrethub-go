@@ -6,12 +6,11 @@ import "github.com/keylockerbv/secrethub-go/pkg/api"
 
 // AccessRuleService is a mock of the AccessRuleService interface.
 type AccessRuleService struct {
-	Deleter        *AccessRuleDeleter
-	Getter         *AccessRuleGetter
-	Lister         *AccessRuleLister
-	LevelLister    *AccessLevelLister
-	WithPathLister AccessRuleWithPathLister
-	Setter         AccessRuleSetter
+	Deleter     *AccessRuleDeleter
+	Getter      *AccessRuleGetter
+	Lister      *AccessRuleLister
+	LevelLister *AccessLevelLister
+	Setter      AccessRuleSetter
 }
 
 // Delete implements the AccessRuleService interface Delete function.
@@ -32,11 +31,6 @@ func (s *AccessRuleService) ListLevels(path string) ([]*api.AccessLevel, error) 
 // List implements the AccessRuleService interface List function.
 func (s *AccessRuleService) List(path string, depth int, ancestors bool) ([]*api.AccessRule, error) {
 	return s.Lister.List(path, depth, ancestors)
-}
-
-// ListWithPaths implements the AccessRuleService interface ListWithPaths function.
-func (s *AccessRuleService) ListWithPaths(path string, depth int, ancestors bool) (map[string][]*api.AccessRule, error) {
-	return s.WithPathLister.ListWithPaths(path, depth, ancestors)
 }
 
 // Set implements the AccessRuleService interface Set function.
@@ -118,21 +112,4 @@ func (s *AccessRuleLister) List(path string, depth int, ancestors bool) ([]*api.
 	s.ArgDepth = depth
 	s.ArgAncestors = ancestors
 	return s.ReturnsAccessRules, s.Err
-}
-
-// AccessRuleWithPathLister mocks the ListWithPaths function.
-type AccessRuleWithPathLister struct {
-	ArgPath              string
-	ArgDepth             int
-	ArgAncestors         bool
-	ReturnsAccessRuleMap map[string][]*api.AccessRule
-	Err                  error
-}
-
-// ListWithPaths saves the arguments it was called with and returns the mocked response.
-func (s *AccessRuleWithPathLister) ListWithPaths(path string, depth int, ancestors bool) (map[string][]*api.AccessRule, error) {
-	s.ArgPath = path
-	s.ArgDepth = depth
-	s.ArgAncestors = ancestors
-	return s.ReturnsAccessRuleMap, s.Err
 }

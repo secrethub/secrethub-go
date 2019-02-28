@@ -31,9 +31,6 @@ type dirService struct {
 // are returned. When depth is -1 all contents of the directory are included in the tree.
 // When ancestors is true, the parent directories of the dir at the given path will also
 // be included in the tree.
-//
-// TODO SHDEV-1062: Change this such that 0 returns the Tree without any descendants
-// and -1 returns the Tree with all descendants.
 func (s dirService) GetTree(path string, depth int, ancestors bool) (*api.Tree, error) {
 	p, err := api.NewDirPath(path)
 	if err != nil {
