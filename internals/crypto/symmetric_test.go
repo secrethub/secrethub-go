@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/internals/assert"
+	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
 func TestAESKey_Encrypt_Decrypt_Secret(t *testing.T) {

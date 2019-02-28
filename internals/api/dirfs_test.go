@@ -3,8 +3,8 @@ package api
 import (
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/internals/api/uuid"
-	"github.com/keylockerbv/secrethub-go/internals/assert"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
 func TestAbsDirPath(t *testing.T) {

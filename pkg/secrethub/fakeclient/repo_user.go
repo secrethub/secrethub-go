@@ -2,7 +2,7 @@
 
 package fakeclient
 
-import "github.com/keylockerbv/secrethub-go/internals/api"
+import "github.com/secrethub/secrethub-go/internals/api"
 
 // RepoUserService is a mock of the RepoUserService interface.
 type RepoUserService struct {

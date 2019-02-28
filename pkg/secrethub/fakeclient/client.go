@@ -1,6 +1,6 @@
 package fakeclient
 
-import "github.com/keylockerbv/secrethub-go/pkg/secrethub"
+import "github.com/secrethub/secrethub-go/pkg/secrethub"
 
 // Client implements the secrethub.Client interface.
 type Client struct {

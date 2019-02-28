@@ -3,8 +3,8 @@
 package fakeclient
 
 import (
-	"github.com/keylockerbv/secrethub-go/internals/api"
-	"github.com/keylockerbv/secrethub-go/pkg/secrethub"
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/pkg/secrethub"
 )
 
 // ServiceService is a mock of the ServiceService interface.

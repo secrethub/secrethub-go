@@ -5,7 +5,7 @@ import (
 
 	"strings"
 
-	"github.com/keylockerbv/secrethub-go/internals/api/uuid"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 )
 
 // Errors
