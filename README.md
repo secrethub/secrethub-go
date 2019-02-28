@@ -1,6 +1,7 @@
 # Go SecretHub
 
 [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
+[![GolangCI](https://golangci.com/badges/github.com/secrethub/secrethub-go.svg)][golang-ci]
 
 The official [SecretHub][secrethub] Go client library.
 
@@ -84,3 +85,4 @@ pull request][pulls].
 [issues]: https://github.com/secrethub/secrethub-go/issues/new
 [pulls]: https://github.com/secrethub/secrethub-go/pulls
 [godoc]: http://godoc.org/github.com/secrethub/secrethub-go
+[golang-ci]: https://golangci.com/r/github.com/secrethub/secrethub-go
