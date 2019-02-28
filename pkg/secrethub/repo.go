@@ -130,7 +130,7 @@ func (s repoService) Create(path string) (*api.Repo, error) {
 	}
 
 	// Generate the repoEncryptionKey and wrap it.
-	key, err := crypto.GenerateAESKey()
+	key, err := crypto.GenerateSymmetricKey()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -140,7 +140,7 @@ func (s repoService) Create(path string) (*api.Repo, error) {
 	}
 
 	// Generate repoIndexKey, repoBlindName and wrap it.
-	key, err = crypto.GenerateAESKey()
+	key, err = crypto.GenerateSymmetricKey()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -219,12 +219,12 @@ func (c *client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey
 		return nil, errio.Error(err)
 	}
 
-	accountRepoEncryptionKey, err := accountKey.ReWrap(rsaPublicKey, repoKey.RepoEncryptionKey)
+	accountRepoEncryptionKey, err := accountKey.ReWrapBytes(rsaPublicKey, repoKey.RepoEncryptionKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	accountRepoIndexKey, err := accountKey.ReWrap(rsaPublicKey, repoKey.RepoIndexKey)
+	accountRepoIndexKey, err := accountKey.ReWrapBytes(rsaPublicKey, repoKey.RepoIndexKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -237,7 +237,7 @@ func (c *client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey
 
 // getRepoIndexKey retrieves a RepoIndexKey for a repo.
 // These keys are cached in the client.
-func (c *client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.AESKey, error) {
+func (c *client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.SymmetricKey, error) {
 	repoIndexKey, cached := c.repoIndexKeys[repoPath]
 	if cached {
 		return repoIndexKey, nil
@@ -258,7 +258,7 @@ func (c *client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.AESKey, error) 
 		return nil, errio.Error(err)
 	}
 
-	repoIndexKey = crypto.NewAESKey(keyData)
+	repoIndexKey = crypto.NewSymmetricKey(keyData)
 
 	c.repoIndexKeys[repoPath] = repoIndexKey
 

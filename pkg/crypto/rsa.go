@@ -16,18 +16,16 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
-var (
-	// ExternalKeyLength is the key length for external keys that are used to
-	// authenticate to the API and encrypt the AccountKey.
+const (
+	// RSAKeyLength defines the number of bits to use as key length for RSA keys.
 	//
 	// The size of 4096 bits has been chosen because 2048 bits is assumed to
 	// last up to the year 2020. Have a look at https://keylength.org
 	// Additionally, because 2048 bits and 4096 bits are the most commonly used
-	// key lengths (implemented in e.g. smartcards), we expect those key lengths
-	// to be more future proof in terms of usability and we expect (more) efficient
-	// implementations to be developed for those key lengths over less frequently
-	// used ones (e.g. 3072).
-	ExternalKeyLength = 4096
+	// key lengths, we expect those key lengths to be more future proof in terms
+	// of usability and we expect (more) efficient implementations to be developed
+	// for those key lengths over less frequently used ones (e.g. 3072).
+	RSAKeyLength = 4096
 )
 
 // Errors
@@ -48,16 +46,18 @@ var (
 	ErrEmptyPublicKey = errors.New("public key should not be empty")
 )
 
-// RSAPublicKey wraps a RSA public key
-// It exposes all crypto functionality asymmetric keys.
+// RSAPublicKey provides asymmetric encryption and signature verification functions.
 type RSAPublicKey struct {
 	publicKey *rsa.PublicKey
 }
 
-// Encrypt encrypts provided data with AES-GCM.
-// The used AES-key is then encrypted with RSA-OAEP.
+// Encrypt uses the public key to encrypt given data with the RSA-OAEP algorithm,
+// returning the resulting ciphertext. In order to encrypt the given bytes, it
+// first generates a random symmetric key and uses the AES-GCM algorithm to encrypt
+// the data. Then, it uses the RSA public key to encrypt the intermediate symmetric
+// key with the RSA-OAEP algorithm and combines both ciphertexts into one result.
 func (pub RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
-	aesKey, err := GenerateAESKey()
+	aesKey, err := GenerateSymmetricKey()
 	if err != nil {
 		return CiphertextRSAAES{}, errio.Error(err)
 	}
@@ -78,7 +78,10 @@ func (pub RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
 	}, nil
 }
 
-// Wrap encrypts the data with RSA-OAEP using the RSAKey.
+// Wrap uses the public key to encrypt a small number of bytes with the RSA-OAEP
+// algorithm, returning the resulting ciphertext. The number of bytes may not exceed
+// the maximum input length of the key, which can be calculated using the MaxWrapSize
+// function. To encrypt an arbitrary number of bytes, use the Encrypt function instead.
 func (pub RSAPublicKey) Wrap(data []byte) (CiphertextRSA, error) {
 	encrypted, err := pub.wrap(data)
 	if err != nil {
@@ -90,12 +93,26 @@ func (pub RSAPublicKey) Wrap(data []byte) (CiphertextRSA, error) {
 	}, nil
 }
 
-// WrapBytes encrypts the data with RSA-OAEP using the RSAPublicKey.
-// The function will be deprecated. Directly use Wrap instead.
+// MaxWrapSize returns the maximum number of bytes that can be used as input
+// of the Wrap function. To encrypt an arbitrary number of bytes, use the Encrypt
+// function instead.
+//
+// The maximum size for RSA-OAEP is defined RFC8017 section 7.1.1 and is related
+// to the key length used and padding overhead of the encryption and hashing
+// algorithms chosen.
+func (pub RSAPublicKey) MaxWrapSize() int {
+	return pub.publicKey.Size() - 2*sha256.Size - 2
+}
+
+// WrapBytes uses the public key to encrypt a small number of bytes with the RSA-OAEP
+// algorithm, returning the resulting encrypted bytes. Note that this function will be
+// deprecated soon, so use Wrap instead.
 func (pub RSAPublicKey) WrapBytes(data []byte) ([]byte, error) {
 	return pub.wrap(data)
 }
 
+// wrap uses the public key to encrypt a small number of bytes with the RSA-OAEP
+// algorithm, returning the resulting encrypted bytes.
 func (pub RSAPublicKey) wrap(data []byte) ([]byte, error) {
 	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, pub.publicKey, data, []byte{})
 	if err != nil {
@@ -104,18 +121,19 @@ func (pub RSAPublicKey) wrap(data []byte) ([]byte, error) {
 	return encrypted, nil
 }
 
-// Verify will verify a message using the encoded public key and the signature.
-// A valid signature is indicated by returning a nil error
-// A public key must be importable by importPublicKey.
+// Verify returns nil when the given signature is the result of hashing the given
+// message and signing it with the private key that corresponds to this public key.
+// It returns an error when the signature is not valid (for this public key).
 func (pub RSAPublicKey) Verify(message, signature []byte) error {
 	hashedMessage := sha256.Sum256(message)
 
 	return rsa.VerifyPKCS1v15(pub.publicKey, crypto.SHA256, hashedMessage[:], signature)
 }
 
-// Verify will verify a message using the encoded public key and the signature.
-// A valid signature is indicated by returning a nil error
-// A public key must be importable by importPublicKey.
+// Verify decodes the given public key and returns nil when the given signature is
+// the result of hashing the given message and signing it with the private key that
+// corresponds to the given public key. It returns an error when the signature is not
+// valid (for this public key).
 func Verify(encodedPublicKey, message, signature []byte) error {
 	publicKey, err := ImportRSAPublicKey(encodedPublicKey)
 	if err != nil {
@@ -125,7 +143,19 @@ func Verify(encodedPublicKey, message, signature []byte) error {
 	return publicKey.Verify(message, signature)
 }
 
-// Export exports the rsa public key in an PKIX pem encoded format.
+// Fingerprint returns the SHA256 hash of the public key, encoded as a hexadecimal string.
+func (pub RSAPublicKey) Fingerprint() (string, error) {
+	exported, err := pub.Export()
+	if err != nil {
+		return "", errio.Error(err)
+	}
+
+	sum := sha256.Sum256(exported)
+	return hex.EncodeToString(sum[:]), nil
+}
+
+// Export uses PEM encoding to encode the public key as bytes so it
+// can be easily stored and transferred between systems.
 func (pub RSAPublicKey) Export() ([]byte, error) {
 	asn1, err := x509.MarshalPKIXPublicKey(pub.publicKey)
 	if err != nil {
@@ -140,18 +170,8 @@ func (pub RSAPublicKey) Export() ([]byte, error) {
 	return bytes, nil
 }
 
-// Fingerprint returns the SHA256 fingerprint of the public key
-func (pub RSAPublicKey) Fingerprint() (string, error) {
-	exported, err := pub.Export()
-	if err != nil {
-		return "", errio.Error(err)
-	}
-
-	sum := sha256.Sum256(exported)
-	return hex.EncodeToString(sum[:]), nil
-}
-
-// ImportRSAPublicKey imports a RSAPublic key from an exported public key.
+// ImportRSAPublicKey decodes a PEM encoded RSA public key into a public key that can be
+// used for encryption and signature verification.
 func ImportRSAPublicKey(encodedPublicKey []byte) (RSAPublicKey, error) {
 	if len(encodedPublicKey) == 0 {
 		return RSAPublicKey{}, ErrEmptyPublicKey
@@ -179,57 +199,49 @@ func ImportRSAPublicKey(encodedPublicKey []byte) (RSAPublicKey, error) {
 	}, nil
 }
 
-// RSAKey wraps a RSA key.
-// It exposes all crypto functionality asymmetric keys.
-type RSAKey struct {
+// RSAPrivateKey provides asymmetric decryption and signing functionality using the RSA algorithm.
+// For encryption and signature verification, see RSAPublicKey instead.
+type RSAPrivateKey struct {
 	private *rsa.PrivateKey
 }
 
-// NewRSAKey is used to create a new RSAKey.
-// Normally you create a RSAKey by DecodeKey
-func NewRSAKey(privateKey *rsa.PrivateKey) RSAKey {
-	return RSAKey{
+// GenerateRSAPrivateKey generates a new RSA key with the given key length.
+func GenerateRSAPrivateKey(length int) (RSAPrivateKey, error) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, length)
+	if err != nil {
+		return RSAPrivateKey{}, ErrGenerateRSAKey
+	}
+
+	return NewRSAPrivateKey(privateKey), nil
+}
+
+// NewRSAPrivateKey is used to construct an RSA key from the given private key.
+// Use GenerateRSAPrivateKey to randomly generate a new RSA key.
+func NewRSAPrivateKey(privateKey *rsa.PrivateKey) RSAPrivateKey {
+	return RSAPrivateKey{
 		private: privateKey,
 	}
 }
 
-// GenerateRSAKey generates a new RSAKey with the given length
-func GenerateRSAKey(length int) (RSAKey, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, length)
-	if err != nil {
-		return RSAKey{}, ErrGenerateRSAKey
-	}
-
-	return NewRSAKey(privateKey), nil
-}
-
-// Public returns the public part that belongs to this private key.
-func (prv RSAKey) Public() RSAPublicKey {
-	return RSAPublicKey{
-		publicKey: &prv.private.PublicKey,
-	}
-}
-
-// Sign signs a message using the RSAKey.
-func (prv RSAKey) Sign(message []byte) ([]byte, error) {
-	hashedMessage := sha256.Sum256(message)
-
-	return rsa.SignPKCS1v15(rand.Reader, prv.private, crypto.SHA256, hashedMessage[:])
-}
-
-// Decrypt decrypts provided data that is encrypted with AES-GCM
-// and then the AES-key used for encryption encrypted with RSA-OAEP.
-func (prv RSAKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
+// Decrypt uses the private key to decrypt the provided ciphertext, returning
+// the resulting decrypted bytes. In order to decrypt the given ciphertext, it
+// first unwraps the encrypted symmetric key using the RSA-OAEP algorithm and
+// then uses the decrypted symmetric key to decrypt the rest of the ciphertext
+// with the AES-GCM algorithm.
+func (prv RSAPrivateKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
 	aesKeyData, err := prv.Unwrap(ciphertext.rsa)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewAESKey(aesKeyData).decrypt(ciphertext.aes.Data, ciphertext.aes.Nonce)
+	return NewSymmetricKey(aesKeyData).Decrypt(ciphertext.aes)
 }
 
-// Unwrap decrypts the encryptedData with RSA-OAEP using the RSAKey.
-func (prv RSAKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
+// Unwrap uses the private key to decrypt a small ciphertext that has been encrypted
+// with the RSA-OAEP algorithm, returning the resulting decrypted bytes. Note that
+// this should only be used for ciphertexts encrypted with RSA-OAEP. Use the Decrypt
+// function for decrypting large ciphertexts.
+func (prv RSAPrivateKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
 	if len(ciphertext.Data) == 0 {
 		return []byte{}, nil
 	}
@@ -237,9 +249,25 @@ func (prv RSAKey) Unwrap(ciphertext CiphertextRSA) ([]byte, error) {
 	return prv.unwrap(ciphertext.Data)
 }
 
-// ReWrap re-encrypts the data for the given public key.
-// The RSAKey must be able to decrypt the original data for the function to succeed.
-func (prv RSAKey) ReWrap(pub RSAPublicKey, encData []byte) ([]byte, error) {
+// Sign creates a SHA256 hash of the given message and uses the private key to
+// sign the hash, returning the resulting signature.
+func (prv RSAPrivateKey) Sign(message []byte) ([]byte, error) {
+	hashedMessage := sha256.Sum256(message)
+
+	return rsa.SignPKCS1v15(rand.Reader, prv.private, crypto.SHA256, hashedMessage[:])
+}
+
+// Public returns the public part of the RSA key pair.
+func (prv RSAPrivateKey) Public() RSAPublicKey {
+	return RSAPublicKey{
+		publicKey: &prv.private.PublicKey,
+	}
+}
+
+// ReWrapBytes uses the private key to re-encrypt a small number of encrypted bytes for
+// the given public key. Note that this function will be deprecated. Directly use
+// Unwrap and Wrap when possible.
+func (prv RSAPrivateKey) ReWrapBytes(pub RSAPublicKey, encData []byte) ([]byte, error) {
 
 	decData, err := prv.UnwrapBytes(encData)
 	if err != nil {
@@ -249,13 +277,16 @@ func (prv RSAKey) ReWrap(pub RSAPublicKey, encData []byte) ([]byte, error) {
 	return pub.WrapBytes(decData)
 }
 
-// UnwrapBytes decrypts the encrypted data with RSA-OAEP using the RSAKey.
-// This function will be deprecated. Directly use Unwrap instead.
-func (prv RSAKey) UnwrapBytes(encryptedData []byte) ([]byte, error) {
+// UnwrapBytes uses the private key to decrypt a small number of encrypted bytes with
+// the RSA-OAEP algorithm, returning the resulting decrypted bytes. Note that this
+// function will be deprecated. Directly use Unwrap instead when possible.
+func (prv RSAPrivateKey) UnwrapBytes(encryptedData []byte) ([]byte, error) {
 	return prv.unwrap(encryptedData)
 }
 
-func (prv RSAKey) unwrap(encryptedData []byte) ([]byte, error) {
+// unwrap is a helper function that uses the private key to decrypt a small number of
+// encrypted bytes with the RSA-OAEP algorithm, returning the resulting decrypted bytes.
+func (prv RSAPrivateKey) unwrap(encryptedData []byte) ([]byte, error) {
 	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, prv.private, encryptedData, []byte{})
 	if err != nil {
 		return nil, ErrRSADecrypt(err)
@@ -263,8 +294,14 @@ func (prv RSAKey) unwrap(encryptedData []byte) ([]byte, error) {
 	return output, nil
 }
 
-// ExportPrivateKey exports the rsa private key in an PKIX pem encoded format.
-func (prv RSAKey) ExportPrivateKey() ([]byte, error) {
+// Export returns the private key in ASN.1 DER encoded format.
+func (prv RSAPrivateKey) Export() []byte {
+	return x509.MarshalPKCS1PrivateKey(prv.private)
+}
+
+// ExportPEM returns the private key in PEM encoded format. After using ExportPEM,
+// make sure to keep the result private.
+func (prv RSAPrivateKey) ExportPEM() ([]byte, error) {
 	privateASN1 := x509.MarshalPKCS1PrivateKey(prv.private)
 
 	privateBytes := pem.EncodeToMemory(&pem.Block{
@@ -275,32 +312,29 @@ func (prv RSAKey) ExportPrivateKey() ([]byte, error) {
 	return privateBytes, nil
 }
 
-// Export exports the raw rsa private key.
-func (prv RSAKey) Export() []byte {
-	return x509.MarshalPKCS1PrivateKey(prv.private)
-}
-
-// ImportRSAPrivateKey imports a rsa private key from a pem encoded format.
-func ImportRSAPrivateKey(privateKey []byte) (RSAKey, error) {
+// ImportRSAPrivateKeyPEM decodes a given PEM encoded private key into an RSA private key.
+func ImportRSAPrivateKeyPEM(privateKey []byte) (RSAPrivateKey, error) {
 	pemBlock, rest := pem.Decode(privateKey)
 	if pemBlock == nil {
-		return RSAKey{}, ErrNoKeyInFile
+		return RSAPrivateKey{}, ErrNoKeyInFile
 
 	} else if len(rest) > 0 {
-		return RSAKey{}, ErrMultipleKeysInFile
+		return RSAPrivateKey{}, ErrMultipleKeysInFile
 	}
 
 	privateRSAKey, err := x509.ParsePKCS1PrivateKey(pemBlock.Bytes)
 	if err != nil {
-		return RSAKey{}, ErrNotPKCS1Format
+		return RSAPrivateKey{}, ErrNotPKCS1Format
 	}
 
-	return NewRSAKey(privateRSAKey), nil
+	return NewRSAPrivateKey(privateRSAKey), nil
 }
 
 // ExportPrivateKeyWithPassphrase exports the rsa private key in a
 // PKIX pem encoded format, encrypted with the given passphrase.
-func (prv RSAKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
+//
+// Note that this function will be deprecated. Use Export instead.
+func (prv RSAPrivateKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
 	if pass == "" {
 		return nil, ErrEmptyPassphrase
 	}
@@ -318,7 +352,7 @@ func (prv RSAKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, error) {
 	return pem.EncodeToMemory(encrypted), nil
 }
 
-// CiphertextRSAAES represents data encrypted with AES-GCM, where the AES-key is encrypted with RSA-OAEP.
+// CiphertextRSAAES represents data encrypted with AES-GCM, where the AES key is encrypted with RSA-OAEP.
 type CiphertextRSAAES struct {
 	aes CiphertextAES
 	rsa CiphertextRSA

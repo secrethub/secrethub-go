@@ -20,18 +20,18 @@ import (
 )
 
 var (
-	clientKey     crypto.RSAKey
-	diffClientKey crypto.RSAKey
+	clientKey     crypto.RSAPrivateKey
+	diffClientKey crypto.RSAPrivateKey
 )
 
 func init() {
 	var err error
-	clientKey, err = crypto.GenerateRSAKey(1024)
+	clientKey, err = crypto.GenerateRSAPrivateKey(1024)
 	if err != nil {
 		panic(err)
 	}
 
-	diffClientKey, err = crypto.GenerateRSAKey(1024)
+	diffClientKey, err = crypto.GenerateRSAPrivateKey(1024)
 	if err != nil {
 		panic(err)
 	}
@@ -168,7 +168,7 @@ func TestSignRequest(t *testing.T) {
 	assert.OK(t, err)
 
 	cases := map[string]struct {
-		ClientKey           crypto.RSAKey
+		ClientKey           crypto.RSAPrivateKey
 		StoredPub           []byte
 		ExpectedFingerprint string
 		Err                 error

@@ -123,7 +123,7 @@ func encryptNameForAccounts(name string, accounts ...*api.Account) ([]api.Encryp
 }
 
 // encryptKeyForAccounts encrypts the key for every account and returns a list of EncryptedKeyRequests
-func encryptKeyForAccounts(key *crypto.AESKey, accounts ...*api.Account) ([]api.EncryptedKeyRequest, error) {
+func encryptKeyForAccounts(key *crypto.SymmetricKey, accounts ...*api.Account) ([]api.EncryptedKeyRequest, error) {
 	encryptedKeys := make([]api.EncryptedKeyRequest, len(accounts))
 	for i, account := range accounts {
 		publicKey, err := crypto.ImportRSAPublicKey(account.PublicKey)

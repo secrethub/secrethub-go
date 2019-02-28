@@ -255,7 +255,7 @@ func TestValidateSecretName(t *testing.T) {
 
 func TestValidateBlindName_BlindNamePath(t *testing.T) {
 	// This test is coupled with BlindNamePath interface implementors to test if their implementations are validated.
-	key, err := crypto.GenerateAESKey()
+	key, err := crypto.GenerateSymmetricKey()
 	assert.OK(t, err)
 
 	// Arrange

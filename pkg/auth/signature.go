@@ -64,11 +64,11 @@ type Credential interface {
 
 // signer contains all necessary credentials to sign a request.
 type signer struct {
-	key crypto.RSAKey
+	key crypto.RSAPrivateKey
 }
 
 // NewRSACredential initializes a new signing credentials struct.
-func NewRSACredential(key crypto.RSAKey) Credential {
+func NewRSACredential(key crypto.RSAPrivateKey) Credential {
 	return signer{
 		key: key,
 	}

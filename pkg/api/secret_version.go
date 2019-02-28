@@ -44,7 +44,7 @@ type EncryptedSecretVersion struct {
 }
 
 // Decrypt decrypts an EncryptedSecretVersion into a SecretVersion.
-func (esv *EncryptedSecretVersion) Decrypt(accountKey *crypto.RSAKey) (*SecretVersion, error) {
+func (esv *EncryptedSecretVersion) Decrypt(accountKey *crypto.RSAPrivateKey) (*SecretVersion, error) {
 	secret, err := esv.Secret.Decrypt(accountKey)
 	if err != nil {
 		return nil, errio.Error(err)

@@ -52,7 +52,7 @@ type EncryptedSecret struct {
 }
 
 // Decrypt decrypts an EncryptedSecret into a Secret.
-func (es *EncryptedSecret) Decrypt(accountKey *crypto.RSAKey) (*Secret, error) {
+func (es *EncryptedSecret) Decrypt(accountKey *crypto.RSAPrivateKey) (*Secret, error) {
 	name, err := accountKey.Unwrap(es.EncryptedName)
 	if err != nil {
 		return nil, errio.Error(err)

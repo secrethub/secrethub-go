@@ -15,7 +15,7 @@ var (
 
 const (
 	// DefaultScryptKeyLength defines the default key length (256 bits) of the derived key.
-	DefaultScryptKeyLength = 32
+	DefaultScryptKeyLength = SymmetricKeyLength
 
 	// DefaultScryptN is the work factor of the scrypt key derivation
 	// function. Changing the work factor N linearly scales the memory
@@ -62,7 +62,7 @@ const (
 // ScryptKey is a key derived using the scrypt algorithm
 // with configured parameters.
 type ScryptKey struct {
-	key    *AESKey
+	key    *SymmetricKey
 	KeyLen int
 	Salt   Salt
 	N      int
@@ -70,8 +70,9 @@ type ScryptKey struct {
 	P      int
 }
 
-// GenerateScryptKey generates a key from a passphras and
-// overrides default values when opts is not nil.
+// GenerateScryptKey derives a key from a passphrase, using the default parameters
+// and a randomly generated salt for the key derivation function. To use other
+// parameters or to supply an elsewhere generated salt, use DeriveScryptKey.
 func GenerateScryptKey(passphrase []byte) (*ScryptKey, error) {
 	keyLen := DefaultScryptKeyLength
 	saltLen := DefaultSaltLength
@@ -113,12 +114,41 @@ func DeriveScryptKey(passphrase []byte, salt Salt, N, r, p, keyLen int) (*Scrypt
 		return nil, errio.Error(err)
 	}
 
-	key.key = NewAESKey(derived)
+	key.key = NewSymmetricKey(derived)
 
 	return key, nil
 }
 
-// Validate validates the key parameters.
+// Decrypt uses the key with the provided nonce to decrypt a given ciphertext
+// with the AES-GCM algorithm, returning the resulting decrypted bytes. The
+// key's salt purpose must allow for the given operation.
+func (k *ScryptKey) Decrypt(ciphertext CiphertextAES, operation SaltOperation) ([]byte, error) {
+	err := k.Salt.Purpose().Verify(k.KeyLen, "aesgcm", operation)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return k.key.Decrypt(ciphertext)
+}
+
+// Encrypt uses the key to encrypt given bytes with the AES-GCM algorithm,
+// returning the resulting ciphertext. The key's salt purpose must allow for
+// the given operation.
+func (k *ScryptKey) Encrypt(data []byte, operation SaltOperation) (CiphertextAES, error) {
+	err := k.Salt.Purpose().Verify(k.KeyLen, "aesgcm", operation)
+	if err != nil {
+		return CiphertextAES{}, errio.Error(err)
+	}
+
+	ciphertext, err := k.key.Encrypt(data)
+	if err != nil {
+		return CiphertextAES{}, err
+	}
+
+	return ciphertext, nil
+}
+
+// Validate validates the key's parameters.
 func (k ScryptKey) Validate() error {
 	if k.KeyLen != 16 && k.KeyLen != 24 && k.KeyLen != 32 {
 		return ErrInvalidKeyLength
@@ -153,7 +183,7 @@ func (k ScryptKey) Validate() error {
 	return nil
 }
 
-// ValidatePassphrase validates a passphrase.
+// ValidatePassphrase validates that a passphrase isn't empty.
 func ValidatePassphrase(passphrase []byte) error {
 	if len(passphrase) == 0 {
 		return ErrEmptyPassphrase
@@ -165,30 +195,4 @@ func ValidatePassphrase(passphrase []byte) error {
 // isPowerOf2 returns true when n is a power of two.
 func isPowerOf2(n int) bool {
 	return ((n & (n - 1)) == 0) && (n > 0)
-}
-
-// Decrypt decrypts the encryptedData with AES-GCM using the AESKey and the provided nonce.
-func (k *ScryptKey) Decrypt(encryptedData, nonce []byte, operation SaltOperation) ([]byte, error) {
-	err := k.Salt.Purpose().Verify(k.KeyLen, "aesgcm", operation)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return k.key.decrypt(encryptedData, nonce)
-}
-
-// Encrypt encrypts the data with AES-GCM using the AESKey.
-// Returns the encrypted ciphertext.
-func (k *ScryptKey) Encrypt(data []byte, operation SaltOperation) (CiphertextAES, error) {
-	err := k.Salt.Purpose().Verify(k.KeyLen, "aesgcm", operation)
-	if err != nil {
-		return CiphertextAES{}, errio.Error(err)
-	}
-
-	ciphertext, err := k.key.Encrypt(data)
-	if err != nil {
-		return CiphertextAES{}, err
-	}
-
-	return ciphertext, nil
 }
