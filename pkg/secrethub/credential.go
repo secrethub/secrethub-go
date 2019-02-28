@@ -10,7 +10,7 @@ import (
 
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 
-	"github.com/keylockerbv/secrethub-go/pkg/auth"
+	"github.com/keylockerbv/secrethub-go/internals/auth"
 	"github.com/keylockerbv/secrethub-go/internals/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )

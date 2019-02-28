@@ -8,7 +8,7 @@ import (
 
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 	"github.com/keylockerbv/secrethub-go/internals/assert"
-	"github.com/keylockerbv/secrethub-go/pkg/auth"
+	"github.com/keylockerbv/secrethub-go/internals/auth"
 )
 
 func TestVerifyMultipleMethods(t *testing.T) {
