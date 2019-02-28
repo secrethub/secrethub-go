@@ -1,10 +1,15 @@
 # Go SecretHub
 
 [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
+[![Travis CI](https://travis-ci.org/secrethub/secrethub-go.svg?branch=master)][travis-ci]
+[![GolangCI](https://golangci.com/badges/github.com/secrethub/secrethub-go.svg)][golang-ci]
+[![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard]
 
 The official [SecretHub][secrethub] Go client library.
 
 > SecretHub is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts. 
+
+<img src="https://secrethub.io/img/secrethub-gopher.png" alt="Gopher" width="200px"/>
 
 ## Installation
 
@@ -80,7 +85,18 @@ Run a single test:
 For any requests, bug or comments, please [open an issue][issues] or [submit a
 pull request][pulls].
 
+## Attributions
+
+["gopher.png"][original-gopher] by [Takuya Ueda][tenntenn] is licensed under [CC BY 3.0][creative-commons-3.0]
+
+[original-gopher]: https://camo.githubusercontent.com/98ed65187a84ecf897273d9fa18118ce45845057/68747470733a2f2f7261772e6769746875622e636f6d2f676f6c616e672d73616d706c65732f676f706865722d766563746f722f6d61737465722f676f706865722e706e67
+[creative-commons-3.0]: https://creativecommons.org/licenses/by/3.0/
+[tenntenn]: https://twitter.com/tenntenn
+
 [secrethub]: https://secrethub.io
 [issues]: https://github.com/secrethub/secrethub-go/issues/new
 [pulls]: https://github.com/secrethub/secrethub-go/pulls
 [godoc]: http://godoc.org/github.com/secrethub/secrethub-go
+[golang-ci]: https://golangci.com/r/github.com/secrethub/secrethub-go
+[goreportcard]: https://goreportcard.com/report/github.com/secrethub/secrethub-go
+[travis-ci]: https://travis-ci.org/secrethub/secrethub-go
