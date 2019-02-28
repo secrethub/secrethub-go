@@ -12,7 +12,7 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 
 	"github.com/keylockerbv/secrethub-go/pkg/assert"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
+	"github.com/keylockerbv/secrethub-go/internals/crypto"
 )
 
 func TestSignup(t *testing.T) {

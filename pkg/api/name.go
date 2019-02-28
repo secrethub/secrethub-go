@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
+	"github.com/keylockerbv/secrethub-go/internals/crypto"
 )
 
 // EncryptedNameRequest contains an EncryptedName for an Account.

@@ -7,7 +7,7 @@ import (
 
 	"bitbucket.org/zombiezen/cardcpx/natsort"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
+	"github.com/keylockerbv/secrethub-go/internals/crypto"
 	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 

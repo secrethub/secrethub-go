@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
+	"github.com/keylockerbv/secrethub-go/internals/crypto"
 )
 
 // Errors

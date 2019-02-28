@@ -2,7 +2,7 @@ package secrethub
 
 import (
 	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
+	"github.com/keylockerbv/secrethub-go/internals/crypto"
 )
 
 // DefaultAccountKeyLength defines the default bit size for account keys.
