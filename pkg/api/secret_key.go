@@ -11,7 +11,6 @@ type SecretKey struct {
 	SecretKeyID *uuid.UUID           `json:"secret_key_id"`
 	AccountID   *uuid.UUID           `json:"account_id"`
 	Key         *crypto.SymmetricKey `json:"key"`
-	Status      string               `json:"status"` // TODO SHDEV-702: actually set this in the response
 }
 
 // EncryptedSecretKey represents a secret key, encrypted for a specific account.
@@ -19,7 +18,6 @@ type EncryptedSecretKey struct {
 	SecretKeyID  *uuid.UUID           `json:"secret_key_id"`
 	AccountID    *uuid.UUID           `json:"account_id"`
 	EncryptedKey crypto.CiphertextRSA `json:"encrypted_key"`
-	Status       string               `json:"status"` // TODO SHDEV-702: actually set this in the response
 }
 
 // Decrypt decrypts an EncryptedSecretKey into a SecretKey.
@@ -33,7 +31,6 @@ func (k *EncryptedSecretKey) Decrypt(accountKey *crypto.RSAPrivateKey) (*SecretK
 		SecretKeyID: k.SecretKeyID,
 		AccountID:   k.AccountID,
 		Key:         crypto.NewSymmetricKey(keyBytes),
-		Status:      k.Status,
 	}, nil
 }
 
