@@ -67,8 +67,8 @@ func (n AccountName) String() string {
 	return string(n)
 }
 
-// Marshal returns the account's name as a string to be used in communication
+// Value returns the account's name as a string to be used in communication
 // with the client and in transportation to the server.
-func (n AccountName) Marshal() string {
+func (n AccountName) Value() string {
 	return string(n)
 }
