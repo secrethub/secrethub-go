@@ -8,8 +8,8 @@ import (
 // DefaultAccountKeyLength defines the default bit size for account keys.
 const DefaultAccountKeyLength = 4096
 
-func generateAccountKey() (crypto.RSAKey, error) {
-	return crypto.GenerateRSAKey(DefaultAccountKeyLength)
+func generateAccountKey() (crypto.RSAPrivateKey, error) {
+	return crypto.GenerateRSAPrivateKey(DefaultAccountKeyLength)
 }
 
 // AccountKeyService handles operations on SecretHub account keys.

@@ -10,7 +10,7 @@ import (
 )
 
 func TestCreateDirRequest_Validate(t *testing.T) {
-	blindKey, err := crypto.GenerateAESKey()
+	blindKey, err := crypto.GenerateSymmetricKey()
 	assert.OK(t, err)
 
 	dirPath := api.DirPath("owner/repo/dir")
@@ -63,7 +63,7 @@ func TestCreateDirRequest_Validate(t *testing.T) {
 
 func TestCreateDirRequest_Validate_UniqueEncryptedFor(t *testing.T) {
 	accountID := uuid.New()
-	blindKey, err := crypto.GenerateAESKey()
+	blindKey, err := crypto.GenerateSymmetricKey()
 	assert.OK(t, err)
 
 	dirPath := api.DirPath("owner/repo/dir")
@@ -95,7 +95,7 @@ func TestCreateDirRequest_Validate_UniqueEncryptedFor(t *testing.T) {
 }
 
 func getTestCreateDirRequest(t *testing.T) *api.CreateDirRequest {
-	blindKey, err := crypto.GenerateAESKey()
+	blindKey, err := crypto.GenerateSymmetricKey()
 	assert.OK(t, err)
 
 	dirPath := api.DirPath("owner/repo/dir")

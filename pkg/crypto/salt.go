@@ -73,7 +73,7 @@ func (s Salt) Validate() error {
 	return s.Purpose().Validate()
 }
 
-// Purpose returns a salt's purpose octect.
+// Purpose returns a salt's purpose octet.
 func (s Salt) Purpose() SaltPurpose {
 	if len(s) > saltPurposeByteLen {
 		return newSaltPurpose(SaltAlgo(s[0]), SaltOperation(s[1]))

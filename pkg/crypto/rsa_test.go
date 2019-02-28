@@ -72,12 +72,12 @@ var (
 		"-----END RSA PRIVATE KEY-----\n")
 )
 
-// TestReEncryptionRepoKey tests to wrap a new repo key, and ReWrap this into a AESKey for another user.
+// TestReEncryptionRepoKey tests to wrap a new repo key, and re-wrap this into a SymmetricKey for another user.
 func TestReEncryptionRepoKey(t *testing.T) {
 	key1 := getTestKey1(t)
 	key2 := getTestKey2(t)
 
-	repoKey1, err := GenerateAESKey()
+	repoKey1, err := GenerateSymmetricKey()
 	if err != nil {
 		t.Error(err)
 	}
@@ -87,7 +87,7 @@ func TestReEncryptionRepoKey(t *testing.T) {
 		t.Error(err)
 	}
 
-	exportedRepoKey2, err := key1.ReWrap(key2.Public(), exportedRepoKey1)
+	exportedRepoKey2, err := key1.ReWrapBytes(key2.Public(), exportedRepoKey1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -130,7 +130,7 @@ func TestImport_Exported_PublicKey(t *testing.T) {
 }
 
 func TestImport_Exported_ServiceKey(t *testing.T) {
-	clientKey, err := GenerateRSAKey(ExternalKeyLength)
+	clientKey, err := GenerateRSAPrivateKey(RSAKeyLength)
 	if err != nil {
 		t.Errorf("generateServiceKey generates error: %s", err)
 	}
@@ -144,7 +144,7 @@ func TestImport_Exported_ServiceKey(t *testing.T) {
 		t.Errorf("cannot import generated public key: %s", err)
 	}
 
-	private, err := clientKey.ExportPrivateKey()
+	private, err := clientKey.ExportPEM()
 	if err != nil {
 		t.Errorf("cannot import generated public key: %s", err)
 	}
@@ -157,7 +157,7 @@ func TestImport_Exported_ServiceKey(t *testing.T) {
 }
 
 func TestImport_ExportedWithPassphrase(t *testing.T) {
-	expected, err := GenerateRSAKey(1024)
+	expected, err := GenerateRSAPrivateKey(1024)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +169,7 @@ func TestImport_ExportedWithPassphrase(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	plain, err := expected.ExportPrivateKey()
+	plain, err := expected.ExportPEM()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -190,7 +190,7 @@ func TestImport_ExportedWithPassphrase(t *testing.T) {
 }
 
 func TestExportPrivateKeyWithEmptyPassphrase(t *testing.T) {
-	expected, err := GenerateRSAKey(1024)
+	expected, err := GenerateRSAPrivateKey(1024)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,7 +201,7 @@ func TestExportPrivateKeyWithEmptyPassphrase(t *testing.T) {
 	}
 }
 
-func getTestKey1(t testing.TB) RSAKey {
+func getTestKey1(t testing.TB) RSAPrivateKey {
 	pemKey1, err := ReadPEM(testKey1)
 	assert.OK(t, err)
 
@@ -210,7 +210,7 @@ func getTestKey1(t testing.TB) RSAKey {
 	return key1
 }
 
-func getTestKey2(t testing.TB) RSAKey {
+func getTestKey2(t testing.TB) RSAPrivateKey {
 	pemKey2, err := ReadPEM(testKey2)
 	assert.OK(t, err)
 

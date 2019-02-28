@@ -29,7 +29,7 @@ var (
 )
 
 // blindNameSize in bits
-var blindNameByteSize = crypto.HMACByteSize
+var blindNameByteSize = crypto.HMACSize
 
 // BlindNamePath
 
@@ -37,7 +37,7 @@ var blindNameByteSize = crypto.HMACByteSize
 // and exposes the necessary functions.
 type BlindNamePath interface {
 	// BlindName returns the blindname corresponding to this path.
-	BlindName(key *crypto.AESKey) (string, error)
+	BlindName(key *crypto.SymmetricKey) (string, error)
 	// GetRepoPath returns the RepoPath inside this BlindNamePath.
 	GetRepoPath() RepoPath
 }
@@ -189,7 +189,7 @@ func (sp SecretPath) GetRepo() string {
 
 // BlindName converts a SecretPath to a blindname.
 // BlindName ignores the Secret Version.
-func (sp SecretPath) BlindName(key *crypto.AESKey) (string, error) {
+func (sp SecretPath) BlindName(key *crypto.SymmetricKey) (string, error) {
 	secretBlindName := sp.String()
 	if sp.HasVersion() {
 		secretBlindName = strings.Split(secretBlindName, versionSeparator)[0]
@@ -275,7 +275,7 @@ func (dp DirPath) GetRepo() string {
 }
 
 // BlindName returns the blind name of the DirPath.
-func (dp DirPath) BlindName(key *crypto.AESKey) (string, error) {
+func (dp DirPath) BlindName(key *crypto.SymmetricKey) (string, error) {
 	return blindName(key, dp.String())
 }
 
@@ -362,7 +362,7 @@ func (pp ParentPath) String() string {
 }
 
 // BlindName generates the BlindName of the ParentPath.
-func (pp ParentPath) BlindName(key *crypto.AESKey) (string, error) {
+func (pp ParentPath) BlindName(key *crypto.SymmetricKey) (string, error) {
 	return blindName(key, pp.String())
 }
 
@@ -401,7 +401,7 @@ func (rp RepoPath) Validate() error {
 }
 
 // BlindName returns the blind name of the DirPath.
-func (rp RepoPath) BlindName(key *crypto.AESKey) (string, error) {
+func (rp RepoPath) BlindName(key *crypto.SymmetricKey) (string, error) {
 	return blindName(key, rp.String())
 }
 
@@ -514,7 +514,7 @@ func getParentPath(path string) ParentPath {
 // blindName is a helper function that converts a path to a blind name.
 // It converts the path to lowercase and performs an HMAC to form a case insensitive blind name.
 // The name is outputted in base64 url safe encoding.
-func blindName(key *crypto.AESKey, path string) (string, error) {
+func blindName(key *crypto.SymmetricKey, path string) (string, error) {
 	pathBytes := []byte(strings.ToLower(path))
 	hmac, err := key.HMAC(pathBytes)
 	if err != nil {

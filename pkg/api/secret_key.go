@@ -8,9 +8,9 @@ import (
 
 // SecretKey represents a secret key that is intended to be used by a specific account.
 type SecretKey struct {
-	SecretKeyID *uuid.UUID     `json:"secret_key_id"`
-	AccountID   *uuid.UUID     `json:"account_id"`
-	Key         *crypto.AESKey `json:"key"`
+	SecretKeyID *uuid.UUID           `json:"secret_key_id"`
+	AccountID   *uuid.UUID           `json:"account_id"`
+	Key         *crypto.SymmetricKey `json:"key"`
 }
 
 // EncryptedSecretKey represents a secret key, encrypted for a specific account.
@@ -21,7 +21,7 @@ type EncryptedSecretKey struct {
 }
 
 // Decrypt decrypts an EncryptedSecretKey into a SecretKey.
-func (k *EncryptedSecretKey) Decrypt(accountKey *crypto.RSAKey) (*SecretKey, error) {
+func (k *EncryptedSecretKey) Decrypt(accountKey *crypto.RSAPrivateKey) (*SecretKey, error) {
 	keyBytes, err := accountKey.Unwrap(k.EncryptedKey)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -30,7 +30,7 @@ func (k *EncryptedSecretKey) Decrypt(accountKey *crypto.RSAKey) (*SecretKey, err
 	return &SecretKey{
 		SecretKeyID: k.SecretKeyID,
 		AccountID:   k.AccountID,
-		Key:         crypto.NewAESKey(keyBytes),
+		Key:         crypto.NewSymmetricKey(keyBytes),
 	}, nil
 }
 

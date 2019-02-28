@@ -197,7 +197,7 @@ func (c *client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 		return nil, errio.Error(err)
 	}
 
-	secretKey, err := crypto.GenerateAESKey()
+	secretKey, err := crypto.GenerateSymmetricKey()
 	if err != nil {
 		return nil, errio.Error(err)
 	}

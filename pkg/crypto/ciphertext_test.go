@@ -7,8 +7,8 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/assert"
 )
 
-func generateRSAKey(t *testing.T) RSAKey {
-	key, err := GenerateRSAKey(1024)
+func generateRSAKey(t *testing.T) RSAPrivateKey {
+	key, err := GenerateRSAPrivateKey(1024)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -16,8 +16,8 @@ func generateRSAKey(t *testing.T) RSAKey {
 	return key
 }
 
-func generateAESKey(t *testing.T) *AESKey {
-	key, err := GenerateAESKey()
+func generateAESKey(t *testing.T) *SymmetricKey {
+	key, err := GenerateSymmetricKey()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,9 +62,12 @@ func TestRSAAES_DecryptNilData(t *testing.T) {
 
 	ciphertext := CiphertextRSAAES{}
 
-	_, err := rsaKey.Decrypt(ciphertext)
+	// Act
+	actual, err := rsaKey.Decrypt(ciphertext)
 
-	assert.Equal(t, err, ErrInvalidCipher("crypto/aes: invalid key size 0"))
+	// Assert
+	assert.OK(t, err)
+	assert.Equal(t, actual, []byte{})
 }
 
 func TestAES_Success(t *testing.T) {
@@ -82,7 +85,7 @@ func TestAES_Success(t *testing.T) {
 		t.Error("encrypted data equals the original data")
 	}
 
-	decData, err := aesKey1.decrypt(ciphertext.Data, ciphertext.Nonce)
+	decData, err := aesKey1.Decrypt(ciphertext)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +93,7 @@ func TestAES_Success(t *testing.T) {
 		t.Error("decrypted data does not equal the original data")
 	}
 
-	decDataWrongKey, err := aesKey2.decrypt(ciphertext.Data, ciphertext.Nonce)
+	decDataWrongKey, err := aesKey2.Decrypt(ciphertext)
 	if err == nil {
 		t.Error("did not return an error for decrypting with different key")
 	}

@@ -27,7 +27,7 @@ func TestCreateSecretVersionRequest_Validate_MaxSize(t *testing.T) {
 		},
 	}
 
-	aesKey, err := crypto.GenerateAESKey()
+	aesKey, err := crypto.GenerateSymmetricKey()
 	if err != nil {
 		t.Fatal(err)
 	}

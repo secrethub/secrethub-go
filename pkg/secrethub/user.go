@@ -56,7 +56,7 @@ func (s userService) Create(username, email, fullName string) (*api.User, error)
 	return s.create(username, email, fullName, accountKey)
 }
 
-func (s userService) create(username, email, fullName string, accountKey crypto.RSAKey) (*api.User, error) {
+func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey) (*api.User, error) {
 	credentialRequest, err := s.client.createCredentialRequest(s.client.credential)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -105,7 +105,7 @@ func (s userService) Get(username string) (*api.User, error) {
 }
 
 // createAccountKey adds the account key for the clients credential.
-func (c *client) createAccountKey(accountKey crypto.RSAKey) (*api.EncryptedAccountKey, error) {
+func (c *client) createAccountKey(accountKey crypto.RSAPrivateKey) (*api.EncryptedAccountKey, error) {
 	accountKeyRequest, err := c.createAccountKeyRequest(c.credential, accountKey)
 	if err != nil {
 		return nil, errio.Error(err)

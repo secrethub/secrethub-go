@@ -23,38 +23,44 @@ var (
 )
 
 const (
-	// HMACByteSize is a constant that contains the size of an hmac byte slice.
-	HMACByteSize = 32
+	// HMACSize defines the number of bytes in the resulting hash,
+	//  i.e. the number of bits divided by 8.
+	HMACSize = SymmetricKeyLength
+
+	// SymmetricKeyLength defines number of bytes to use as key length (256 bits)
+	// for symmetric encryption, i.e. the number of bits divided by 8.
+	SymmetricKeyLength = sha256.Size // 32
 )
 
-// AESKey provides all cryptographic functions for a directory.
-// The AESKey contains the directory key.
-type AESKey struct {
+// SymmetricKey provides symmetric encryption functions.
+type SymmetricKey struct {
 	key []byte
 }
 
-// NewAESKey is used to create a new AESKey.
-func NewAESKey(keyData []byte) *AESKey {
-	return &AESKey{
-		key: keyData,
+// NewSymmetricKey is used to construct a symmetric key from given bytes. Make sure
+// the key bytes have enough entropy. When in doubt, use GenerateSymmetricKey instead.
+func NewSymmetricKey(key []byte) *SymmetricKey {
+	return &SymmetricKey{
+		key: key,
 	}
 }
 
-// GenerateAESKey generates a 256-bit AES-key.
-func GenerateAESKey() (*AESKey, error) {
-	key := make([]byte, 32)
+// GenerateSymmetricKey generates a 256-bit symmetric key.
+func GenerateSymmetricKey() (*SymmetricKey, error) {
+	key := make([]byte, SymmetricKeyLength)
 	_, err := rand.Reader.Read(key)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	return &AESKey{
+	return &SymmetricKey{
 		key: key,
 	}, nil
 }
 
-// Encrypt encrypts the data with AES-GCM using the AESKey.
-func (k *AESKey) Encrypt(data []byte) (CiphertextAES, error) {
+// Encrypt uses the key to encrypt given data with the AES-GCM algorithm,
+// returning the resulting ciphertext.
+func (k *SymmetricKey) Encrypt(data []byte) (CiphertextAES, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
 		return CiphertextAES{}, ErrInvalidCipher(err)
@@ -71,16 +77,17 @@ func (k *AESKey) Encrypt(data []byte) (CiphertextAES, error) {
 	}
 
 	// We do not use a destination []byte, but a return value.
-	encData := gcm.Seal(nil, *nonce, data, nil)
+	encData := gcm.Seal(nil, nonce, data, nil)
 
 	return CiphertextAES{
 		Data:  encData,
-		Nonce: *nonce,
+		Nonce: nonce,
 	}, nil
 }
 
-// Decrypt decrypts the encryptedData with AES-GCM using the AESKey and the provided nonce.
-func (k *AESKey) Decrypt(ciphertext CiphertextAES) ([]byte, error) {
+// Decrypt uses the key to decrypt a given ciphertext with the AES-GCM algorithm,
+// returning the decrypted bytes.
+func (k *SymmetricKey) Decrypt(ciphertext CiphertextAES) ([]byte, error) {
 	if len(ciphertext.Data) == 0 {
 		return []byte{}, nil
 	}
@@ -89,26 +96,6 @@ func (k *AESKey) Decrypt(ciphertext CiphertextAES) ([]byte, error) {
 		return nil, ErrInvalidCiphertext
 	}
 
-	return k.decrypt(ciphertext.Data, ciphertext.Nonce)
-}
-
-// HMAC creates an HMAC of the data.
-func (k AESKey) HMAC(data []byte) ([]byte, error) {
-	mac := hmac.New(sha256.New, k.key)
-	_, err := mac.Write(data)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-	return mac.Sum(nil), nil
-}
-
-// Export will export the AESKey.
-// No format is used.
-func (k *AESKey) Export() []byte {
-	return k.key
-}
-
-func (k AESKey) decrypt(data, nonce []byte) ([]byte, error) {
 	key, err := aes.NewCipher(k.key)
 	if err != nil {
 		return nil, ErrInvalidCipher(err)
@@ -119,13 +106,29 @@ func (k AESKey) decrypt(data, nonce []byte) ([]byte, error) {
 		return nil, ErrInvalidCipher(err)
 	}
 
-	output, err := gcm.Open(nil, nonce, data, nil)
+	output, err := gcm.Open(nil, ciphertext.Nonce, ciphertext.Data, nil)
 	if err != nil {
 		return nil, ErrAESDecrypt(err)
 	}
 
-	// We do not use a destination []byte, but a return value.
 	return output, nil
+}
+
+// HMAC uses the key to create a Hash-based Message Authentication Code of the
+// given data with the SHA256 hashing algorithm, returning the given hash bytes.
+func (k SymmetricKey) HMAC(data []byte) ([]byte, error) {
+	mac := hmac.New(sha256.New, k.key)
+	_, err := mac.Write(data)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+	return mac.Sum(nil), nil
+}
+
+// Export returns the bytes that form the basis of the symmetric key.
+// After using Export, make sure to keep the result private.
+func (k *SymmetricKey) Export() []byte {
+	return k.key
 }
 
 // IsWrongKey returns true when the error can be
@@ -198,11 +201,11 @@ func (ct *CiphertextAES) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// generateNonce generates a Nonce of a particular size.
-func generateNonce(size int) (*[]byte, error) {
+// generateNonce generates a nonce of a given length.
+func generateNonce(size int) ([]byte, error) {
 	nonce := make([]byte, size)
 	if _, err := rand.Read(nonce); err != nil {
 		return nil, errio.Error(err)
 	}
-	return &nonce, nil
+	return nonce, nil
 }
