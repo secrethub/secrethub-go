@@ -1,8 +1,8 @@
 package secrethub
 
 import (
-	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/keylockerbv/secrethub-go/internals/api"
+	"github.com/keylockerbv/secrethub-go/internals/errio"
 )
 
 // RepoUserService handles operations on users of a repository.

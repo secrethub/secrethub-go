@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/keylockerbv/secrethub-go/pkg/api"
+	"github.com/keylockerbv/secrethub-go/internals/api"
 
-	"github.com/keylockerbv/secrethub-go/pkg/auth"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/keylockerbv/secrethub-go/internals/auth"
+	"github.com/keylockerbv/secrethub-go/internals/crypto"
+	"github.com/keylockerbv/secrethub-go/internals/errio"
 )
 
 // Errors

@@ -30,7 +30,7 @@ Below are a few simple examples:
 
 ```go
 import (
-	"github.com/keylockerbv/secrethub-go/pkg/api"
+	"github.com/keylockerbv/secrethub-go/internals/api"
 	"github.com/keylockerbv/secrethub-go/pkg/randchar"
 	"github.com/keylockerbv/secrethub-go/pkg/secrethub"
 )
