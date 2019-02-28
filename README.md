@@ -30,7 +30,6 @@ Below are a few simple examples:
 
 ```go
 import (
-	"github.com/keylockerbv/secrethub-go/internals/api"
 	"github.com/keylockerbv/secrethub-go/pkg/randchar"
 	"github.com/keylockerbv/secrethub-go/pkg/secrethub"
 )
@@ -40,15 +39,15 @@ credential, err := secrethub.NewCredential("<your credential>", "<passphrase>")
 client := secrethub.NewClient(credential, nil)
 
 // Write
-secret, err := client.Secrets().Write(api.SecretPath("path/to/secret"), []byte("password123"))
+secret, err := client.Secrets().Write("path/to/secret", []byte("password123"))
 
 // Read
-secret, err = client.Secrets().Versions().GetWithData(api.SecretPath("path/to/secret:latest"))
+secret, err = client.Secrets().Versions().GetWithData("path/to/secret:latest")
 fmt.Println(secret.Data) // prints password123
 
-// Generate
-data, err := randchar.NewGenerator(false).Generate(32) // Generate a slice of 32 alphanumeric characters.
-secret, err = client.Secrets().Write(api.SecretPath("path/to/secret"), data)
+// Generate a slice of 32 alphanumeric characters.
+data, err := randchar.NewGenerator(false).Generate(32) 
+secret, err = client.Secrets().Write("path/to/secret", data)
 ```
 
 Note that only packages inside the `/pkg` directory should be considered library code that you can use in your projects. All other code is not guaranteed to be backwards compatible and may change in the future.  
