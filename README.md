@@ -11,7 +11,7 @@ The official [SecretHub][secrethub] Go client library.
 Install secrethub-go with:
 
 ```sh
-go get -u github.com/secretub/secrethub-go
+go get -u github.com/secrethub/secrethub-go
 ```
 
 Then, import it using:
