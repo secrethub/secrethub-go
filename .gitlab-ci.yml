@@ -1,0 +1,12 @@
+image: golang:latest
+
+lint:
+  stage: test
+  image: mozgiii/gometalinter-docker
+  script:
+    - go mod download
+    - gometalinter --config=metalinter.config ./...
+
+test:
+  stage: test
+  script: make test
