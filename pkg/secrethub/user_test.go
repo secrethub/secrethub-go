@@ -65,7 +65,7 @@ func TestSignup(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(expectedResponse)
 	})
 
-	accountKey, err := crypto.GenerateRSAKey(512)
+	accountKey, err := crypto.GenerateRSAPrivateKey(512)
 	assert.OK(t, err)
 
 	publicAccountKey, err := accountKey.Public().Export()
@@ -115,7 +115,7 @@ func TestSignup_AlreadyExists(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(expected)
 	})
 
-	key, err := crypto.GenerateRSAKey(512)
+	key, err := crypto.GenerateRSAPrivateKey(512)
 	assert.OK(t, err)
 
 	// Act
@@ -135,7 +135,7 @@ func TestSignup_InvalidArgument(t *testing.T) {
 		client: newClient(cred1, opts),
 	}
 
-	key, err := crypto.GenerateRSAKey(512)
+	key, err := crypto.GenerateRSAPrivateKey(512)
 	assert.OK(t, err)
 
 	// Act

@@ -76,7 +76,7 @@ func (k *PEMKey) Decrypt(password []byte) (RSAPrivateKey, error) {
 		return RSAPrivateKey{}, ErrNotPKCS1Format
 	}
 
-	return NewRSAKey(key), nil
+	return NewRSAPrivateKey(key), nil
 }
 
 // Decode decodes the pem key to an RSA Key. If the key is encrypted it returns
@@ -92,5 +92,5 @@ func (k PEMKey) Decode() (RSAPrivateKey, error) {
 		return RSAPrivateKey{}, ErrNotPKCS1Format
 	}
 
-	return NewRSAKey(key), nil
+	return NewRSAPrivateKey(key), nil
 }

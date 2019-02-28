@@ -130,7 +130,7 @@ func TestImport_Exported_PublicKey(t *testing.T) {
 }
 
 func TestImport_Exported_ServiceKey(t *testing.T) {
-	clientKey, err := GenerateRSAKey(RSAKeyLength)
+	clientKey, err := GenerateRSAPrivateKey(RSAKeyLength)
 	if err != nil {
 		t.Errorf("generateServiceKey generates error: %s", err)
 	}
@@ -157,7 +157,7 @@ func TestImport_Exported_ServiceKey(t *testing.T) {
 }
 
 func TestImport_ExportedWithPassphrase(t *testing.T) {
-	expected, err := GenerateRSAKey(1024)
+	expected, err := GenerateRSAPrivateKey(1024)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -190,7 +190,7 @@ func TestImport_ExportedWithPassphrase(t *testing.T) {
 }
 
 func TestExportPrivateKeyWithEmptyPassphrase(t *testing.T) {
-	expected, err := GenerateRSAKey(1024)
+	expected, err := GenerateRSAPrivateKey(1024)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -9,7 +9,7 @@ import (
 const DefaultAccountKeyLength = 4096
 
 func generateAccountKey() (crypto.RSAPrivateKey, error) {
-	return crypto.GenerateRSAKey(DefaultAccountKeyLength)
+	return crypto.GenerateRSAPrivateKey(DefaultAccountKeyLength)
 }
 
 // AccountKeyService handles operations on SecretHub account keys.

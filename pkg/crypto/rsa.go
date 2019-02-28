@@ -205,19 +205,19 @@ type RSAPrivateKey struct {
 	private *rsa.PrivateKey
 }
 
-// GenerateRSAKey generates a new RSA key with the given key length.
-func GenerateRSAKey(length int) (RSAPrivateKey, error) {
+// GenerateRSAPrivateKey generates a new RSA key with the given key length.
+func GenerateRSAPrivateKey(length int) (RSAPrivateKey, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, length)
 	if err != nil {
 		return RSAPrivateKey{}, ErrGenerateRSAKey
 	}
 
-	return NewRSAKey(privateKey), nil
+	return NewRSAPrivateKey(privateKey), nil
 }
 
-// NewRSAKey is used to construct an RSA key from the given private key.
-// Use GenerateRSAKey to randomly generate a new RSA key.
-func NewRSAKey(privateKey *rsa.PrivateKey) RSAPrivateKey {
+// NewRSAPrivateKey is used to construct an RSA key from the given private key.
+// Use GenerateRSAPrivateKey to randomly generate a new RSA key.
+func NewRSAPrivateKey(privateKey *rsa.PrivateKey) RSAPrivateKey {
 	return RSAPrivateKey{
 		private: privateKey,
 	}
@@ -327,7 +327,7 @@ func ImportRSAPrivateKeyPEM(privateKey []byte) (RSAPrivateKey, error) {
 		return RSAPrivateKey{}, ErrNotPKCS1Format
 	}
 
-	return NewRSAKey(privateRSAKey), nil
+	return NewRSAPrivateKey(privateRSAKey), nil
 }
 
 // ExportPrivateKeyWithPassphrase exports the rsa private key in a

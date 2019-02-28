@@ -26,12 +26,12 @@ var (
 
 func init() {
 	var err error
-	clientKey, err = crypto.GenerateRSAKey(1024)
+	clientKey, err = crypto.GenerateRSAPrivateKey(1024)
 	if err != nil {
 		panic(err)
 	}
 
-	diffClientKey, err = crypto.GenerateRSAKey(1024)
+	diffClientKey, err = crypto.GenerateRSAPrivateKey(1024)
 	if err != nil {
 		panic(err)
 	}

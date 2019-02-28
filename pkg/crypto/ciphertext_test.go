@@ -8,7 +8,7 @@ import (
 )
 
 func generateRSAKey(t *testing.T) RSAPrivateKey {
-	key, err := GenerateRSAKey(1024)
+	key, err := GenerateRSAPrivateKey(1024)
 	if err != nil {
 		t.Fatal(err)
 	}

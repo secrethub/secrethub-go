@@ -276,7 +276,7 @@ func GenerateCredential() (Credential, error) {
 }
 
 func generateRSACredential(keyLength int) (RSACredential, error) {
-	key, err := crypto.GenerateRSAKey(keyLength)
+	key, err := crypto.GenerateRSAPrivateKey(keyLength)
 	if err != nil {
 		return RSACredential{}, errio.Error(err)
 	}
@@ -332,7 +332,7 @@ func (d RSAPrivateKeyDecoder) Decode(payload []byte) (Credential, error) {
 	}
 
 	return RSACredential{
-		RSAPrivateKey: crypto.NewRSAKey(key),
+		RSAPrivateKey: crypto.NewRSAPrivateKey(key),
 	}, nil
 }
 
