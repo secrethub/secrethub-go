@@ -3,7 +3,7 @@ package secrethub
 import (
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/internals/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/keylockerbv/secrethub-go/internals/errio"
 )
 
 // AccountService handles operations on SecretHub accounts.

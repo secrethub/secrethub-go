@@ -3,7 +3,7 @@ package vat
 import (
 	"net/http"
 
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/keylockerbv/secrethub-go/internals/errio"
 )
 
 // Errors

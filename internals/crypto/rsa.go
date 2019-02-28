@@ -13,7 +13,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/keylockerbv/secrethub-go/internals/errio"
 )
 
 const (

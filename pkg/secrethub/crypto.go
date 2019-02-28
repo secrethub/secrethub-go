@@ -4,7 +4,7 @@ import (
 	"github.com/keylockerbv/secrethub-go/pkg/api"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 	"github.com/keylockerbv/secrethub-go/internals/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/keylockerbv/secrethub-go/internals/errio"
 )
 
 func (c *client) encryptDirFor(dir *api.Dir, accounts ...*api.Account) ([]api.EncryptedNameForNodeRequest, error) {

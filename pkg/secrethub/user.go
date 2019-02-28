@@ -2,8 +2,8 @@ package secrethub
 
 import (
 	"github.com/keylockerbv/secrethub-go/internals/crypto"
+	"github.com/keylockerbv/secrethub-go/internals/errio"
 	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
 )
 
 // UserService handles operations on users from SecretHub.

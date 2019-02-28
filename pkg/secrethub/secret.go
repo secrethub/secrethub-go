@@ -2,7 +2,7 @@ package secrethub
 
 import (
 	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/keylockerbv/secrethub-go/internals/errio"
 )
 
 // SecretService handles operations on secrets from SecretHub.

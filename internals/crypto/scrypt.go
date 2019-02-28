@@ -1,7 +1,7 @@
 package crypto
 
 import (
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/keylockerbv/secrethub-go/internals/errio"
 	"golang.org/x/crypto/scrypt"
 )
 

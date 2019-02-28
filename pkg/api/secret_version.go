@@ -8,7 +8,7 @@ import (
 	units "github.com/docker/go-units"
 	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
 	"github.com/keylockerbv/secrethub-go/internals/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/keylockerbv/secrethub-go/internals/errio"
 )
 
 const (

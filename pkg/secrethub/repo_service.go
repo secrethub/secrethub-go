@@ -2,7 +2,7 @@ package secrethub
 
 import (
 	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/keylockerbv/secrethub-go/internals/errio"
 )
 
 // RepoServiceService handles operations on services of repositories.

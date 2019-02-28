@@ -5,7 +5,7 @@ import (
 
 	"fmt"
 
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/keylockerbv/secrethub-go/internals/errio"
 )
 
 // Errors returned by the SecretHub API
