@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/keylockerbv/secrethub-go/pkg/api/vat"
+	"github.com/keylockerbv/secrethub-go/internals/api/vat"
 )
 
 // Errors

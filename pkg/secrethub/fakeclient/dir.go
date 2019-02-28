@@ -3,7 +3,7 @@
 package fakeclient
 
 import (
-	"github.com/keylockerbv/secrethub-go/pkg/api"
+	"github.com/keylockerbv/secrethub-go/internals/api"
 )
 
 // DirService is a mock of the DirService interface.

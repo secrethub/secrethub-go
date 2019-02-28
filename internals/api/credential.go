@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
+	"github.com/keylockerbv/secrethub-go/internals/api/uuid"
 )
 
 // Errors

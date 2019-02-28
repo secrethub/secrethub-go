@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"bitbucket.org/zombiezen/cardcpx/natsort"
-	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
+	"github.com/keylockerbv/secrethub-go/internals/api/uuid"
 )
 
 // Roles

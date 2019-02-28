@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keylockerbv/secrethub-go/pkg/api"
+	"github.com/keylockerbv/secrethub-go/internals/api"
 
 	"fmt"
 

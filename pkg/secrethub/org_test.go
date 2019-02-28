@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
+	"github.com/keylockerbv/secrethub-go/internals/api"
+	"github.com/keylockerbv/secrethub-go/internals/api/uuid"
 	"github.com/keylockerbv/secrethub-go/internals/assert"
 )
 

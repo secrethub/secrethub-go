@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/api"
+	"github.com/keylockerbv/secrethub-go/internals/api"
 	"github.com/keylockerbv/secrethub-go/internals/assert"
 	"github.com/keylockerbv/secrethub-go/internals/crypto"
 )

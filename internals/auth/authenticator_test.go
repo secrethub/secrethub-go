@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/api"
+	"github.com/keylockerbv/secrethub-go/internals/api"
 
-	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
+	"github.com/keylockerbv/secrethub-go/internals/api/uuid"
 	"github.com/keylockerbv/secrethub-go/internals/assert"
 	"github.com/keylockerbv/secrethub-go/internals/auth"
 )
