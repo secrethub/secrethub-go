@@ -3,7 +3,7 @@ package api
 import (
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/internals/assert"
+	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
 func strPtr(s string) *string {

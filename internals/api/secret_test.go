@@ -4,10 +4,10 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/internals/api"
-	"github.com/keylockerbv/secrethub-go/internals/api/uuid"
-	"github.com/keylockerbv/secrethub-go/internals/assert"
-	"github.com/keylockerbv/secrethub-go/internals/crypto"
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/secrethub/secrethub-go/internals/assert"
+	"github.com/secrethub/secrethub-go/internals/crypto"
 )
 
 func TestSortSecretByName(t *testing.T) {

@@ -2,7 +2,7 @@
 
 package fakeclient
 
-import "github.com/keylockerbv/secrethub-go/internals/api"
+import "github.com/secrethub/secrethub-go/internals/api"
 
 // SecretVersionService can be used to mock a SecretVersionService.
 type SecretVersionService struct {

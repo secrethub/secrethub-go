@@ -1,6 +1,6 @@
 package api_test
 
-import "github.com/keylockerbv/secrethub-go/internals/crypto"
+import "github.com/secrethub/secrethub-go/internals/crypto"
 
 var (
 	testCiphertextRSA = crypto.CiphertextRSA{

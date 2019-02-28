@@ -2,7 +2,7 @@
 
 package fakeclient
 
-import "github.com/keylockerbv/secrethub-go/internals/api"
+import "github.com/secrethub/secrethub-go/internals/api"
 
 // OrgMemberService is a mock of the OrgMemberService interface.
 type OrgMemberService struct {

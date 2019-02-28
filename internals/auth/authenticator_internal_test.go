@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/internals/assert"
+	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
 type fakeMethod struct{}

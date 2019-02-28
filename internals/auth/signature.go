@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keylockerbv/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api"
 
 	"fmt"
 
-	"github.com/keylockerbv/secrethub-go/internals/crypto"
-	"github.com/keylockerbv/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/internals/crypto"
+	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 const (

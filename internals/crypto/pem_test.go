@@ -3,8 +3,8 @@ package crypto_test
 import (
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/internals/assert"
-	"github.com/keylockerbv/secrethub-go/internals/crypto"
+	"github.com/secrethub/secrethub-go/internals/assert"
+	"github.com/secrethub/secrethub-go/internals/crypto"
 )
 
 var (
