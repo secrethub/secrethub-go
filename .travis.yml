@@ -3,9 +3,5 @@ language: go
 go:
   - "1.11.x"
 
-install:
-  - make lint-tools
-
 script:
-  - env GO111MODULE=on make lint
   - env GO111MODULE=on make test
