@@ -14,6 +14,12 @@ Install secrethub-go with:
 go get -u github.com/secrethub/secrethub-go
 ```
 
+Or install a specific version with:
+
+```sh
+go get -u github.com/secrethub/secrethub-go@vX.Y.Z
+```
+
 Then, import it using:
 
 ``` go
