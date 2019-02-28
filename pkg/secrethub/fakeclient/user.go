@@ -2,7 +2,7 @@
 
 package fakeclient
 
-import "github.com/keylockerbv/secrethub-go/internals/api"
+import "github.com/secrethub/secrethub-go/internals/api"
 
 // UserService is a mock of the UserService interface.
 type UserService struct {

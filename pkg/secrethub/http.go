@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keylockerbv/secrethub-go/internals/auth"
+	"github.com/secrethub/secrethub-go/internals/auth"
 
-	"github.com/keylockerbv/secrethub-go/internals/api"
-	"github.com/keylockerbv/secrethub-go/internals/errio"
 	logging "github.com/op/go-logging"
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 var (

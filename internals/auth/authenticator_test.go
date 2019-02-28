@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api"
 
-	"github.com/keylockerbv/secrethub-go/internals/api/uuid"
-	"github.com/keylockerbv/secrethub-go/internals/assert"
-	"github.com/keylockerbv/secrethub-go/internals/auth"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/secrethub/secrethub-go/internals/assert"
+	"github.com/secrethub/secrethub-go/internals/auth"
 )
 
 func TestVerifyMultipleMethods(t *testing.T) {

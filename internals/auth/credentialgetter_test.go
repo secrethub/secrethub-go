@@ -1,6 +1,6 @@
 package auth_test
 
-import "github.com/keylockerbv/secrethub-go/internals/api"
+import "github.com/secrethub/secrethub-go/internals/api"
 
 type fakeCredentialGetter struct {
 	GetFunc func(fingerprint string) (*api.Credential, error)

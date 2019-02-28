@@ -1,8 +1,8 @@
 package secrethub
 
 import (
-	"github.com/keylockerbv/secrethub-go/internals/api"
-	"github.com/keylockerbv/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 // OrgMemberService handles operations on organization members.

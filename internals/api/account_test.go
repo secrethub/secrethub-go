@@ -3,7 +3,7 @@ package api_test
 import (
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api"
 )
 
 func TestAccountName(t *testing.T) {

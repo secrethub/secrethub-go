@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/internals/assert"
+	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
 var (

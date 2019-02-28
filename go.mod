@@ -1,4 +1,4 @@
-module github.com/keylockerbv/secrethub-go
+module github.com/secrethub/secrethub-go
 
 require (
 	bitbucket.org/zombiezen/cardcpx v0.0.0-20150417151802-902f68ff43ef
