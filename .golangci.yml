@@ -19,4 +19,5 @@ linters:
   - depguard
   - unparam
   - nakedret
+  - gofmt
   disable-all: true
