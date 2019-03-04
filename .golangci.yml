@@ -22,4 +22,5 @@ linters:
   - gofmt
   - misspell
   - prealloc
+  - goconst
   disable-all: true
