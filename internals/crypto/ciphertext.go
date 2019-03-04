@@ -104,9 +104,11 @@ func newEncodedCiphertextMetadata(metadataList map[string]string) encodedCiphert
 	metadata := ""
 
 	// Sort all the keys of the metadataList so that metadata is always in alphabetical order.
-	var keys []string
+	keys := make([]string, len(metadataList))
+	i := 0
 	for k := range metadataList {
-		keys = append(keys, k)
+		keys[i] = k
+		i++
 	}
 	sort.Strings(keys)
 

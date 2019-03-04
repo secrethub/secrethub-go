@@ -321,7 +321,7 @@ func TestIsPowerOfTwo(t *testing.T) {
 	}
 }
 
-// Below we test the assumption that increasing the salt lenght does
+// Below we test the assumption that increasing the salt length does
 // not significantly increase the execution time of key derivation
 // function. The output of the benchmarks is documented below:
 //
