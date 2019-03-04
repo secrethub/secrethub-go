@@ -21,4 +21,5 @@ linters:
   - nakedret
   - gofmt
   - misspell
+  - prealloc
   disable-all: true
