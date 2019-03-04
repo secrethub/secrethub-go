@@ -20,4 +20,5 @@ linters:
   - unparam
   - nakedret
   - gofmt
+  - misspell
   disable-all: true
