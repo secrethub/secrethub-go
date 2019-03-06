@@ -100,27 +100,26 @@ func (ec encodedCiphertext) metadata() (encodedCiphertextMetadata, error) {
 
 // newEncodedCiphertextMetadata creates a new encodedCiphertextMetadata from a map of metadata.
 // Input of {"param": "foo", "second": "bar"} outputs "param=foo,second=bar".
-func newEncodedCiphertextMetadata(metadataList map[string]string) encodedCiphertextMetadata {
-	metadata := ""
-
+func newEncodedCiphertextMetadata(metadata map[string]string) encodedCiphertextMetadata {
 	// Sort all the keys of the metadataList so that metadata is always in alphabetical order.
-	keys := make([]string, len(metadataList))
+	keys := make([]string, len(metadata))
 	i := 0
-	for k := range metadataList {
+	for k := range metadata {
 		keys[i] = k
 		i++
 	}
 	sort.Strings(keys)
 
+	res := ""
 	for _, k := range keys {
 		separator := ""
-		if len(metadata) > 0 {
+		if len(res) > 0 {
 			separator = ","
 		}
-		metadata = fmt.Sprintf("%s%s%s=%s", metadata, separator, k, metadataList[k])
+		res = fmt.Sprintf("%s%s%s=%s", res, separator, k, metadata[k])
 	}
 
-	return encodedCiphertextMetadata(metadata)
+	return encodedCiphertextMetadata(res)
 }
 
 // getValue returns a value from metadata.
