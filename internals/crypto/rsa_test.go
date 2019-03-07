@@ -233,7 +233,15 @@ func TestCiphertextRSA_MarshalJSON(t *testing.T) {
 	}
 
 	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
+		t.Run(name+" encoded", func(t *testing.T) {
+			// Act
+			actual := tc.ciphertext.Encode()
+
+			// Assert
+			assert.Equal(t, actual, tc.expected)
+		})
+
+		t.Run(name+" json", func(t *testing.T) {
 			// Act
 			actual, err := tc.ciphertext.MarshalJSON()
 			assert.OK(t, err)
