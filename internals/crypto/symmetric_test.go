@@ -95,11 +95,11 @@ func TestCiphertextRSAAES_MarshalJSON(t *testing.T) {
 	}{
 		"success": {
 			ciphertext: CiphertextRSAAES{
-				aes: CiphertextAES{
+				AES: CiphertextAES{
 					Data:  []byte("aes_data"),
 					Nonce: []byte("nonce_data"),
 				},
-				rsa: CiphertextRSA{
+				RSA: CiphertextRSA{
 					Data: []byte("rsa_data"),
 				},
 			},
