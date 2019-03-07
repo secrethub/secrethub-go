@@ -73,8 +73,8 @@ func (pub RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
 	}
 
 	return CiphertextRSAAES{
-		aes: aesData,
-		rsa: rsaData,
+		AES: aesData,
+		RSA: rsaData,
 	}, nil
 }
 
@@ -229,12 +229,12 @@ func NewRSAPrivateKey(privateKey *rsa.PrivateKey) RSAPrivateKey {
 // then uses the decrypted symmetric key to decrypt the rest of the ciphertext
 // with the AES-GCM algorithm.
 func (prv RSAPrivateKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
-	aesKeyData, err := prv.Unwrap(ciphertext.rsa)
+	aesKeyData, err := prv.Unwrap(ciphertext.RSA)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewSymmetricKey(aesKeyData).Decrypt(ciphertext.aes)
+	return NewSymmetricKey(aesKeyData).Decrypt(ciphertext.AES)
 }
 
 // Unwrap uses the private key to decrypt a small ciphertext that has been encrypted
@@ -354,17 +354,17 @@ func (prv RSAPrivateKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, er
 
 // CiphertextRSAAES represents data encrypted with AES-GCM, where the AES key is encrypted with RSA-OAEP.
 type CiphertextRSAAES struct {
-	aes CiphertextAES
-	rsa CiphertextRSA
+	AES CiphertextAES
+	RSA CiphertextRSA
 }
 
 // EncodeToString encodes the ciphertext in a string.
 func (ct CiphertextRSAAES) EncodeToString() string {
-	data := base64.StdEncoding.EncodeToString(ct.aes.Data)
+	data := base64.StdEncoding.EncodeToString(ct.AES.Data)
 
 	metadata := newEncodedCiphertextMetadata(map[string]string{
-		"nonce": base64.StdEncoding.EncodeToString(ct.aes.Nonce),
-		"key":   base64.StdEncoding.EncodeToString(ct.rsa.Data),
+		"nonce": base64.StdEncoding.EncodeToString(ct.AES.Nonce),
+		"key":   base64.StdEncoding.EncodeToString(ct.RSA.Data),
 	})
 
 	return fmt.Sprintf("%s$%s$%s", algorithmRSAAES, data, metadata)
@@ -412,11 +412,11 @@ func DecodeCiphertextRSAAESFromString(s string) (CiphertextRSAAES, error) {
 	}
 
 	return CiphertextRSAAES{
-		aes: CiphertextAES{
+		AES: CiphertextAES{
 			Data:  encryptedData,
 			Nonce: aesNonce,
 		},
-		rsa: CiphertextRSA{
+		RSA: CiphertextRSA{
 			Data: aesKey,
 		},
 	}, nil
