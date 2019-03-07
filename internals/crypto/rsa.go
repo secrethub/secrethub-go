@@ -358,8 +358,8 @@ type CiphertextRSAAES struct {
 	rsa CiphertextRSA
 }
 
-// Encode encodes the ciphertext in a string.
-func (ct CiphertextRSAAES) Encode() string {
+// EncodeToString encodes the ciphertext in a string.
+func (ct CiphertextRSAAES) EncodeToString() string {
 	data := base64.StdEncoding.EncodeToString(ct.aes.Data)
 
 	metadata := newEncodedCiphertextMetadata(map[string]string{
@@ -372,11 +372,11 @@ func (ct CiphertextRSAAES) Encode() string {
 
 // MarshalJSON encodes the ciphertext in JSON.
 func (ct CiphertextRSAAES) MarshalJSON() ([]byte, error) {
-	return json.Marshal(ct.Encode())
+	return json.Marshal(ct.EncodeToString())
 }
 
-// DecodeCiphertextRSAAES decodes an encoded ciphertext string to an CiphertextRSAAES.
-func DecodeCiphertextRSAAES(ct string) (CiphertextRSAAES, error) {
+// DecodeCiphertextRSAAESFromString decodes an encoded ciphertext string to an CiphertextRSAAES.
+func DecodeCiphertextRSAAESFromString(ct string) (CiphertextRSAAES, error) {
 	encoded, err := newEncodedCiphertext(ct)
 	if err != nil {
 		return CiphertextRSAAES{}, err
@@ -434,7 +434,7 @@ func (ct *CiphertextRSAAES) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	ciphertext, err := DecodeCiphertextRSAAES(s)
+	ciphertext, err := DecodeCiphertextRSAAESFromString(s)
 	if err != nil {
 		return err
 	}
@@ -448,19 +448,19 @@ type CiphertextRSA struct {
 	Data []byte
 }
 
-// Encode encodes the ciphertext in a string.
-func (ct CiphertextRSA) Encode() string {
+// EncodeToString encodes the ciphertext in a string.
+func (ct CiphertextRSA) EncodeToString() string {
 	encodedKey := base64.StdEncoding.EncodeToString(ct.Data)
 	return fmt.Sprintf("%s$%s$", algorithmRSA, encodedKey)
 }
 
 // MarshalJSON encodes the ciphertext in JSON.
 func (ct CiphertextRSA) MarshalJSON() ([]byte, error) {
-	return json.Marshal(ct.Encode())
+	return json.Marshal(ct.EncodeToString())
 }
 
-// DecodeCiphertextRSA decodes an encoded ciphertext string to an CiphertextRSA.
-func DecodeCiphertextRSA(ct string) (CiphertextRSA, error) {
+// DecodeCiphertextRSAFromString decodes an encoded ciphertext string to an CiphertextRSA.
+func DecodeCiphertextRSAFromString(ct string) (CiphertextRSA, error) {
 	encoded, err := newEncodedCiphertext(ct)
 	if err != nil {
 		return CiphertextRSA{}, err
@@ -497,7 +497,7 @@ func (ct *CiphertextRSA) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	ciphertext, err := DecodeCiphertextRSA(s)
+	ciphertext, err := DecodeCiphertextRSAFromString(s)
 	if err != nil {
 		return err
 	}

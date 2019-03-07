@@ -69,7 +69,7 @@ func TestCiphertextAES_MarshalJSON(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name+" encoded", func(t *testing.T) {
 			// Act
-			actual := tc.ciphertext.Encode()
+			actual := tc.ciphertext.EncodeToString()
 
 			// Assert
 			assert.Equal(t, actual, tc.expected)
@@ -110,7 +110,7 @@ func TestCiphertextRSAAES_MarshalJSON(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name+" encoded", func(t *testing.T) {
 			// Act
-			actual := tc.ciphertext.Encode()
+			actual := tc.ciphertext.EncodeToString()
 
 			// Assert
 			assert.Equal(t, actual, tc.expected)

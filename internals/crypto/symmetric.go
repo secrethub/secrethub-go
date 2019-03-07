@@ -143,8 +143,8 @@ type CiphertextAES struct {
 	Nonce []byte
 }
 
-// Encode encodes the ciphertext in a string.
-func (ct CiphertextAES) Encode() string {
+// EncodeToString encodes the ciphertext in a string.
+func (ct CiphertextAES) EncodeToString() string {
 	data := base64.StdEncoding.EncodeToString(ct.Data)
 
 	metadata := newEncodedCiphertextMetadata(map[string]string{
@@ -156,11 +156,11 @@ func (ct CiphertextAES) Encode() string {
 
 // MarshalJSON encodes the ciphertext in JSON.
 func (ct CiphertextAES) MarshalJSON() ([]byte, error) {
-	return json.Marshal(ct.Encode())
+	return json.Marshal(ct.EncodeToString())
 }
 
-// DecodeCiphertextAES decodes an encoded ciphertext string to an CiphertextAES.
-func DecodeCiphertextAES(ct string) (CiphertextAES, error) {
+// DecodeCiphertextAESFromString decodes an encoded ciphertext string to an CiphertextAES.
+func DecodeCiphertextAESFromString(ct string) (CiphertextAES, error) {
 	encoded, err := newEncodedCiphertext(ct)
 	if err != nil {
 		return CiphertextAES{}, err
@@ -208,7 +208,7 @@ func (ct *CiphertextAES) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	ciphertext, err := DecodeCiphertextAES(s)
+	ciphertext, err := DecodeCiphertextAESFromString(s)
 	if err != nil {
 		return err
 	}
