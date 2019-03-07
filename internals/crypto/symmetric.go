@@ -160,8 +160,8 @@ func (ct CiphertextAES) MarshalJSON() ([]byte, error) {
 }
 
 // DecodeCiphertextAESFromString decodes an encoded ciphertext string to an CiphertextAES.
-func DecodeCiphertextAESFromString(ct string) (CiphertextAES, error) {
-	encoded, err := newEncodedCiphertext(ct)
+func DecodeCiphertextAESFromString(s string) (CiphertextAES, error) {
+	encoded, err := newEncodedCiphertext(s)
 	if err != nil {
 		return CiphertextAES{}, err
 	}

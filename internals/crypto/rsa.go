@@ -376,8 +376,8 @@ func (ct CiphertextRSAAES) MarshalJSON() ([]byte, error) {
 }
 
 // DecodeCiphertextRSAAESFromString decodes an encoded ciphertext string to an CiphertextRSAAES.
-func DecodeCiphertextRSAAESFromString(ct string) (CiphertextRSAAES, error) {
-	encoded, err := newEncodedCiphertext(ct)
+func DecodeCiphertextRSAAESFromString(s string) (CiphertextRSAAES, error) {
+	encoded, err := newEncodedCiphertext(s)
 	if err != nil {
 		return CiphertextRSAAES{}, err
 	}
@@ -460,8 +460,8 @@ func (ct CiphertextRSA) MarshalJSON() ([]byte, error) {
 }
 
 // DecodeCiphertextRSAFromString decodes an encoded ciphertext string to an CiphertextRSA.
-func DecodeCiphertextRSAFromString(ct string) (CiphertextRSA, error) {
-	encoded, err := newEncodedCiphertext(ct)
+func DecodeCiphertextRSAFromString(s string) (CiphertextRSA, error) {
+	encoded, err := newEncodedCiphertext(s)
 	if err != nil {
 		return CiphertextRSA{}, err
 	}
