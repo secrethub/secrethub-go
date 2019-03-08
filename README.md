@@ -11,7 +11,7 @@
 
 [SecretHub][secrethub] is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts. 
 
-Packages in `secrethub-go` provide clients for various SecretHub APIs.
+`secrethub-go` provides a client for various SecretHub APIs.
 
 
 
