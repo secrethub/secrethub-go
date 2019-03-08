@@ -1,8 +1,5 @@
-<p align="center">
-    <img src="https://secrethub.io/img/secrethub-gopher.png" alt="Gopher" width="160px"/>
-</p>
-
 # Go client for SecretHub
+
 
 [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
 [![Travis CI](https://travis-ci.org/secrethub/secrethub-go.svg?branch=master)][travis-ci]
@@ -13,7 +10,7 @@
 
 `secrethub-go` provides a client for various SecretHub APIs.
 
-
+<img src="https://secrethub.io/img/secrethub-gopher.png" alt="Gopher" width="160px"/>
 
 ## Installation
 
