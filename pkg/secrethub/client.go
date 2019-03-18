@@ -49,6 +49,7 @@ func (c clientAdapter) Dirs() DirService {
 // Me returns a MeService.
 func (c clientAdapter) Me() MeService {
 	return newMeService(
+		c.client,
 		newRepoService(c.client),
 		newUserService(c.client),
 	)

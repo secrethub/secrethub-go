@@ -22,9 +22,10 @@ const (
 	baseURLPath = "/v1"
 
 	// Current account
-	pathMeUser  = "%s/me/user"
-	pathMeRepos = "%s/me/repos"
-	pathMeKey   = "%s/me/key"
+	pathMeUser              = "%s/me/user"
+	pathMeRepos             = "%s/me/repos"
+	pathMeKey               = "%s/me/key"
+	pathMeEmailVerification = "%s/me/user/verification-email"
 
 	// Account
 	pathAccount          = "%s/account/%s"
@@ -151,6 +152,13 @@ func (c *httpClient) GetMyUser() (*api.User, error) {
 	rawURL := fmt.Sprintf(pathMeUser, c.base)
 	err := c.get(rawURL, out)
 	return out, errio.Error(err)
+}
+
+// SendVerificationEmail sends an email to the users registered email address for them to prove they
+// own that email address.
+func (c *httpClient) SendVerificationEmail() error {
+	rawURL := fmt.Sprintf(pathMeEmailVerification, c.base)
+	return c.post(rawURL, http.StatusCreated, nil, nil)
 }
 
 // Accounts

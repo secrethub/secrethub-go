@@ -8,15 +8,20 @@ type MeService interface {
 	Repos() ([]*api.Repo, error)
 	// User retrieves the current users details.
 	User() (*api.User, error)
+	// SendVerificationEmail sends an email to the authenticated user's registered email address
+	// for them to prove they own that email address.
+	SendVerificationEmail() error
 }
 
 type meService struct {
+	client      client
 	repoService RepoService
 	userService UserService
 }
 
-func newMeService(repoService RepoService, userService UserService) MeService {
+func newMeService(client client, repoService RepoService, userService UserService) MeService {
 	return meService{
+		client:      client,
 		repoService: repoService,
 		userService: userService,
 	}
@@ -30,4 +35,10 @@ func (ms meService) Repos() ([]*api.Repo, error) {
 // User retrieves the current users details.
 func (ms meService) User() (*api.User, error) {
 	return ms.userService.Me()
+}
+
+// SendVerificationEmail sends an email to the authenticated user's registered email address
+// for them to prove they own that email address.
+func (ms meService) SendVerificationEmail() error {
+	return ms.client.httpClient.SendVerificationEmail()
 }
