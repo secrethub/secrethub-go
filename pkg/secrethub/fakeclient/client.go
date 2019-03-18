@@ -29,6 +29,11 @@ func (c Client) Dirs() secrethub.DirService {
 	return c.DirService
 }
 
+// Me implements the secrethub.Client interface.
+func (c Client) Me() secrethub.MeService {
+	return nil
+}
+
 // Orgs implements the secrethub.Client interface.
 func (c Client) Orgs() secrethub.OrgService {
 	return c.OrgService
