@@ -19,11 +19,11 @@ type meService struct {
 	userService UserService
 }
 
-func newMeService(client client, repoService RepoService, userService UserService) MeService {
+func newMeService(client client) MeService {
 	return meService{
 		client:      client,
-		repoService: repoService,
-		userService: userService,
+		repoService: newRepoService(client),
+		userService: newUserService(client),
 	}
 }
 
