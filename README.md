@@ -3,15 +3,23 @@
 [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
 [![Travis CI](https://travis-ci.org/secrethub/secrethub-go.svg?branch=master)][travis-ci]
 [![GolangCI](https://golangci.com/badges/github.com/secrethub/secrethub-go.svg)][golang-ci]
-[![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard]
+[![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard] ![Licence](https://img.shields.io/hexpm/l/plug.svg)
+
+
 
 The official [SecretHub][secrethub] Go client library.
 
-> SecretHub is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts. 
+> SecretHub is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts.
 
 <img src="https://secrethub.io/img/secrethub-gopher.png" alt="Gopher" width="200px"/>
 
-## Installation
+## Getting started
+
+### Prerequisites
+
+In order to use the Go client library, you need a __SecretHub account__. You can do this by following the first instructions [here](https://secrethub.io/docs/getting-started/) (*Installing the CLI* and *signing up for a SecretHub account*).
+
+### Installation
 
 Install secrethub-go with:
 
@@ -33,7 +41,8 @@ import (
 )
 ```
 
-## Documentation
+
+## Examples
 
 For details on all functionality of this library, see the [GoDoc][godoc] documentation.
 
@@ -57,7 +66,7 @@ secret, err = client.Secrets().Versions().GetWithData("path/to/secret:latest")
 fmt.Println(secret.Data) // prints password123
 
 // Generate a slice of 32 alphanumeric characters.
-data, err := randchar.NewGenerator(false).Generate(32) 
+data, err := randchar.NewGenerator(false).Generate(32)
 secret, err = client.Secrets().Write("path/to/secret", data)
 ```
 
@@ -68,7 +77,7 @@ Note that only packages inside the `/pkg` directory should be considered library
 Pull requests from the community are welcome.
 If you'd like to contribute, please checkout [the contributing guidelines](./CONTRIBUTING.md).
 
-## Test
+## Testing
 
 Run all tests:
 
@@ -84,6 +93,10 @@ Run a single test:
 
 For any requests, bug or comments, please [open an issue][issues] or [submit a
 pull request][pulls].
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the LICENSE.md file for details
 
 ## Attributions
 
