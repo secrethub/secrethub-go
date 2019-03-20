@@ -73,8 +73,8 @@ func (pub RSAPublicKey) Encrypt(data []byte) (CiphertextRSAAES, error) {
 	}
 
 	return CiphertextRSAAES{
-		aes: aesData,
-		rsa: rsaData,
+		AES: aesData,
+		RSA: rsaData,
 	}, nil
 }
 
@@ -229,12 +229,12 @@ func NewRSAPrivateKey(privateKey *rsa.PrivateKey) RSAPrivateKey {
 // then uses the decrypted symmetric key to decrypt the rest of the ciphertext
 // with the AES-GCM algorithm.
 func (prv RSAPrivateKey) Decrypt(ciphertext CiphertextRSAAES) ([]byte, error) {
-	aesKeyData, err := prv.Unwrap(ciphertext.rsa)
+	aesKeyData, err := prv.Unwrap(ciphertext.RSA)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewSymmetricKey(aesKeyData).Decrypt(ciphertext.aes)
+	return NewSymmetricKey(aesKeyData).Decrypt(ciphertext.AES)
 }
 
 // Unwrap uses the private key to decrypt a small ciphertext that has been encrypted
@@ -354,77 +354,92 @@ func (prv RSAPrivateKey) ExportPrivateKeyWithPassphrase(pass string) ([]byte, er
 
 // CiphertextRSAAES represents data encrypted with AES-GCM, where the AES key is encrypted with RSA-OAEP.
 type CiphertextRSAAES struct {
-	aes CiphertextAES
-	rsa CiphertextRSA
+	AES CiphertextAES
+	RSA CiphertextRSA
 }
 
-// MarshalJSON encodes the ciphertext in a string.
-func (ct CiphertextRSAAES) MarshalJSON() ([]byte, error) {
-	data := base64.StdEncoding.EncodeToString(ct.aes.Data)
+// EncodeToString encodes the ciphertext in a string.
+func (ct CiphertextRSAAES) EncodeToString() string {
+	data := base64.StdEncoding.EncodeToString(ct.AES.Data)
 
 	metadata := newEncodedCiphertextMetadata(map[string]string{
-		"nonce": base64.StdEncoding.EncodeToString(ct.aes.Nonce),
-		"key":   base64.StdEncoding.EncodeToString(ct.rsa.Data),
+		"nonce": base64.StdEncoding.EncodeToString(ct.AES.Nonce),
+		"key":   base64.StdEncoding.EncodeToString(ct.RSA.Data),
 	})
 
-	return json.Marshal(fmt.Sprintf("%s$%s$%s", algorithmRSAAES, data, metadata))
+	return fmt.Sprintf("%s$%s$%s", algorithmRSAAES, data, metadata)
 }
 
-// UnmarshalJSON decodes a string into a ciphertext.
+// MarshalJSON encodes the ciphertext in JSON.
+func (ct CiphertextRSAAES) MarshalJSON() ([]byte, error) {
+	return json.Marshal(ct.EncodeToString())
+}
+
+// DecodeCiphertextRSAAESFromString decodes an encoded ciphertext string to an CiphertextRSAAES.
+func DecodeCiphertextRSAAESFromString(s string) (CiphertextRSAAES, error) {
+	encoded, err := newEncodedCiphertext(s)
+	if err != nil {
+		return CiphertextRSAAES{}, err
+	}
+
+	algorithm, err := encoded.algorithm()
+	if err != nil {
+		return CiphertextRSAAES{}, errio.Error(err)
+	}
+
+	if algorithm != algorithmRSAAES {
+		return CiphertextRSAAES{}, ErrWrongAlgorithm
+	}
+
+	encryptedData, err := encoded.data()
+	if err != nil {
+		return CiphertextRSAAES{}, errio.Error(err)
+	}
+
+	metadata, err := encoded.metadata()
+	if err != nil {
+		return CiphertextRSAAES{}, errio.Error(err)
+	}
+
+	aesNonce, err := metadata.getDecodedValue("nonce")
+	if err != nil {
+		return CiphertextRSAAES{}, errio.Error(err)
+	}
+
+	aesKey, err := metadata.getDecodedValue("key")
+	if err != nil {
+		return CiphertextRSAAES{}, errio.Error(err)
+	}
+
+	return CiphertextRSAAES{
+		AES: CiphertextAES{
+			Data:  encryptedData,
+			Nonce: aesNonce,
+		},
+		RSA: CiphertextRSA{
+			Data: aesKey,
+		},
+	}, nil
+}
+
+// UnmarshalJSON decodes JSON into a ciphertext.
 func (ct *CiphertextRSAAES) UnmarshalJSON(b []byte) error {
+	if len(b) == 0 {
+		return nil
+	}
+
 	var s string
 	err := json.Unmarshal(b, &s)
 	if err != nil {
 		return err
 	}
 
-	if s == "" {
-		return nil
-	}
-
-	encoded, err := newEncodedCiphertext(s)
+	ciphertext, err := DecodeCiphertextRSAAESFromString(s)
 	if err != nil {
 		return err
 	}
 
-	algorithm, err := encoded.algorithm()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	if algorithm != algorithmRSAAES {
-		return ErrWrongAlgorithm
-	}
-
-	encryptedData, err := encoded.data()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	metadata, err := encoded.metadata()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	aesNonce, err := metadata.getDecodedValue("nonce")
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	aesKey, err := metadata.getDecodedValue("key")
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	ct.aes = CiphertextAES{
-		Data:  encryptedData,
-		Nonce: aesNonce,
-	}
-
-	ct.rsa = CiphertextRSA{
-		Data: aesKey,
-	}
-
+	*ct = ciphertext
 	return nil
 }
 
@@ -433,45 +448,60 @@ type CiphertextRSA struct {
 	Data []byte
 }
 
-// MarshalJSON encodes the ciphertext in a string.
-func (ct CiphertextRSA) MarshalJSON() ([]byte, error) {
+// EncodeToString encodes the ciphertext in a string.
+func (ct CiphertextRSA) EncodeToString() string {
 	encodedKey := base64.StdEncoding.EncodeToString(ct.Data)
-
-	return json.Marshal(fmt.Sprintf("%s$%s$", algorithmRSA, encodedKey))
+	return fmt.Sprintf("%s$%s$", algorithmRSA, encodedKey)
 }
 
-// UnmarshalJSON decodes a string into a ciphertext.
+// MarshalJSON encodes the ciphertext in JSON.
+func (ct CiphertextRSA) MarshalJSON() ([]byte, error) {
+	return json.Marshal(ct.EncodeToString())
+}
+
+// DecodeCiphertextRSAFromString decodes an encoded ciphertext string to an CiphertextRSA.
+func DecodeCiphertextRSAFromString(s string) (CiphertextRSA, error) {
+	encoded, err := newEncodedCiphertext(s)
+	if err != nil {
+		return CiphertextRSA{}, err
+	}
+
+	algorithm, err := encoded.algorithm()
+	if err != nil {
+		return CiphertextRSA{}, errio.Error(err)
+	}
+
+	if algorithm != algorithmRSA {
+		return CiphertextRSA{}, ErrWrongAlgorithm
+	}
+
+	encryptedData, err := encoded.data()
+	if err != nil {
+		return CiphertextRSA{}, errio.Error(err)
+	}
+
+	return CiphertextRSA{
+		Data: encryptedData,
+	}, nil
+}
+
+// UnmarshalJSON decodes JSON into a ciphertext.
 func (ct *CiphertextRSA) UnmarshalJSON(b []byte) error {
+	if len(b) == 0 {
+		return nil
+	}
+
 	var s string
 	err := json.Unmarshal(b, &s)
 	if err != nil {
 		return err
 	}
 
-	if s == "" {
-		return nil
-	}
-
-	encoded, err := newEncodedCiphertext(s)
+	ciphertext, err := DecodeCiphertextRSAFromString(s)
 	if err != nil {
 		return err
 	}
 
-	algorithm, err := encoded.algorithm()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	if algorithm != algorithmRSA {
-		return ErrWrongAlgorithm
-	}
-
-	encryptedData, err := encoded.data()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	ct.Data = encryptedData
-
+	*ct = ciphertext
 	return nil
 }

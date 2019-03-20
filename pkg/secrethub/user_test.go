@@ -15,6 +15,12 @@ import (
 	"github.com/secrethub/secrethub-go/internals/crypto"
 )
 
+const (
+	username = "dev1"
+	fullName = "Developer Uno"
+	email    = "dev1@testing.com"
+)
+
 func TestSignup(t *testing.T) {
 
 	// Arrange
@@ -24,10 +30,6 @@ func TestSignup(t *testing.T) {
 	userService := userService{
 		client: newClient(cred1, opts),
 	}
-
-	username := "dev1"
-	fullName := "Developer Uno"
-	email := "dev1@testing.com"
 
 	expectedCreateUserRequest := api.CreateUserRequest{
 		Username: username,
@@ -155,10 +157,6 @@ func TestGetUser(t *testing.T) {
 		newClient(cred1, opts),
 	)
 
-	username := "dev1"
-	fullName := "Developer Uno"
-	email := "dev1@testing.com"
-
 	now := time.Now().UTC()
 	expectedResponse := &api.User{
 		AccountID:   uuid.New(),
@@ -240,10 +238,6 @@ func TestGetMyUser(t *testing.T) {
 	userService := newUserService(
 		newClient(cred1, opts),
 	)
-
-	username := "dev1"
-	fullName := "Developer Uno"
-	email := "dev1@testing.com"
 
 	now := time.Now().UTC()
 	expected := &api.User{

@@ -52,7 +52,7 @@ func TestSymmetricKey_HMAC(t *testing.T) {
 	}
 }
 
-func TestCiphertextAES_MarshallJSON(t *testing.T) {
+func TestCiphertextAES_MarshalJSON(t *testing.T) {
 	cases := map[string]struct {
 		ciphertext CiphertextAES
 		expected   string
@@ -67,7 +67,15 @@ func TestCiphertextAES_MarshallJSON(t *testing.T) {
 	}
 
 	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
+		t.Run(name+" encoded", func(t *testing.T) {
+			// Act
+			actual := tc.ciphertext.EncodeToString()
+
+			// Assert
+			assert.Equal(t, actual, tc.expected)
+		})
+
+		t.Run(name+" json", func(t *testing.T) {
 			// Act
 			actual, err := tc.ciphertext.MarshalJSON()
 			assert.OK(t, err)
@@ -87,11 +95,11 @@ func TestCiphertextRSAAES_MarshalJSON(t *testing.T) {
 	}{
 		"success": {
 			ciphertext: CiphertextRSAAES{
-				aes: CiphertextAES{
+				AES: CiphertextAES{
 					Data:  []byte("aes_data"),
 					Nonce: []byte("nonce_data"),
 				},
-				rsa: CiphertextRSA{
+				RSA: CiphertextRSA{
 					Data: []byte("rsa_data"),
 				},
 			},
@@ -100,7 +108,15 @@ func TestCiphertextRSAAES_MarshalJSON(t *testing.T) {
 	}
 
 	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
+		t.Run(name+" encoded", func(t *testing.T) {
+			// Act
+			actual := tc.ciphertext.EncodeToString()
+
+			// Assert
+			assert.Equal(t, actual, tc.expected)
+		})
+
+		t.Run(name+" json", func(t *testing.T) {
 			// Act
 			actual, err := tc.ciphertext.MarshalJSON()
 			assert.OK(t, err)
