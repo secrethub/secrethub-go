@@ -87,6 +87,10 @@ Run a single test:
 For any requests, bug or comments, please [open an issue][issues] or [submit a
 pull request][pulls].
 
+## Getting help
+
+Come chat with us on [Discord][discord] or email us at [support@secrethub.io](mailto:support@secrethub.io)
+
 ## Attributions
 
 ["gopher.png"][original-gopher] by [Takuya Ueda][tenntenn] is licensed under [CC BY 3.0][creative-commons-3.0]
