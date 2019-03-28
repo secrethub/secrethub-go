@@ -7,17 +7,11 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"reflect"
-
-	raven "github.com/getsentry/raven-go"
-
-	logging "github.com/op/go-logging"
+	"github.com/op/go-logging"
 )
 
 var (
 	log = logging.MustGetLogger("log")
-	// reportErrorFunc is the function used to report the error. Useful for injection.
-	reportErrorFunc = sendErrorReport
 )
 
 // Namespace is a container for different errors and is
@@ -137,12 +131,9 @@ func UnexpectedError(err error) PublicError {
 		return err.(PublicError)
 	}
 
-	eventID := reportErrorFunc(err)
-
 	// Log the eventID and stack trace for debugging.
 	log.Debugf(
-		"An unexpected error occurred, logged as %s: %v\nStack Trace:%s",
-		eventID,
+		"An unexpected error occurred: %v\nStack Trace:%s",
 		err,
 		string(debug.Stack()),
 	)
@@ -150,9 +141,8 @@ func UnexpectedError(err error) PublicError {
 	return PublicError{
 		Code: "unexpected",
 		Message: fmt.Sprintf(
-			"an unexpected error occurred: %v\n\nTry again later or contact support@secrethub.io if the problem persists with error id %s",
+			"an unexpected error occurred: %v\n\nTry again later or contact support@secrethub.io if the problem persists",
 			err,
-			eventID,
 		),
 	}
 }
@@ -162,12 +152,9 @@ func UnexpectedStatusError(err error) PublicStatusError {
 	if isPublicStatusError(err) {
 		return err.(PublicStatusError)
 	}
-	eventID := reportErrorFunc(err)
-
 	// Log the eventID and stack trace for debugging.
 	log.Debugf(
-		"An unexpected error occurred, logged as %s: %v\nStack Trace:%s",
-		eventID,
+		"An unexpected error occurred: %v\nStack Trace:%s",
 		err,
 		string(debug.Stack()),
 	)
@@ -176,18 +163,11 @@ func UnexpectedStatusError(err error) PublicStatusError {
 		PublicError: PublicError{
 			Code: "unexpected",
 			Message: fmt.Sprintf(
-				"an unexpected server error occurred. Try again later or contact support@secrethub.io if the problem persists with error id %s",
-				eventID,
+				"an unexpected server error occurred. Try again later or contact support@secrethub.io if the problem persists",
 			),
 		},
 		StatusCode: http.StatusInternalServerError,
 	}
-}
-
-// sendErrorReport captures the stack trace and sends the error report to sentry.io.
-func sendErrorReport(err error) string {
-	eventID, _ := CaptureError(err, nil)
-	return eventID
 }
 
 // PublicError is a wrapper around an error code and a error message.
@@ -259,53 +239,4 @@ func Wrap(base PublicStatusError, errs ...error) PublicStatusError {
 	}
 
 	return base
-}
-
-// typer is an interface that can be used to retrieve the type of an error
-type typer interface {
-	Type() string
-}
-
-// NewException returns a *raven.Exception for an error from this package.
-// In contrary to raven.NewException, this function tries to retrieve the error type from the typer interface.
-func NewException(err error, stacktrace *raven.Stacktrace) *raven.Exception {
-	msg := err.Error()
-
-	var t string
-	typer, isTyper := err.(typer)
-	if isTyper {
-		t = typer.Type()
-	} else {
-		t = reflect.TypeOf(err).String()
-	}
-
-	ex := &raven.Exception{
-		Stacktrace: stacktrace,
-		Value:      msg,
-		Type:       t,
-	}
-	return ex
-}
-
-// CaptureError captures an error and sends it to Sentry.
-func CaptureError(err error, tags map[string]string) (string, chan error) {
-	client := raven.DefaultClient
-	packet := raven.NewPacket(
-		err.Error(),
-		NewException(
-			err,
-			raven.GetOrNewStacktrace(err, 1, 3, client.IncludePaths()),
-		),
-	)
-
-	return client.Capture(packet, tags)
-}
-
-// CaptureErrorAndWait captures an error and sends it to Sentry and wait for that process to be finished.
-func CaptureErrorAndWait(err error, tags map[string]string) string {
-	eventID, ch := CaptureError(err, tags)
-	if eventID != "" {
-		<-ch
-	}
-	return eventID
 }
