@@ -101,7 +101,7 @@ Come chat with us on [Discord][discord] or email us at [support@secrethub.io](ma
 [tenntenn]: https://twitter.com/tenntenn
 
 [secrethub]: https://secrethub.io
-[latest-version]: https://github.com/secrethub/secrethub-go/releases
+[latest-version]: https://github.com/secrethub/secrethub-go/releases/latest
 [issues]: https://github.com/secrethub/secrethub-go/issues/new
 [pulls]: https://github.com/secrethub/secrethub-go/pulls
 [godoc]: http://godoc.org/github.com/secrethub/secrethub-go
