@@ -5,6 +5,7 @@
 [![Travis CI](https://travis-ci.org/secrethub/secrethub-go.svg?branch=master)][travis-ci]
 [![GolangCI](https://golangci.com/badges/github.com/secrethub/secrethub-go.svg)][golang-ci]
 [![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard]
+[![Version]( https://img.shields.io/github/release/secrethub/secrethub-go.svg)][latest-version]
 [![Discord](https://img.shields.io/badge/discord-SecretHub-7289da.svg?logo=discord)][discord]
 
 [SecretHub][secrethub] is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts. 
@@ -100,6 +101,7 @@ Come chat with us on [Discord][discord] or email us at [support@secrethub.io](ma
 [tenntenn]: https://twitter.com/tenntenn
 
 [secrethub]: https://secrethub.io
+[latest-version]: https://github.com/secrethub/secrethub-go/releases/latest
 [issues]: https://github.com/secrethub/secrethub-go/issues/new
 [pulls]: https://github.com/secrethub/secrethub-go/pulls
 [godoc]: http://godoc.org/github.com/secrethub/secrethub-go
