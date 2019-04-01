@@ -31,6 +31,8 @@ var (
 )
 
 var (
+	// DefaultCredentialParser defines the default parser for credentials.
+	DefaultCredentialParser = NewCredentialParser(DefaultCredentialDecoders)
 	// DefaultCredentialDecoders defines the default list of supported decoders.
 	DefaultCredentialDecoders = []CredentialDecoder{RSAPrivateKeyDecoder{}}
 	// DefaultCredentialEncoding defines the default encoding used for encoding credential segments.
@@ -59,6 +61,10 @@ type Credential interface {
 // NewCredential is a shorthand function to decode a credential string and optionally
 // decrypt it with a passphrase. When an encrypted credential is given, the passphrase
 // cannot be empty.
+//
+// Note that when you want to customize the process of parsing and decoding/decrypting
+// a credential (e.g. to prompt only for a passphrase when the credential is encrypted),
+// it is recommended you use a CredentialParser instead (e.g. DefaultCredentialParser).
 func NewCredential(credential string, passphrase string) (Credential, error) {
 	parser := NewCredentialParser(DefaultCredentialDecoders)
 
