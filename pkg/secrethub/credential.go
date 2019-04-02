@@ -66,9 +66,7 @@ type Credential interface {
 // a credential (e.g. to prompt only for a passphrase when the credential is encrypted),
 // it is recommended you use a CredentialParser instead (e.g. DefaultCredentialParser).
 func NewCredential(credential string, passphrase string) (Credential, error) {
-	parser := NewCredentialParser(DefaultCredentialDecoders)
-
-	encoded, err := parser.Parse(credential)
+	encoded, err := DefaultCredentialParser.Parse(credential)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
