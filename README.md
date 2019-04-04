@@ -1,16 +1,22 @@
-# Go client for SecretHub
-
+<p align="center">
+  <a name="secrethub">
+    <img src="https://secrethub.io/img/secrethub-logo.svg" alt="SecretHub" width="380px"/>
+  </a>
+</p>
+<h1 align="center">
+  <i>Go Client</i>
+</h1>
 
 [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
 [![Travis CI](https://travis-ci.org/secrethub/secrethub-go.svg?branch=master)][travis-ci]
 [![GolangCI](https://golangci.com/badges/github.com/secrethub/secrethub-go.svg)][golang-ci]
 [![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard]
 [![Version]( https://img.shields.io/github/release/secrethub/secrethub-go.svg)][latest-version]
-[![Discord](https://img.shields.io/badge/discord-SecretHub-7289da.svg?logo=discord)][discord]
-
-[SecretHub][secrethub] is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts. 
+[![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord)][discord]
 
 `secrethub-go` provides a client for various SecretHub APIs.
+
+> [SecretHub][secrethub] is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts. 
 
 <img src="https://secrethub.io/img/secrethub-gopher.png" alt="Gopher" width="160px"/>
 
