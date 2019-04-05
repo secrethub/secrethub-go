@@ -3,9 +3,8 @@
 [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
 [![Travis CI](https://travis-ci.org/secrethub/secrethub-go.svg?branch=master)][travis-ci]
 [![GolangCI](https://golangci.com/badges/github.com/secrethub/secrethub-go.svg)][golang-ci]
-[![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard] ![Licence](https://img.shields.io/hexpm/l/plug.svg)
-
-
+[![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard]
+![Licence](https://img.shields.io/hexpm/l/plug.svg)
 
 The official [SecretHub][secrethub] Go client library.
 
@@ -17,7 +16,7 @@ The official [SecretHub][secrethub] Go client library.
 
 ### Prerequisites
 
-In order to use the Go client library, you need a __SecretHub account__. You can do this by following the first instructions [here](https://secrethub.io/docs/getting-started/) (*Installing the CLI* and *signing up for a SecretHub account*).
+In order to use the SecretHub Go client library, you need an account on __SecretHub__. You can create a free account by [signing up through the CLI](https://secrethub.io/docs/getting-started/).
 
 ### Installation
 
@@ -40,7 +39,6 @@ import (
     "github.com/secrethub/secrethub-go/pkg/secrethub"
 )
 ```
-
 
 ## Examples
 
@@ -70,7 +68,7 @@ data, err := randchar.NewGenerator(false).Generate(32)
 secret, err = client.Secrets().Write("path/to/secret", data)
 ```
 
-Note that only packages inside the `/pkg` directory should be considered library code that you can use in your projects. All other code is not guaranteed to be backwards compatible and may change in the future.  
+Note that only packages inside the `/pkg` directory should be considered library code that you can use in your projects. All other code is not guaranteed to be backwards compatible and may change in the future.
 
 ## Development
 
