@@ -13,7 +13,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard]
 [![Version]( https://img.shields.io/github/release/secrethub/secrethub-go.svg)][latest-version]
 [![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord)][discord]
-![Licence](https://img.shields.io/hexpm/l/plug.svg)
 
 `secrethub-go` provides a client for various SecretHub APIs.
 
@@ -22,10 +21,6 @@
 <img src="https://secrethub.io/img/secrethub-gopher.png" alt="Gopher" width="160px"/>
 
 ## Getting started
-
-### Prerequisites
-
-In order to use the SecretHub Go client library, you need an account on __SecretHub__. You can create a free account by [signing up through the CLI](https://secrethub.io/docs/getting-started/).
 
 ### Installation
 
@@ -48,6 +43,9 @@ import (
     "github.com/secrethub/secrethub-go/pkg/secrethub"
 )
 ```
+
+> **Note:** only packages inside the `/pkg` directory should be considered library code that you can use in your projects. 
+> All other code is not guaranteed to be backwards compatible and may change in the future.
 
 ## Examples
 
@@ -77,7 +75,10 @@ data, err := randchar.NewGenerator(false).Generate(32)
 secret, err = client.Secrets().Write("path/to/secret", data)
 ```
 
-Note that only packages inside the `/pkg` directory should be considered library code that you can use in your projects. All other code is not guaranteed to be backwards compatible and may change in the future.
+> **Note:** to use the SecretHub Go client, you need to provide a credential for your __SecretHub__ account. 
+> You can create a free developer account by [signing up through the CLI](https://secrethub.io/docs/getting-started/). 
+> 
+> After signup, the credential is located at `$HOME/.secrethub/credential` by default.
 
 ## Development
 
@@ -100,10 +101,6 @@ Run a single test:
 
 For any requests, bug or comments, please [open an issue][issues] or [submit a
 pull request][pulls].
-
-## License
-
-This project is licensed under the Apache License 2.0 - see the LICENSE.md file for details
 
 ## Getting help
 
