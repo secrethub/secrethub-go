@@ -1,16 +1,25 @@
-# Go SecretHub
+<p align="center">
+  <a name="secrethub">
+    <img src="https://secrethub.io/img/secrethub-logo.svg" alt="SecretHub" width="380px"/>
+  </a>
+</p>
+<h1 align="center">
+  <i>Go Client</i>
+</h1>
 
 [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
 [![Travis CI](https://travis-ci.org/secrethub/secrethub-go.svg?branch=master)][travis-ci]
 [![GolangCI](https://golangci.com/badges/github.com/secrethub/secrethub-go.svg)][golang-ci]
 [![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard]
+[![Version]( https://img.shields.io/github/release/secrethub/secrethub-go.svg)][latest-version]
+[![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord)][discord]
 ![Licence](https://img.shields.io/hexpm/l/plug.svg)
 
-The official [SecretHub][secrethub] Go client library.
+`secrethub-go` provides a client for various SecretHub APIs.
 
-> SecretHub is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts.
+> [SecretHub][secrethub] is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts.
 
-<img src="https://secrethub.io/img/secrethub-gopher.png" alt="Gopher" width="200px"/>
+<img src="https://secrethub.io/img/secrethub-gopher.png" alt="Gopher" width="160px"/>
 
 ## Getting started
 
@@ -96,6 +105,10 @@ pull request][pulls].
 
 This project is licensed under the Apache License 2.0 - see the LICENSE.md file for details
 
+## Getting help
+
+Come chat with us on [Discord][discord] or email us at [support@secrethub.io](mailto:support@secrethub.io)
+
 ## Attributions
 
 ["gopher.png"][original-gopher] by [Takuya Ueda][tenntenn] is licensed under [CC BY 3.0][creative-commons-3.0]
@@ -105,9 +118,11 @@ This project is licensed under the Apache License 2.0 - see the LICENSE.md file 
 [tenntenn]: https://twitter.com/tenntenn
 
 [secrethub]: https://secrethub.io
+[latest-version]: https://github.com/secrethub/secrethub-go/releases/latest
 [issues]: https://github.com/secrethub/secrethub-go/issues/new
 [pulls]: https://github.com/secrethub/secrethub-go/pulls
 [godoc]: http://godoc.org/github.com/secrethub/secrethub-go
 [golang-ci]: https://golangci.com/r/github.com/secrethub/secrethub-go
 [goreportcard]: https://goreportcard.com/report/github.com/secrethub/secrethub-go
 [travis-ci]: https://travis-ci.org/secrethub/secrethub-go
+[discord]: https://discord.gg/EQcE87s

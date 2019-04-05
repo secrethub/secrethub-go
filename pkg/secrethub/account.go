@@ -42,7 +42,7 @@ func (s accountService) Keys() AccountKeyService {
 // createAccountKey creates a new intermediate key wrapped in the supplied credential.
 // The public key of the intermediate key is returned.
 // The intermediate key is returned in an CreateAccountKeyRequest ready to be sent to the API.
-// If an error has occured, it will be returned and the other result should be considered invalid.
+// If an error has occurred, it will be returned and the other result should be considered invalid.
 func (c *client) createAccountKeyRequest(credential Credential, accountKey crypto.RSAPrivateKey) (*api.CreateAccountKeyRequest, error) {
 	publicAccountKey, err := accountKey.Public().Export()
 	if err != nil {

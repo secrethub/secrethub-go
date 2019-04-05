@@ -33,7 +33,7 @@ const (
 	// Read more about the parameters, how they work and how to determine their values
 	// in this blog post: https://blog.filippo.io/the-scrypt-parameters/
 	//
-	// Also, this the value recommented in the official GoDocs.
+	// Also, this the value recommended in the official GoDocs.
 	DefaultScryptN = 1 << 15
 
 	// DefaultScryptR determines the sequential read size of the scrypt
@@ -44,7 +44,7 @@ const (
 	// different memory characteristics. Use the N parameter instead to
 	// increase or decrease work.
 	//
-	// The value has been set to 8, which is the value recommented in
+	// The value has been set to 8, which is the value recommended in
 	// the official GoDocs.
 	DefaultScryptR = 8
 
@@ -54,7 +54,7 @@ const (
 	// be used to decrease the wall-clock-time of the key derivation
 	// function. Use the N parameter for that.
 	//
-	// The value has been set to 1, which is the value recommented in
+	// The value has been set to 1, which is the value recommended in
 	// the official GoDocs.
 	DefaultScryptP = 1
 )

@@ -39,13 +39,14 @@ var (
 
 // User represents a SecretHub user.
 type User struct {
-	AccountID   *uuid.UUID `json:"account_id"`
-	PublicKey   []byte     `json:"public_key"`
-	Username    string     `json:"username"`
-	FullName    string     `json:"full_name"`
-	Email       string     `json:"user_email,omitempty"`    // Optional, private information is only returned for yourself
-	CreatedAt   *time.Time `json:"created_at,omitempty"`    // Optional, private information is only returned for yourself
-	LastLoginAt *time.Time `json:"last_login_at,omitempty"` // Optional, private information is only returned for yourself
+	AccountID     *uuid.UUID `json:"account_id"`
+	PublicKey     []byte     `json:"public_key"`
+	Username      string     `json:"username"`
+	FullName      string     `json:"full_name"`
+	Email         string     `json:"user_email,omitempty"`     // Optional, private information is only returned for yourself
+	EmailVerified bool       `json:"email_verified,omitempty"` // Optional, private information is only returned for yourself
+	CreatedAt     *time.Time `json:"created_at,omitempty"`     // Optional, private information is only returned for yourself
+	LastLoginAt   *time.Time `json:"last_login_at,omitempty"`  // Optional, private information is only returned for yourself
 }
 
 // PrettyName returns a printable string with the username and full name.

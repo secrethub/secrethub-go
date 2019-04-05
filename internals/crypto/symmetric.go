@@ -143,62 +143,79 @@ type CiphertextAES struct {
 	Nonce []byte
 }
 
-// MarshalJSON encodes the ciphertext in a string.
-func (ct CiphertextAES) MarshalJSON() ([]byte, error) {
+// EncodeToString encodes the ciphertext in a string.
+func (ct CiphertextAES) EncodeToString() string {
 	data := base64.StdEncoding.EncodeToString(ct.Data)
 
 	metadata := newEncodedCiphertextMetadata(map[string]string{
 		"nonce": base64.StdEncoding.EncodeToString(ct.Nonce),
 	})
 
-	return json.Marshal(fmt.Sprintf("%s$%s$%s", algorithmAES, data, metadata))
+	return fmt.Sprintf("%s$%s$%s", algorithmAES, data, metadata)
 }
 
-// UnmarshalJSON decodes a string into a ciphertext.
+// MarshalJSON encodes the ciphertext in JSON.
+func (ct CiphertextAES) MarshalJSON() ([]byte, error) {
+	return json.Marshal(ct.EncodeToString())
+}
+
+// DecodeCiphertextAESFromString decodes an encoded ciphertext string to an CiphertextAES.
+func DecodeCiphertextAESFromString(s string) (CiphertextAES, error) {
+	encoded, err := newEncodedCiphertext(s)
+	if err != nil {
+		return CiphertextAES{}, err
+	}
+
+	algorithm, err := encoded.algorithm()
+	if err != nil {
+		return CiphertextAES{}, errio.Error(err)
+	}
+
+	if algorithm != algorithmAES {
+		return CiphertextAES{}, ErrWrongAlgorithm
+	}
+
+	encryptedData, err := encoded.data()
+	if err != nil {
+		return CiphertextAES{}, errio.Error(err)
+	}
+
+	metadata, err := encoded.metadata()
+	if err != nil {
+		return CiphertextAES{}, errio.Error(err)
+	}
+
+	aesNonce, err := metadata.getDecodedValue("nonce")
+	if err != nil {
+		return CiphertextAES{}, errio.Error(err)
+	}
+
+	return CiphertextAES{
+		Data:  encryptedData,
+		Nonce: aesNonce,
+	}, nil
+}
+
+// UnmarshalJSON decodes JSON into a ciphertext.
 func (ct *CiphertextAES) UnmarshalJSON(b []byte) error {
+	if len(b) == 0 {
+		return nil
+	}
+
 	var s string
 	err := json.Unmarshal(b, &s)
 	if err != nil {
 		return err
 	}
 
-	if s == "" {
-		return nil
-	}
-
-	encoded, err := newEncodedCiphertext(s)
+	ciphertext, err := DecodeCiphertextAESFromString(s)
 	if err != nil {
 		return err
 	}
 
-	algorithm, err := encoded.algorithm()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	if algorithm != algorithmAES {
-		return ErrWrongAlgorithm
-	}
-
-	encryptedData, err := encoded.data()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	metadata, err := encoded.metadata()
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	aesNonce, err := metadata.getDecodedValue("nonce")
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	ct.Data = encryptedData
-	ct.Nonce = aesNonce
-
+	*ct = ciphertext
 	return nil
+
 }
 
 // generateNonce generates a nonce of a given length.

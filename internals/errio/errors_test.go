@@ -15,9 +15,8 @@ var (
 			Message: "some test error",
 		},
 	}
-	data          = []byte(`{"error":{"code":"test","message":"some test error"}}`)
-	errorMessage  = "test_error"
-	reportedError = "not_reported"
+	data         = []byte(`{"error":{"code":"test","message":"some test error"}}`)
+	errorMessage = "test_error"
 )
 
 func TestMarshal(t *testing.T) {
@@ -73,9 +72,6 @@ func TestExpectedError(t *testing.T) {
 }
 
 func TestUnexpectedError(t *testing.T) {
-	reportedError = "not_reported"
-	reportErrorFunc = reportErrorTest
-
 	unexpected := go_errors.New(errorMessage)
 	err := Error(unexpected)
 
@@ -92,16 +88,9 @@ func TestUnexpectedError(t *testing.T) {
 	if len(customError.Message) == 0 {
 		t.Error("returned error does not contain a message")
 	}
-
-	if reportedError != errorMessage {
-		t.Error("unexpected error was not reported")
-	}
 }
 
 func TestUnexpectedStatusError(t *testing.T) {
-	reportedError = "not_reported"
-	reportErrorFunc = reportErrorTest
-
 	unexpected := go_errors.New(errorMessage)
 	err := StatusError(unexpected)
 
@@ -122,13 +111,4 @@ func TestUnexpectedStatusError(t *testing.T) {
 	if len(statusError.Message) == 0 {
 		t.Error("returned error does not contain a message")
 	}
-
-	if reportedError != errorMessage {
-		t.Error("unexpected error was not reported")
-	}
-}
-
-func reportErrorTest(err error) string {
-	reportedError = err.Error()
-	return "IMPLEMENT INJECT"
 }

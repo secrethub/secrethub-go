@@ -38,7 +38,7 @@ func TestCreateOrg(t *testing.T) {
 		Description: descr,
 		CreatedAt:   now,
 		Members: []*api.OrgMember{
-			&api.OrgMember{
+			{
 				OrgID:         orgID,
 				AccountID:     accountID,
 				Role:          "admin",

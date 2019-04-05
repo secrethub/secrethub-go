@@ -11,6 +11,7 @@ type Client interface {
 	AccessRules() AccessRuleService
 	Accounts() AccountService
 	Dirs() DirService
+	Me() MeService
 	Orgs() OrgService
 	Repos() RepoService
 	Secrets() SecretService
@@ -43,6 +44,11 @@ func (c clientAdapter) Accounts() AccountService {
 // Dirs returns an DirService.
 func (c clientAdapter) Dirs() DirService {
 	return newDirService(c.client)
+}
+
+// Me returns a MeService.
+func (c clientAdapter) Me() MeService {
+	return newMeService(c.client)
 }
 
 // Orgs returns an OrgService.
