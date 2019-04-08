@@ -16,11 +16,13 @@
 
 `secrethub-go` provides a client for various SecretHub APIs.
 
-> [SecretHub][secrethub] is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts. 
+> [SecretHub][secrethub] is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts.
 
 <img src="https://secrethub.io/img/secrethub-gopher.png" alt="Gopher" width="160px"/>
 
-## Installation
+## Getting started
+
+### Installation
 
 Install secrethub-go with:
 
@@ -42,7 +44,10 @@ import (
 )
 ```
 
-## Documentation
+> **Note:** only packages inside the `/pkg` directory should be considered library code that you can use in your projects. 
+> All other code is not guaranteed to be backwards compatible and may change in the future.
+
+## Examples
 
 For details on all functionality of this library, see the [GoDoc][godoc] documentation.
 
@@ -66,18 +71,21 @@ secret, err = client.Secrets().Versions().GetWithData("path/to/secret:latest")
 fmt.Println(secret.Data) // prints password123
 
 // Generate a slice of 32 alphanumeric characters.
-data, err := randchar.NewGenerator(false).Generate(32) 
+data, err := randchar.NewGenerator(false).Generate(32)
 secret, err = client.Secrets().Write("path/to/secret", data)
 ```
 
-Note that only packages inside the `/pkg` directory should be considered library code that you can use in your projects. All other code is not guaranteed to be backwards compatible and may change in the future.  
+> **Note:** to use the SecretHub Go client, you need to provide a credential for your __SecretHub__ account. 
+> You can create a free developer account by [signing up through the CLI](https://secrethub.io/docs/getting-started/). 
+> 
+> After signup, the credential is located at `$HOME/.secrethub/credential` by default.
 
 ## Development
 
 Pull requests from the community are welcome.
 If you'd like to contribute, please checkout [the contributing guidelines](./CONTRIBUTING.md).
 
-## Test
+## Testing
 
 Run all tests:
 
