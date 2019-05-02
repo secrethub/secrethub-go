@@ -115,7 +115,7 @@ func (c signer) AddAuthentication(r *http.Request) error {
 		return errio.Error(err)
 	}
 
-	signature, err := c.key.Sign(message[:])
+	signature, err := c.key.Sign(message)
 	if err != nil {
 		return errio.Error(err)
 	}
