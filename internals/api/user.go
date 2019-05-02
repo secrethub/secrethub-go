@@ -34,7 +34,8 @@ var (
 			"may only contain (special) letters, apostrophes ('), spaces and dashes (-)",
 		http.StatusBadRequest,
 	)
-	ErrNoPasswordNorCredential = errAPI.Code("no_password_nor_credential").StatusError("either a password or a credential should be supplied", http.StatusBadRequest)
+	ErrNoPasswordNorCredential     = errAPI.Code("no_password_nor_credential").StatusError("either a password or a credential should be supplied", http.StatusBadRequest)
+	ErrTooManyVerificationRequests = errAPI.Code("too_many_verification_requests").StatusError("another verification email was requested recently, please wait a few minutes before trying again", http.StatusTooManyRequests)
 )
 
 // User represents a SecretHub user.
