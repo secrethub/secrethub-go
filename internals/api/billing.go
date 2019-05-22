@@ -103,6 +103,7 @@ type SubscriptionFee struct {
 	CurrentPeriodStart int64  `json:"current_period_start"`
 	TrialEnd           int64  `json:"trial_end"`
 	TrialStart         int64  `json:"trial_start"`
+	CancelAt           int64  `json:"cancel_at"`
 }
 
 // UpdateSubscriptionRequest defines a request for adding or updating a subscription.
