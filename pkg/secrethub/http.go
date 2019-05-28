@@ -21,6 +21,8 @@ var (
 const (
 	baseURLPath = "/v1"
 
+	pathAuthenticate = "%s/auth"
+
 	// Current account
 	pathMeUser              = "%s/me/user"
 	pathMeRepos             = "%s/me/repos"
@@ -119,6 +121,13 @@ func newHTTPClient(authenticator auth.Authenticator, opts *ClientOptions) *httpC
 		base:          serverURL,
 		version:       ClientVersion,
 	}
+}
+
+func (c *httpClient) AuthenticateHMAC(in interface{}) (*api.AuthResponseHMAC, error) {
+	var out api.AuthResponseHMAC
+	rawURL := fmt.Sprintf(pathAuthenticate, c.base)
+	err := c.post(rawURL, http.StatusOK, in, &out)
+	return &out, errio.Error(err)
 }
 
 // ME
