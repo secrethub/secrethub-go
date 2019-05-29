@@ -3,28 +3,31 @@ package randchar
 import (
 	"crypto/rand"
 	"fmt"
+	"io"
 	"math/big"
 )
 
 var (
 	// Numeric defines a character set containing all numbers.
-	Numeric = Charset("0123456789")
+	Numeric = NewCharset("0123456789")
 	// Lowercase defines a character set containing all lowercase letters.
-	Lowercase = Charset("abcdefghijklmnopqrstuvwxyz")
+	Lowercase = NewCharset("abcdefghijklmnopqrstuvwxyz")
 	// Uppercase defines a character set containing all uppercase letters.
-	Uppercase = Charset("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	Uppercase = NewCharset("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	// Letters defines a character set containing all upper- and lowercase letters of the alphabet.
+	Letters = Lowercase.Add(Uppercase)
 	// Alphanumeric defines a character set containing letters and numbers.
-	Alphanumeric = Numeric.Add(Lowercase).Add(Uppercase)
+	Alphanumeric = Letters.Add(Numeric)
 	// Symbols defines a character set containing special characters commonly used for passwords.
-	Symbols = Charset("!@#$%^*-_+=.,?")
+	Symbols = NewCharset("!@#$%^*-_+=.,?")
 	// All defines a character set containing both alphanumeric and symbol characters.
 	All = Alphanumeric.Add(Symbols)
 	// Similar defines a character set containing similar looking characters.
-	Similar = Charset("iIlL1oO0")
+	Similar = NewCharset("iIlL1oO0")
 
-	// DefaultGenerator defines the default generator to use. You can create
-	// your own generators using NewGenerator.
-	DefaultGenerator = NewGenerator(Alphanumeric, nil)
+	// DefaultRand defines the default random generator to use. You can create
+	// your own generators using NewRand.
+	DefaultRand = NewRand(Alphanumeric)
 )
 
 // Generator generates random byte arrays.
@@ -32,63 +35,98 @@ type Generator interface {
 	Generate(n int) ([]byte, error)
 }
 
-// NewGenerator creates a new random generator.
-func NewGenerator(base Charset, filter Charset, reqs ...Requirement) Generator {
-	minLen := 0
-	for i, req := range reqs {
-		reqs[i].Charset = req.Charset.Subtract(filter)
-		minLen += req.MinCount
+// NewGenerator is a shorthand function to create a new random alphanumeric
+// generator, optionally configured to use symbols too. For more flexibility
+// to configure the random generator, use NewRand instead.
+func NewGenerator(useSymbols bool) Generator {
+	if useSymbols {
+		return NewRand(Alphanumeric.Add(Symbols))
 	}
-
-	return &generator{
-		requirements: reqs,
-		base:         base.Subtract(filter),
-		minLen:       minLen,
-	}
+	return NewRand(Alphanumeric)
 }
 
-// generator helps generating slices of randomly chosen
+// Rand helps generating slices of randomly chosen
 // characters from a given character set.
-type generator struct {
-	requirements []Requirement
-	base         Charset
-	minLen       int
+type Rand struct {
+	reader io.Reader
+	base   Charset
+	minima []minimum
+	minLen int
 }
 
-// Requirement defines a minimum number of characters that must be from a given character set.
-type Requirement struct {
-	Charset  Charset
-	MinCount int
+// NewRand initializes a new random generator from the given character set
+// and configures it with the given options.
+func NewRand(base Charset, options ...Option) Rand {
+	r := Rand{
+		reader: rand.Reader,
+		base:   base,
+	}
+
+	for _, opt := range options {
+		r = opt(r)
+	}
+	return r
 }
 
-// Generate returns a byte slice of length n filled with randomly chosen characters from the character set.
-func (g generator) Generate(n int) ([]byte, error) {
-	if n < g.minLen {
+// Option defines a configuration option for a random reader.
+type Option func(r Rand) Rand
+
+// minimum defines a minimum number of characters that must be from a given character set.
+type minimum struct {
+	count   int
+	charset Charset
+}
+
+// Min ensures the generated slice contains at least n characters from the given character set.
+func Min(n int, charset Charset) Option {
+	return func(r Rand) Rand {
+		r.minima = append(r.minima, minimum{
+			count:   n,
+			charset: charset,
+		})
+		r.minLen += n
+		return r
+	}
+}
+
+// WithReader allows you to set the reader used as source of randomness.
+// Do not use this unless you know what you're doing. By default, the
+// jsource of randomness is set to rand.Reader.
+func WithReader(reader io.Reader) Option {
+	return func(r Rand) Rand {
+		r.reader = reader
+		return r
+	}
+}
+
+// Generate returns a randomly generated slice of characters that meets the requirements of the reader.
+func (r Rand) Generate(n int) ([]byte, error) {
+	if n < r.minLen {
 		return nil, fmt.Errorf("n cannot be smaller than the minimum required length of the generator")
 	}
 
 	var result []byte
-	for _, req := range g.requirements {
-		chars, err := req.Charset.Rand(req.MinCount)
+	for _, min := range r.minima {
+		chars, err := min.charset.rand(r.reader, min.count)
 		if err != nil {
 			return nil, err
 		}
 		result = append(result, chars...)
 	}
 
-	remainder, err := g.base.Rand(n - g.minLen)
+	remainder, err := r.base.rand(r.reader, n-r.minLen)
 	if err != nil {
 		return nil, err
 	}
 	result = append(result, remainder...)
 
-	return shuffle(result)
+	return shuffle(r.reader, result)
 }
 
 // shuffle randomly shuffles elements of a byte slice, using the Durstenfeld shuffle algorithm.
-func shuffle(data []byte) ([]byte, error) {
+func shuffle(reader io.Reader, data []byte) ([]byte, error) {
 	for i := len(data) - 1; i > 0; i-- {
-		randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(i)))
+		randomIndex, err := rand.Int(reader, big.NewInt(int64(i)))
 		if err != nil {
 			return nil, err
 		}
@@ -102,19 +140,21 @@ func shuffle(data []byte) ([]byte, error) {
 // Charset is a byte slice with a set of unique characters.
 type Charset []byte
 
-// Rand returns a byte slice of length n filled with randomly chosen characters from the set.
-func (cs Charset) Rand(n int) ([]byte, error) {
-	data := make([]byte, n)
-
-	size := big.NewInt(int64(len(cs)))
-	for i := 0; i < n; i++ {
-		randomIndex, err := rand.Int(rand.Reader, size)
-		if err != nil {
-			return nil, err
-		}
-		data[i] = cs[randomIndex.Int64()]
+// NewCharset creates a set of characters from a given byte slice, removing duplicates to ensure the random generators are not biased.
+func NewCharset(characters string) Charset {
+	uniques := make(map[byte]struct{})
+	for _, char := range []byte(characters) {
+		uniques[char] = struct{}{}
 	}
-	return data, nil
+
+	result := make([]byte, len(uniques))
+	i := 0
+	for char := range uniques {
+		result[i] = char
+		i++
+	}
+
+	return result
 }
 
 // Add merges two character sets into one, removing duplicates.
@@ -154,4 +194,20 @@ func (cs Charset) Subtract(set Charset) Charset {
 	}
 
 	return result
+}
+
+// rand returns a byte slice of length n filled with randomly chosen characters
+// from the set, using the given reader as source of randomness.
+func (cs Charset) rand(reader io.Reader, n int) ([]byte, error) {
+	data := make([]byte, n)
+
+	size := big.NewInt(int64(len(cs)))
+	for i := 0; i < n; i++ {
+		randomIndex, err := rand.Int(reader, size)
+		if err != nil {
+			return nil, err
+		}
+		data[i] = cs[randomIndex.Int64()]
+	}
+	return data, nil
 }
