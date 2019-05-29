@@ -62,19 +62,31 @@ type Credential interface {
 	AddAuthentication(r *http.Request) error
 }
 
-// signer contains all necessary credentials to sign a request.
-type signer struct {
-	key crypto.RSAPrivateKey
+// Signer provides proof that given bytes are processed by the owner of the signer.
+type Signer interface {
+	ID() (string, error)
+	Sign([]byte) ([]byte, error)
+	SignMethod() string
 }
 
-// NewRSACredential initializes a new signing credentials struct.
-func NewRSACredential(key crypto.RSAPrivateKey) Credential {
-	return signer{
-		key: key,
+// HTTPSigner proofs that an HTTP request is made by the owner of the signer.
+type HTTPSigner interface {
+	Sign(r *http.Request) error
+}
+
+type httpSigner struct {
+	signer Signer
+}
+
+// NewHTTPSigner creates an HTTPSigner that uses the given signer to prove the owner
+// of the signer is making the  HTTP request.
+func NewHTTPSigner(signer Signer) HTTPSigner {
+	return httpSigner{
+		signer: signer,
 	}
 }
 
-// AddAuthentication signs the request and adds authentication information
+// Sign signs the request and adds authentication information
 // to the request in the `Authorization` HTTP Header. The HTTP Header contains
 // the following information:
 //
@@ -106,7 +118,7 @@ func NewRSACredential(key crypto.RSAPrivateKey) Credential {
 // this risk by using TLS, which encrypts HTTP Headers as well. This makes
 // a MitM attack impossible without an attacker having access to the server's
 // private TLS key. This solution is also proposed in RFC 4521 Section-4.1.
-func (c signer) AddAuthentication(r *http.Request) error {
+func (s httpSigner) Sign(r *http.Request) error {
 	formattedTime := time.Now().UTC().Format(time.RFC1123)
 	r.Header.Set("Date", formattedTime)
 
@@ -115,22 +127,22 @@ func (c signer) AddAuthentication(r *http.Request) error {
 		return errio.Error(err)
 	}
 
-	signature, err := c.key.Sign(message)
+	signature, err := s.signer.Sign(message)
 	if err != nil {
 		return errio.Error(err)
 	}
 
 	base64EncodedSignature := base64.StdEncoding.EncodeToString(signature)
 
-	fingerprint, err := c.key.Public().Fingerprint()
+	id, err := s.signer.ID()
 	if err != nil {
 		return errio.Error(err)
 	}
 
 	r.Header.Set("Authorization",
 		fmt.Sprintf("%s %s:%s",
-			MethodTagSignature,
-			fingerprint,
+			s.signer.SignMethod(),
+			id,
 			base64EncodedSignature))
 
 	return nil

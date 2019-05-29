@@ -2,6 +2,7 @@ package secrethub
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -103,7 +104,7 @@ type client struct {
 
 // newClient configures a new client, overriding defaults with options when given.
 func newClient(credential Credential, opts *ClientOptions) client {
-	httpClient := newHTTPClient(credential, opts)
+	httpClient := newHTTPClient(auth.NewHTTPSigner(credential), opts)
 
 	return client{
 		httpClient:    httpClient,
