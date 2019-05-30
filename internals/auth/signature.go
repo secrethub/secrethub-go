@@ -266,10 +266,7 @@ func (m methodSignatureCommon) Verify(r *http.Request) (*Result, error) {
 	}
 
 	format := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
-	if len(format) != 2 || format[0] != m.Tag() {
-		if format[0] == MethodTagSignatureV1 || format[0] == MethodTagSignatureV2 {
-			return nil, ErrOutdatedSignatureProtocol
-		}
+	if len(format) != 2 {
 		return nil, ErrInvalidAuthorizationHeader
 	}
 
