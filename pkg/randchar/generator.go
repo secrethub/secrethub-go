@@ -1,3 +1,13 @@
+// Package randchar helps to generate passwords by allowing you
+// to generate random sequences of characters from a configured
+// character set.
+//
+// It supports many different character sets and configuration
+// options to meet even the weirdest of password requirements.
+// However, note that the strongest passwords are the ones with
+// the least requirements. Imposing e.g. a minimum requirement
+// on generated passwords reduces the entropy of the resulting
+// password. So when possible, avoid using any constraints.
 package randchar
 
 import (
