@@ -401,7 +401,7 @@ func BenchmarkGenerate24(b *testing.B) {
 	rand := MustNewRand(Alphanumeric)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		rand.Generate(24)
+		_, _ = rand.Generate(24)
 	}
 }
 
@@ -409,7 +409,7 @@ func BenchmarkGenerate24WithMinimum(b *testing.B) {
 	rand := MustNewRand(Alphanumeric, Min(2, Numeric))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		rand.Generate(24)
+		_, _ = rand.Generate(24)
 	}
 }
 
@@ -417,7 +417,7 @@ func BenchmarkGenerate128(b *testing.B) {
 	rand := MustNewRand(Alphanumeric)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		rand.Generate(128)
+		_, _ = rand.Generate(128)
 	}
 }
 
@@ -425,6 +425,6 @@ func BenchmarkGenerate128WithMinimum(b *testing.B) {
 	rand := MustNewRand(Alphanumeric, Min(2, Numeric))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		rand.Generate(128)
+		_, _ = rand.Generate(128)
 	}
 }
