@@ -22,6 +22,7 @@ import (
 
 var (
 	clientKey     crypto.RSAPrivateKey
+	signer        auth.HTTPSigner
 	diffClientKey crypto.RSAPrivateKey
 )
 
@@ -31,6 +32,8 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	signer = auth.NewHTTPSigner(secrethub.RSACredential{RSAPrivateKey: clientKey})
 
 	diffClientKey, err = crypto.GenerateRSAPrivateKey(1024)
 	if err != nil {
@@ -208,7 +211,7 @@ func TestSignRequest(t *testing.T) {
 
 			authenticator := auth.NewMethodSignature(fakeCredentialGetter)
 
-			err = auth.NewHTTPSigner(secrethub.RSACredential{clientKey}).Sign(req)
+			err = signer.Sign(req)
 			assert.OK(t, err)
 
 			// Act
@@ -230,7 +233,7 @@ func TestSignRequest_CheckHeadersAreSet(t *testing.T) {
 	assert.OK(t, err)
 
 	// Act
-	err = auth.NewHTTPSigner(secrethub.RSACredential{clientKey}).Sign(req)
+	err = signer.Sign(req)
 	assert.OK(t, err)
 
 	// Assert
@@ -310,7 +313,7 @@ func TestReplayRequest(t *testing.T) {
 			original, err := http.NewRequest(tc.originalMethod, tc.originalURL, tc.originalBody)
 			assert.OK(t, err)
 
-			err = auth.NewHTTPSigner(secrethub.RSACredential{clientKey}).Sign(original)
+			err = signer.Sign(original)
 			assert.OK(t, err)
 
 			replay, err := http.NewRequest(tc.replayMethod, tc.replayURL, tc.replayBody)
