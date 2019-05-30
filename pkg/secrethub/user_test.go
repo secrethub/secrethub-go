@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/secrethub/secrethub-go/internals/auth"
 
 	"github.com/secrethub/secrethub-go/internals/assert"
 	"github.com/secrethub/secrethub-go/internals/crypto"
@@ -28,7 +29,7 @@ func TestSignup(t *testing.T) {
 	defer cleanup()
 
 	userService := userService{
-		client: newClient(cred1, opts),
+		client: newClient(cred1, auth.NewHTTPSigner(cred1), opts),
 	}
 
 	expectedCreateUserRequest := api.CreateUserRequest{
@@ -105,7 +106,7 @@ func TestSignup_AlreadyExists(t *testing.T) {
 	defer cleanup()
 
 	userService := userService{
-		client: newClient(cred1, opts),
+		client: newClient(cred1, auth.NewHTTPSigner(cred1), opts),
 	}
 
 	expected := api.ErrUserEmailAlreadyExists
@@ -134,7 +135,7 @@ func TestSignup_InvalidArgument(t *testing.T) {
 	defer cleanup()
 
 	userService := userService{
-		client: newClient(cred1, opts),
+		client: newClient(cred1, auth.NewHTTPSigner(cred1), opts),
 	}
 
 	key, err := crypto.GenerateRSAPrivateKey(512)
@@ -154,7 +155,7 @@ func TestGetUser(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		newClient(cred1, opts),
+		newClient(cred1, auth.NewHTTPSigner(cred1), opts),
 	)
 
 	now := time.Now().UTC()
@@ -193,7 +194,7 @@ func TestGetUser_NotFound(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		newClient(cred1, opts),
+		newClient(cred1, auth.NewHTTPSigner(cred1), opts),
 	)
 
 	expected := api.ErrUserNotFound
@@ -219,7 +220,7 @@ func TestGetUser_InvalidArgument(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		newClient(cred1, opts),
+		newClient(cred1, auth.NewHTTPSigner(cred1), opts),
 	)
 
 	// Act
@@ -236,7 +237,7 @@ func TestGetMyUser(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		newClient(cred1, opts),
+		newClient(cred1, auth.NewHTTPSigner(cred1), opts),
 	)
 
 	now := time.Now().UTC()
@@ -271,7 +272,7 @@ func TestGetMyUser_NotFound(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		newClient(cred1, opts),
+		newClient(cred1, auth.NewHTTPSigner(cred1), opts),
 	)
 
 	expected := api.ErrRequestNotAuthenticated

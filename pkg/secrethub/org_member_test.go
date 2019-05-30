@@ -10,6 +10,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/assert"
+	"github.com/secrethub/secrethub-go/internals/auth"
 )
 
 func TestGetOrgMember(t *testing.T) {
@@ -82,7 +83,7 @@ func TestGetOrgMember(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client := NewClient(cred1, opts)
+			client := NewClient(cred1, auth.NewHTTPSigner(cred1), opts)
 
 			router.Get("/orgs/{org_name}/members/{username}", func(w http.ResponseWriter, r *http.Request) {
 				// Assert
@@ -189,7 +190,7 @@ func TestListOrgMembers(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client := NewClient(cred1, opts)
+			client := NewClient(cred1, auth.NewHTTPSigner(cred1), opts)
 
 			router.Get("/orgs/{org_name}/members", func(w http.ResponseWriter, r *http.Request) {
 				orgName := chi.URLParam(r, "org_name")
@@ -319,7 +320,7 @@ func TestInviteOrg(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client := NewClient(cred1, opts)
+			client := NewClient(cred1, auth.NewHTTPSigner(cred1), opts)
 
 			router.Post("/orgs/{org_name}/members", func(w http.ResponseWriter, r *http.Request) {
 				// Assert
@@ -456,7 +457,7 @@ func TestUpdateOrgMember(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client := NewClient(cred1, opts)
+			client := NewClient(cred1, auth.NewHTTPSigner(cred1), opts)
 
 			router.Post("/orgs/{org_name}/members/{username}", func(w http.ResponseWriter, r *http.Request) {
 				// Assert
