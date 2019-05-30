@@ -77,11 +77,6 @@ func TestVerify(t *testing.T) {
 			Date:          time.Now().Format(time.RFC1123),
 			Err:           auth.ErrInvalidAuthorizationHeader,
 		},
-		"invalid_method": {
-			Authorization: "Basic username:password",
-			Date:          time.Now().Format(time.RFC1123),
-			Err:           auth.ErrInvalidAuthorizationHeader,
-		},
 		"invalid_format": {
 			Authorization: "secrethub-sig-v1 no_colon_here",
 			Date:          time.Now().Format(time.RFC1123),
@@ -116,16 +111,6 @@ func TestVerify(t *testing.T) {
 			GetErr:        nil,
 			Err:           api.ErrSignatureNotVerified,
 		},
-		"deprecated v1": {
-			Authorization: "SecretHub foo:bar:baz",
-			Date:          time.Now().Format(time.RFC1123),
-			Err:           auth.ErrOutdatedSignatureProtocol,
-		},
-		"deprecated v2": {
-			Authorization: "SecretHub-Sig2 foo:bar",
-			Date:          time.Now().Format(time.RFC1123),
-			Err:           auth.ErrOutdatedSignatureProtocol,
-		},
 	}
 
 	for name, tc := range cases {
@@ -154,6 +139,45 @@ func TestVerify(t *testing.T) {
 			if tc.Err == nil {
 				assert.Equal(t, actual, tc.Expected)
 			}
+		})
+	}
+}
+
+func TestAuthenticator_Verify(t *testing.T) {
+	cases := map[string]struct {
+		authHeader string
+		expected   *auth.Result
+		err        error
+	}{
+		"outdated v1": {
+			authHeader: "SecretHub foo:bar:baz",
+			err:        auth.ErrOutdatedSignatureProtocol,
+		},
+		"outdated v2": {
+			authHeader: "SecretHub-Sig2 foo:bar",
+			err:        auth.ErrOutdatedSignatureProtocol,
+		},
+		"unsupported auth method": {
+			authHeader: "Basic username:password",
+			err:        auth.ErrUnsupportedAuthFormat,
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			// Setup
+			req, err := http.NewRequest("GET", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
+			assert.OK(t, err)
+
+			req.Header.Set("Authorization", tc.authHeader)
+			req.Header.Set("Date", time.Now().Format(time.RFC1123))
+
+			// Act
+			actual, err := auth.NewAuthenticator(auth.NewMethodSignature(fakeCredentialGetter{})).Verify(req)
+
+			// Assert
+			assert.Equal(t, actual, tc.expected)
+			assert.Equal(t, err, tc.err)
 		})
 	}
 }
