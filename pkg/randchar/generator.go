@@ -155,36 +155,54 @@ func (r Rand) Generate(n int) ([]byte, error) {
 		return nil, errors.New("n cannot be smaller than the minimum required length of the generator")
 	}
 
-	var result []byte
+	if n < 1 {
+		return []byte{}, nil
+	}
+
+	result := make([]byte, n)
+	i := 0
+	var err error
 	for _, min := range r.minima {
-		chars, err := min.charset.rand(r.reader, min.count)
+		err = min.charset.rand(r.reader, result[i:i+min.count])
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, chars...)
+		i += min.count
 	}
 
-	remainder, err := r.base.rand(r.reader, n-r.minLen)
+	err = r.base.rand(r.reader, result[i:])
 	if err != nil {
 		return nil, err
 	}
-	result = append(result, remainder...)
 
-	return shuffle(r.reader, result)
-}
-
-// shuffle randomly shuffles elements of a byte slice, using the Durstenfeld shuffle algorithm.
-func shuffle(reader io.Reader, data []byte) ([]byte, error) {
-	for i := len(data) - 1; i > 0; i-- {
-		randomIndex, err := rand.Int(reader, big.NewInt(int64(i)))
+	// Only shuffle if we've applied the minima.
+	// Otherwise, the result is already random and
+	// we can save time by skipping the shuffle step.
+	if i > 0 {
+		err = shuffle(r.reader, result)
 		if err != nil {
 			return nil, err
 		}
-		j := randomIndex.Int64()
+	}
+
+	return result, nil
+}
+
+// shuffle randomly shuffles elements of a byte slice, using the Durstenfeld shuffle algorithm.
+func shuffle(reader io.Reader, data []byte) error {
+	var randomIndex *big.Int
+	var j int64
+	var err error
+	for i := len(data) - 1; i > 0; i-- {
+		randomIndex, err = rand.Int(reader, big.NewInt(int64(i)))
+		if err != nil {
+			return err
+		}
+		j = randomIndex.Int64()
 		data[i], data[j] = data[j], data[i]
 	}
 
-	return data, nil
+	return nil
 }
 
 // Charset is a byte slice with a set of unique characters.
@@ -275,16 +293,14 @@ func (cs Charset) Equal(other Charset) bool {
 
 // rand returns a byte slice of length n filled with randomly chosen characters
 // from the set, using the given reader as source of randomness.
-func (cs Charset) rand(reader io.Reader, n int) ([]byte, error) {
-	data := make([]byte, n)
-
+func (cs Charset) rand(reader io.Reader, data []byte) error {
 	size := big.NewInt(int64(len(cs)))
-	for i := 0; i < n; i++ {
+	for i := 0; i < len(data); i++ {
 		randomIndex, err := rand.Int(reader, size)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		data[i] = cs[randomIndex.Int64()]
 	}
-	return data, nil
+	return nil
 }
