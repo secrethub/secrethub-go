@@ -47,7 +47,6 @@ const (
 // Errors
 var (
 	errNamespace                  = errio.Namespace("authentication")
-	ErrBadRequest                 = errNamespace.Code("bad_request").StatusError("bad request", http.StatusBadRequest)
 	ErrCannotParseDateHeader      = errNamespace.Code("parse_date_header_failed").StatusError("could not authenticate request because the date header of the auth message could not be parsed", http.StatusBadRequest)
 	ErrInvalidAuthorizationHeader = errNamespace.Code("invalid_authorization_header").StatusErrorf("could not authenticate request because the authorization header must have format: %s identifier:base64_encoded_signature", http.StatusBadRequest, MethodTagSignature)
 	ErrOutdatedSignatureProtocol  = errNamespace.Code("outdated_signature_protocol").StatusError("the signature protocol used for authentication is outdated, please upgrade to a newer version", http.StatusBadRequest)
