@@ -20,6 +20,11 @@ type Authenticator interface {
 	Verify(r *http.Request) (*Result, error)
 }
 
+// CredentialAuthenticator authenticates an account from credentials and signed data.
+type CredentialAuthenticator interface {
+	Verify(credentials string, data []byte) (*Result, error)
+}
+
 // NewAuthenticator returns a new Authenticator, supporting the given Methods.
 func NewAuthenticator(methods ...Method) Authenticator {
 	a := &authenticator{
@@ -40,9 +45,23 @@ type authenticator struct {
 
 // Verify verifies the authentication of an HTTP request.
 func (a *authenticator) Verify(r *http.Request) (*Result, error) {
-	method, err := a.getMethod(r)
-	if err != nil {
-		return nil, err
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return nil, ErrNoAuthHeader
+	}
+
+	format := strings.SplitN(authHeader, " ", 2)
+	if len(format) != 2 {
+		return nil, ErrUnsupportedAuthFormat
+	}
+
+	if format[0] == MethodTagSignatureV1 || format[0] == MethodTagSignatureV2 {
+		return nil, ErrOutdatedSignatureProtocol
+	}
+
+	method, ok := a.methods[format[0]]
+	if !ok {
+		return nil, ErrUnsupportedAuthFormat
 	}
 
 	requestTime, err := time.Parse(time.RFC1123, r.Header.Get("Date"))
@@ -55,33 +74,17 @@ func (a *authenticator) Verify(r *http.Request) (*Result, error) {
 		return nil, err
 	}
 
-	return method.Verify(r)
-}
-
-func (a *authenticator) getMethod(r *http.Request) (Method, error) {
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		return nil, ErrNoAuthHeader
+	message, err := getMessage(r)
+	if err != nil {
+		return nil, err
 	}
 
-	format := strings.SplitN(authHeader, " ", 2)
-	if len(format) != 2 {
-		return nil, ErrUnsupportedAuthFormat
-	}
-	if format[0] == MethodTagSignatureV1 || format[0] == MethodTagSignatureV2 {
-		return nil, ErrOutdatedSignatureProtocol
-	}
-
-	method, ok := a.methods[format[0]]
-	if !ok {
-		return nil, ErrUnsupportedAuthFormat
-	}
-	return method, nil
+	return method.Verify(format[1], message)
 }
 
 // Method defines a mechanism to authenticate an account from an http.Request.
 type Method interface {
-	Authenticator
+	CredentialAuthenticator
 	// Tag returns the authorization header tag identifying the authentication mechanism.
 	Tag() string
 }

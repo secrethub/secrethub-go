@@ -75,7 +75,7 @@ func TestVerify(t *testing.T) {
 		"empty_authorization_header": {
 			Authorization: "",
 			Date:          time.Now().Format(time.RFC1123),
-			Err:           auth.ErrInvalidAuthorizationHeader,
+			Err:           auth.ErrNoAuthHeader,
 		},
 		"invalid_format": {
 			Authorization: "secrethub-sig-v1 no_colon_here",
@@ -128,7 +128,7 @@ func TestVerify(t *testing.T) {
 				},
 			}
 
-			authenticator := auth.NewMethodSignature(fakeCredentialGetter)
+			authenticator := auth.NewAuthenticator(auth.NewMethodSignature(fakeCredentialGetter))
 
 			// Act
 			actual, err := authenticator.Verify(req)
@@ -143,23 +143,68 @@ func TestVerify(t *testing.T) {
 	}
 }
 
+var testResult = &auth.Result{
+	AccountID:   uuid.New(),
+	Fingerprint: "test",
+}
+
+type fakeMethod struct{}
+
+func (m fakeMethod) Verify(credentials string, data []byte) (*auth.Result, error) {
+	return testResult, nil
+}
+
+func (m fakeMethod) Tag() string {
+	return "TestAuth"
+}
+
 func TestAuthenticator_Verify(t *testing.T) {
 	cases := map[string]struct {
-		authHeader string
-		expected   *auth.Result
-		err        error
+		headers  map[string]string
+		expected *auth.Result
+		err      error
 	}{
 		"outdated v1": {
-			authHeader: "SecretHub foo:bar:baz",
-			err:        auth.ErrOutdatedSignatureProtocol,
+			headers: map[string]string{
+				"Authorization": "SecretHub foo:bar:baz",
+			},
+			err: auth.ErrOutdatedSignatureProtocol,
 		},
 		"outdated v2": {
-			authHeader: "SecretHub-Sig2 foo:bar",
-			err:        auth.ErrOutdatedSignatureProtocol,
+			headers: map[string]string{
+				"Authorization": "SecretHub-Sig2 foo:bar",
+			},
+			err: auth.ErrOutdatedSignatureProtocol,
 		},
 		"unsupported auth method": {
-			authHeader: "Basic username:password",
-			err:        auth.ErrUnsupportedAuthFormat,
+			headers: map[string]string{
+				"Authorization": "Basic username:password",
+			},
+			err: auth.ErrUnsupportedAuthFormat,
+		},
+		"no header": {
+			err: auth.ErrNoAuthHeader,
+		},
+		"empty header": {
+			headers: map[string]string{
+				"Authorization": "",
+				"Date":          time.Now().Format(time.RFC3339),
+			},
+			err: auth.ErrNoAuthHeader,
+		},
+		"no key or token": {
+			headers: map[string]string{
+				"Authorization": "TestAuth",
+				"Date":          time.Now().Format(time.RFC3339),
+			},
+			err: auth.ErrUnsupportedAuthFormat,
+		},
+		"success": {
+			headers: map[string]string{
+				"Authorization": "TestAuth token",
+				"Date":          time.Now().Format(time.RFC3339),
+			},
+			expected: testResult,
 		},
 	}
 
@@ -169,11 +214,13 @@ func TestAuthenticator_Verify(t *testing.T) {
 			req, err := http.NewRequest("GET", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
 			assert.OK(t, err)
 
-			req.Header.Set("Authorization", tc.authHeader)
+			for k, v := range tc.headers {
+				req.Header.Set(k, v)
+			}
 			req.Header.Set("Date", time.Now().Format(time.RFC1123))
 
 			// Act
-			actual, err := auth.NewAuthenticator(auth.NewMethodSignature(fakeCredentialGetter{})).Verify(req)
+			actual, err := auth.NewAuthenticator(fakeMethod{}).Verify(req)
 
 			// Assert
 			assert.Equal(t, actual, tc.expected)
@@ -233,7 +280,7 @@ func TestSignRequest(t *testing.T) {
 				},
 			}
 
-			authenticator := auth.NewMethodSignature(fakeCredentialGetter)
+			authenticator := auth.NewAuthenticator(auth.NewMethodSignatureV2(fakeCredentialGetter))
 
 			err = signer.Sign(req)
 			assert.OK(t, err)
@@ -287,7 +334,7 @@ func TestReplayRequest(t *testing.T) {
 			}, nil
 		},
 	}
-	authenticator := auth.NewMethodSignature(fakeCredentialGetter)
+	authenticator := auth.NewAuthenticator(auth.NewMethodSignatureV2(fakeCredentialGetter))
 
 	cases := map[string]struct {
 		originalMethod string

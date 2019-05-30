@@ -258,26 +258,16 @@ func (m methodSignatureV2) Tag() string {
 }
 
 // Verify authenticates an account from an http request.
-func (m methodSignatureV2) Verify(r *http.Request) (*Result, error) {
-	format := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
-	if len(format) != 2 {
+func (m methodSignatureV2) Verify(credentials string, data []byte) (*Result, error) {
+	creds := strings.Split(credentials, ":")
+
+	if len(creds) != 3 {
 		return nil, ErrInvalidAuthorizationHeader
 	}
 
-	message, err := getMessage(r)
-	if err != nil {
-		return nil, errio.StatusError(err)
-	}
-
-	credentials := strings.Split(format[1], ":")
-
-	if len(credentials) != 3 {
-		return nil, ErrInvalidAuthorizationHeader
-	}
-
-	switch credentials[0] {
+	switch creds[0] {
 	case "PKCS1v15":
-		return m.credentialSignatureVerifier.verify(credentials[1], credentials[2], message)
+		return m.credentialSignatureVerifier.verify(creds[1], creds[2], data)
 	default:
 		return nil, ErrUnsupportedSignMethod
 	}
@@ -295,24 +285,14 @@ func (m methodSignatureCommon) Tag() string {
 }
 
 // Verify authenticates an account from an http request.
-func (m methodSignatureCommon) Verify(r *http.Request) (*Result, error) {
-	format := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
-	if len(format) != 2 {
+func (m methodSignatureCommon) Verify(credentials string, data []byte) (*Result, error) {
+	creds := strings.Split(credentials, ":")
+
+	if len(creds) != 2 {
 		return nil, ErrInvalidAuthorizationHeader
 	}
 
-	message, err := getMessage(r)
-	if err != nil {
-		return nil, errio.StatusError(err)
-	}
-
-	credentials := strings.Split(format[1], ":")
-
-	if len(credentials) != 2 {
-		return nil, ErrInvalidAuthorizationHeader
-	}
-
-	return m.credentialSignatureVerifier.verify(credentials[0], credentials[1], message)
+	return m.credentialSignatureVerifier.verify(creds[0], creds[1], data)
 }
 
 type credentialSignatureVerifier struct {
