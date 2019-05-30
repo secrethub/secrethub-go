@@ -16,8 +16,8 @@ type ServiceService struct {
 }
 
 // Create implements the ServiceService interface Create function.
-func (s *ServiceService) Create(path string, description string, credential secrethub.RSACredential) (*api.Service, error) {
-	return s.Creater.Create(path, description, credential)
+func (s *ServiceService) Create(path string, description string, credential secrethub.Credential, encryptor secrethub.Encryptor) (*api.Service, error) {
+	return s.Creater.Create(path, description, credential, encryptor)
 }
 
 // Delete implements the ServiceService interface Delete function.
@@ -39,13 +39,13 @@ func (s *ServiceService) List(path string) ([]*api.Service, error) {
 type ServiceCreater struct {
 	ArgPath        string
 	ArgDescription string
-	ArgCredential  secrethub.RSACredential
+	ArgCredential  secrethub.Credential
 	ReturnsService *api.Service
 	Err            error
 }
 
 // Create saves the arguments it was called with and returns the mocked response.
-func (c *ServiceCreater) Create(path string, description string, credential secrethub.RSACredential) (*api.Service, error) {
+func (c *ServiceCreater) Create(path string, description string, credential secrethub.Credential, encryptor secrethub.Encryptor) (*api.Service, error) {
 	c.ArgPath = path
 	c.ArgDescription = description
 	c.ArgCredential = credential
