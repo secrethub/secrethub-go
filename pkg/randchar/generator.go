@@ -14,7 +14,6 @@ import (
 	"crypto/rand"
 	"errors"
 	"io"
-	"log"
 	"math/big"
 )
 
@@ -84,11 +83,11 @@ func NewRand(base Charset, options ...Option) (Rand, error) {
 }
 
 // MustNewRand is a utility function for creating random character generators,
-// which panicks upon error so be careful. For more safety, use NewRand instead.
+// which panics upon error so be careful. For more safety, use NewRand instead.
 func MustNewRand(base Charset, options ...Option) Rand {
 	r, err := NewRand(base, options...)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	return r
 }
