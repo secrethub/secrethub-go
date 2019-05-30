@@ -235,8 +235,9 @@ type credentialGetter interface {
 func NewMethodSignature(credentialGetter credentialGetter) Method {
 	return &MethodSignature{
 		methodSignatureCommon{
-			credentialGetter: credentialGetter,
-			tag:              MethodTagSignature,
+			credentialSignatureVerifier: credentialSignatureVerifier{
+				credentialGetter: credentialGetter,
+			},
 		},
 	}
 }
@@ -244,13 +245,12 @@ func NewMethodSignature(credentialGetter credentialGetter) Method {
 // methodSignatureCommon is a shared type that encodes
 // signing logic for authentication.
 type methodSignatureCommon struct {
-	credentialGetter credentialGetter
-	tag              tag
+	credentialSignatureVerifier credentialSignatureVerifier
 }
 
 // Tag returns the Authorization format tag.
 func (m methodSignatureCommon) Tag() string {
-	return string(m.tag)
+	return MethodTagSignature
 }
 
 // Verify authenticates an account from an http request.
@@ -270,22 +270,33 @@ func (m methodSignatureCommon) Verify(r *http.Request) (*Result, error) {
 		return nil, ErrInvalidAuthorizationHeader
 	}
 
-	identifier, encodedSignature, err := m.tag.parse(format[1])
+	message, err := getMessage(r)
 	if err != nil {
 		return nil, errio.StatusError(err)
 	}
+
+	return m.credentialSignatureVerifier.verify(format[1], message)
+}
+
+type credentialSignatureVerifier struct {
+	credentialGetter credentialGetter
+}
+
+func (v credentialSignatureVerifier) verify(credentials string, message []byte) (*Result, error) {
+	creds := strings.Split(credentials, ":")
+
+	if len(creds) != 2 {
+		return nil, ErrInvalidAuthorizationHeader
+	}
+
+	identifier, encodedSignature := creds[0], creds[1]
 
 	signature, err := base64.StdEncoding.DecodeString(encodedSignature)
 	if err != nil {
 		return nil, ErrMalformedSignature
 	}
 
-	message, err := getMessage(r)
-	if err != nil {
-		return nil, errio.StatusError(err)
-	}
-
-	accountKey, err := m.credentialGetter.GetCredential(identifier)
+	accountKey, err := v.credentialGetter.GetCredential(identifier)
 	if err == api.ErrCredentialNotFound {
 		// Note that this specific error check here smells pretty bad and
 		// is the result of how the auth package is composed. We aim for
@@ -306,21 +317,6 @@ func (m methodSignatureCommon) Verify(r *http.Request) (*Result, error) {
 		AccountID:   accountKey.AccountID,
 		Fingerprint: accountKey.Fingerprint,
 	}, nil
-}
-
-// tag is a helper type for dealing with two very similar formats,
-// without introducing too much code duplication.
-type tag string
-
-// parse parses a formatted string that has been retrieved form the Authorization header,
-// returning the identifier and signature.
-func (t tag) parse(format string) (string, string, error) {
-	parts := strings.Split(format, ":")
-
-	if string(t) == MethodTagSignature && len(parts) == 2 {
-		return parts[0], parts[1], nil
-	}
-	return "", "", ErrInvalidAuthorizationHeader
 }
 
 // isTimeValid checks whether the time used for a request is valid, based on the server time.
