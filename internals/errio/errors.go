@@ -52,6 +52,20 @@ func (c ErrorCode) StatusErrorf(message string, status int, args ...interface{})
 	return c.StatusError(fmt.Sprintf(message, args...), status)
 }
 
+// StatusErrorPref returns a function that can be called with arguments to create a formatted status error message
+func (c ErrorCode) StatusErrorPref(message string, status int) func(args ...interface{}) PublicStatusError {
+	return func(args ...interface{}) PublicStatusError {
+		return PublicStatusError{
+			StatusCode: status,
+			PublicError: PublicError{
+				Namespace: c.Namespace,
+				Code:      c.Code,
+				Message:   fmt.Sprintf(message, args...),
+			},
+		}
+	}
+}
+
 // Error returns a PublicError with the given code and message
 func (c ErrorCode) Error(message string) PublicError {
 	return PublicError{
