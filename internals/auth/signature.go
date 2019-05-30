@@ -141,7 +141,7 @@ func (s httpSigner) Sign(r *http.Request) error {
 
 	r.Header.Set("Authorization",
 		fmt.Sprintf("%s %s:%s",
-			s.signer.SignMethod(),
+			MethodTagSignature,
 			id,
 			base64EncodedSignature))
 

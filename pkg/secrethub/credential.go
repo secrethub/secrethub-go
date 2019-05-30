@@ -9,7 +9,6 @@ import (
 
 	"github.com/secrethub/secrethub-go/internals/api"
 
-	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -301,7 +300,7 @@ func (c RSACredential) Sign(data []byte) ([]byte, error) {
 
 // SignMethod returns a string by which the signing method can be identified.
 func (c RSACredential) SignMethod() string {
-	return auth.MethodTagSignature
+	return "PKCS1v15"
 }
 
 // Verifier returns the public key to be stored server side to verify an http request authenticated with this credential.
