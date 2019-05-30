@@ -11,7 +11,7 @@ type UserService interface {
 	// Me gets the account's user if it exists.
 	Me() (*api.User, error)
 	// Create creates a new user at SecretHub.
-	Create(username, email, fullName string) (*api.User, error)
+	Create(username, email, fullName string, credential Credential) (*api.User, error)
 	// Get a user by their username.
 	Get(username string) (*api.User, error)
 }
@@ -32,7 +32,7 @@ func (s userService) Me() (*api.User, error) {
 }
 
 // Create creates a new user at SecretHub.
-func (s userService) Create(username, email, fullName string) (*api.User, error) {
+func (s userService) Create(username, email, fullName string, credential Credential) (*api.User, error) {
 	err := api.ValidateUsername(username)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -53,11 +53,11 @@ func (s userService) Create(username, email, fullName string) (*api.User, error)
 		return nil, errio.Error(err)
 	}
 
-	return s.create(username, email, fullName, accountKey)
+	return s.create(username, email, fullName, accountKey, credential)
 }
 
-func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey) (*api.User, error) {
-	credentialRequest, err := s.client.createCredentialRequest(s.client.credential)
+func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, credential Credential) (*api.User, error) {
+	credentialRequest, err := s.client.createCredentialRequest(credential)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -106,7 +106,7 @@ func (s userService) Get(username string) (*api.User, error) {
 
 // createAccountKey adds the account key for the clients credential.
 func (c *client) createAccountKey(accountKey crypto.RSAPrivateKey) (*api.EncryptedAccountKey, error) {
-	accountKeyRequest, err := c.createAccountKeyRequest(c.credential, accountKey)
+	accountKeyRequest, err := c.createAccountKeyRequest(c.encryptor, accountKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -116,7 +116,7 @@ func (c *client) createAccountKey(accountKey crypto.RSAPrivateKey) (*api.Encrypt
 		return nil, err
 	}
 
-	fingerprint, err := c.credential.Fingerprint()
+	fingerprint, err := c.encryptor.Fingerprint()
 	if err != nil {
 		return nil, err
 	}

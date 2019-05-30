@@ -20,6 +20,20 @@ type Client interface {
 	Users() UserService
 }
 
+// Decryptor decrypts data, typically an account key.
+type Decryptor interface {
+	// Unwrap decrypts data, typically an account key.
+	Unwrap(ciphertext crypto.CiphertextRSAAES) ([]byte, error)
+}
+
+// Encryptor encrypts data, typically an account key.
+type Encryptor interface {
+	// Fingerprint returns an identifier by which the server can identify the credential, e.g. a username of a fingerprint.
+	Fingerprint() (string, error)
+	// Wrap encrypts data, typically an account key.
+	Wrap(plaintext []byte) (crypto.CiphertextRSAAES, error)
+}
+
 type clientAdapter struct {
 	client client
 }
@@ -85,9 +99,8 @@ var (
 type client struct {
 	httpClient *httpClient
 
-	// credential is the key used by a client to decrypt the account key and authenticate the requests.
-	// It is passed to the httpClient to provide authentication.
-	credential Credential
+	decryptor Decryptor
+	encryptor Encryptor
 
 	// account is the api.Account for this SecretHub account.
 	// Do not use this field directly, but use client.getMyAccount() instead.
@@ -108,7 +121,8 @@ func newClient(credential Credential, signer auth.HTTPSigner, opts *ClientOption
 
 	return client{
 		httpClient:    httpClient,
-		credential:    credential,
+		decryptor:     credential,
+		encryptor:     credential,
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
 }
