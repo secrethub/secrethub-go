@@ -1,0 +1,26 @@
+linters:
+  enable:
+  - errcheck
+  - goimports
+  - golint
+  - staticcheck
+  - vet
+  - unused
+  - gosimple
+  - stylecheck
+  - structcheck
+  - varcheck
+  - interfacer
+  - unconvert
+  - ineffassign
+  - deadcode
+  - gocyclo
+  - typecheck
+  - depguard
+  - unparam
+  - nakedret
+  - gofmt
+  - misspell
+  - prealloc
+  - goconst
+  disable-all: true

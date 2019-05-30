@@ -1,15 +1,15 @@
 package secrethub
 
 import (
-	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/crypto"
+	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 // AccountService handles operations on SecretHub accounts.
 type AccountService interface {
 	// Get retrieves an account by name.
-	Get(name api.AccountName) (*api.Account, error)
+	Get(name string) (*api.Account, error)
 	// Keys returns an account key service.
 	Keys() AccountKeyService
 }
@@ -25,8 +25,13 @@ type accountService struct {
 }
 
 // Get retrieves an account by name.
-func (s accountService) Get(name api.AccountName) (*api.Account, error) {
-	return s.client.httpClient.GetAccount(name)
+func (s accountService) Get(name string) (*api.Account, error) {
+	accountName, err := api.NewAccountName(name)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.client.httpClient.GetAccount(accountName)
 }
 
 // Keys returns an account key service.
@@ -37,14 +42,14 @@ func (s accountService) Keys() AccountKeyService {
 // createAccountKey creates a new intermediate key wrapped in the supplied credential.
 // The public key of the intermediate key is returned.
 // The intermediate key is returned in an CreateAccountKeyRequest ready to be sent to the API.
-// If an error has occured, it will be returned and the other result should be considered invalid.
-func (c *client) createAccountKeyRequest(credential Credential, accountKey *crypto.RSAKey) (*api.CreateAccountKeyRequest, error) {
-	publicAccountKey, err := accountKey.ExportPublicKey()
+// If an error has occurred, it will be returned and the other result should be considered invalid.
+func (c *client) createAccountKeyRequest(credential Credential, accountKey crypto.RSAPrivateKey) (*api.CreateAccountKeyRequest, error) {
+	publicAccountKey, err := accountKey.Public().Export()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	privateAccountKey, err := accountKey.ExportPrivateKey()
+	privateAccountKey, err := accountKey.ExportPEM()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -54,14 +59,9 @@ func (c *client) createAccountKeyRequest(credential Credential, accountKey *cryp
 		return nil, errio.Error(err)
 	}
 
-	encodedWrappedAccountKey, err := api.EncodeCiphertext(wrappedAccountKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
 	return &api.CreateAccountKeyRequest{
 		PublicKey:           publicAccountKey,
-		EncryptedPrivateKey: encodedWrappedAccountKey,
+		EncryptedPrivateKey: wrappedAccountKey,
 	}, nil
 }
 
@@ -85,7 +85,7 @@ func (c *client) createCredentialRequest(credential Credential) (*api.CreateCred
 
 // getAccountKey attempts to get the account key from the cache,
 // getting it from the API if not found in the cache.
-func (c *client) getAccountKey() (*crypto.RSAKey, error) {
+func (c *client) getAccountKey() (*crypto.RSAPrivateKey, error) {
 	if c.accountKey == nil {
 		err := c.fetchAccountDetails()
 		if err != nil {
@@ -121,24 +121,19 @@ func (c *client) fetchAccountDetails() error {
 		return errio.Error(err)
 	}
 
-	ciphertext, err := resp.EncryptedPrivateKey.Decode()
+	data, err := c.credential.Unwrap(resp.EncryptedPrivateKey)
 	if err != nil {
 		return errio.Error(err)
 	}
 
-	data, err := c.credential.Unwrap(ciphertext)
-	if err != nil {
-		return errio.Error(err)
-	}
-
-	accountKey, err := crypto.ImportRSAPrivateKey(data)
+	accountKey, err := crypto.ImportRSAPrivateKeyPEM(data)
 	if err != nil {
 		return errio.Error(err)
 	}
 
 	// Cache the account and account key
 	c.account = resp.Account
-	c.accountKey = accountKey
+	c.accountKey = &accountKey
 
 	return nil
 }

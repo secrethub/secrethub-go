@@ -1,6 +1,6 @@
 package fakeclient
 
-import "github.com/keylockerbv/secrethub-go/pkg/secrethub"
+import "github.com/secrethub/secrethub-go/pkg/secrethub"
 
 // Client implements the secrethub.Client interface.
 type Client struct {
@@ -27,6 +27,11 @@ func (c Client) Accounts() secrethub.AccountService {
 // Dirs implements the secrethub.Client interface.
 func (c Client) Dirs() secrethub.DirService {
 	return c.DirService
+}
+
+// Me implements the secrethub.Client interface.
+func (c Client) Me() secrethub.MeService {
+	return nil
 }
 
 // Orgs implements the secrethub.Client interface.

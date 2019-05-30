@@ -1,9 +1,9 @@
 package secrethub
 
 import (
-	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/crypto"
+	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 // UserService handles operations on users from SecretHub.
@@ -33,6 +33,21 @@ func (s userService) Me() (*api.User, error) {
 
 // Create creates a new user at SecretHub.
 func (s userService) Create(username, email, fullName string) (*api.User, error) {
+	err := api.ValidateUsername(username)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = api.ValidateEmail(email)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = api.ValidateFullName(fullName)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
 	accountKey, err := generateAccountKey()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -41,10 +56,15 @@ func (s userService) Create(username, email, fullName string) (*api.User, error)
 	return s.create(username, email, fullName, accountKey)
 }
 
-func (s userService) create(username, email, fullName string, accountKey *crypto.RSAKey) (*api.User, error) {
+func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey) (*api.User, error) {
 	credentialRequest, err := s.client.createCredentialRequest(s.client.credential)
 	if err != nil {
 		return nil, errio.Error(err)
+	}
+
+	err = credentialRequest.Validate()
+	if err != nil {
+		return nil, err
 	}
 
 	userRequest := &api.CreateUserRequest{
@@ -52,11 +72,6 @@ func (s userService) create(username, email, fullName string, accountKey *crypto
 		Email:      email,
 		FullName:   fullName,
 		Credential: credentialRequest,
-	}
-
-	err = userRequest.Validate()
-	if err != nil {
-		return nil, errio.Error(err)
 	}
 
 	user, err := s.client.httpClient.SignupUser(userRequest)
@@ -90,7 +105,7 @@ func (s userService) Get(username string) (*api.User, error) {
 }
 
 // createAccountKey adds the account key for the clients credential.
-func (c *client) createAccountKey(accountKey *crypto.RSAKey) (*api.EncryptedAccountKey, error) {
+func (c *client) createAccountKey(accountKey crypto.RSAPrivateKey) (*api.EncryptedAccountKey, error) {
 	accountKeyRequest, err := c.createAccountKeyRequest(c.credential, accountKey)
 	if err != nil {
 		return nil, errio.Error(err)

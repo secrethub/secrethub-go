@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/testutil"
+	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
 var (
@@ -17,46 +17,32 @@ var (
 	exampleHeaderEncoded = "eyJ0eXBlIjoidGVzdCJ9"
 )
 
-// RunArmorInterfaceTest tests whether an Armorer and corresponding Unarmorer
-// interfaces work correctly.
-func RunArmorInterfaceTest(t *testing.T, armorer Armorer, unarmorer Unarmorer) {
-	t.Run("name_equality", func(t *testing.T) {
-		testutil.Compare(t, armorer.Name(), unarmorer.Name())
-	})
-
-	t.Run("encryption", func(t *testing.T) {
-		expected := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
-
-		armored, header, err := armorer.Armor(expected)
-		testutil.OK(t, err)
-
-		if reflect.DeepEqual(armored, expected) {
-			t.Errorf(
-				"unexpected armored payload: %v (armored) == %v (unarmored)",
-				armored,
-				expected,
-			)
-		}
-
-		headerBytes, err := json.Marshal(header)
-		testutil.OK(t, err)
-
-		unarmored, err := unarmorer.Unarmor(armored, headerBytes)
-		testutil.OK(t, err)
-
-		testutil.Compare(t, unarmored, expected)
-	})
-}
-
-func TestPassphraseArmoring(t *testing.T) {
+func TestPassBasedKey(t *testing.T) {
 
 	pass := []byte("Password123")
-	unarmorer := NewPassphraseUnarmorer(pass)
+	key, err := NewPassBasedKey(pass)
+	assert.OK(t, err)
 
-	armorer, err := NewPassphraseArmorer(pass)
-	testutil.OK(t, err)
+	expected := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 
-	RunArmorInterfaceTest(t, armorer, unarmorer)
+	encrypted, header, err := key.Encrypt(expected)
+	assert.OK(t, err)
+
+	if reflect.DeepEqual(encrypted, expected) {
+		t.Errorf(
+			"unexpected encrypted payload: %v (encrypted) == %v (expected)",
+			encrypted,
+			expected,
+		)
+	}
+
+	headerBytes, err := json.Marshal(header)
+	assert.OK(t, err)
+
+	actual, err := key.Decrypt(encrypted, headerBytes)
+	assert.OK(t, err)
+
+	assert.Equal(t, actual, expected)
 }
 
 // RunCredentialInterfaceTest tests whether a Credential interface
@@ -67,16 +53,16 @@ func RunCredentialInterfaceTest(t *testing.T, credential Credential) {
 
 		decoder := credential.Decoder()
 		actual, err := decoder.Decode(exported)
-		testutil.OK(t, err)
+		assert.OK(t, err)
 
-		testutil.Compare(t, actual, credential)
+		assert.Equal(t, actual, credential)
 	})
 
 	t.Run("encryption", func(t *testing.T) {
 		expected := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 
 		ciphertext, err := credential.Wrap(expected)
-		testutil.OK(t, err)
+		assert.OK(t, err)
 
 		if reflect.DeepEqual(ciphertext, expected) {
 			t.Errorf(
@@ -87,16 +73,16 @@ func RunCredentialInterfaceTest(t *testing.T, credential Credential) {
 		}
 
 		actual, err := credential.Unwrap(ciphertext)
-		testutil.OK(t, err)
+		assert.OK(t, err)
 
-		testutil.Compare(t, actual, expected)
+		assert.Equal(t, actual, expected)
 	})
 }
 
 func TestRSACredential(t *testing.T) {
 
 	credential, err := generateRSACredential(1024)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	RunCredentialInterfaceTest(t, credential)
 }
@@ -105,7 +91,7 @@ func TestParser(t *testing.T) {
 
 	// Arrange
 	credential, err := generateRSACredential(1024)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	payload := credential.Export()
 
@@ -113,30 +99,30 @@ func TestParser(t *testing.T) {
 		"type": credential.Decoder().Name(),
 	}
 	headerBytes, err := json.Marshal(header)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 	raw := fmt.Sprintf(
 		"%s.%s",
 		DefaultCredentialEncoding.EncodeToString(headerBytes),
 		DefaultCredentialEncoding.EncodeToString(payload),
 	)
 
-	headerArmored := map[string]interface{}{
+	headerEncrypted := map[string]interface{}{
 		"type": credential.Decoder().Name(),
 		"enc":  "scrypt",
 	}
-	headerArmoredBytes, err := json.Marshal(headerArmored)
-	testutil.OK(t, err)
-	rawArmored := fmt.Sprintf(
+	headerEncryptedBytes, err := json.Marshal(headerEncrypted)
+	assert.OK(t, err)
+	rawEncrypted := fmt.Sprintf(
 		"%s.%s",
-		DefaultCredentialEncoding.EncodeToString(headerArmoredBytes),
-		DefaultCredentialEncoding.EncodeToString(payload), // payload isn't actually armored but that does not matter for the parser.
+		DefaultCredentialEncoding.EncodeToString(headerEncryptedBytes),
+		DefaultCredentialEncoding.EncodeToString(payload), // payload isn't actually encrypted but that does not matter for the parser.
 	)
 
 	headerTypeNotSet, err := json.Marshal(map[string]interface{}{"foo": "bar"})
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	headerUnsupportedType, err := json.Marshal(map[string]interface{}{"type": "unsupported"})
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	cases := map[string]struct {
 		raw      string
@@ -146,24 +132,24 @@ func TestParser(t *testing.T) {
 		"valid_rsa": {
 			raw: raw,
 			expected: &EncodedCredential{
-				Raw:       raw,
-				Header:    header,
-				RawHeader: headerBytes,
-				Payload:   payload,
-				Armor:     "",
-				Decoder:   credential.Decoder(),
+				Raw:                 raw,
+				Header:              header,
+				RawHeader:           headerBytes,
+				Payload:             payload,
+				EncryptionAlgorithm: "",
+				Decoder:             credential.Decoder(),
 			},
 			err: nil,
 		},
-		"valid_rsa_armored": {
-			raw: rawArmored,
+		"valid_rsa_encrypted": {
+			raw: rawEncrypted,
 			expected: &EncodedCredential{
-				Raw:       rawArmored,
-				Header:    headerArmored,
-				RawHeader: headerArmoredBytes,
-				Payload:   payload,
-				Armor:     "scrypt",
-				Decoder:   credential.Decoder(),
+				Raw:                 rawEncrypted,
+				Header:              headerEncrypted,
+				RawHeader:           headerEncryptedBytes,
+				Payload:             payload,
+				EncryptionAlgorithm: "scrypt",
+				Decoder:             credential.Decoder(),
 			},
 			err: nil,
 		},
@@ -232,9 +218,9 @@ func TestParser(t *testing.T) {
 			actual, err := parser.Parse(tc.raw)
 
 			// Assert
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 			if tc.err == nil {
-				testutil.Compare(t, actual, tc.expected)
+				assert.Equal(t, actual, tc.expected)
 			}
 		})
 	}
@@ -244,50 +230,48 @@ func TestEncodeCredential(t *testing.T) {
 
 	// Arrange
 	cred, err := generateRSACredential(1024)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	parser := NewCredentialParser(DefaultCredentialDecoders)
 
 	// Act
 	raw, err := EncodeCredential(cred)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	parsed, err := parser.Parse(raw)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	decoded, err := parsed.Decode()
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	// Assert
-	testutil.Compare(t, cred, decoded)
+	assert.Equal(t, cred, decoded)
 }
 
-func TestEncodeArmoredCredential(t *testing.T) {
+func TestEncodeEncryptedCredential(t *testing.T) {
 
 	// Arrange
 	cred, err := generateRSACredential(1024)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
 	parser := NewCredentialParser(DefaultCredentialDecoders)
 
 	pass := []byte("Password123")
-	unarmorer := NewPassphraseUnarmorer(pass)
-
-	armorer, err := NewPassphraseArmorer(pass)
-	testutil.OK(t, err)
+	key, err := NewPassBasedKey(pass)
+	assert.OK(t, err)
 
 	// Act
-	raw, err := EncodeArmoredCredential(cred, armorer)
-	testutil.OK(t, err)
+	raw, err := EncodeEncryptedCredential(cred, key)
+	assert.OK(t, err)
 
 	parsed, err := parser.Parse(raw)
-	testutil.OK(t, err)
+	assert.OK(t, err)
 
-	decoded, err := parsed.DecodeArmored(unarmorer)
-	testutil.OK(t, err)
+	decoded, err := parsed.DecodeEncrypted(key)
+	assert.OK(t, err)
 
 	// Assert
-	testutil.Compare(t, cred, decoded)
+	assert.Equal(t, cred, decoded)
 }
 
 func TestEncodeCredentialPartsToString(t *testing.T) {
@@ -320,10 +304,10 @@ func TestEncodeCredentialPartsToString(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// Act
 			actual, err := encodeCredentialPartsToString(tc.header, tc.payload)
-			testutil.Compare(t, err, tc.err)
+			assert.Equal(t, err, tc.err)
 
 			// Assert
-			testutil.Compare(t, actual, tc.expected)
+			assert.Equal(t, actual, tc.expected)
 		})
 	}
 }
@@ -332,30 +316,30 @@ func TestCredentialIsEncrypted(t *testing.T) {
 
 	// Arrange
 	cases := map[string]struct {
-		armor    string
-		expected bool
+		algorithm string
+		expected  bool
 	}{
 		"empty": {
-			armor:    "",
-			expected: false,
+			algorithm: "",
+			expected:  false,
 		},
-		"armored": {
-			armor:    "scrypt",
-			expected: true,
+		"scrypt": {
+			algorithm: "scrypt",
+			expected:  true,
 		},
 	}
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			cred := &EncodedCredential{
-				Armor: tc.armor,
+				EncryptionAlgorithm: tc.algorithm,
 			}
 
 			// Act
 			actual := cred.IsEncrypted()
 
 			// Assert
-			testutil.Compare(t, actual, tc.expected)
+			assert.Equal(t, actual, tc.expected)
 		})
 	}
 }
@@ -393,11 +377,11 @@ func TestBase64NoPaddingAssumption(t *testing.T) {
 			encoded := base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString([]byte(tc.input))
 
 			decoded, err := base64.URLEncoding.WithPadding(base64.NoPadding).DecodeString(encoded)
-			testutil.OK(t, err)
+			assert.OK(t, err)
 
 			// Assert
-			testutil.Compare(t, encoded, tc.expected)
-			testutil.Compare(t, string(decoded), tc.input)
+			assert.Equal(t, encoded, tc.expected)
+			assert.Equal(t, string(decoded), tc.input)
 		})
 	}
 }

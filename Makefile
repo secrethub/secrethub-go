@@ -4,7 +4,7 @@ format:
 	@goimports -w $(find . -type f -name '*.go')
 
 lint:
-	@gometalinter.v2 --config=metalinter.config ./...
+	@golangci-lint run
 
 test:
 	@go test ./...
@@ -15,5 +15,4 @@ format-tools:
 	@go get -u golang.org/x/tools/cmd/goimports
 
 lint-tools:
-	@go get -u gopkg.in/alecthomas/gometalinter.v2
-	@gometalinter.v2 --install
+	@curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.15.0

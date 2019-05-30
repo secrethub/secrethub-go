@@ -7,9 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/secrethub/secrethub-go/internals/auth"
+
 	logging "github.com/op/go-logging"
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 var (
@@ -20,9 +22,10 @@ const (
 	baseURLPath = "/v1"
 
 	// Current account
-	pathMeUser  = "%s/me/user"
-	pathMeRepos = "%s/me/repos"
-	pathMeKey   = "%s/me/key"
+	pathMeUser              = "%s/me/user"
+	pathMeRepos             = "%s/me/repos"
+	pathMeKey               = "%s/me/key"
+	pathMeEmailVerification = "%s/me/user/verification-email"
 
 	// Account
 	pathAccount          = "%s/account/%s"
@@ -84,15 +87,15 @@ type ClientOptions struct {
 
 // httpClient is a raw client for the SecretHub http API.
 type httpClient struct {
-	client     *http.Client
-	credential Credential
-	base       string // base url
-	version    string
+	client  *http.Client
+	signer  auth.Credential
+	base    string // base url
+	version string
 }
 
 // newHTTPClient configures a new httpClient and overrides default values
 // when opts is not nil.
-func newHTTPClient(credential Credential, opts *ClientOptions) *httpClient {
+func newHTTPClient(signer auth.Credential, opts *ClientOptions) *httpClient {
 	serverURL := DefaultServerURL
 	timeout := DefaultTimeout
 	if opts != nil {
@@ -112,9 +115,9 @@ func newHTTPClient(credential Credential, opts *ClientOptions) *httpClient {
 		client: &http.Client{
 			Timeout: timeout,
 		},
-		credential: credential,
-		base:       serverURL,
-		version:    ClientVersion,
+		signer:  signer,
+		base:    serverURL,
+		version: ClientVersion,
 	}
 }
 
@@ -149,6 +152,13 @@ func (c *httpClient) GetMyUser() (*api.User, error) {
 	rawURL := fmt.Sprintf(pathMeUser, c.base)
 	err := c.get(rawURL, out)
 	return out, errio.Error(err)
+}
+
+// SendVerificationEmail sends an email to the users registered email address for them to prove they
+// own that email address.
+func (c *httpClient) SendVerificationEmail() error {
+	rawURL := fmt.Sprintf(pathMeEmailVerification, c.base)
+	return c.post(rawURL, http.StatusCreated, nil, nil)
 }
 
 // Accounts
@@ -617,7 +627,7 @@ func (c *httpClient) do(rawURL string, method string, expectedStatus int, in int
 		return errio.Error(err)
 	}
 
-	err = c.credential.AddAuthentication(req)
+	err = c.signer.AddAuthentication(req)
 	if err != nil {
 		return errio.Error(err)
 	}

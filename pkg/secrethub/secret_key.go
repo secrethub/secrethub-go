@@ -1,9 +1,9 @@
 package secrethub
 
 import (
-	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/crypto"
+	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 // getSecretKey gets the current key for a given secret.
@@ -28,7 +28,7 @@ func (c *client) getSecretKey(secretPath api.SecretPath) (*api.SecretKey, error)
 
 // createSecretKey creates a new secret key for a given secret.
 func (c *client) createSecretKey(secretPath api.SecretPath) (*api.SecretKey, error) {
-	secretKey, err := crypto.GenerateAESKey()
+	secretKey, err := crypto.GenerateSymmetricKey()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -51,19 +51,14 @@ func (c *client) createSecretKey(secretPath api.SecretPath) (*api.SecretKey, err
 			return nil, errio.Error(err)
 		}
 
-		encryptedSecretKey, err := crypto.EncryptRSA(secretKey.Export(), publicKey)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		encodedSecretKey, err := api.EncodeCiphertext(encryptedSecretKey)
+		encryptedSecretKey, err := publicKey.Wrap(secretKey.Export())
 		if err != nil {
 			return nil, errio.Error(err)
 		}
 
 		encryptedFor[i] = api.EncryptedKeyRequest{
 			AccountID:    account.AccountID,
-			EncryptedKey: encodedSecretKey,
+			EncryptedKey: encryptedSecretKey,
 		}
 	}
 

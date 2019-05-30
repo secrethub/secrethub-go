@@ -1,18 +1,18 @@
 package secrethub
 
 import (
-	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 // RepoUserService handles operations on users of a repository.
 type RepoUserService interface {
 	// Invite invites the user with given username to the repository at the given path.
-	Invite(path api.RepoPath, username string) (*api.RepoMember, error)
+	Invite(path string, username string) (*api.RepoMember, error)
 	// List lists the users of the given repository.
-	List(path api.RepoPath) ([]*api.User, error)
+	List(path string) ([]*api.User, error)
 	// Revoke revokes the user with given username from the repository with the given path.
-	Revoke(path api.RepoPath, username string) (*api.RevokeRepoResponse, error)
+	Revoke(path string, username string) (*api.RevokeRepoResponse, error)
 }
 
 func newRepoUserService(client client) RepoUserService {
@@ -26,17 +26,21 @@ type repoUserService struct {
 }
 
 // Invite invites the user with given username to the repository at the given path.
-func (s repoUserService) Invite(path api.RepoPath, username string) (*api.RepoMember, error) {
-	name := api.AccountName(username)
-	err := name.Validate()
+func (s repoUserService) Invite(path string, username string) (*api.RepoMember, error) {
+	repoPath, err := api.NewRepoPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	accountName, err := api.NewAccountName(username)
 	if err != nil {
 		return nil, err
 	}
-	if !name.IsUser() {
+	if !accountName.IsUser() {
 		return nil, api.ErrUsernameIsService
 	}
 
-	account, err := s.client.httpClient.GetAccount(name)
+	account, err := s.client.httpClient.GetAccount(accountName)
 	if err == api.ErrAccountNotFound {
 		// return a more context specific error
 		return nil, api.ErrUserNotFound
@@ -48,7 +52,7 @@ func (s repoUserService) Invite(path api.RepoPath, username string) (*api.RepoMe
 		return nil, api.ErrAccountNotKeyed
 	}
 
-	createRepoMember, err := s.client.createRepoMemberRequest(path, account.PublicKey)
+	createRepoMember, err := s.client.createRepoMemberRequest(repoPath, account.PublicKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -58,7 +62,7 @@ func (s repoUserService) Invite(path api.RepoPath, username string) (*api.RepoMe
 		RepoMember: createRepoMember,
 	}
 
-	repoMember, err := s.client.httpClient.InviteRepo(path.GetNamespace(), path.GetRepo(), in)
+	repoMember, err := s.client.httpClient.InviteRepo(repoPath.GetNamespace(), repoPath.GetRepo(), in)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -67,8 +71,13 @@ func (s repoUserService) Invite(path api.RepoPath, username string) (*api.RepoMe
 }
 
 // List lists the users of the given repository.
-func (s repoUserService) List(path api.RepoPath) ([]*api.User, error) {
-	users, err := s.client.httpClient.ListRepoUsers(path.GetNamespaceAndRepoName())
+func (s repoUserService) List(path string) ([]*api.User, error) {
+	repoPath, err := api.NewRepoPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	users, err := s.client.httpClient.ListRepoUsers(repoPath.GetNamespaceAndRepoName())
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -77,8 +86,18 @@ func (s repoUserService) List(path api.RepoPath) ([]*api.User, error) {
 }
 
 // Revoke revokes the user with given username from the repository with the given path.
-func (s repoUserService) Revoke(path api.RepoPath, username string) (*api.RevokeRepoResponse, error) {
-	resp, err := s.client.httpClient.RemoveUser(path.GetNamespace(), path.GetRepo(), username)
+func (s repoUserService) Revoke(path string, username string) (*api.RevokeRepoResponse, error) {
+	repoPath, err := api.NewRepoPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = api.ValidateUsername(username)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	resp, err := s.client.httpClient.RemoveUser(repoPath.GetNamespace(), repoPath.GetRepo(), username)
 	if err != nil {
 		return nil, errio.Error(err)
 	}

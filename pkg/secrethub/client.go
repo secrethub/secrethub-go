@@ -1,10 +1,80 @@
 package secrethub
 
 import (
-	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/crypto"
+	"github.com/secrethub/secrethub-go/internals/errio"
 )
+
+// Client is the SecretHub client.
+type Client interface {
+	AccessRules() AccessRuleService
+	Accounts() AccountService
+	Dirs() DirService
+	Me() MeService
+	Orgs() OrgService
+	Repos() RepoService
+	Secrets() SecretService
+	Services() ServiceService
+	Users() UserService
+}
+
+type clientAdapter struct {
+	client client
+}
+
+// NewClient creates a new SecretHub client.
+// It overrides the default configuration with the options when given.
+func NewClient(credential Credential, opts *ClientOptions) Client {
+	return &clientAdapter{
+		client: newClient(credential, opts),
+	}
+}
+
+// AccessRules returns an AccessRuleService.
+func (c clientAdapter) AccessRules() AccessRuleService {
+	return newAccessRuleService(c.client)
+}
+
+// Accounts returns an AccountService.
+func (c clientAdapter) Accounts() AccountService {
+	return newAccountService(c.client)
+}
+
+// Dirs returns an DirService.
+func (c clientAdapter) Dirs() DirService {
+	return newDirService(c.client)
+}
+
+// Me returns a MeService.
+func (c clientAdapter) Me() MeService {
+	return newMeService(c.client)
+}
+
+// Orgs returns an OrgService.
+func (c clientAdapter) Orgs() OrgService {
+	return newOrgService(c.client)
+}
+
+// Repos returns an RepoService.
+func (c clientAdapter) Repos() RepoService {
+	return newRepoService(c.client)
+}
+
+// Secrets returns an SecretService.
+func (c clientAdapter) Secrets() SecretService {
+	return newSecretService(c.client)
+}
+
+// Services returns an ServiceService.
+func (c clientAdapter) Services() ServiceService {
+	return newServiceService(c.client)
+}
+
+// Users returns an UserService.
+func (c clientAdapter) Users() UserService {
+	return newUserService(c.client)
+}
 
 var (
 	errClient = errio.Namespace("client")
@@ -24,11 +94,11 @@ type client struct {
 
 	// accountKey is the intermediate key for this SecretHub account.
 	// Do not use this field directly, but use client.getAccountKey() instead.
-	accountKey *crypto.RSAKey
+	accountKey *crypto.RSAPrivateKey
 
 	// repoindexKeys are the keys used to generate blind names in the repo.
 	// These are cached
-	repoIndexKeys map[api.RepoPath]*crypto.AESKey
+	repoIndexKeys map[api.RepoPath]*crypto.SymmetricKey
 }
 
 // newClient configures a new client, overriding defaults with options when given.
@@ -38,6 +108,6 @@ func newClient(credential Credential, opts *ClientOptions) client {
 	return client{
 		httpClient:    httpClient,
 		credential:    credential,
-		repoIndexKeys: make(map[api.RepoPath]*crypto.AESKey),
+		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
 }

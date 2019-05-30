@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	units "github.com/docker/go-units"
-	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/crypto"
+	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 const (
@@ -24,15 +24,15 @@ var (
 // SecretVersionService handles operations on secret versions from SecretHub.
 type SecretVersionService interface {
 	// Delete removes a secret version.
-	Delete(path api.SecretPath) error
+	Delete(path string) error
 	// GetWithData gets a secret version, with the sensitive data.
-	GetWithData(path api.SecretPath) (*api.SecretVersion, error)
+	GetWithData(path string) (*api.SecretVersion, error)
 	// GetWithoutData gets a secret version, without the sensitive data.
-	GetWithoutData(path api.SecretPath) (*api.SecretVersion, error)
+	GetWithoutData(path string) (*api.SecretVersion, error)
 	// ListWithData lists secret versions, with the sensitive data.
-	ListWithData(path api.SecretPath) ([]*api.SecretVersion, error)
+	ListWithData(path string) ([]*api.SecretVersion, error)
 	// ListWithoutData lists secret versions, without the sensitive data.
-	ListWithoutData(path api.SecretPath) ([]*api.SecretVersion, error)
+	ListWithoutData(path string) ([]*api.SecretVersion, error)
 }
 
 func newSecretVersionService(client client) SecretVersionService {
@@ -46,13 +46,18 @@ type secretVersionService struct {
 }
 
 // Delete removes a secret version.
-func (s secretVersionService) Delete(path api.SecretPath) error {
-	version, err := path.GetVersion()
+func (s secretVersionService) Delete(path string) error {
+	secretPath, err := api.NewSecretPath(path)
 	if err != nil {
 		return errio.Error(err)
 	}
 
-	secretBlindName, err := s.client.convertPathToBlindName(path)
+	version, err := secretPath.GetVersion()
+	if err != nil {
+		return errio.Error(err)
+	}
+
+	secretBlindName, err := s.client.convertPathToBlindName(secretPath)
 	if err != nil {
 		return errio.Error(err)
 	}
@@ -97,13 +102,23 @@ func (s secretVersionService) get(path api.SecretPath, withData bool) (*api.Secr
 }
 
 // GetWithData gets a secret version, with the sensitive data.
-func (s secretVersionService) GetWithData(path api.SecretPath) (*api.SecretVersion, error) {
-	return s.get(path, true)
+func (s secretVersionService) GetWithData(path string) (*api.SecretVersion, error) {
+	secretPath, err := api.NewSecretPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.get(secretPath, true)
 }
 
 // GetWithoutData gets a secret version, without the sensitive data.
-func (s secretVersionService) GetWithoutData(path api.SecretPath) (*api.SecretVersion, error) {
-	return s.get(path, false)
+func (s secretVersionService) GetWithoutData(path string) (*api.SecretVersion, error) {
+	secretPath, err := api.NewSecretPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.get(secretPath, false)
 }
 
 func (s secretVersionService) list(path api.SecretPath, withData bool) ([]*api.SecretVersion, error) {
@@ -121,38 +136,37 @@ func (s secretVersionService) list(path api.SecretPath, withData bool) ([]*api.S
 }
 
 // ListWithData lists secret versions, with the sensitive data.
-func (s secretVersionService) ListWithData(path api.SecretPath) ([]*api.SecretVersion, error) {
-	return s.list(path, true)
-}
-
-// ListWithoutData lists secret versions, without the sensitive data.
-func (s secretVersionService) ListWithoutData(path api.SecretPath) ([]*api.SecretVersion, error) {
-	return s.list(path, false)
-}
-
-// createSecretVersion creates a new version of an existing secret.
-// It creates a new secret key if the provided key is flagged.
-func (c *client) createSecretVersion(secretPath api.SecretPath, data []byte, secretKey *api.SecretKey) (*api.SecretVersion, error) {
-	var err error
-	if secretKey.Status == api.StatusFlagged {
-		secretKey, err = c.createSecretKey(secretPath)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-	}
-
-	encryptedData, err := crypto.EncryptAES(data, secretKey.Key)
+func (s secretVersionService) ListWithData(path string) ([]*api.SecretVersion, error) {
+	secretPath, err := api.NewSecretPath(path)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	encodedData, err := api.EncodeCiphertext(encryptedData)
+	return s.list(secretPath, true)
+}
+
+// ListWithoutData lists secret versions, without the sensitive data.
+func (s secretVersionService) ListWithoutData(path string) ([]*api.SecretVersion, error) {
+	secretPath, err := api.NewSecretPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return s.list(secretPath, false)
+}
+
+// createSecretVersion creates a new version of an existing secret.
+// The provided key should not be a flagged key. When it is,
+// createSecretVersion will return an error.
+func (c *client) createSecretVersion(secretPath api.SecretPath, data []byte, secretKey *api.SecretKey) (*api.SecretVersion, error) {
+	var err error
+	encryptedData, err := secretKey.Key.Encrypt(data)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
 	in := &api.CreateSecretVersionRequest{
-		EncryptedData: encodedData,
+		EncryptedData: encryptedData,
 		SecretKeyID:   secretKey.SecretKeyID,
 	}
 
@@ -183,7 +197,7 @@ func (c *client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 		return nil, errio.Error(err)
 	}
 
-	secretKey, err := crypto.GenerateAESKey()
+	secretKey, err := crypto.GenerateSymmetricKey()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -204,12 +218,7 @@ func (c *client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 		return nil, errio.Error(err)
 	}
 
-	encryptedData, err := crypto.EncryptAES(data, secretKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	encodedData, err := api.EncodeCiphertext(encryptedData)
+	encryptedData, err := secretKey.Encrypt(data)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -221,7 +230,7 @@ func (c *client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 
 	in := &api.CreateSecretRequest{
 		BlindName:     blindName,
-		EncryptedData: encodedData,
+		EncryptedData: encryptedData,
 
 		EncryptedNames: encryptedNames,
 		EncryptedKeys:  encryptedKeys,

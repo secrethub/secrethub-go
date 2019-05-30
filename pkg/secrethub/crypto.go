@@ -1,10 +1,10 @@
 package secrethub
 
 import (
-	"github.com/keylockerbv/secrethub-go/pkg/api"
-	"github.com/keylockerbv/secrethub-go/pkg/api/uuid"
-	"github.com/keylockerbv/secrethub-go/pkg/crypto"
-	"github.com/keylockerbv/secrethub-go/pkg/errio"
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/secrethub/secrethub-go/internals/crypto"
+	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 func (c *client) encryptDirFor(dir *api.Dir, accounts ...*api.Account) ([]api.EncryptedNameForNodeRequest, error) {
@@ -42,12 +42,7 @@ func (c *client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 			return nil, errio.Error(err)
 		}
 
-		encryptedSecretName, err := crypto.EncryptRSA([]byte(secret.Name), publicKey)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		encodedSecretName, err := api.EncodeCiphertext(encryptedSecretName)
+		encryptedSecretName, err := publicKey.Wrap([]byte(secret.Name))
 		if err != nil {
 			return nil, errio.Error(err)
 		}
@@ -55,19 +50,14 @@ func (c *client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 		encryptedName := api.EncryptedNameForNodeRequest{
 			EncryptedNameRequest: api.EncryptedNameRequest{
 				AccountID:     account.AccountID,
-				EncryptedName: encodedSecretName,
+				EncryptedName: encryptedSecretName,
 			},
 			NodeID: secret.SecretID,
 		}
 
 		encryptedKeys := make([]api.SecretKeyMemberRequest, len(decryptedKeys))
 		for keyIndex, decryptedKey := range decryptedKeys {
-			encryptedKey, err := crypto.EncryptRSA(decryptedKey.Key.Export(), publicKey)
-			if err != nil {
-				return nil, errio.Error(err)
-			}
-
-			encodedKey, err := api.EncodeCiphertext(encryptedKey)
+			encryptedKey, err := publicKey.Wrap(decryptedKey.Key.Export())
 			if err != nil {
 				return nil, errio.Error(err)
 			}
@@ -75,7 +65,7 @@ func (c *client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 			encryptedKeys[keyIndex] = api.SecretKeyMemberRequest{
 				AccountID:    account.AccountID,
 				SecretKeyID:  decryptedKey.SecretKeyID,
-				EncryptedKey: encodedKey,
+				EncryptedKey: encryptedKey,
 			}
 		}
 
@@ -118,19 +108,14 @@ func encryptNameForAccounts(name string, accounts ...*api.Account) ([]api.Encryp
 			return nil, errio.Error(err)
 		}
 
-		encryptedSecretName, err := crypto.EncryptRSA([]byte(name), publicKey)
+		ciphertext, err := publicKey.Wrap([]byte(name))
 		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		encodedSecretName, err := api.EncodeCiphertext(encryptedSecretName)
-		if err != nil {
-			return nil, errio.Error(err)
+			return nil, err
 		}
 
 		encryptedNames[i] = api.EncryptedNameRequest{
 			AccountID:     account.AccountID,
-			EncryptedName: encodedSecretName,
+			EncryptedName: ciphertext,
 		}
 	}
 
@@ -138,7 +123,7 @@ func encryptNameForAccounts(name string, accounts ...*api.Account) ([]api.Encryp
 }
 
 // encryptKeyForAccounts encrypts the key for every account and returns a list of EncryptedKeyRequests
-func encryptKeyForAccounts(key *crypto.AESKey, accounts ...*api.Account) ([]api.EncryptedKeyRequest, error) {
+func encryptKeyForAccounts(key *crypto.SymmetricKey, accounts ...*api.Account) ([]api.EncryptedKeyRequest, error) {
 	encryptedKeys := make([]api.EncryptedKeyRequest, len(accounts))
 	for i, account := range accounts {
 		publicKey, err := crypto.ImportRSAPublicKey(account.PublicKey)
@@ -146,19 +131,14 @@ func encryptKeyForAccounts(key *crypto.AESKey, accounts ...*api.Account) ([]api.
 			return nil, errio.Error(err)
 		}
 
-		encryptedSecretKey, err := crypto.EncryptRSA(key.Export(), publicKey)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		encodedSecretKey, err := api.EncodeCiphertext(encryptedSecretKey)
+		encryptedSecretKey, err := publicKey.Wrap(key.Export())
 		if err != nil {
 			return nil, errio.Error(err)
 		}
 
 		encryptedKeys[i] = api.EncryptedKeyRequest{
 			AccountID:    account.AccountID,
-			EncryptedKey: encodedSecretKey,
+			EncryptedKey: encryptedSecretKey,
 		}
 	}
 
