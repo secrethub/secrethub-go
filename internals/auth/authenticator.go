@@ -55,6 +55,9 @@ func (a *authenticator) getMethod(r *http.Request) (Method, error) {
 	if len(format) != 2 {
 		return nil, ErrUnsupportedAuthFormat
 	}
+	if format[0] == MethodTagSignatureV1 || format[0] == MethodTagSignatureV2 {
+		return nil, ErrOutdatedSignatureProtocol
+	}
 
 	method, ok := a.methods[format[0]]
 	if !ok {
