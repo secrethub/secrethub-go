@@ -291,6 +291,11 @@ func TestIsSubset(t *testing.T) {
 			b:        "abc",
 			expected: true,
 		},
+		"different order": {
+			a:        "abc",
+			b:        "cba",
+			expected: true,
+		},
 		"subset": {
 			a:        "ab",
 			b:        "abc",
@@ -336,6 +341,11 @@ func TestEqual(t *testing.T) {
 		"equal": {
 			a:        "abc",
 			b:        "abc",
+			expected: true,
+		},
+		"different order": {
+			a:        "abc",
+			b:        "cba",
 			expected: true,
 		},
 		"subset": {
