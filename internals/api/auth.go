@@ -1,6 +1,8 @@
 package api
 
 import (
+	"encoding/json"
+	"net/http"
 	"time"
 
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
@@ -13,25 +15,58 @@ const (
 )
 
 var (
-	ErrInvalidSessionType  = errAPI.Code("invalid_session_type").Error("invalid session type provided for authentication request")
-	ErrInvalidPayload      = errAPI.Code("invalid_payload").Error("invalid payload provided for authentication request")
-	ErrIncorrectAuthMethod = errAPI.Code("incorrect_auth_method").ErrorPref("wrong auth method, expected %s")
-	ErrMissingField        = errAPI.Code("missing_field").ErrorPref("request is missing field %s")
+	ErrInvalidSessionType = errAPI.Code("invalid_session_type").StatusError("invalid session type provided for authentication request", http.StatusBadRequest)
+	ErrInvalidPayload     = errAPI.Code("invalid_payload").StatusError("invalid payload provided for authentication request", http.StatusBadRequest)
+	ErrInvalidAuthMethod  = errAPI.Code("invalid_auth_method").StatusError("invalid auth method", http.StatusBadRequest)
+	ErrMissingField       = errAPI.Code("missing_field").StatusErrorPref("request is missing field %s", http.StatusBadRequest)
 )
 
 type AuthRequest struct {
-	Method      *string `json:"method"`
-	SessionType *string `json:"session_type"`
-}
-
-type AuthRequestAWSSTS struct {
-	AuthRequest
-	Payload *AuthPayloadAWSSTS `json:"payload"`
+	Method      *string     `json:"method"`
+	SessionType *string     `json:"session_type"`
+	Payload     interface{} `json:"payload"`
 }
 
 type AuthPayloadAWSSTS struct {
 	Region  *string `json:"region"`
 	Request *[]byte `json:"request"`
+}
+
+func NewAuthRequestAWSSTS(sessionType, region string, stsRequest []byte) AuthRequest {
+	return AuthRequest{
+		Method:      String(AuthMethodAWSSTS),
+		SessionType: &sessionType,
+		Payload: &AuthPayloadAWSSTS{
+			Region:  &region,
+			Request: &stsRequest,
+		},
+	}
+}
+
+func (r AuthRequest) UnmarshalJSON(b []byte) error {
+	encodedPayload := json.RawMessage{}
+	r.Payload = &encodedPayload
+	err := json.Unmarshal(b, &r)
+	if err != nil {
+		return err
+	}
+
+	if r.Method == nil {
+		return ErrInvalidAuthMethod
+	}
+
+	switch *r.Method {
+	case AuthMethodAWSSTS:
+		r.Payload = &AuthPayloadAWSSTS{}
+	default:
+		return ErrInvalidAuthMethod
+	}
+
+	err = json.Unmarshal(encodedPayload, r.Payload)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r AuthRequest) Validate() error {
@@ -41,36 +76,20 @@ func (r AuthRequest) Validate() error {
 	if *r.SessionType != SessionTypeHMAC {
 		return ErrInvalidSessionType
 	}
-}
-
-func NewAuthRequestAWSSTS(sessionType, region string, stsRequest []byte) AuthRequestAWSSTS {
-	return AuthRequestAWSSTS{
-		AuthRequest: AuthRequest{
-			Method:      String(AuthMethodAWSSTS),
-			SessionType: &sessionType,
-		},
-		Payload: &AuthPayloadAWSSTS{
-			Region:  &region,
-			Request: &stsRequest,
-		},
-	}
-}
-
-func (r AuthRequestAWSSTS) Validate() error {
-	if err := r.AuthRequest.Validate(); err != nil {
-		return err
-	}
 	if r.Method == nil {
 		return ErrMissingField("method")
 	}
-	if *r.Method != AuthMethodAWSSTS {
-		return ErrIncorrectAuthMethod(AuthMethodAWSSTS)
-	}
-	if r.Payload == nil {
-		return ErrMissingField("payload")
-	}
-	if err := r.Payload.Validate(); err != nil {
-		return err
+	switch *r.Method {
+	case AuthMethodAWSSTS:
+		authPayload, ok := r.Payload.(AuthPayloadAWSSTS)
+		if !ok {
+			return ErrInvalidPayload
+		}
+		if err := authPayload.Validate(); err != nil {
+			return err
+		}
+	default:
+		return ErrInvalidAuthMethod
 	}
 	return nil
 }
