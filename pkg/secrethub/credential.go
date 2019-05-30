@@ -44,10 +44,6 @@ type Credential interface {
 	Fingerprint() (string, error)
 	// Verifier returns the data to be stored server side to verify an http request authenticated with this credential.
 	Verifier() ([]byte, error)
-	// Wrap encrypts data, typically an account key.
-	Wrap(plaintext []byte) (crypto.CiphertextRSAAES, error)
-	// Unwrap decrypts data, typically an account key.
-	Unwrap(ciphertext crypto.CiphertextRSAAES) ([]byte, error)
 	// Export exports the credential in a format that can be decoded by its Decoder.
 	Export() []byte
 	// Decoder returns a decoder that can decode an exported key back into a Credential.
