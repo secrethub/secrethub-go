@@ -243,7 +243,7 @@ func NewMethodSignature(credentialGetter credentialGetter) Method {
 func NewMethodSignatureV2(credentialGetter credentialGetter) Method {
 	return methodSignatureV2{
 		credentialSignatureVerifier: credentialSignatureVerifier{
-			credentialGetter:credentialGetter,
+			credentialGetter: credentialGetter,
 		},
 	}
 }
@@ -259,16 +259,6 @@ func (m methodSignatureV2) Tag() string {
 
 // Verify authenticates an account from an http request.
 func (m methodSignatureV2) Verify(r *http.Request) (*Result, error) {
-	requestTime, err := time.Parse(time.RFC1123, r.Header.Get("Date"))
-	if err != nil {
-		return nil, ErrCannotParseDateHeader
-	}
-
-	err = isTimeValid(requestTime, time.Now().UTC())
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
 	format := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 	if len(format) != 2 {
 		return nil, ErrInvalidAuthorizationHeader
@@ -306,16 +296,6 @@ func (m methodSignatureCommon) Tag() string {
 
 // Verify authenticates an account from an http request.
 func (m methodSignatureCommon) Verify(r *http.Request) (*Result, error) {
-	requestTime, err := time.Parse(time.RFC1123, r.Header.Get("Date"))
-	if err != nil {
-		return nil, ErrCannotParseDateHeader
-	}
-
-	err = isTimeValid(requestTime, time.Now().UTC())
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
 	format := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 	if len(format) != 2 {
 		return nil, ErrInvalidAuthorizationHeader

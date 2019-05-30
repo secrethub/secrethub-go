@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 )
@@ -43,6 +44,17 @@ func (a *authenticator) Verify(r *http.Request) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	requestTime, err := time.Parse(time.RFC1123, r.Header.Get("Date"))
+	if err != nil {
+		return nil, ErrCannotParseDateHeader
+	}
+
+	err = isTimeValid(requestTime, time.Now().UTC())
+	if err != nil {
+		return nil, err
+	}
+
 	return method.Verify(r)
 }
 
