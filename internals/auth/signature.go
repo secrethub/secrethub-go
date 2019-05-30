@@ -220,11 +220,6 @@ func getMessage(r *http.Request) ([]byte, error) {
 	return result.Bytes(), nil
 }
 
-// MethodSignature can authenticate signed HTTP request.
-type MethodSignature struct {
-	methodSignatureCommon
-}
-
 // credentialGetter can be used to retrieve credentials.
 type credentialGetter interface {
 	// GetCredential retrieves a credential.
@@ -233,11 +228,9 @@ type credentialGetter interface {
 
 // NewMethodSignature returns a new MethodSignature.
 func NewMethodSignature(credentialGetter credentialGetter) Method {
-	return &MethodSignature{
-		methodSignatureCommon{
-			credentialSignatureVerifier: credentialSignatureVerifier{
-				credentialGetter: credentialGetter,
-			},
+	return methodSignatureCommon{
+		credentialSignatureVerifier: credentialSignatureVerifier{
+			credentialGetter: credentialGetter,
 		},
 	}
 }
