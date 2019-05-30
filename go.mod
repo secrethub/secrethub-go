@@ -8,12 +8,11 @@ require (
 	github.com/getsentry/raven-go v0.2.0
 	github.com/go-chi/chi v4.0.1+incompatible
 	github.com/google/go-querystring v1.0.0
-	github.com/kr/pretty v0.1.0 // indirect
 	github.com/kr/pty v1.1.3 // indirect
 	github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/satori/go.uuid v1.2.0
-	golang.org/x/crypto v0.0.0-20190211182817-74369b46fc67
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
+	github.com/secrethub/secrethub-go v0.20.0
+	golang.org/x/crypto v0.0.0-20190225124518-7f87c0fbb88b
 )
