@@ -2,8 +2,9 @@ package randchar
 
 import (
 	"crypto/rand"
-	"fmt"
+	"errors"
 	"io"
+	"log"
 	"math/big"
 )
 
@@ -27,7 +28,7 @@ var (
 
 	// DefaultRand defines the default random generator to use. You can create
 	// your own generators using NewRand.
-	DefaultRand = NewRand(Alphanumeric)
+	DefaultRand = MustNewRand(Alphanumeric)
 )
 
 // Generator generates random byte arrays.
@@ -40,9 +41,9 @@ type Generator interface {
 // to configure the random generator, use NewRand instead.
 func NewGenerator(useSymbols bool) Generator {
 	if useSymbols {
-		return NewRand(Alphanumeric.Add(Symbols))
+		return MustNewRand(Alphanumeric.Add(Symbols))
 	}
-	return NewRand(Alphanumeric)
+	return MustNewRand(Alphanumeric)
 }
 
 // Rand helps generating slices of randomly chosen
@@ -56,20 +57,34 @@ type Rand struct {
 
 // NewRand initializes a new random generator from the given character set
 // and configures it with the given options.
-func NewRand(base Charset, options ...Option) Rand {
+func NewRand(base Charset, options ...Option) (Rand, error) {
 	r := Rand{
 		reader: rand.Reader,
 		base:   base,
 	}
 
+	var err error
 	for _, opt := range options {
-		r = opt(r)
+		r, err = opt(r)
+		if err != nil {
+			return r, err
+		}
+	}
+	return r, nil
+}
+
+// MustNewRand is a utility function for creating random character generators,
+// which panicks upon error so be careful. For more safety, use NewRand instead.
+func MustNewRand(base Charset, options ...Option) Rand {
+	r, err := NewRand(base, options...)
+	if err != nil {
+		log.Fatal(err)
 	}
 	return r
 }
 
 // Option defines a configuration option for a random reader.
-type Option func(r Rand) Rand
+type Option func(r Rand) (Rand, error)
 
 // minimum defines a minimum number of characters that must be from a given character set.
 type minimum struct {
@@ -78,31 +93,57 @@ type minimum struct {
 }
 
 // Min ensures the generated slice contains at least n characters from the given character set.
+// When multiple Min options are given with the same character set, the biggest minimum takes precedence.
 func Min(n int, charset Charset) Option {
-	return func(r Rand) Rand {
+	return func(r Rand) (Rand, error) {
+		if n < 1 {
+			return r, errors.New("minimum must be at least 1")
+		}
+
+		if len(charset) == 0 {
+			return r, errors.New("minimum character set cannot be empty")
+		}
+
+		if !charset.IsSubset((r.base)) {
+			return r, errors.New("minimum character set must be a subset of the base character set")
+		}
+
+		// Ensure the biggest minimum takes precedence when same charset minimum applies.
+		for i, minimum := range r.minima {
+			if minimum.charset.Equal(charset) {
+				if minimum.count >= n {
+					return r, nil
+				}
+
+				r.minLen += n - minimum.count
+				r.minima[i].count = n
+				return r, nil
+			}
+		}
+
 		r.minima = append(r.minima, minimum{
 			count:   n,
 			charset: charset,
 		})
 		r.minLen += n
-		return r
+		return r, nil
 	}
 }
 
 // WithReader allows you to set the reader used as source of randomness.
 // Do not use this unless you know what you're doing. By default, the
-// jsource of randomness is set to rand.Reader.
+// source of randomness is set to crypto/rand.Reader.
 func WithReader(reader io.Reader) Option {
-	return func(r Rand) Rand {
+	return func(r Rand) (Rand, error) {
 		r.reader = reader
-		return r
+		return r, nil
 	}
 }
 
 // Generate returns a randomly generated slice of characters that meets the requirements of the reader.
 func (r Rand) Generate(n int) ([]byte, error) {
 	if n < r.minLen {
-		return nil, fmt.Errorf("n cannot be smaller than the minimum required length of the generator")
+		return nil, errors.New("n cannot be smaller than the minimum required length of the generator")
 	}
 
 	var result []byte
@@ -194,6 +235,33 @@ func (cs Charset) Subtract(set Charset) Charset {
 	}
 
 	return result
+}
+
+// IsSubset returns true when the character set is a subset of the given set.
+// When both sets are the same it returns true too.
+func (cs Charset) IsSubset(of Charset) bool {
+	set := map[byte]struct{}{}
+	for _, char := range of {
+		set[char] = struct{}{}
+	}
+
+	for _, char := range cs {
+		_, found := set[char]
+		if !found {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal returns true when one character set is equal to another character set.
+func (cs Charset) Equal(other Charset) bool {
+	if len(cs) != len(other) {
+		return false
+	}
+
+	return cs.IsSubset(other)
 }
 
 // rand returns a byte slice of length n filled with randomly chosen characters
