@@ -9,6 +9,7 @@ import (
 
 // Errors
 var (
+	ErrUnsupportedSignMethod = errNamespace.Code("unsupported_sign_method").StatusError("the sign method in the authorization header is not supported", http.StatusBadRequest)
 	ErrUnsupportedAuthFormat = errNamespace.Code("unsupported_auth_format").StatusError("the authentication format in the Authorization header is not supported", http.StatusBadRequest)
 	ErrNoAuthHeader          = errNamespace.Code("no_auth_header").StatusError("the authorization header should be set", http.StatusBadRequest)
 )

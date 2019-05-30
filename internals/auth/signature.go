@@ -42,6 +42,9 @@ const (
 	MethodTagSignatureV2 = "SecretHub-Sig2"
 	// MethodTagSignature defines the method's Authorization header tag.
 	MethodTagSignature = "secrethub-sig-v1"
+	// MethodTagSignaturev2 is the authorization header tag used for authorization
+	// headers that include the signing method.
+	MethodTagSignaturev2 = "secrethub-sig-v2"
 )
 
 // Errors
@@ -89,18 +92,19 @@ func NewHTTPSigner(signer Signer) HTTPSigner {
 // to the request in the `Authorization` HTTP Header. The HTTP Header contains
 // the following information:
 //
-//	Authorization: 	SecretHub <authentication_identifier>:<signature>
+//	Authorization: 	secrethub-sig-v2 <signing method>:<authentication_identifier>:<signature>
 //	Date: 			<current_utc_time_in_RFC1123>
 //
 // The Authorization Header is composed of the following elements:
-// - The 'SecretHub' part identifies the authentication method used as this
-// SecretHub method.
-// - The <authentication_identifier> uniquely identifies the public key used
-// to sign the request with. This public key is used server side to verify
-// the <signature>.
+// - The 'secrethub-sig-v2' part identifies the authorization header format.
+// - The <signing method> identifies the method used to produce the signature.
+//   This is used server side to select the corresponding verification method.
+// - The <authentication_identifier> uniquely identifies the signer used
+//   to sign the request with. This identifier is used server side to verify
+//   the <signature>.
 // - The <signature> is a signed digest of selected elements of the request,
-// encoded as base64 with standard encoding. See getMessage for the elements
-// contained in the digest's signature.
+//   encoded as base64 with standard encoding. See getMessage for the elements
+//   contained in the digest's signature.
 //
 // The Date header is set to the current time of the client making the request
 // in the UTC timezone and using the RFC1123 format, as specified in the HTTP
@@ -139,8 +143,9 @@ func (s httpSigner) Sign(r *http.Request) error {
 	}
 
 	r.Header.Set("Authorization",
-		fmt.Sprintf("%s %s:%s",
-			MethodTagSignature,
+		fmt.Sprintf("%s %s:%s:%s",
+			MethodTagSignaturev2,
+			s.signer.SignMethod(),
 			id,
 			base64EncodedSignature))
 
@@ -234,6 +239,60 @@ func NewMethodSignature(credentialGetter credentialGetter) Method {
 	}
 }
 
+// NewMethodSignatureV2 returns a new authentication method.
+func NewMethodSignatureV2(credentialGetter credentialGetter) Method {
+	return methodSignatureV2{
+		credentialSignatureVerifier: credentialSignatureVerifier{
+			credentialGetter:credentialGetter,
+		},
+	}
+}
+
+type methodSignatureV2 struct {
+	credentialSignatureVerifier credentialSignatureVerifier
+}
+
+// Tag returns the authorization header type.
+func (m methodSignatureV2) Tag() string {
+	return MethodTagSignaturev2
+}
+
+// Verify authenticates an account from an http request.
+func (m methodSignatureV2) Verify(r *http.Request) (*Result, error) {
+	requestTime, err := time.Parse(time.RFC1123, r.Header.Get("Date"))
+	if err != nil {
+		return nil, ErrCannotParseDateHeader
+	}
+
+	err = isTimeValid(requestTime, time.Now().UTC())
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	format := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
+	if len(format) != 2 {
+		return nil, ErrInvalidAuthorizationHeader
+	}
+
+	message, err := getMessage(r)
+	if err != nil {
+		return nil, errio.StatusError(err)
+	}
+
+	credentials := strings.Split(format[1], ":")
+
+	if len(credentials) != 3 {
+		return nil, ErrInvalidAuthorizationHeader
+	}
+
+	switch credentials[0] {
+	case "PKCS1v15":
+		return m.credentialSignatureVerifier.verify(credentials[1], credentials[2], message)
+	default:
+		return nil, ErrUnsupportedSignMethod
+	}
+}
+
 // methodSignatureCommon is a shared type that encodes
 // signing logic for authentication.
 type methodSignatureCommon struct {
@@ -267,22 +326,20 @@ func (m methodSignatureCommon) Verify(r *http.Request) (*Result, error) {
 		return nil, errio.StatusError(err)
 	}
 
-	return m.credentialSignatureVerifier.verify(format[1], message)
+	credentials := strings.Split(format[1], ":")
+
+	if len(credentials) != 2 {
+		return nil, ErrInvalidAuthorizationHeader
+	}
+
+	return m.credentialSignatureVerifier.verify(credentials[0], credentials[1], message)
 }
 
 type credentialSignatureVerifier struct {
 	credentialGetter credentialGetter
 }
 
-func (v credentialSignatureVerifier) verify(credentials string, message []byte) (*Result, error) {
-	creds := strings.Split(credentials, ":")
-
-	if len(creds) != 2 {
-		return nil, ErrInvalidAuthorizationHeader
-	}
-
-	identifier, encodedSignature := creds[0], creds[1]
-
+func (v credentialSignatureVerifier) verify(identifier, encodedSignature string, message []byte) (*Result, error) {
 	signature, err := base64.StdEncoding.DecodeString(encodedSignature)
 	if err != nil {
 		return nil, ErrMalformedSignature
