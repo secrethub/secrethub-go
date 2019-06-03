@@ -280,7 +280,7 @@ func TestSignRequest(t *testing.T) {
 				},
 			}
 
-			authenticator := auth.NewAuthenticator(auth.NewMethodSignatureV2(fakeCredentialGetter))
+			authenticator := auth.NewAuthenticator(auth.NewPKCS1v15Verifier(fakeCredentialGetter))
 
 			err = signer.Sign(req)
 			assert.OK(t, err)
@@ -334,7 +334,7 @@ func TestReplayRequest(t *testing.T) {
 			}, nil
 		},
 	}
-	authenticator := auth.NewAuthenticator(auth.NewMethodSignatureV2(fakeCredentialGetter))
+	authenticator := auth.NewAuthenticator(auth.NewPKCS1v15Verifier(fakeCredentialGetter))
 
 	cases := map[string]struct {
 		originalMethod string

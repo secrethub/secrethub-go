@@ -42,9 +42,9 @@ const (
 	MethodTagSignatureV2 = "SecretHub-Sig2"
 	// MethodTagSignature defines the method's Authorization header tag.
 	MethodTagSignature = "secrethub-sig-v1"
-	// MethodTagSignaturev2 is the authorization header tag used for authorization
+	// AuthHeaderVersionV1 is the authorization header tag used for authorization
 	// headers that include the signing method.
-	MethodTagSignaturev2 = "secrethub-sig-v2"
+	AuthHeaderVersionV1 = "SH1"
 )
 
 // Errors
@@ -92,11 +92,11 @@ func NewHTTPSigner(signer Signer) HTTPSigner {
 // to the request in the `Authorization` HTTP Header. The HTTP Header contains
 // the following information:
 //
-//	Authorization: 	secrethub-sig-v2 <signing method>:<authentication_identifier>:<signature>
+//	Authorization: 	SH1-<signing method> <authentication_identifier>:<signature>
 //	Date: 			<current_utc_time_in_RFC1123>
 //
 // The Authorization Header is composed of the following elements:
-// - The 'secrethub-sig-v2' part identifies the authorization header format.
+// - The 'SH1' part identifies the authorization header format.
 // - The <signing method> identifies the method used to produce the signature.
 //   This is used server side to select the corresponding verification method.
 // - The <authentication_identifier> uniquely identifies the signer used
@@ -143,8 +143,8 @@ func (s httpSigner) Sign(r *http.Request) error {
 	}
 
 	r.Header.Set("Authorization",
-		fmt.Sprintf("%s %s:%s:%s",
-			MethodTagSignaturev2,
+		fmt.Sprintf("%s-%s %s:%s",
+			AuthHeaderVersionV1,
 			s.signer.SignMethod(),
 			id,
 			base64EncodedSignature))
@@ -239,38 +239,31 @@ func NewMethodSignature(credentialGetter credentialGetter) Method {
 	}
 }
 
-// NewMethodSignatureV2 returns a new authentication method.
-func NewMethodSignatureV2(credentialGetter credentialGetter) Method {
-	return methodSignatureV2{
+// NewPKCS1v15Verifier returns a new authentication method.
+func NewPKCS1v15Verifier(credentialGetter credentialGetter) Method {
+	return pKCS1v15Verifier{
 		credentialSignatureVerifier: credentialSignatureVerifier{
 			credentialGetter: credentialGetter,
 		},
 	}
 }
 
-type methodSignatureV2 struct {
+type pKCS1v15Verifier struct {
 	credentialSignatureVerifier credentialSignatureVerifier
 }
 
 // Tag returns the authorization header type.
-func (m methodSignatureV2) Tag() string {
-	return MethodTagSignaturev2
+func (m pKCS1v15Verifier) Tag() string {
+	return fmt.Sprintf("%s-%s", AuthHeaderVersionV1, "PKCS1v15")
 }
 
 // Verify authenticates an account from an http request.
-func (m methodSignatureV2) Verify(credentials string, data []byte) (*Result, error) {
+func (m pKCS1v15Verifier) Verify(credentials string, data []byte) (*Result, error) {
 	creds := strings.Split(credentials, ":")
-
-	if len(creds) != 3 {
+	if len(creds) != 2 {
 		return nil, ErrInvalidAuthorizationHeader
 	}
-
-	switch creds[0] {
-	case "PKCS1v15":
-		return m.credentialSignatureVerifier.verify(creds[1], creds[2], data)
-	default:
-		return nil, ErrUnsupportedSignMethod
-	}
+	return m.credentialSignatureVerifier.verify(creds[0], creds[1], data)
 }
 
 // methodSignatureCommon is a shared type that encodes
