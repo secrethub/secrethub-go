@@ -128,10 +128,10 @@ func TestVerify(t *testing.T) {
 				},
 			}
 
-			authenticator := auth.NewAuthenticator(auth.NewMethodSignature(fakeCredentialGetter))
+			verifier := auth.NewVerifier(auth.NewMethodSignature(fakeCredentialGetter))
 
 			// Act
-			actual, err := authenticator.Verify(req)
+			actual, err := verifier.Verify(req)
 
 			// Assert
 			assert.Equal(t, err, tc.Err)
@@ -233,7 +233,7 @@ func TestAuthenticator_Verify(t *testing.T) {
 			}
 
 			// Act
-			actual, err := auth.NewAuthenticator(fakeMethod{}).Verify(req)
+			actual, err := auth.NewVerifier(fakeMethod{}).Verify(req)
 
 			// Assert
 			assert.Equal(t, actual, tc.expected)
@@ -293,13 +293,13 @@ func TestSignRequest(t *testing.T) {
 				},
 			}
 
-			authenticator := auth.NewAuthenticator(auth.NewPKCS1v15Verifier(fakeCredentialGetter))
+			verifier := auth.NewVerifier(auth.NewPKCS1v15Verifier(fakeCredentialGetter))
 
 			err = signer.Sign(req)
 			assert.OK(t, err)
 
 			// Act
-			actual, err := authenticator.Verify(req)
+			actual, err := verifier.Verify(req)
 
 			// Assert
 			assert.Equal(t, err, tc.Err)
@@ -347,7 +347,7 @@ func TestReplayRequest(t *testing.T) {
 			}, nil
 		},
 	}
-	authenticator := auth.NewAuthenticator(auth.NewPKCS1v15Verifier(fakeCredentialGetter))
+	authenticator := auth.NewVerifier(auth.NewPKCS1v15Verifier(fakeCredentialGetter))
 
 	cases := map[string]struct {
 		originalMethod string

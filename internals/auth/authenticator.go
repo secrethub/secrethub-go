@@ -15,8 +15,8 @@ var (
 	ErrNoAuthHeader          = errNamespace.Code("no_auth_header").StatusError("the authorization header should be set", http.StatusBadRequest)
 )
 
-// Authenticator can authenticate an account from an http request.
-type Authenticator interface {
+// Verifier can authenticate an account from an http request.
+type Verifier interface {
 	Verify(r *http.Request) (*Result, error)
 }
 
@@ -25,8 +25,8 @@ type CredentialAuthenticator interface {
 	Verify(credentials string, data []byte) (*Result, error)
 }
 
-// NewAuthenticator returns a new Authenticator, supporting the given Methods.
-func NewAuthenticator(methods ...Method) Authenticator {
+// NewVerifier returns a new Verifier, supporting the given Methods.
+func NewVerifier(methods ...Method) Verifier {
 	a := &authenticator{
 		methods: make(map[string]Method),
 	}
