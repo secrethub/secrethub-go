@@ -188,21 +188,35 @@ func TestAuthenticator_Verify(t *testing.T) {
 		"empty header": {
 			headers: map[string]string{
 				"Authorization": "",
-				"Date":          time.Now().Format(time.RFC3339),
+				"Date":          time.Now().Format(time.RFC1123),
 			},
 			err: auth.ErrNoAuthHeader,
 		},
 		"no key or token": {
 			headers: map[string]string{
 				"Authorization": "TestAuth",
-				"Date":          time.Now().Format(time.RFC3339),
+				"Date":          time.Now().Format(time.RFC1123),
 			},
 			err: auth.ErrUnsupportedAuthFormat,
+		},
+		"expired": {
+			headers: map[string]string{
+				"Authorization": "TestAuth token",
+				"Date":          time.Now().Add(-6 * time.Minute).Format(time.RFC1123),
+			},
+			err: auth.ErrSignatureExpired,
+		},
+		"future": {
+			headers: map[string]string{
+				"Authorization": "TestAuth token",
+				"Date":          time.Now().Add(6 * time.Minute).Format(time.RFC1123),
+			},
+			err: auth.ErrSignatureFuture,
 		},
 		"success": {
 			headers: map[string]string{
 				"Authorization": "TestAuth token",
-				"Date":          time.Now().Format(time.RFC3339),
+				"Date":          time.Now().Format(time.RFC1123),
 			},
 			expected: testResult,
 		},
@@ -217,7 +231,6 @@ func TestAuthenticator_Verify(t *testing.T) {
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
-			req.Header.Set("Date", time.Now().Format(time.RFC1123))
 
 			// Act
 			actual, err := auth.NewAuthenticator(fakeMethod{}).Verify(req)
