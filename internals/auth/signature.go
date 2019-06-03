@@ -71,24 +71,24 @@ type Signer interface {
 	SignMethod() string
 }
 
-// HTTPSigner proofs that an HTTP request is made by the owner of the signer.
-type HTTPSigner interface {
-	Sign(r *http.Request) error
+// Authenticator proofs that an HTTP request is made by the owner of the authenticator.
+type Authenticator interface {
+	Authenticate(r *http.Request) error
 }
 
 type httpSigner struct {
 	signer Signer
 }
 
-// NewHTTPSigner creates an HTTPSigner that uses the given signer to prove the owner
+// NewHTTPSigner creates an authenticator that uses the given signer to prove the owner
 // of the signer is making the  HTTP request.
-func NewHTTPSigner(signer Signer) HTTPSigner {
+func NewHTTPSigner(signer Signer) Authenticator {
 	return httpSigner{
 		signer: signer,
 	}
 }
 
-// Sign signs the request and adds authentication information
+// Authenticate signs the request and adds authentication information
 // to the request in the `Authorization` HTTP Header. The HTTP Header contains
 // the following information:
 //
@@ -121,7 +121,7 @@ func NewHTTPSigner(signer Signer) HTTPSigner {
 // this risk by using TLS, which encrypts HTTP Headers as well. This makes
 // a MitM attack impossible without an attacker having access to the server's
 // private TLS key. This solution is also proposed in RFC 4521 Section-4.1.
-func (s httpSigner) Sign(r *http.Request) error {
+func (s httpSigner) Authenticate(r *http.Request) error {
 	formattedTime := time.Now().UTC().Format(time.RFC1123)
 	r.Header.Set("Date", formattedTime)
 

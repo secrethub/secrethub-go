@@ -40,9 +40,9 @@ type clientAdapter struct {
 
 // NewClient creates a new SecretHub client.
 // It overrides the default configuration with the options when given.
-func NewClient(decryptor Decryptor, encryptor Encryptor, signer auth.HTTPSigner, opts *ClientOptions) Client {
+func NewClient(decryptor Decryptor, encryptor Encryptor, authenticator auth.Authenticator, opts *ClientOptions) Client {
 	return &clientAdapter{
-		client: newClient(decryptor, encryptor, signer, opts),
+		client: newClient(decryptor, encryptor, authenticator, opts),
 	}
 }
 
@@ -116,8 +116,8 @@ type client struct {
 }
 
 // newClient configures a new client, overriding defaults with options when given.
-func newClient(decryptor Decryptor, encryptor Encryptor, signer auth.HTTPSigner, opts *ClientOptions) client {
-	httpClient := newHTTPClient(signer, opts)
+func newClient(decryptor Decryptor, encryptor Encryptor, authenticator auth.Authenticator, opts *ClientOptions) client {
+	httpClient := newHTTPClient(authenticator, opts)
 
 	return client{
 		httpClient:    httpClient,

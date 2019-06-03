@@ -22,7 +22,7 @@ import (
 
 var (
 	clientKey     crypto.RSAPrivateKey
-	signer        auth.HTTPSigner
+	signer        auth.Authenticator
 	diffClientKey crypto.RSAPrivateKey
 )
 
@@ -295,7 +295,7 @@ func TestSignRequest(t *testing.T) {
 
 			verifier := auth.NewVerifier(auth.NewPKCS1v15Verifier(fakeCredentialGetter))
 
-			err = signer.Sign(req)
+			err = signer.Authenticate(req)
 			assert.OK(t, err)
 
 			// Act
@@ -317,7 +317,7 @@ func TestSignRequest_CheckHeadersAreSet(t *testing.T) {
 	assert.OK(t, err)
 
 	// Act
-	err = signer.Sign(req)
+	err = signer.Authenticate(req)
 	assert.OK(t, err)
 
 	// Assert
@@ -397,7 +397,7 @@ func TestReplayRequest(t *testing.T) {
 			original, err := http.NewRequest(tc.originalMethod, tc.originalURL, tc.originalBody)
 			assert.OK(t, err)
 
-			err = signer.Sign(original)
+			err = signer.Authenticate(original)
 			assert.OK(t, err)
 
 			replay, err := http.NewRequest(tc.replayMethod, tc.replayURL, tc.replayBody)
