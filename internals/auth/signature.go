@@ -6,42 +6,14 @@ import (
 	"encoding/base64"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"time"
-
-	"github.com/secrethub/secrethub-go/internals/api"
 
 	"fmt"
 
-	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 const (
-	// maxLifetime is the maximum lifetime of a valid signature.
-	maxLifetime time.Duration = 1 * time.Minute
-
-	// maxClockSkew is the maximum time we allow a client's clock to be
-	// out of sync with the server clock. The speed of clients and the
-	// timeout values for clients mean the clock skew should also take
-	// into account the time it may take for a request to be accepted
-	// by the server.
-	//
-	// For reference, we include these two articles on the max clock skew AWS:
-	// - 2017, states AWS maxClockSkew is 5 min: http://altereos.com/2017/02/how-to-correct-clock-skew-in-aws/
-	// - 2015, suggests AWS maxClockSkew is 15 min: https://aws.amazon.com/blogs/developer/clock-skew-correction/
-	maxClockSkew time.Duration = 5 * time.Minute
-
-	// maxExpirationDifference is the maximum time difference between a
-	// request's signature and the current time to be considered valid.
-	maxExpirationDifference = maxLifetime + maxClockSkew
-
-	// MethodTagSignatureV1 defines the deprecated v1 Authorization header tag.
-	MethodTagSignatureV1 = "SecretHub"
-	// MethodTagSignatureV2 defines the deprecated v2 Authorization header tag.
-	MethodTagSignatureV2 = "SecretHub-Sig2"
-	// MethodTagSignature defines the method's Authorization header tag.
-	MethodTagSignature = "secrethub-sig-v1"
 	// AuthHeaderVersionV1 is the authorization header tag used for authorization
 	// headers that include the signing method.
 	AuthHeaderVersionV1 = "SecretHub-v1"
@@ -51,7 +23,7 @@ const (
 var (
 	errNamespace                  = errio.Namespace("authentication")
 	ErrCannotParseDateHeader      = errNamespace.Code("parse_date_header_failed").StatusError("could not authenticate request because the date header of the auth message could not be parsed", http.StatusBadRequest)
-	ErrInvalidAuthorizationHeader = errNamespace.Code("invalid_authorization_header").StatusErrorf("could not authenticate request because the authorization header must have format: %s identifier:base64_encoded_signature", http.StatusBadRequest, MethodTagSignature)
+	ErrInvalidAuthorizationHeader = errNamespace.Code("invalid_authorization_header").StatusErrorf("could not authenticate request because the authorization header has invalid format", http.StatusBadRequest)
 	ErrOutdatedSignatureProtocol  = errNamespace.Code("outdated_signature_protocol").StatusError("the signature protocol used for authentication is outdated, please upgrade to a newer version", http.StatusBadRequest)
 
 	ErrMalformedSignature = errNamespace.Code("malformed_signature").StatusError("could not authenticate request because the signature is malformed", http.StatusBadRequest)
@@ -222,117 +194,4 @@ func getMessage(r *http.Request) ([]byte, error) {
 	result.WriteString(fmt.Sprintf("%s;", r.URL.Path))
 
 	return result.Bytes(), nil
-}
-
-// credentialGetter can be used to retrieve credentials.
-type credentialGetter interface {
-	// GetCredential retrieves a credential.
-	GetCredential(fingerprint string) (*api.Credential, error)
-}
-
-// NewMethodSignature returns a new MethodSignature.
-func NewMethodSignature(credentialGetter credentialGetter) Method {
-	return methodSignatureCommon{
-		credentialSignatureVerifier: credentialSignatureVerifier{
-			credentialGetter: credentialGetter,
-		},
-	}
-}
-
-// NewPKCS1v15Verifier returns a new authentication method.
-func NewPKCS1v15Verifier(credentialGetter credentialGetter) Method {
-	return pKCS1v15Verifier{
-		credentialSignatureVerifier: credentialSignatureVerifier{
-			credentialGetter: credentialGetter,
-		},
-	}
-}
-
-type pKCS1v15Verifier struct {
-	credentialSignatureVerifier credentialSignatureVerifier
-}
-
-// Tag returns the authorization header type.
-func (m pKCS1v15Verifier) Tag() string {
-	return fmt.Sprintf("%s-%s", AuthHeaderVersionV1, "PKCS1v15")
-}
-
-// Verify authenticates an account from an http request.
-func (m pKCS1v15Verifier) Verify(credentials string, data []byte) (*Result, error) {
-	creds := strings.Split(credentials, ":")
-	if len(creds) != 2 {
-		return nil, ErrInvalidAuthorizationHeader
-	}
-	return m.credentialSignatureVerifier.verify(creds[0], creds[1], data)
-}
-
-// methodSignatureCommon is a shared type that encodes
-// signing logic for authentication.
-type methodSignatureCommon struct {
-	credentialSignatureVerifier credentialSignatureVerifier
-}
-
-// Tag returns the Authorization format tag.
-func (m methodSignatureCommon) Tag() string {
-	return MethodTagSignature
-}
-
-// Verify authenticates an account from an http request.
-func (m methodSignatureCommon) Verify(credentials string, data []byte) (*Result, error) {
-	creds := strings.Split(credentials, ":")
-
-	if len(creds) != 2 {
-		return nil, ErrInvalidAuthorizationHeader
-	}
-
-	return m.credentialSignatureVerifier.verify(creds[0], creds[1], data)
-}
-
-type credentialSignatureVerifier struct {
-	credentialGetter credentialGetter
-}
-
-func (v credentialSignatureVerifier) verify(identifier, encodedSignature string, message []byte) (*Result, error) {
-	signature, err := base64.StdEncoding.DecodeString(encodedSignature)
-	if err != nil {
-		return nil, ErrMalformedSignature
-	}
-
-	accountKey, err := v.credentialGetter.GetCredential(identifier)
-	if err == api.ErrCredentialNotFound {
-		// Note that this specific error check here smells pretty bad and
-		// is the result of how the auth package is composed. We aim for
-		// a loose coupling with the model/sql package, but here and at the
-		// getCredential function the tight coupling is exposed. When possible,
-		// let's freshen this stinky thing up.
-		return nil, api.ErrSignatureNotVerified
-	} else if err != nil {
-		return nil, errio.StatusError(err)
-	}
-
-	err = crypto.Verify(accountKey.Verifier, message, signature)
-	if err != nil {
-		return nil, api.ErrSignatureNotVerified
-	}
-
-	return &Result{
-		AccountID:   accountKey.AccountID,
-		Fingerprint: accountKey.Fingerprint,
-	}, nil
-}
-
-// isTimeValid checks whether the time used for a request is valid, based on the server time.
-// The window for a valid requestTime is defined as [serverTime-maxExpirationDifference; serverTime+maxClockSkew]
-func isTimeValid(requestTime, serverTime time.Time) error {
-	timeDiff := requestTime.Sub(serverTime)
-
-	if timeDiff < -maxExpirationDifference {
-		return ErrSignatureExpired
-	}
-
-	if timeDiff > maxClockSkew {
-		return ErrSignatureFuture
-	}
-
-	return nil
 }
