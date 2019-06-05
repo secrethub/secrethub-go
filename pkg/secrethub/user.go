@@ -11,7 +11,7 @@ type UserService interface {
 	// Me gets the account's user if it exists.
 	Me() (*api.User, error)
 	// Create creates a new user at SecretHub.
-	Create(username, email, fullName string, verifier Verifier, encryptor Encryptor) (*api.User, error)
+	Create(username, email, fullName string, verifier Verifier, encrypter Encrypter) (*api.User, error)
 	// Get a user by their username.
 	Get(username string) (*api.User, error)
 }
@@ -32,7 +32,7 @@ func (s userService) Me() (*api.User, error) {
 }
 
 // Create creates a new user at SecretHub.
-func (s userService) Create(username, email, fullName string, verifier Verifier, encryptor Encryptor) (*api.User, error) {
+func (s userService) Create(username, email, fullName string, verifier Verifier, encrypter Encrypter) (*api.User, error) {
 	err := api.ValidateUsername(username)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -53,10 +53,10 @@ func (s userService) Create(username, email, fullName string, verifier Verifier,
 		return nil, errio.Error(err)
 	}
 
-	return s.create(username, email, fullName, accountKey, verifier, encryptor)
+	return s.create(username, email, fullName, accountKey, verifier, encrypter)
 }
 
-func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, verifier Verifier, encryptor Encryptor) (*api.User, error) {
+func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, verifier Verifier, encrypter Encrypter) (*api.User, error) {
 	credentialRequest, err := s.client.createCredentialRequest(verifier)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -79,7 +79,7 @@ func (s userService) create(username, email, fullName string, accountKey crypto.
 		return nil, errio.Error(err)
 	}
 
-	accountKeyResponse, err := s.client.createAccountKey(accountKey, encryptor)
+	accountKeyResponse, err := s.client.createAccountKey(accountKey, encrypter)
 	if err != nil {
 		return nil, err
 	}
@@ -105,8 +105,8 @@ func (s userService) Get(username string) (*api.User, error) {
 }
 
 // createAccountKey adds the account key for the clients credential.
-func (c *client) createAccountKey(accountKey crypto.RSAPrivateKey, encryptor Encryptor) (*api.EncryptedAccountKey, error) {
-	accountKeyRequest, err := c.createAccountKeyRequest(encryptor, accountKey)
+func (c *client) createAccountKey(accountKey crypto.RSAPrivateKey, encrypter Encrypter) (*api.EncryptedAccountKey, error) {
+	accountKeyRequest, err := c.createAccountKeyRequest(encrypter, accountKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -116,7 +116,7 @@ func (c *client) createAccountKey(accountKey crypto.RSAPrivateKey, encryptor Enc
 		return nil, err
 	}
 
-	fingerprint, err := encryptor.Fingerprint()
+	fingerprint, err := encrypter.Fingerprint()
 	if err != nil {
 		return nil, err
 	}
