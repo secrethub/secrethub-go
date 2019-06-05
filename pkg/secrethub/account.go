@@ -65,21 +65,21 @@ func (c *client) createAccountKeyRequest(encryptor Encryptor, accountKey crypto.
 	}, nil
 }
 
-func (c *client) createCredentialRequest(credential Credential) (*api.CreateCredentialRequest, error) {
-	fingerprint, err := credential.Fingerprint()
+func (c *client) createCredentialRequest(verifier Verifier) (*api.CreateCredentialRequest, error) {
+	fingerprint, err := verifier.Fingerprint()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	verifier, err := credential.Verifier()
+	bytes, err := verifier.Verifier()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
 	return &api.CreateCredentialRequest{
 		Fingerprint: fingerprint,
-		Verifier:    verifier,
-		Type:        credential.Type(),
+		Verifier:    bytes,
+		Type:        verifier.Type(),
 	}, nil
 }
 

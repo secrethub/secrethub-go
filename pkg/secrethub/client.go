@@ -40,9 +40,9 @@ type clientAdapter struct {
 
 // NewClient creates a new SecretHub client.
 // It overrides the default configuration with the options when given.
-func NewClient(decryptor Decryptor, encryptor Encryptor, authenticator auth.Authenticator, opts *ClientOptions) Client {
+func NewClient(decryptor Decryptor, authenticator auth.Authenticator, opts *ClientOptions) Client {
 	return &clientAdapter{
-		client: newClient(decryptor, encryptor, authenticator, opts),
+		client: newClient(decryptor, authenticator, opts),
 	}
 }
 
@@ -100,7 +100,6 @@ type client struct {
 	httpClient *httpClient
 
 	decryptor Decryptor
-	encryptor Encryptor
 
 	// account is the api.Account for this SecretHub account.
 	// Do not use this field directly, but use client.getMyAccount() instead.
@@ -116,13 +115,12 @@ type client struct {
 }
 
 // newClient configures a new client, overriding defaults with options when given.
-func newClient(decryptor Decryptor, encryptor Encryptor, authenticator auth.Authenticator, opts *ClientOptions) client {
+func newClient(decryptor Decryptor, authenticator auth.Authenticator, opts *ClientOptions) client {
 	httpClient := newHTTPClient(authenticator, opts)
 
 	return client{
 		httpClient:    httpClient,
 		decryptor:     decryptor,
-		encryptor:     encryptor,
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
 }

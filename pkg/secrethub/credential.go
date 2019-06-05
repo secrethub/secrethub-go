@@ -37,18 +37,25 @@ var (
 	DefaultCredentialEncoding = base64.URLEncoding.WithPadding(base64.NoPadding)
 )
 
-// Credential can be used to encrypt and decrypt data and to authenticate http requests.
-type Credential interface {
+// Verifier exports verification bytes that can be used to verify signed data is processed by the owner of a signer.
+type Verifier interface {
 	// Fingerprint returns an identifier by which the server can identify the credential, e.g. a username of a fingerprint.
 	Fingerprint() (string, error)
 	// Verifier returns the data to be stored server side to verify an http request authenticated with this credential.
 	Verifier() ([]byte, error)
+	// Type returns what type of credential this is.
+	Type() api.CredentialType
+}
+
+// Credential used to be an interface that contained functions to encrypt, decrypt and authenticate.
+// We'll migrate away from using it and use smaller interfaces instead.
+// See Verifier, Decryptor and Encryptor for the smaller interfaces.
+type Credential interface {
+	Verifier
 	// Export exports the credential in a format that can be decoded by its Decoder.
 	Export() []byte
 	// Decoder returns a decoder that can decode an exported key back into a Credential.
 	Decoder() CredentialDecoder
-	// Type returns what type of credential this is.
-	Type() api.CredentialType
 }
 
 // NewCredential is a shorthand function to decode a credential string and optionally
