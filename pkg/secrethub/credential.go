@@ -49,7 +49,7 @@ type Verifier interface {
 
 // Credential used to be an interface that contained functions to encrypt, decrypt and authenticate.
 // We'll migrate away from using it and use smaller interfaces instead.
-// See Verifier, Decryptor and Encrypter for the smaller interfaces.
+// See Verifier, Decrypter and Encrypter for the smaller interfaces.
 type Credential interface {
 	Verifier
 	// Export exports the credential in a format that can be decoded by its Decoder.

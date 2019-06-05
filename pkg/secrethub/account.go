@@ -121,7 +121,7 @@ func (c *client) fetchAccountDetails() error {
 		return errio.Error(err)
 	}
 
-	data, err := c.decryptor.Unwrap(resp.EncryptedPrivateKey)
+	data, err := c.decrypter.Unwrap(resp.EncryptedPrivateKey)
 	if err != nil {
 		return errio.Error(err)
 	}

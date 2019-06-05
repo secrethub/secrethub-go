@@ -20,8 +20,8 @@ type Client interface {
 	Users() UserService
 }
 
-// Decryptor decrypts data, typically an account key.
-type Decryptor interface {
+// Decrypter decrypts data, typically an account key.
+type Decrypter interface {
 	// Unwrap decrypts data, typically an account key.
 	Unwrap(ciphertext crypto.CiphertextRSAAES) ([]byte, error)
 }
@@ -40,9 +40,9 @@ type clientAdapter struct {
 
 // NewClient creates a new SecretHub client.
 // It overrides the default configuration with the options when given.
-func NewClient(decryptor Decryptor, authenticator auth.Authenticator, opts *ClientOptions) Client {
+func NewClient(decrypter Decrypter, authenticator auth.Authenticator, opts *ClientOptions) Client {
 	return &clientAdapter{
-		client: newClient(decryptor, authenticator, opts),
+		client: newClient(decrypter, authenticator, opts),
 	}
 }
 
@@ -99,7 +99,7 @@ var (
 type client struct {
 	httpClient *httpClient
 
-	decryptor Decryptor
+	decrypter Decrypter
 
 	// account is the api.Account for this SecretHub account.
 	// Do not use this field directly, but use client.getMyAccount() instead.
@@ -115,12 +115,12 @@ type client struct {
 }
 
 // newClient configures a new client, overriding defaults with options when given.
-func newClient(decryptor Decryptor, authenticator auth.Authenticator, opts *ClientOptions) client {
+func newClient(decrypter Decrypter, authenticator auth.Authenticator, opts *ClientOptions) client {
 	httpClient := newHTTPClient(authenticator, opts)
 
 	return client{
 		httpClient:    httpClient,
-		decryptor:     decryptor,
+		decrypter:     decrypter,
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
 }
