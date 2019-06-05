@@ -44,7 +44,7 @@ const (
 	MethodTagSignature = "secrethub-sig-v1"
 	// AuthHeaderVersionV1 is the authorization header tag used for authorization
 	// headers that include the signing method.
-	AuthHeaderVersionV1 = "SH1"
+	AuthHeaderVersionV1 = "SecretHub-v1"
 )
 
 // Errors
