@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/secrethub/secrethub-go/internals/api"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -46,11 +44,13 @@ func (s awsAuthService) Authenticate() error {
 		return err
 	}
 
-	req := api.NewAuthRequestAWSSTS(api.SessionTypeHMAC, region, buf.Bytes())
-	resp, err := s.client.httpClient.AuthenticateHMAC(req)
-	if err != nil {
-		return err
-	}
-
-	client.
+	// TODO: this is obviously not finished
+	//req := api.NewAuthRequestAWSSTS(api.SessionTypeHMAC, region, buf.Bytes())
+	//resp, err := s.client.httpClient.AuthenticateHMAC(req)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//client.
+	return nil
 }
