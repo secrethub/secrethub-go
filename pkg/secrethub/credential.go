@@ -5,12 +5,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/secrethub/secrethub-go/internals/api"
 
-	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -39,23 +37,25 @@ var (
 	DefaultCredentialEncoding = base64.URLEncoding.WithPadding(base64.NoPadding)
 )
 
-// Credential can be used to encrypt and decrypt data and to authenticate http requests.
-type Credential interface {
-	auth.Credential
+// Verifier exports verification bytes that can be used to verify signed data is processed by the owner of a signer.
+type Verifier interface {
 	// Fingerprint returns an identifier by which the server can identify the credential, e.g. a username of a fingerprint.
 	Fingerprint() (string, error)
 	// Verifier returns the data to be stored server side to verify an http request authenticated with this credential.
 	Verifier() ([]byte, error)
-	// Wrap encrypts data, typically an account key.
-	Wrap(plaintext []byte) (crypto.CiphertextRSAAES, error)
-	// Unwrap decrypts data, typically an account key.
-	Unwrap(ciphertext crypto.CiphertextRSAAES) ([]byte, error)
+	// Type returns what type of credential this is.
+	Type() api.CredentialType
+}
+
+// Credential used to be an interface that contained functions to encrypt, decrypt and authenticate.
+// We'll migrate away from using it and use smaller interfaces instead.
+// See Verifier, Decrypter and Encrypter for the smaller interfaces.
+type Credential interface {
+	Verifier
 	// Export exports the credential in a format that can be decoded by its Decoder.
 	Export() []byte
 	// Decoder returns a decoder that can decode an exported key back into a Credential.
 	Decoder() CredentialDecoder
-	// Type returns what type of credential this is.
-	Type() api.CredentialType
 }
 
 // NewCredential is a shorthand function to decode a credential string and optionally
@@ -290,14 +290,24 @@ func generateRSACredential(keyLength int) (RSACredential, error) {
 	}, nil
 }
 
-// AddAuthentication adds authentication to an http request.
-func (c RSACredential) AddAuthentication(r *http.Request) error {
-	return auth.NewRSACredential(c.RSAPrivateKey).AddAuthentication(r)
-}
-
 // Fingerprint returns the key identifier by which the server can identify the credential.
 func (c RSACredential) Fingerprint() (string, error) {
 	return c.RSAPrivateKey.Public().Fingerprint()
+}
+
+// ID returns a string by which the credential can be identified.
+func (c RSACredential) ID() (string, error) {
+	return c.Fingerprint()
+}
+
+// Sign provides proof the given bytes are processed by the owner of the credential.
+func (c RSACredential) Sign(data []byte) ([]byte, error) {
+	return c.RSAPrivateKey.Sign(data)
+}
+
+// SignMethod returns a string by which the signing method can be identified.
+func (c RSACredential) SignMethod() string {
+	return "PKCS1v15"
 }
 
 // Verifier returns the public key to be stored server side to verify an http request authenticated with this credential.

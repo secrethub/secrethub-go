@@ -43,7 +43,7 @@ func (s accountService) Keys() AccountKeyService {
 // The public key of the intermediate key is returned.
 // The intermediate key is returned in an CreateAccountKeyRequest ready to be sent to the API.
 // If an error has occurred, it will be returned and the other result should be considered invalid.
-func (c *client) createAccountKeyRequest(credential Credential, accountKey crypto.RSAPrivateKey) (*api.CreateAccountKeyRequest, error) {
+func (c *client) createAccountKeyRequest(encrypter Encrypter, accountKey crypto.RSAPrivateKey) (*api.CreateAccountKeyRequest, error) {
 	publicAccountKey, err := accountKey.Public().Export()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -54,7 +54,7 @@ func (c *client) createAccountKeyRequest(credential Credential, accountKey crypt
 		return nil, errio.Error(err)
 	}
 
-	wrappedAccountKey, err := credential.Wrap(privateAccountKey)
+	wrappedAccountKey, err := encrypter.Wrap(privateAccountKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -65,21 +65,21 @@ func (c *client) createAccountKeyRequest(credential Credential, accountKey crypt
 	}, nil
 }
 
-func (c *client) createCredentialRequest(credential Credential) (*api.CreateCredentialRequest, error) {
-	fingerprint, err := credential.Fingerprint()
+func (c *client) createCredentialRequest(verifier Verifier) (*api.CreateCredentialRequest, error) {
+	fingerprint, err := verifier.Fingerprint()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	verifier, err := credential.Verifier()
+	bytes, err := verifier.Verifier()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
 	return &api.CreateCredentialRequest{
 		Fingerprint: fingerprint,
-		Verifier:    verifier,
-		Type:        credential.Type(),
+		Verifier:    bytes,
+		Type:        verifier.Type(),
 	}, nil
 }
 
@@ -121,7 +121,7 @@ func (c *client) fetchAccountDetails() error {
 		return errio.Error(err)
 	}
 
-	data, err := c.credential.Unwrap(resp.EncryptedPrivateKey)
+	data, err := c.decrypter.Unwrap(resp.EncryptedPrivateKey)
 	if err != nil {
 		return errio.Error(err)
 	}

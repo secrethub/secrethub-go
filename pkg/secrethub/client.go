@@ -2,6 +2,7 @@ package secrethub
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -19,15 +20,29 @@ type Client interface {
 	Users() UserService
 }
 
+// Decrypter decrypts data, typically an account key.
+type Decrypter interface {
+	// Unwrap decrypts data, typically an account key.
+	Unwrap(ciphertext crypto.CiphertextRSAAES) ([]byte, error)
+}
+
+// Encrypter encrypts data, typically an account key.
+type Encrypter interface {
+	// Fingerprint returns an identifier by which the server can identify the credential, e.g. a username of a fingerprint.
+	Fingerprint() (string, error)
+	// Wrap encrypts data, typically an account key.
+	Wrap(plaintext []byte) (crypto.CiphertextRSAAES, error)
+}
+
 type clientAdapter struct {
 	client client
 }
 
 // NewClient creates a new SecretHub client.
 // It overrides the default configuration with the options when given.
-func NewClient(credential Credential, opts *ClientOptions) Client {
+func NewClient(decrypter Decrypter, authenticator auth.Authenticator, opts *ClientOptions) Client {
 	return &clientAdapter{
-		client: newClient(credential, opts),
+		client: newClient(decrypter, authenticator, opts),
 	}
 }
 
@@ -84,9 +99,7 @@ var (
 type client struct {
 	httpClient *httpClient
 
-	// credential is the key used by a client to decrypt the account key and authenticate the requests.
-	// It is passed to the httpClient to provide authentication.
-	credential Credential
+	decrypter Decrypter
 
 	// account is the api.Account for this SecretHub account.
 	// Do not use this field directly, but use client.getMyAccount() instead.
@@ -102,12 +115,12 @@ type client struct {
 }
 
 // newClient configures a new client, overriding defaults with options when given.
-func newClient(credential Credential, opts *ClientOptions) client {
-	httpClient := newHTTPClient(credential, opts)
+func newClient(decrypter Decrypter, authenticator auth.Authenticator, opts *ClientOptions) client {
+	httpClient := newHTTPClient(authenticator, opts)
 
 	return client{
 		httpClient:    httpClient,
-		credential:    credential,
+		decrypter:     decrypter,
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
 }

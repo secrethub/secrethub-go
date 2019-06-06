@@ -45,9 +45,11 @@ func TestPassBasedKey(t *testing.T) {
 	assert.Equal(t, actual, expected)
 }
 
-// RunCredentialInterfaceTest tests whether a Credential interface
-// works correctly.
-func RunCredentialInterfaceTest(t *testing.T, credential Credential) {
+func TestRSACredential(t *testing.T) {
+
+	credential, err := generateRSACredential(1024)
+	assert.OK(t, err)
+
 	t.Run("encoding", func(t *testing.T) {
 		exported := credential.Export()
 
@@ -77,14 +79,6 @@ func RunCredentialInterfaceTest(t *testing.T, credential Credential) {
 
 		assert.Equal(t, actual, expected)
 	})
-}
-
-func TestRSACredential(t *testing.T) {
-
-	credential, err := generateRSACredential(1024)
-	assert.OK(t, err)
-
-	RunCredentialInterfaceTest(t, credential)
 }
 
 func TestParser(t *testing.T) {

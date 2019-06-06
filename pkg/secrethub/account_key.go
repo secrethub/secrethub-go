@@ -15,7 +15,7 @@ func generateAccountKey() (crypto.RSAPrivateKey, error) {
 // AccountKeyService handles operations on SecretHub account keys.
 type AccountKeyService interface {
 	// Create creates an account key for the client's credential.
-	Create() (*api.EncryptedAccountKey, error)
+	Create(encrypter Encrypter) (*api.EncryptedAccountKey, error)
 	// Exists returns whether an account key exists for the client's credential.
 	Exists() (bool, error)
 }
@@ -32,12 +32,12 @@ func newAccountKeyService(client client) accountKeyService {
 }
 
 // Create creates an account key for the clients credential.
-func (s accountKeyService) Create() (*api.EncryptedAccountKey, error) {
+func (s accountKeyService) Create(encrypter Encrypter) (*api.EncryptedAccountKey, error) {
 	key, err := generateAccountKey()
 	if err != nil {
 		return nil, err
 	}
-	return s.client.createAccountKey(key)
+	return s.client.createAccountKey(key, encrypter)
 }
 
 // Exists returns whether an account key exists for the client's credential.
