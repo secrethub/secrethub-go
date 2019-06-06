@@ -107,12 +107,11 @@ func (pl AuthPayloadAWSSTS) Validate() error {
 }
 
 type Session struct {
-	SessionID   *uuid.UUID   `json:"session_id"`
-	AccountName *AccountName `json:"account_name"`
-	Expiration  *time.Time   `json:"expiration"`
-	Region      *string      `json:"region"`
-	Type        *SessionType `json:"type"`
-	Payload     interface{}  `json:"payload"`
+	SessionID  *uuid.UUID   `json:"session_id"`
+	Expiration *time.Time   `json:"expiration"`
+	Region     *string      `json:"region"`
+	Type       *SessionType `json:"type"`
+	Payload    interface{}  `json:"payload"`
 }
 
 type SessionPayloadHMAC struct {
@@ -148,9 +147,6 @@ func (s Session) UnmarshalJSON(b []byte) error {
 func (s Session) Validate() error {
 	if s.SessionID == nil {
 		return ErrMissingField("session_id")
-	}
-	if s.AccountName == nil {
-		return ErrMissingField("account_name")
 	}
 	if s.Expiration == nil {
 		return ErrMissingField("expiration")
