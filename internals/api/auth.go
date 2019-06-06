@@ -109,7 +109,6 @@ func (pl AuthPayloadAWSSTS) Validate() error {
 type Session struct {
 	SessionID  *uuid.UUID   `json:"session_id"`
 	Expiration *time.Time   `json:"expiration"`
-	Region     *string      `json:"region"`
 	Type       *SessionType `json:"type"`
 	Payload    interface{}  `json:"payload"`
 }
@@ -150,9 +149,6 @@ func (s Session) Validate() error {
 	}
 	if s.Expiration == nil {
 		return ErrMissingField("expiration")
-	}
-	if s.Region == nil {
-		return ErrMissingField("region")
 	}
 	if s.Type == nil {
 		return ErrMissingField("type")
