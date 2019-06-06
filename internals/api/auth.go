@@ -19,6 +19,8 @@ var (
 	ErrInvalidPayload     = errAPI.Code("invalid_payload").StatusError("invalid payload provided for authentication request", http.StatusBadRequest)
 	ErrInvalidAuthMethod  = errAPI.Code("invalid_auth_method").StatusError("invalid auth method", http.StatusBadRequest)
 	ErrMissingField       = errAPI.Code("missing_field").StatusErrorPref("request is missing field %s", http.StatusBadRequest)
+	ErrSessionNotFound    = errAPI.Code("session_not_found").StatusError("session could not be found, it might have expired", http.StatusForbidden)
+	ErrSessionExpired     = errAPI.Code("session_expired").StatusError("session has expired", http.StatusForbidden)
 )
 
 type SessionType string
