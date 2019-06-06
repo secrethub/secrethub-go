@@ -11,7 +11,7 @@ import (
 const (
 	AuthMethodAWSSTS = "aws-sts"
 
-	SessionTypeHMAC = "hmac"
+	SessionTypeHMAC SessionType = "hmac"
 )
 
 var (
@@ -21,10 +21,12 @@ var (
 	ErrMissingField       = errAPI.Code("missing_field").StatusErrorPref("request is missing field %s", http.StatusBadRequest)
 )
 
+type SessionType string
+
 type AuthRequest struct {
-	Method      *string     `json:"method"`
-	SessionType *string     `json:"session_type"`
-	Payload     interface{} `json:"payload"`
+	Method      *string      `json:"method"`
+	SessionType *SessionType `json:"session_type"`
+	Payload     interface{}  `json:"payload"`
 }
 
 type AuthPayloadAWSSTS struct {
@@ -32,7 +34,7 @@ type AuthPayloadAWSSTS struct {
 	Request *[]byte `json:"request"`
 }
 
-func NewAuthRequestAWSSTS(sessionType, region string, stsRequest []byte) AuthRequest {
+func NewAuthRequestAWSSTS(sessionType SessionType, region string, stsRequest []byte) AuthRequest {
 	return AuthRequest{
 		Method:      String(AuthMethodAWSSTS),
 		SessionType: &sessionType,
@@ -104,56 +106,71 @@ func (pl AuthPayloadAWSSTS) Validate() error {
 	return nil
 }
 
-type AuthResponse struct {
-	AccountID *uuid.UUID `json:"account_id"`
-	Expires   *time.Time `json:"expires"`
-	//Region    string    `json:"region"`
-	SessionType *string `json:"session_type"`
-}
-
-type AuthResponseHMAC struct {
-	AuthResponse
-	Payload *SessionPayloadHMAC `json:"session_payload"`
+type Session struct {
+	SessionID   *uuid.UUID   `json:"session_id"`
+	AccountName *AccountName `json:"account_name"`
+	Expiration  *time.Time   `json:"expiration"`
+	Region      *string      `json:"region"`
+	Type        *SessionType `json:"type"`
+	Payload     interface{}  `json:"payload"`
 }
 
 type SessionPayloadHMAC struct {
-	SessionID *uuid.UUID `json:"session_id"`
-	SecretKey *string    `json:"secret_key"`
+	SecretKey *string `json:"secret_key"`
 }
 
-func (r AuthResponse) Validate() error {
-	if r.AccountID == nil {
-		return ErrMissingField("account_id")
+func (s Session) UnmarshalJSON(b []byte) error {
+	encodedPayload := json.RawMessage{}
+	s.Payload = &encodedPayload
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		return err
 	}
-	if r.Expires == nil {
-		return ErrMissingField("expires")
-	}
-	if r.SessionType == nil {
-		return ErrMissingField("session_type")
-	}
-	if *r.SessionType != SessionTypeHMAC {
+
+	if s.Type == nil {
 		return ErrInvalidSessionType
+	}
+
+	switch *s.Type {
+	case SessionTypeHMAC:
+		s.Payload = &SessionPayloadHMAC{}
+	default:
+		return ErrInvalidSessionType
+	}
+
+	err = json.Unmarshal(encodedPayload, s.Payload)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func (r AuthResponseHMAC) Validate() error {
-	if err := r.AuthResponse.Validate(); err != nil {
-		return err
+func (s Session) Validate() error {
+	if s.SessionID == nil {
+		return ErrMissingField("session_id")
 	}
-	if r.Payload == nil {
+	if s.AccountName == nil {
+		return ErrMissingField("account_name")
+	}
+	if s.Expiration == nil {
+		return ErrMissingField("expiration")
+	}
+	if s.Region == nil {
+		return ErrMissingField("region")
+	}
+	if s.Type == nil {
+		return ErrMissingField("type")
+	}
+	if *s.Type != SessionTypeHMAC {
+		return ErrInvalidSessionType
+	}
+	if s.Payload == nil {
 		return ErrMissingField("payload")
-	}
-	if err := r.Payload.Validate(); err != nil {
-		return err
 	}
 	return nil
 }
 
 func (pl SessionPayloadHMAC) Validate() error {
-	if pl.SessionID == nil {
-		return ErrMissingField("session_id")
-	}
 	if pl.SecretKey == nil {
 		return ErrMissingField("secret_key")
 	}
