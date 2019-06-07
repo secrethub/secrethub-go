@@ -34,7 +34,7 @@ func (s *AccessRuleService) List(path string, depth int, ancestors bool) ([]*api
 }
 
 // Set implements the AccessRuleService interface Set function.
-func (s *AccessRuleService) Set(path string, permission api.Permission, accountName string) (*api.AccessRule, error) {
+func (s *AccessRuleService) Set(path string, permission string, accountName string) (*api.AccessRule, error) {
 	return s.Setter.Set(path, permission, accountName)
 }
 
@@ -83,14 +83,14 @@ func (l *AccessLevelLister) ListLevels(path string) ([]*api.AccessLevel, error) 
 // AccessRuleSetter mocks the Set function.
 type AccessRuleSetter struct {
 	ArgPath           string
-	ArgPermission     api.Permission
+	ArgPermission     string
 	ArgName           string
 	ReturnsAccessRule *api.AccessRule
 	Err               error
 }
 
 // Set saves the arguments it was called with and returns the mocked response.
-func (s *AccessRuleSetter) Set(path string, permission api.Permission, name string) (*api.AccessRule, error) {
+func (s *AccessRuleSetter) Set(path string, permission string, name string) (*api.AccessRule, error) {
 	s.ArgPath = path
 	s.ArgPermission = permission
 	s.ArgName = name
