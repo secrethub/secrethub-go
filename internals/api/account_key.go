@@ -2,8 +2,6 @@ package api
 
 import (
 	"net/http"
-
-	"github.com/secrethub/secrethub-go/internals/crypto"
 )
 
 // Errors
@@ -16,20 +14,23 @@ var (
 type EncryptedAccountKey struct {
 	Account             *Account
 	PublicKey           []byte
-	EncryptedPrivateKey crypto.CiphertextRSAAES
+	EncryptedPrivateKey *EncryptedValue
 	Credential          *Credential
 }
 
 // CreateAccountKeyRequest contains the fields to add an account_key encrypted for a credential.
 type CreateAccountKeyRequest struct {
-	EncryptedPrivateKey crypto.CiphertextRSAAES
-	PublicKey           []byte
+	EncryptedPrivateKey *EncryptedValue `json:"encrypted_private_key"`
+	PublicKey           []byte          `json:"public_key"`
 }
 
 // Validate checks whether the request is valid.
 func (req CreateAccountKeyRequest) Validate() error {
-	if len(req.PublicKey) == 0 {
-		return ErrInvalidPublicKey
+	if req.PublicKey == nil {
+		return ErrMissingField("public_key")
+	}
+	if req.EncryptedPrivateKey == nil {
+		return ErrMissingField("encrypted_private_key")
 	}
 	return nil
 }
