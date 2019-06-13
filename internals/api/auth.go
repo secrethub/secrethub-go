@@ -33,7 +33,7 @@ type AuthRequest struct {
 
 type AuthPayloadAWSSTS struct {
 	Region  *string `json:"region"`
-	Request *[]byte `json:"request"`
+	Request []byte  `json:"request"`
 }
 
 func NewAuthRequestAWSSTS(sessionType SessionType, region string, stsRequest []byte) AuthRequest {
@@ -42,7 +42,7 @@ func NewAuthRequestAWSSTS(sessionType SessionType, region string, stsRequest []b
 		SessionType: &sessionType,
 		Payload: &AuthPayloadAWSSTS{
 			Region:  &region,
-			Request: &stsRequest,
+			Request: stsRequest,
 		},
 	}
 }
