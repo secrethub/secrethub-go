@@ -14,7 +14,7 @@ type EncryptionType string
 
 const (
 	EncryptionTypeRSAAES  EncryptionType = "rsa-oaep-aes-gcm"
-	EncryptionTypeAWSKKMS                = "aws-kms"
+	EncryptionTypeAWSKKMS EncryptionType = "aws-kms"
 )
 
 type EncryptedValue struct {
