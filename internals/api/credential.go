@@ -29,12 +29,13 @@ type CredentialType string
 
 // Credential types
 const (
-	CredentialTypeRSA CredentialType = "rsa"
+	CredentialTypeRSA    CredentialType = "rsa"
+	CredentialTypeAWSSTS                = "aws-sts"
 )
 
 // Validate validates whether the algorithm type is valid.
 func (a CredentialType) Validate() error {
-	if a == CredentialTypeRSA {
+	if a == CredentialTypeRSA || a == CredentialTypeAWSSTS {
 		return nil
 	}
 	return ErrInvalidAlgorithm
@@ -46,6 +47,7 @@ type CreateCredentialRequest struct {
 	Fingerprint string         `json:"fingerprint"`
 	Name        string         `json:"name,omitempty"`
 	Verifier    []byte         `json:"verifier"`
+	Proof       []byte         `json:"proof"`
 }
 
 // Validate validates the request fields.
@@ -61,6 +63,9 @@ func (req CreateCredentialRequest) Validate() error {
 	err := req.Type.Validate()
 	if err != nil {
 		return err
+	}
+	if req.Type == CredentialTypeAWSSTS && req.Proof == nil {
+		return ErrMissingField("proof")
 	}
 
 	return nil
