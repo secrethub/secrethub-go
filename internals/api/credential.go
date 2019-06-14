@@ -9,9 +9,9 @@ import (
 
 // Errors
 var (
-	ErrInvalidFingerprint = errAPI.Code("invalid_fingerprint").StatusError("fingerprint is invalid", http.StatusBadRequest)
-	ErrInvalidVerifier    = errAPI.Code("invalid_verifier").StatusError("verifier is invalid", http.StatusBadRequest)
-	ErrInvalidAlgorithm   = errAPI.Code("invalid_algorithm").StatusError("algorithm is invalid", http.StatusBadRequest)
+	ErrInvalidFingerprint    = errAPI.Code("invalid_fingerprint").StatusError("fingerprint is invalid", http.StatusBadRequest)
+	ErrInvalidVerifier       = errAPI.Code("invalid_verifier").StatusError("verifier is invalid", http.StatusBadRequest)
+	ErrInvalidCredentialType = errAPI.Code("invalid_credential_type").StatusError("credential type is invalid", http.StatusBadRequest)
 )
 
 // Credential is used to authenticate to the API and to encrypt the account key.
@@ -38,7 +38,7 @@ func (a CredentialType) Validate() error {
 	if a == CredentialTypeRSA || a == CredentialTypeAWSSTS {
 		return nil
 	}
-	return ErrInvalidAlgorithm
+	return ErrInvalidCredentialType
 }
 
 // CreateCredentialRequest contains the fields to add a credential to an account.

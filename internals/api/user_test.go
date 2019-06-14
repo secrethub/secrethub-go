@@ -291,7 +291,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 				Fingerprint: "fingerprint",
 				Verifier:    []byte("verifier"),
 			},
-			err: ErrInvalidAlgorithm,
+			err: ErrInvalidCredentialType,
 		},
 	}
 
