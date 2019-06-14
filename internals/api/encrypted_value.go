@@ -33,7 +33,7 @@ type EncryptionMetadataRSAAES struct {
 type EncryptionMetadataAWSKMS struct {
 }
 
-func (ek EncryptedValue) UnmarshalJSON(b []byte) error {
+func (ek *EncryptedValue) UnmarshalJSON(b []byte) error {
 	encodedMetadata := json.RawMessage{}
 	ek.Metadata = &encodedMetadata
 	err := json.Unmarshal(b, &ek)
@@ -61,7 +61,7 @@ func (ek EncryptedValue) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (ek EncryptedValue) ToCiphertextRSAAES() (*crypto.CiphertextRSAAES, error) {
+func (ek *EncryptedValue) ToCiphertextRSAAES() (*crypto.CiphertextRSAAES, error) {
 	metadata, ok := ek.Metadata.(*EncryptionMetadataRSAAES)
 	if !ok {
 		return nil, crypto.ErrInvalidMetadata
