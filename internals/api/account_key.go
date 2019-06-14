@@ -12,10 +12,10 @@ var (
 
 // EncryptedAccountKey represents an account key encrypted with a credential.
 type EncryptedAccountKey struct {
-	Account             *Account
-	PublicKey           []byte
-	EncryptedPrivateKey *EncryptedValue
-	Credential          *Credential
+	Account             *Account        `json:"account"`
+	PublicKey           []byte          `json:"public_key"`
+	EncryptedPrivateKey *EncryptedValue `json:"encrypted_private_key"`
+	Credential          *Credential     `json:"credential"`
 }
 
 // CreateAccountKeyRequest contains the fields to add an account_key encrypted for a credential.
