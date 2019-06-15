@@ -175,6 +175,16 @@ func TestAdd(t *testing.T) {
 			b:        "",
 			expected: "",
 		},
+		"different": {
+			a:        "ab",
+			b:        "bc",
+			expected: "abc",
+		},
+		"different with overlap": {
+			a:        "ab",
+			b:        "c",
+			expected: "abc",
+		},
 	}
 
 	for name, tc := range cases {
