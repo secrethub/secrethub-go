@@ -50,7 +50,7 @@ type Generator interface {
 // to configure the random generator, use NewRand instead.
 func NewGenerator(useSymbols bool) Generator {
 	if useSymbols {
-		return MustNewRand(Alphanumeric.Add(Symbols))
+		return MustNewRand(All)
 	}
 	return MustNewRand(Alphanumeric)
 }
