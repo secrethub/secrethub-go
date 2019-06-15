@@ -194,7 +194,11 @@ func shuffle(reader io.Reader, data []byte) error {
 	var j int64
 	var err error
 	for i := len(data) - 1; i > 0; i-- {
-		randomIndex, err = rand.Int(reader, big.NewInt(int64(i)))
+		// Note that the algorithm requires j to be a uniform random
+		// value such that 0 <= j <= i and rand.Int returns a value
+		// in [0, i) (exclusive i). To have rand.Int return a value
+		// in [0, i] (inclusive i), we pass i+1.
+		randomIndex, err = rand.Int(reader, big.NewInt(int64(i+1)))
 		if err != nil {
 			return err
 		}
