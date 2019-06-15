@@ -1,6 +1,6 @@
-// Package randchar helps to generate passwords by allowing you
-// to generate random sequences of characters from a configured
-// character set.
+// Package randchar helps to generate random sequences of characters
+// from a configured character set, which can be useful for e.g.
+// generating passwords.
 //
 // It supports many different character sets and configuration
 // options to meet even the weirdest of password requirements.
@@ -188,7 +188,11 @@ func (r Rand) Generate(n int) ([]byte, error) {
 	return result, nil
 }
 
-// shuffle randomly shuffles elements of a byte slice, using the Durstenfeld shuffle algorithm.
+// shuffle randomly shuffles elements of a byte slice,
+// using the Durstenfeld shuffle algorithm (a modernized
+// version of the Fisher-Yates shuffle algorithm).
+//
+// For the algorithm description, see https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
 func shuffle(reader io.Reader, data []byte) error {
 	var randomIndex *big.Int
 	var j int64
@@ -286,7 +290,7 @@ func (cs Charset) IsSubset(of Charset) bool {
 	return true
 }
 
-// Equal returns true when one character set is equal to another character set.
+// Equal returns true when both character sets contain the exactly same characters.
 func (cs Charset) Equal(other Charset) bool {
 	if len(cs) != len(other) {
 		return false
