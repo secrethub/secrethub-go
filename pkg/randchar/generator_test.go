@@ -110,49 +110,6 @@ func TestMin(t *testing.T) {
 	}
 }
 
-func TestMultipleMin(t *testing.T) {
-	cases := map[string]struct {
-		base                  Charset
-		minima                []minimum
-		expectedInitError     error
-		n                     int
-		expectedGenerateError error
-	}{}
-
-	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
-			options := make([]Option, len(tc.minima))
-			for i, min := range tc.minima {
-				options[i] = Min(min.count, min.charset)
-			}
-
-			rand, err := NewRand(tc.base, options...)
-			assert.Equal(t, err, tc.expectedInitError)
-
-			// skip other assertions if error case
-			if err != nil {
-				return
-			}
-
-			actual, err := rand.Generate(tc.n)
-			assert.Equal(t, err, tc.expectedGenerateError)
-
-			// skip other assertions if error case
-			if err != nil {
-				return
-			}
-
-			for _, min := range tc.minima {
-				count := countFromSet(actual, min.charset)
-				if count < min.count {
-					t.Errorf("unexpected count for %v: %d (actual) < %d (expected minimum)", min.charset, count, min.count)
-				}
-			}
-		})
-	}
-
-}
-
 func TestNewCharset(t *testing.T) {
 	cases := map[string]struct {
 		in       string
