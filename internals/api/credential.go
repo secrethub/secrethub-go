@@ -2,8 +2,10 @@ package api
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -102,7 +104,7 @@ func (req *CreateCredentialRequest) Validate() error {
 	if *req.Type == CredentialTypeAWSSTS && req.Proof == nil {
 		return ErrMissingField("proof")
 	}
-	if *req.Fingerprint != credentialFingerprint(req.Verifier) {
+	if *req.Fingerprint != CredentialFingerprint(*req.Type, req.Verifier) {
 		return ErrInvalidFingerprint
 	}
 
@@ -144,9 +146,18 @@ func CredentialFingerprint(t CredentialType, verifier []byte) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// credentialFingerprint returns the fingerprint of a credential.
-func credentialFingerprint(verifier []byte) string {
+// CredentialFingerprint returns the fingerprint of a credential.
+func CredentialFingerprint(t CredentialType, verifier []byte) string {
+	var toHash []byte
+	if t == CredentialTypeRSA {
+		// Provide compatibility with traditional RSA credentials.
+		toHash = verifier
+	} else {
+		encodedVerifier := base64.RawStdEncoding.EncodeToString(verifier)
+		toHash = []byte(fmt.Sprintf("credential_type=%s;verifier=%s", t, encodedVerifier))
+
+	}
 	h := sha256.New()
-	h.Write(verifier)
+	h.Write(toHash)
 	return hex.EncodeToString(h.Sum(nil))
 }
