@@ -2,8 +2,6 @@ package api
 
 import (
 	"encoding/json"
-
-	"github.com/secrethub/secrethub-go/internals/crypto"
 )
 
 // Errors
@@ -42,62 +40,35 @@ type EncryptionMetadataAWSKMS struct {
 
 // UnmarshalJSON populates an EncryptedValue from a JSON representation.
 func (ek *EncryptedValue) UnmarshalJSON(b []byte) error {
-	encodedMetadata := json.RawMessage{}
-	ek.Metadata = &encodedMetadata
-	err := json.Unmarshal(b, &ek)
+	// Declare a private type to avoid recursion into this function.
+	type encryptedValue EncryptedValue
+
+	var rawMessage json.RawMessage
+	dec := encryptedValue{
+		Metadata: &rawMessage,
+	}
+	err := json.Unmarshal(b, &dec)
 	if err != nil {
 		return err
 	}
 
-	if ek.EncryptionType == nil {
+	if dec.EncryptionType == nil {
 		return ErrInvalidEncryptionType
 	}
 
-	switch *ek.EncryptionType {
+	switch *dec.EncryptionType {
 	case EncryptionTypeRSAAES:
-		ek.Metadata = &EncryptionMetadataRSAAES{}
+		dec.Metadata = &EncryptionMetadataRSAAES{}
 	case EncryptionTypeAWSKKMS:
-		ek.Metadata = &EncryptionMetadataAWSKMS{}
+		dec.Metadata = &EncryptionMetadataAWSKMS{}
 	default:
 		return ErrInvalidEncryptionType
 	}
 
-	err = json.Unmarshal(encodedMetadata, ek.Metadata)
+	err = json.Unmarshal(rawMessage, dec.Metadata)
 	if err != nil {
 		return err
 	}
+	*ek = EncryptedValue(dec)
 	return nil
-}
-
-// ToCiphertextRSAAES converts a EncryptedValue to crypto.CiphertextRSAAES, if the EncryptedValue has the correct type.
-func (ek *EncryptedValue) ToCiphertextRSAAES() (*crypto.CiphertextRSAAES, error) {
-	metadata, ok := ek.Metadata.(*EncryptionMetadataRSAAES)
-	if !ok {
-		return nil, crypto.ErrInvalidMetadata
-	}
-	return &crypto.CiphertextRSAAES{
-		AES: crypto.CiphertextAES{
-			Data:  ek.Ciphertext,
-			Nonce: metadata.AESNonce,
-		},
-		RSA: crypto.CiphertextRSA{
-			Data: metadata.EncryptedAESKey,
-		},
-	}, nil
-}
-
-// NewEncryptedValueFromCiphertextRSAAES creates a new EncryptedValue from a crypto.CiphertextRSAAES.
-func NewEncryptedValueFromCiphertextRSAAES(ciphertext crypto.CiphertextRSAAES) *EncryptedValue {
-	encryptionType := EncryptionTypeRSAAES
-
-	return &EncryptedValue{
-		EncryptionType: &encryptionType,
-		Ciphertext:     ciphertext.AES.Data,
-		Metadata: &EncryptionMetadataRSAAES{
-			RSAKeySize:      Int(crypto.RSAKeyLength),
-			AESKeySize:      Int(crypto.SymmetricKeyLength * 8),
-			AESNonce:        ciphertext.AES.Nonce,
-			EncryptedAESKey: ciphertext.RSA.Data,
-		},
-	}
 }
