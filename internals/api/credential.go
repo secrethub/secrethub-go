@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -47,30 +48,93 @@ func (a CredentialType) Validate() error {
 
 // CreateCredentialRequest contains the fields to add a credential to an account.
 type CreateCredentialRequest struct {
-	Type        CredentialType `json:"type"`
-	Fingerprint string         `json:"fingerprint"`
-	Name        string         `json:"name,omitempty"`
-	Verifier    []byte         `json:"verifier"`
-	Proof       []byte         `json:"proof"`
+	Type        *CredentialType `json:"type"`
+	Fingerprint *string         `json:"fingerprint"`
+	Name        *string         `json:"name,omitempty"`
+	Verifier    []byte          `json:"verifier"`
+	Proof       interface{}     `json:"proof"`
+}
+
+func (req *CreateCredentialRequest) UnmarshalJSON(b []byte) error {
+	encodedProof := json.RawMessage{}
+	req.Proof = &encodedProof
+	err := json.Unmarshal(b, &req)
+	if err != nil {
+		return err
+	}
+	if req.Type == nil {
+		return ErrMissingField("type")
+	}
+
+	switch *req.Type {
+	case CredentialTypeAWSSTS:
+		req.Proof = &CredentialProofAWSSTS{}
+	case CredentialTypeRSA:
+		req.Proof = &CredentialProofRSA{}
+	default:
+		return ErrInvalidCredentialType
+	}
+
+	err = json.Unmarshal(encodedProof, req.Proof)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Validate validates the request fields.
-func (req CreateCredentialRequest) Validate() error {
-	if req.Fingerprint == "" {
-		return ErrInvalidFingerprint
+func (req *CreateCredentialRequest) Validate() error {
+	if req.Fingerprint == nil {
+		return ErrMissingField("fingerprint")
 	}
-
-	if len(req.Verifier) == 0 {
-		return ErrInvalidVerifier
+	if req.Verifier == nil {
+		return ErrMissingField("verifier")
 	}
-
+	if req.Type == nil {
+		return ErrMissingField("type")
+	}
 	err := req.Type.Validate()
 	if err != nil {
 		return err
 	}
-	if req.Type == CredentialTypeAWSSTS && req.Proof == nil {
+	if *req.Type == CredentialTypeAWSSTS && req.Proof == nil {
 		return ErrMissingField("proof")
 	}
 
 	return nil
+}
+
+// CredentialProofAWSSTS is proof for when the credential type is AWSSTS.
+type CredentialProofAWSSTS struct {
+	Region  *string `json:"region"`
+	Request []byte  `json:"request"`
+}
+
+func (p CredentialProofAWSSTS) Validate() error {
+	if p.Region == nil {
+		return ErrMissingField("region")
+	}
+	if p.Request == nil {
+		return ErrMissingField("request")
+	}
+	return nil
+}
+
+// CredentialProofRSA is proof for when the credential type is RSA.
+type CredentialProofRSA struct{}
+
+// CredentialFingerprint returns the fingerprint of a credential.
+func CredentialFingerprint(t CredentialType, verifier []byte) string {
+	var toHash []byte
+	if t == CredentialTypeRSA {
+		// Provide compatibility with traditional RSA credentials.
+		toHash = verifier
+	} else {
+		encodedVerifier := base64.RawStdEncoding.EncodeToString(verifier)
+		toHash = []byte(fmt.Sprintf("credential_type=%s;verifier=%s", t, encodedVerifier))
+
+	}
+	h := sha256.New()
+	h.Write(toHash)
+	return hex.EncodeToString(h.Sum(nil))
 }
