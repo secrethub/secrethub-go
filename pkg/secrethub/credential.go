@@ -43,6 +43,8 @@ type Verifier interface {
 	Verifier() ([]byte, error)
 	// Type returns what type of credential this is.
 	Type() api.CredentialType
+	// AddProof adds the proof of this credential's possession to a CreateCredentialRequest.
+	AddProof(req *api.CreateCredentialRequest) error
 }
 
 // Credential used to be an interface that contained functions to encrypt, decrypt and authenticate.
@@ -335,6 +337,12 @@ func (c RSACredential) Unwrap(ciphertext crypto.CiphertextRSAAES) ([]byte, error
 // Type returns what type of credential this is.
 func (c RSACredential) Type() api.CredentialType {
 	return api.CredentialTypeRSA
+}
+
+// Proof returns the proof for possession of this credential.
+func (c RSACredential) AddProof(_ *api.CreateCredentialRequest) error {
+	// Currently not implemented for RSA credentials
+	return nil
 }
 
 // RSAPrivateKeyDecoder implements the CredentialDecoder interface for an RSA private key.

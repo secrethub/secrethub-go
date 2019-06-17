@@ -42,6 +42,10 @@ const (
 	CredentialTypeAWSSTS                = "aws-sts"
 )
 
+const (
+	CredentialAWSSTSPlaintextPrefix = "secrethub-allow-role="
+)
+
 // Validate validates whether the algorithm type is valid.
 func (a CredentialType) Validate() error {
 	if a == CredentialTypeRSA || a == CredentialTypeAWSSTS {

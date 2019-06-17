@@ -72,16 +72,17 @@ func (c *client) createCredentialRequest(verifier Verifier) (*api.CreateCredenti
 	}
 	fingerprint := api.CredentialFingerprint(verifier.Type(), bytes)
 
-	bytes, err := verifier.Verifier()
+	t := verifier.Type()
+	req := api.CreateCredentialRequest{
+		Fingerprint: api.String(fingerprint),
+		Verifier:    bytes,
+		Type:        &t,
+	}
+	err = verifier.AddProof(&req)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
-
-	return &api.CreateCredentialRequest{
-		Fingerprint: fingerprint,
-		Verifier:    bytes,
-		Type:        verifier.Type(),
-	}, nil
+	return &req, nil
 }
 
 // getAccountKey attempts to get the account key from the cache,
