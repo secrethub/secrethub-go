@@ -66,10 +66,11 @@ func (c *client) createAccountKeyRequest(encrypter Encrypter, accountKey crypto.
 }
 
 func (c *client) createCredentialRequest(verifier Verifier) (*api.CreateCredentialRequest, error) {
-	fingerprint, err := verifier.Fingerprint()
+	bytes, err := verifier.Verifier()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
+	fingerprint := api.CredentialFingerprint(verifier.Type(), bytes)
 
 	bytes, err := verifier.Verifier()
 	if err != nil {

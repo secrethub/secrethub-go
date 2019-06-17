@@ -39,8 +39,6 @@ var (
 
 // Verifier exports verification bytes that can be used to verify signed data is processed by the owner of a signer.
 type Verifier interface {
-	// Fingerprint returns an identifier by which the server can identify the credential, e.g. a username of a fingerprint.
-	Fingerprint() (string, error)
 	// Verifier returns the data to be stored server side to verify an http request authenticated with this credential.
 	Verifier() ([]byte, error)
 	// Type returns what type of credential this is.
@@ -292,7 +290,11 @@ func generateRSACredential(keyLength int) (RSACredential, error) {
 
 // Fingerprint returns the key identifier by which the server can identify the credential.
 func (c RSACredential) Fingerprint() (string, error) {
-	return c.RSAPrivateKey.Public().Fingerprint()
+	verifier, err := c.Verifier()
+	if err != nil {
+		return "", err
+	}
+	return api.CredentialFingerprint(c.Type(), verifier), nil
 }
 
 // ID returns a string by which the credential can be identified.

@@ -79,7 +79,7 @@ func (s userService) create(username, email, fullName string, accountKey crypto.
 		return nil, errio.Error(err)
 	}
 
-	accountKeyResponse, err := s.client.createAccountKey(accountKey, encrypter)
+	accountKeyResponse, err := s.client.createAccountKey(*credentialRequest.Fingerprint, accountKey, encrypter)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (s userService) Get(username string) (*api.User, error) {
 }
 
 // createAccountKey adds the account key for the clients credential.
-func (c *client) createAccountKey(accountKey crypto.RSAPrivateKey, encrypter Encrypter) (*api.EncryptedAccountKey, error) {
+func (c *client) createAccountKey(credentialFingerprint string, accountKey crypto.RSAPrivateKey, encrypter Encrypter) (*api.EncryptedAccountKey, error) {
 	accountKeyRequest, err := c.createAccountKeyRequest(encrypter, accountKey)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -116,12 +116,7 @@ func (c *client) createAccountKey(accountKey crypto.RSAPrivateKey, encrypter Enc
 		return nil, err
 	}
 
-	fingerprint, err := encrypter.Fingerprint()
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := c.httpClient.CreateAccountKey(accountKeyRequest, fingerprint)
+	result, err := c.httpClient.CreateAccountKey(accountKeyRequest, credentialFingerprint)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
