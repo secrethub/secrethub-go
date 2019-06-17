@@ -145,19 +145,3 @@ func CredentialFingerprint(t CredentialType, verifier []byte) string {
 	h.Write(toHash)
 	return hex.EncodeToString(h.Sum(nil))
 }
-
-// CredentialFingerprint returns the fingerprint of a credential.
-func CredentialFingerprint(t CredentialType, verifier []byte) string {
-	var toHash []byte
-	if t == CredentialTypeRSA {
-		// Provide compatibility with traditional RSA credentials.
-		toHash = verifier
-	} else {
-		encodedVerifier := base64.RawStdEncoding.EncodeToString(verifier)
-		toHash = []byte(fmt.Sprintf("credential_type=%s;verifier=%s", t, encodedVerifier))
-
-	}
-	h := sha256.New()
-	h.Write(toHash)
-	return hex.EncodeToString(h.Sum(nil))
-}
