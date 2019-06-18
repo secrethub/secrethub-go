@@ -47,33 +47,42 @@ func NewAuthRequestAWSSTS(sessionType SessionType, region string, stsRequest []b
 	}
 }
 
-func (r AuthRequest) UnmarshalJSON(b []byte) error {
-	encodedPayload := json.RawMessage{}
-	r.Payload = &encodedPayload
-	err := json.Unmarshal(b, &r)
+func (r *AuthRequest) UnmarshalJSON(b []byte) error {
+	// Declare a private type to avoid recursion into this function.
+	type authRequest AuthRequest
+
+	var rawMessage json.RawMessage
+	dec := authRequest{
+		Payload: &rawMessage,
+	}
+
+	err := json.Unmarshal(b, &dec)
 	if err != nil {
 		return err
 	}
 
-	if r.Method == nil {
+	if dec.Method == nil {
 		return ErrInvalidAuthMethod
 	}
 
-	switch *r.Method {
+	switch *dec.Method {
 	case AuthMethodAWSSTS:
-		r.Payload = &AuthPayloadAWSSTS{}
+		dec.Payload = &AuthPayloadAWSSTS{}
 	default:
 		return ErrInvalidAuthMethod
 	}
 
-	err = json.Unmarshal(encodedPayload, r.Payload)
-	if err != nil {
-		return err
+	if rawMessage != nil {
+		err = json.Unmarshal(rawMessage, dec.Payload)
+		if err != nil {
+			return err
+		}
 	}
+	*r = AuthRequest(dec)
 	return nil
 }
 
-func (r AuthRequest) Validate() error {
+func (r *AuthRequest) Validate() error {
 	if r.SessionType == nil {
 		return ErrMissingField("session_type")
 	}
@@ -119,33 +128,42 @@ type SessionPayloadHMAC struct {
 	SecretKey *string `json:"secret_key"`
 }
 
-func (s Session) UnmarshalJSON(b []byte) error {
-	encodedPayload := json.RawMessage{}
-	s.Payload = &encodedPayload
-	err := json.Unmarshal(b, &s)
+func (s *Session) UnmarshalJSON(b []byte) error {
+	// Declare a private type to avoid recursion into this function.
+	type session Session
+
+	var rawMessage json.RawMessage
+	dec := session{
+		Payload: &rawMessage,
+	}
+
+	err := json.Unmarshal(b, &dec)
 	if err != nil {
 		return err
 	}
 
-	if s.Type == nil {
+	if dec.Type == nil {
 		return ErrInvalidSessionType
 	}
 
-	switch *s.Type {
+	switch *dec.Type {
 	case SessionTypeHMAC:
-		s.Payload = &SessionPayloadHMAC{}
+		dec.Payload = &SessionPayloadHMAC{}
 	default:
 		return ErrInvalidSessionType
 	}
 
-	err = json.Unmarshal(encodedPayload, s.Payload)
-	if err != nil {
-		return err
+	if rawMessage != nil {
+		err = json.Unmarshal(rawMessage, dec.Payload)
+		if err != nil {
+			return err
+		}
 	}
+	*s = Session(dec)
 	return nil
 }
 
-func (s Session) Validate() error {
+func (s *Session) Validate() error {
 	if s.SessionID == nil {
 		return ErrMissingField("session_id")
 	}

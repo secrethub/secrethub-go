@@ -64,29 +64,37 @@ type CreateCredentialRequest struct {
 }
 
 func (req *CreateCredentialRequest) UnmarshalJSON(b []byte) error {
-	encodedProof := json.RawMessage{}
-	req.Proof = &encodedProof
-	err := json.Unmarshal(b, &req)
+	// Declare a private type to avoid recursion into this function.
+	type createCredentialRequest CreateCredentialRequest
+
+	var rawMessage json.RawMessage
+	dec := createCredentialRequest{
+		Proof: &rawMessage,
+	}
+
+	err := json.Unmarshal(b, &dec)
 	if err != nil {
 		return err
 	}
-	if req.Type == nil {
+	if dec.Type == nil {
 		return ErrMissingField("type")
 	}
 
-	switch *req.Type {
+	switch *dec.Type {
 	case CredentialTypeAWSSTS:
-		req.Proof = &CredentialProofAWSSTS{}
+		dec.Proof = &CredentialProofAWSSTS{}
 	case CredentialTypeRSA:
-		req.Proof = &CredentialProofRSA{}
+		dec.Proof = &CredentialProofRSA{}
 	default:
 		return ErrInvalidCredentialType
 	}
-
-	err = json.Unmarshal(encodedProof, req.Proof)
-	if err != nil {
-		return err
+	if rawMessage != nil {
+		err = json.Unmarshal(rawMessage, dec.Proof)
+		if err != nil {
+			return err
+		}
 	}
+	*req = CreateCredentialRequest(dec)
 	return nil
 }
 
