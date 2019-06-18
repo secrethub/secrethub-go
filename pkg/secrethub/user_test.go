@@ -32,14 +32,17 @@ func TestSignup(t *testing.T) {
 		client: newClient(cred1, auth.NewHTTPSigner(cred1), opts),
 	}
 
+	typeRSA := api.CredentialTypeRSA
+
 	expectedCreateUserRequest := api.CreateUserRequest{
 		Username: username,
 		FullName: fullName,
 		Email:    email,
 		Credential: &api.CreateCredentialRequest{
-			Type:        api.CredentialTypeRSA,
-			Fingerprint: cred1Fingerprint,
+			Type:        &typeRSA,
+			Fingerprint: api.String(cred1Fingerprint),
 			Verifier:    cred1Verifier,
+			Proof:       &api.CredentialProofRSA{},
 		},
 	}
 

@@ -170,6 +170,7 @@ func TestValidateFullName(t *testing.T) {
 }
 
 func TestCreateUserRequest_Validate(t *testing.T) {
+	typeRSA := CredentialTypeRSA
 	cases := map[string]struct {
 		req CreateUserRequest
 		err error
@@ -189,9 +190,9 @@ func TestCreateUserRequest_Validate(t *testing.T) {
 				Email:    "test-account.dev1@secrethub.io",
 				FullName: "Test Tester",
 				Credential: &CreateCredentialRequest{
-					Name:        "Personal laptop credential",
-					Type:        CredentialTypeRSA,
-					Fingerprint: "fingerprint",
+					Name:        String("Personal laptop credential"),
+					Type:        &typeRSA,
+					Fingerprint: String("88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14"),
 					Verifier:    []byte("verifier"),
 				},
 			},
@@ -246,50 +247,70 @@ func TestCreateUserRequest_Validate(t *testing.T) {
 }
 
 func TestCreateCredentialRequest_Validate(t *testing.T) {
+	typeRSA := CredentialTypeRSA
+	typeInvalid := CredentialType("invalid")
 	cases := map[string]struct {
 		req CreateCredentialRequest
 		err error
 	}{
 		"success": {
 			req: CreateCredentialRequest{
-				Name:        "Personal laptop credential",
-				Type:        CredentialTypeRSA,
-				Fingerprint: "fingerprint",
+				Name:        String("Personal laptop credential"),
+				Type:        &typeRSA,
+				Fingerprint: String("88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14"),
 				Verifier:    []byte("verifier"),
 			},
 			err: nil,
 		},
 		"success without name": {
 			req: CreateCredentialRequest{
-				Type:        CredentialTypeRSA,
-				Fingerprint: "fingerprint",
+				Type:        &typeRSA,
+				Fingerprint: String("88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14"),
 				Verifier:    []byte("verifier"),
 			},
 			err: nil,
 		},
 		"empty fingerprint": {
 			req: CreateCredentialRequest{
-				Type:        CredentialTypeRSA,
-				Name:        "Personal laptop credential",
-				Fingerprint: "",
+				Type:        &typeRSA,
+				Name:        String("Personal laptop credential"),
+				Fingerprint: String(""),
+				Verifier:    []byte("verifier"),
+			},
+			err: ErrInvalidFingerprint,
+		},
+		"invalid fingerprint": {
+			req: CreateCredentialRequest{
+				Type:        &typeRSA,
+				Name:        String("Personal laptop credential"),
+				Fingerprint: String("not-valid"),
 				Verifier:    []byte("verifier"),
 			},
 			err: ErrInvalidFingerprint,
 		},
 		"empty verifier": {
 			req: CreateCredentialRequest{
-				Type:        CredentialTypeRSA,
-				Name:        "Personal laptop credential",
-				Fingerprint: "fingerprint",
-				Verifier:    []byte(""),
+				Type:        &typeRSA,
+				Name:        String("Personal laptop credential"),
+				Fingerprint: String("fingerprint"),
+				Verifier:    nil,
 			},
-			err: ErrInvalidVerifier,
+			err: ErrMissingField("verifier"),
 		},
-		"empty algorithm": {
+		"empty type": {
 			req: CreateCredentialRequest{
-				Name:        "Personal laptop credential",
-				Fingerprint: "fingerprint",
+				Name:        String("Personal laptop credential"),
+				Fingerprint: String("88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14"),
 				Verifier:    []byte("verifier"),
+			},
+			err: ErrMissingField("type"),
+		},
+		"invalid type": {
+			req: CreateCredentialRequest{
+				Name:        String("Personal laptop credential"),
+				Fingerprint: String("88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14"),
+				Verifier:    []byte("verifier"),
+				Type:        &typeInvalid,
 			},
 			err: ErrInvalidCredentialType,
 		},
