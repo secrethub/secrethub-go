@@ -9,10 +9,11 @@ import (
 
 // ServiceService is a mock of the ServiceService interface.
 type ServiceService struct {
-	Creater ServiceCreater
-	Deleter ServiceDeleter
-	Getter  ServiceGetter
-	Lister  RepoServiceLister
+	Creater    ServiceCreater
+	Deleter    ServiceDeleter
+	Getter     ServiceGetter
+	Lister     RepoServiceLister
+	AWSService *ServiceAWSService
 }
 
 // Create implements the ServiceService interface Create function.
@@ -33,6 +34,11 @@ func (s *ServiceService) Get(id string) (*api.Service, error) {
 // List implements the ServiceService interface List function.
 func (s *ServiceService) List(path string) ([]*api.Service, error) {
 	return s.Lister.List(path)
+}
+
+// AWS implements the ServiceService interface AWS function.
+func (s *ServiceService) AWS() secrethub.ServiceAWSService {
+	return s.AWSService
 }
 
 // ServiceCreater mocks the Create function.
