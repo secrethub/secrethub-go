@@ -321,13 +321,53 @@ func (c RSACredential) Decoder() CredentialDecoder {
 }
 
 // Wrap encrypts data, typically an account key.
-func (c RSACredential) Wrap(plaintext []byte) (crypto.CiphertextRSAAES, error) {
-	return c.RSAPrivateKey.Public().Encrypt(plaintext)
+func (c RSACredential) Wrap(plaintext []byte) (*api.EncryptedData, error) {
+	ciphertext, err := c.RSAPrivateKey.Public().Encrypt(plaintext)
+	if err != nil {
+		return nil, err
+	}
+	key := api.NewEncryptionKeyEncrypted(
+		crypto.SymmetricKeyLength*8,
+		api.NewEncryptedDataRSAOAEP(
+			ciphertext.RSA.Data,
+			api.HashingAlgorithmSHA256,
+			api.NewEncryptionKeyLocal(crypto.RSAKeyLength),
+		),
+	)
+	return api.NewEncryptedDataAESGCM(
+		ciphertext.AES.Data,
+		ciphertext.AES.Nonce,
+		len(ciphertext.AES.Nonce)*8,
+		key,
+	), nil
 }
 
 // Unwrap decrypts data, typically an account key.
-func (c RSACredential) Unwrap(ciphertext crypto.CiphertextRSAAES) ([]byte, error) {
-	return c.RSAPrivateKey.Decrypt(ciphertext)
+func (c RSACredential) Unwrap(ciphertext *api.EncryptedData) ([]byte, error) {
+	if ciphertext.Algorithm != api.EncryptionAlgorithmAESGCM {
+		return nil, api.ErrInvalidCiphertext
+	}
+	key, ok := ciphertext.Key.(*api.EncryptionKeyEncrypted)
+	if !ok {
+		return nil, api.ErrInvalidCiphertext
+	}
+	encryptedKey := key.EncryptedKey
+	if encryptedKey.Algorithm != api.EncryptionAlgorithmRSAOEAP {
+		return nil, api.ErrInvalidCiphertext
+	}
+	metadata, ok := ciphertext.Metadata.(*api.EncryptionMetadataAESGCM)
+	if !ok {
+		return nil, api.ErrInvalidCiphertext
+	}
+	return c.RSAPrivateKey.Decrypt(crypto.CiphertextRSAAES{
+		AES: crypto.CiphertextAES{
+			Data:  ciphertext.Ciphertext,
+			Nonce: metadata.Nonce,
+		},
+		RSA: crypto.CiphertextRSA{
+			Data: encryptedKey.Ciphertext,
+		},
+	})
 }
 
 // Type returns what type of credential this is.
