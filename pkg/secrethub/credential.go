@@ -296,7 +296,7 @@ func (c RSACredential) Fingerprint() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return api.CredentialFingerprint(c.Type(), verifier), nil
+	return api.CredentialFingerprint(c.Type(), verifier)
 }
 
 // ID returns a string by which the credential can be identified.

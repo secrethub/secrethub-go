@@ -39,7 +39,7 @@ type CredentialType string
 // Credential types
 const (
 	CredentialTypeRSA    CredentialType = "rsa"
-	CredentialTypeAWSSTS                = "aws-sts"
+	CredentialTypeAWSSTS CredentialType = "aws-sts"
 )
 
 const (
@@ -116,7 +116,11 @@ func (req *CreateCredentialRequest) Validate() error {
 	if *req.Type == CredentialTypeAWSSTS && req.Proof == nil {
 		return ErrMissingField("proof")
 	}
-	if *req.Fingerprint != CredentialFingerprint(*req.Type, req.Verifier) {
+	fingerprint, err := CredentialFingerprint(*req.Type, req.Verifier)
+	if err != nil {
+		return err
+	}
+	if *req.Fingerprint != fingerprint {
 		return ErrInvalidFingerprint
 	}
 
@@ -143,7 +147,7 @@ func (p CredentialProofAWSSTS) Validate() error {
 type CredentialProofRSA struct{}
 
 // CredentialFingerprint returns the fingerprint of a credential.
-func CredentialFingerprint(t CredentialType, verifier []byte) string {
+func CredentialFingerprint(t CredentialType, verifier []byte) (string, error) {
 	var toHash []byte
 	if t == CredentialTypeRSA {
 		// Provide compatibility with traditional RSA credentials.
@@ -154,6 +158,9 @@ func CredentialFingerprint(t CredentialType, verifier []byte) string {
 
 	}
 	h := sha256.New()
-	h.Write(toHash)
-	return hex.EncodeToString(h.Sum(nil))
+	_, err := h.Write(toHash)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
