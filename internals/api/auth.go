@@ -117,6 +117,18 @@ func (pl AuthPayloadAWSSTS) Validate() error {
 	return nil
 }
 
+func NewSessionHMAC(sessionID uuid.UUID, expiration time.Time, secretKey string) *Session {
+	t := SessionTypeHMAC
+	return &Session{
+		SessionID:  &sessionID,
+		Expiration: &expiration,
+		Type:       &t,
+		Payload: &SessionPayloadHMAC{
+			SecretKey: &secretKey,
+		},
+	}
+}
+
 type Session struct {
 	SessionID  *uuid.UUID   `json:"session_id"`
 	Expiration *time.Time   `json:"expiration"`
@@ -126,6 +138,12 @@ type Session struct {
 
 type SessionPayloadHMAC struct {
 	SecretKey *string `json:"secret_key"`
+}
+
+type SessionHMAC struct {
+	SessionID  uuid.UUID
+	Expiration time.Time
+	Payload    SessionPayloadHMAC
 }
 
 func (s *Session) UnmarshalJSON(b []byte) error {
@@ -163,6 +181,10 @@ func (s *Session) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type validator interface {
+	Validate() error
+}
+
 func (s *Session) Validate() error {
 	if s.SessionID == nil {
 		return ErrMissingField("session_id")
@@ -179,10 +201,14 @@ func (s *Session) Validate() error {
 	if s.Payload == nil {
 		return ErrMissingField("payload")
 	}
+	payload := s.Payload.(validator)
+	if err := payload.Validate(); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (pl SessionPayloadHMAC) Validate() error {
+func (pl *SessionPayloadHMAC) Validate() error {
 	if pl.SecretKey == nil {
 		return ErrMissingField("secret_key")
 	}
