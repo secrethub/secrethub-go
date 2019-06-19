@@ -90,7 +90,7 @@ func (k EncryptionKeyEncrypted) Validate() error {
 	if k.Length == nil {
 		return ErrMissingField("length")
 	}
-	if *k.Length <= 0 {
+	if IntValue(k.Length) <= 0 {
 		return ErrInvalidKeyLength
 	}
 	return k.EncryptedKey.Validate()

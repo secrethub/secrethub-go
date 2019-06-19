@@ -10,7 +10,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
-func TestEncryptedData(t *testing.T) {
+func TestEncryptedData_MarshalUnmarshalValidate(t *testing.T) {
 	encryptedDataRSAAccountKey := NewEncryptedDataRSAOAEP([]byte("rsa-ciphertext"), HashingAlgorithmSHA256, NewEncryptionKeyAccountKey(4096, *uuid.New()))
 
 	cases := map[string]struct {
