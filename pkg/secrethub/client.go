@@ -23,7 +23,7 @@ type Client interface {
 // Decrypter decrypts data, typically an account key.
 type Decrypter interface {
 	// Unwrap decrypts data, typically an account key.
-	Unwrap(ciphertext crypto.CiphertextRSAAES) ([]byte, error)
+	Unwrap(ciphertext *api.EncryptedData) ([]byte, error)
 }
 
 // Encrypter encrypts data, typically an account key.
@@ -31,7 +31,7 @@ type Encrypter interface {
 	// Fingerprint returns an identifier by which the server can identify the credential, e.g. a username of a fingerprint.
 	Fingerprint() (string, error)
 	// Wrap encrypts data, typically an account key.
-	Wrap(plaintext []byte) (crypto.CiphertextRSAAES, error)
+	Wrap(plaintext []byte) (*api.EncryptedData, error)
 }
 
 type clientAdapter struct {
