@@ -44,6 +44,7 @@ func newEncryptionKeyDerived(algorithm KeyDerivationAlgorithm, length int, param
 			Type: KeyTypeDerived,
 		},
 		Length:     Int(length),
+		Algorithm:  algorithm,
 		Parameters: parameters,
 		Metadata:   metadata,
 	}
