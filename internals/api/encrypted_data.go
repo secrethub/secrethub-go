@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 )
 
 // Errors
@@ -11,8 +10,6 @@ var (
 	ErrInvalidKeyType             = errAPI.Code("invalid_key_type").Error("invalid key type")
 	ErrKeyAlgorithmMismatch       = errAPI.Code("key_algorithm_mismatch").Error("mismatch between algorithm and key type")
 	ErrInvalidKeyLength           = errAPI.Code("invalid_key_length").Error("key length value is invalid")
-	errWrongKeyType               = errors.New("key type field set to wrong value, refer to the documentation to construct a legal struct")
-	errInvalidEncryptedData       = errors.New("invalid EncryptedData struct was constructed, refer to the documentation to construct a legal struct")
 )
 
 // EncryptionAlgorithm specifies the encryption algorithm used for EncryptedData.

@@ -87,9 +87,6 @@ func (EncryptionKeyEncrypted) AlgorithmSupported(a EncryptionAlgorithm) bool {
 	return a == EncryptionAlgorithmAESGCM || a == EncryptionAlgorithmRSAOEAP
 }
 func (k EncryptionKeyEncrypted) Validate() error {
-	if k.Type != KeyTypeEncrypted {
-		return errWrongKeyType
-	}
 	if k.Length == nil {
 		return ErrMissingField("length")
 	}
@@ -117,9 +114,6 @@ func (EncryptionKeyLocal) AlgorithmSupported(a EncryptionAlgorithm) bool {
 	return a == EncryptionAlgorithmAESGCM || a == EncryptionAlgorithmRSAOEAP
 }
 func (k EncryptionKeyLocal) Validate() error {
-	if k.Type != KeyTypeLocal {
-		return errWrongKeyType
-	}
 	if k.Length == nil {
 		return ErrMissingField("length")
 	}
@@ -195,9 +189,6 @@ func (EncryptionKeyAWS) AlgorithmSupported(a EncryptionAlgorithm) bool {
 	return a == EncryptionAlgorithmAWSKMS
 }
 func (k EncryptionKeyAWS) Validate() error {
-	if k.Type != KeyTypeAWS {
-		return errWrongKeyType
-	}
 	if k.ID == nil {
 		return ErrMissingField("id")
 	}
