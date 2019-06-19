@@ -12,6 +12,7 @@ type KeyDerivationAlgorithm string
 const (
 	KeyTypeDerived    KeyType = "derived"
 	KeyTypeEncrypted  KeyType = "encrypted"
+	KeyTypeLocal      KeyType = "local"
 	KeyTypeAccountKey KeyType = "account-key"
 	KeyTypeSecretKey  KeyType = "secret-key"
 	KeyTypeAWS        KeyType = "aws"
@@ -96,6 +97,36 @@ func (k EncryptionKeyEncrypted) Validate() error {
 		return ErrInvalidKeyLength
 	}
 	return k.EncryptedKey.Validate()
+}
+
+func NewEncryptionKeyLocal(length int) *EncryptionKeyLocal {
+	return &EncryptionKeyLocal{
+		EncryptionKey: EncryptionKey{
+			Type: KeyTypeLocal,
+		},
+		Length: Int(length),
+	}
+}
+
+type EncryptionKeyLocal struct {
+	EncryptionKey
+	Length *int `json:"length"`
+}
+
+func (EncryptionKeyLocal) AlgorithmSupported(a EncryptionAlgorithm) bool {
+	return a == EncryptionAlgorithmAESGCM || a == EncryptionAlgorithmRSAOEAP
+}
+func (k EncryptionKeyLocal) Validate() error {
+	if k.Type != KeyTypeLocal {
+		return errWrongKeyType
+	}
+	if k.Length == nil {
+		return ErrMissingField("length")
+	}
+	if *k.Length <= 0 {
+		return ErrInvalidKeyLength
+	}
+	return nil
 }
 
 func NewEncryptionKeyAccountKey(length int, id uuid.UUID) *EncryptionKeyAccountKey {

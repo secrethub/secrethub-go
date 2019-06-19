@@ -21,6 +21,9 @@ func TestEncryptedData(t *testing.T) {
 		"aes with rsa account key": {
 			in: NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, NewEncryptionKeyEncrypted(256, encryptedDataRSAAccountKey)),
 		},
+		"aes with rsa local key": {
+			in: NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, NewEncryptionKeyLocal(256)),
+		},
 		"aes with secret key": {
 			in: NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, NewEncryptionKeySecretKey(256, *uuid.New())),
 		},
