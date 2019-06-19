@@ -15,9 +15,3 @@ type EncryptionParametersRSAOAEP struct {
 func (EncryptionParametersRSAOAEP) Validate() error {
 	return nil
 }
-
-type EncryptionParametersAWSKMS struct{}
-
-func (EncryptionParametersAWSKMS) Validate() error {
-	return nil
-}

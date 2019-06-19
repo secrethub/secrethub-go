@@ -56,7 +56,7 @@ func NewEncryptedDataRSAOAEP(ciphertext []byte, hashingAlgorithm HashingAlgorith
 	return &EncryptedData{
 		Algorithm: EncryptionAlgorithmRSAOEAP,
 		Key:       key,
-		Metadata:  &EncryptionMetadataRSAOEAP{},
+		Metadata:  nil,
 		Parameters: &EncryptionParametersRSAOAEP{
 			HashingAlgorithm: hashingAlgorithm,
 		},
@@ -68,8 +68,8 @@ func NewEncryptedDataAWSKMS(ciphertext []byte, key *EncryptionKeyAWS) *Encrypted
 	return &EncryptedData{
 		Algorithm:  EncryptionAlgorithmAWSKMS,
 		Key:        key,
-		Metadata:   &EncryptionMetadataAWSKMS{},
-		Parameters: &EncryptionParametersAWSKMS{},
+		Metadata:   nil,
+		Parameters: nil,
 		Ciphertext: ciphertext,
 	}
 }
@@ -123,25 +123,25 @@ func (ed *EncryptedData) UnmarshalJSON(b []byte) error {
 
 	switch dec.Algorithm {
 	case EncryptionAlgorithmRSAOEAP:
-		dec.Metadata = &EncryptionMetadataRSAOEAP{}
+		dec.Metadata = nil
 		dec.Parameters = &EncryptionParametersRSAOAEP{}
 	case EncryptionAlgorithmAESGCM:
 		dec.Metadata = &EncryptionMetadataAESGCM{}
 		dec.Parameters = &EncryptionParametersAESGCM{}
 	case EncryptionAlgorithmAWSKMS:
-		dec.Metadata = &EncryptionMetadataAWSKMS{}
-		dec.Parameters = &EncryptionParametersAWSKMS{}
+		dec.Metadata = nil
+		dec.Parameters = nil
 	default:
 		return ErrInvalidEncryptionAlgorithm
 	}
 
-	if rawMetadata != nil {
+	if rawMetadata != nil && dec.Metadata != nil {
 		err = json.Unmarshal(rawMetadata, dec.Metadata)
 		if err != nil {
 			return err
 		}
 	}
-	if rawParameters != nil {
+	if rawParameters != nil && dec.Parameters != nil {
 		err = json.Unmarshal(rawParameters, dec.Parameters)
 		if err != nil {
 			return err
@@ -170,21 +170,11 @@ func (ed *EncryptedData) Validate() error {
 	if ed.Key == nil {
 		return ErrMissingField("key")
 	}
-	if ed.Parameters == nil {
-		return ErrMissingField("parameters")
-	}
-	if ed.Metadata == nil {
-		return ErrMissingField("parameters")
-	}
 	if ed.Ciphertext == nil {
 		return ErrMissingField("ciphertext")
 	}
 
-	key, ok := ed.Key.(keyValidator)
-	if !ok {
-		// TODO: or do we just want to panic here? This should never fail when the code is used correctly.
-		return errInvalidEncryptedData
-	}
+	key := ed.Key.(keyValidator)
 	if err := key.Validate(); err != nil {
 		return err
 	}
@@ -193,21 +183,17 @@ func (ed *EncryptedData) Validate() error {
 	}
 
 	parameters, ok := ed.Parameters.(validator)
-	if !ok {
-		// TODO: or do we just want to panic here? This should never fail when the code is used correctly.
-		return errInvalidEncryptedData
-	}
-	if err := parameters.Validate(); err != nil {
-		return err
+	if ok {
+		if err := parameters.Validate(); err != nil {
+			return err
+		}
 	}
 
 	metadata, ok := ed.Metadata.(validator)
-	if !ok {
-		// TODO: or do we just want to panic here? This should never fail when the code is used correctly.
-		return errInvalidEncryptedData
-	}
-	if err := metadata.Validate(); err != nil {
-		return err
+	if ok {
+		if err := metadata.Validate(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

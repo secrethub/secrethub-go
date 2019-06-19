@@ -7,15 +7,3 @@ type EncryptionMetadataAESGCM struct {
 func (EncryptionMetadataAESGCM) Validate() error {
 	return nil
 }
-
-type EncryptionMetadataRSAOEAP struct{}
-
-func (EncryptionMetadataRSAOEAP) Validate() error {
-	return nil
-}
-
-type EncryptionMetadataAWSKMS struct{}
-
-func (EncryptionMetadataAWSKMS) Validate() error {
-	return nil
-}
