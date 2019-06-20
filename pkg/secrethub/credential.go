@@ -94,7 +94,7 @@ func NewCredential(credential string, passphrase string) (Credential, error) {
 // CredentialDecoder converts a payload into a Credential.
 type CredentialDecoder interface {
 	// Decode decodes a payload into a Credential.
-	Decode(payload []byte) (Credential, error)
+	Decode(payload []byte) (*RSACredential, error)
 	// Name returns the name of the encoding.
 	Name() string
 }
@@ -118,7 +118,7 @@ type EncodedCredential struct {
 }
 
 // Decode decodes an unencrypted credential string into a Credential.
-func (c EncodedCredential) Decode() (Credential, error) {
+func (c EncodedCredential) Decode() (*RSACredential, error) {
 	if c.IsEncrypted() {
 		return nil, ErrCannotDecodeEncryptedCredential
 	}
@@ -128,7 +128,7 @@ func (c EncodedCredential) Decode() (Credential, error) {
 
 // DecodeEncrypted decodes and decrypts an encrypted credential string
 // using the given key.
-func (c EncodedCredential) DecodeEncrypted(key PassBasedKey) (Credential, error) {
+func (c EncodedCredential) DecodeEncrypted(key PassBasedKey) (*RSACredential, error) {
 	if key.Name() != c.EncryptionAlgorithm {
 		return nil, ErrInvalidKey
 	}
@@ -275,17 +275,17 @@ type RSACredential struct {
 
 // GenerateCredential generates a new credential to be used to
 // authenticate the account and to decrypt the account key.
-func GenerateCredential() (Credential, error) {
+func GenerateCredential() (*RSACredential, error) {
 	return generateRSACredential(crypto.RSAKeyLength)
 }
 
-func generateRSACredential(keyLength int) (RSACredential, error) {
+func generateRSACredential(keyLength int) (*RSACredential, error) {
 	key, err := crypto.GenerateRSAPrivateKey(keyLength)
 	if err != nil {
-		return RSACredential{}, errio.Error(err)
+		return nil, errio.Error(err)
 	}
 
-	return RSACredential{
+	return &RSACredential{
 		RSAPrivateKey: key,
 	}, nil
 }
@@ -339,13 +339,13 @@ func (c RSACredential) Type() api.CredentialType {
 type RSAPrivateKeyDecoder struct{}
 
 // Decode converts a EncodedCredential's payload into an RSA ClientKey.
-func (d RSAPrivateKeyDecoder) Decode(payload []byte) (Credential, error) {
+func (d RSAPrivateKeyDecoder) Decode(payload []byte) (*RSACredential, error) {
 	key, err := x509.ParsePKCS1PrivateKey(payload)
 	if err != nil {
 		return nil, err
 	}
 
-	return RSACredential{
+	return &RSACredential{
 		RSAPrivateKey: crypto.NewRSAPrivateKey(key),
 	}, nil
 }
