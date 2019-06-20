@@ -8,7 +8,7 @@
 </h1>
 
 [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
-[![Travis CI](https://travis-ci.org/secrethub/secrethub-go.svg?branch=master)][travis-ci]
+[![CircleCI](https://circleci.com/gh/secrethub/secrethub-go.svg?style=shield)][circle-ci]
 [![GolangCI](https://golangci.com/badges/github.com/secrethub/secrethub-go.svg)][golang-ci]
 [![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard]
 [![Version]( https://img.shields.io/github/release/secrethub/secrethub-go.svg)][latest-version]
@@ -121,5 +121,5 @@ Come chat with us on [Discord][discord] or email us at [support@secrethub.io](ma
 [godoc]: http://godoc.org/github.com/secrethub/secrethub-go
 [golang-ci]: https://golangci.com/r/github.com/secrethub/secrethub-go
 [goreportcard]: https://goreportcard.com/report/github.com/secrethub/secrethub-go
-[travis-ci]: https://travis-ci.org/secrethub/secrethub-go
+[circle-ci]: https://circleci.com/gh/secrethub/secrethub-go
 [discord]: https://discord.gg/EQcE87s
