@@ -148,10 +148,6 @@ func (ed *EncryptedData) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type validator interface {
-	Validate() error
-}
-
 type keyValidator interface {
 	validator
 	AlgorithmSupported(EncryptionAlgorithm) bool
