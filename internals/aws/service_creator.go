@@ -3,8 +3,6 @@ package aws
 import (
 	"bytes"
 
-	"github.com/secrethub/secrethub-go/internals/crypto"
-
 	"github.com/aws/aws-sdk-go/aws"
 
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -65,17 +63,15 @@ func (c ServiceCreator) AddProof(req *api.CreateCredentialRequest) error {
 	return nil
 }
 
-func (c ServiceCreator) Wrap(plaintext []byte) (crypto.CiphertextRSAAES, error) {
+func (c ServiceCreator) Wrap(plaintext []byte) (*api.EncryptedData, error) {
 	svc := kms.New(c.awsSession)
 
-	_, err := svc.Encrypt(&kms.EncryptInput{
+	resp, err := svc.Encrypt(&kms.EncryptInput{
 		Plaintext: plaintext,
 		KeyId:     aws.String(c.keyID),
 	})
 	if err != nil {
-		return crypto.CiphertextRSAAES{}, err
+		return nil, err
 	}
-	// TODO: return something that actually makes sense.
-	return crypto.CiphertextRSAAES{}, nil
-	//return resp.CiphertextBlob, nil
+	return api.NewEncryptedDataAWSKMS(resp.CiphertextBlob, api.NewEncryptionKeyAWS(aws.StringValue(resp.KeyId))), nil
 }
