@@ -66,21 +66,26 @@ func (c *client) createAccountKeyRequest(encrypter Encrypter, accountKey crypto.
 }
 
 func (c *client) createCredentialRequest(verifier Verifier) (*api.CreateCredentialRequest, error) {
-	fingerprint, err := verifier.Fingerprint()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
 	bytes, err := verifier.Verifier()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
+	fingerprint, err := api.CredentialFingerprint(verifier.Type(), bytes)
+	if err != nil {
+		return nil, err
+	}
 
-	return &api.CreateCredentialRequest{
-		Fingerprint: fingerprint,
+	t := verifier.Type()
+	req := api.CreateCredentialRequest{
+		Fingerprint: api.String(fingerprint),
 		Verifier:    bytes,
-		Type:        verifier.Type(),
-	}, nil
+		Type:        &t,
+	}
+	err = verifier.AddProof(&req)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+	return &req, nil
 }
 
 // getAccountKey attempts to get the account key from the cache,
