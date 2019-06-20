@@ -3,6 +3,7 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/auth"
+	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -43,6 +44,22 @@ func NewClient(decrypter Decrypter, authenticator auth.Authenticator, opts *Clie
 	return &clientAdapter{
 		client: newClient(decrypter, authenticator, opts),
 	}
+}
+
+func NewClientAWS(opts *ClientOptions) (Client, error) {
+	decrypter, err := aws.NewKMSDecrypter()
+	if err != nil {
+		return nil, err
+	}
+	client := &clientAdapter{
+		client: newClient(decrypter, auth.NopAuthenticator{}, opts),
+	}
+	authenticator, err := client.Auth().AWS().Authenticate()
+	if err != nil {
+		return nil, err
+	}
+	client.client.httpClient.authenticator = authenticator
+	return client, nil
 }
 
 // AccessRules returns an AccessRuleService.
