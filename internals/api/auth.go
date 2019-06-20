@@ -212,6 +212,15 @@ func (s *Session) Validate() error {
 	return nil
 }
 
+func (s *Session) HMAC() *SessionHMAC {
+	payload := s.Payload.(*SessionPayloadHMAC)
+	return &SessionHMAC{
+		SessionID:  *s.SessionID,
+		Expiration: *s.Expiration,
+		Payload:    *payload,
+	}
+}
+
 func (pl *SessionPayloadHMAC) Validate() error {
 	if pl.SecretKey == nil {
 		return ErrMissingField("secret_key")

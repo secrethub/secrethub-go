@@ -11,6 +11,7 @@ import (
 type Client interface {
 	AccessRules() AccessRuleService
 	Accounts() AccountService
+	Auth() AuthService
 	Dirs() DirService
 	Me() MeService
 	Orgs() OrgService
@@ -54,6 +55,11 @@ func (c clientAdapter) AccessRules() AccessRuleService {
 // Accounts returns an AccountService.
 func (c clientAdapter) Accounts() AccountService {
 	return newAccountService(c.client)
+}
+
+// Auth returns an AuthService.
+func (c clientAdapter) Auth() AuthService {
+	return newAuthService(c.client)
 }
 
 // Dirs returns an DirService.
