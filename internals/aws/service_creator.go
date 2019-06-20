@@ -17,7 +17,7 @@ type ServiceCreator struct {
 }
 
 func NewServiceCreator(keyID, role string, cfgs ...*aws.Config) (*ServiceCreator, error) {
-	sess, err := session.NewSession(cfgs...)
+	sess, err := session.NewSession(aws.NewConfig().WithRegion("eu-west-1"))
 	if err != nil {
 		return nil, err
 	}
