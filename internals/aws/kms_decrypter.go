@@ -2,6 +2,7 @@ package aws
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -13,7 +14,7 @@ type KMSDecrypter struct {
 }
 
 func NewKMSDecrypter(cfgs ...*aws.Config) (*KMSDecrypter, error) {
-	sess, err := session.NewSession(aws.NewConfig().WithRegion("eu-west-1"))
+	sess, err := session.NewSession(cfgs...)
 	if err != nil {
 		return nil, err
 	}
@@ -24,8 +25,16 @@ func NewKMSDecrypter(cfgs ...*aws.Config) (*KMSDecrypter, error) {
 }
 
 func (d KMSDecrypter) Unwrap(ciphertext *api.EncryptedData) ([]byte, error) {
-	svc := kms.New(d.awsSession)
+	key, ok := ciphertext.Key.(*api.EncryptionKeyAWS)
+	if !ok {
+		return nil, api.ErrInvalidKeyType
+	}
+	keyARN, err := arn.Parse(api.StringValue(key.ID))
+	if err != nil {
+		return nil, api.ErrInvalidCiphertext
+	}
 
+	svc := kms.New(d.awsSession, aws.NewConfig().WithRegion(keyARN.Region))
 	resp, err := svc.Decrypt(&kms.DecryptInput{
 		CiphertextBlob: ciphertext.Ciphertext,
 	})
