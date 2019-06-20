@@ -15,12 +15,16 @@ const (
 )
 
 var (
-	ErrInvalidSessionType = errAPI.Code("invalid_session_type").StatusError("invalid session type provided for authentication request", http.StatusBadRequest)
-	ErrInvalidPayload     = errAPI.Code("invalid_payload").StatusError("invalid payload provided for authentication request", http.StatusBadRequest)
-	ErrInvalidAuthMethod  = errAPI.Code("invalid_auth_method").StatusError("invalid auth method", http.StatusBadRequest)
-	ErrMissingField       = errAPI.Code("missing_field").StatusErrorPref("request is missing field %s", http.StatusBadRequest)
-	ErrSessionNotFound    = errAPI.Code("session_not_found").StatusError("session could not be found, it might have expired", http.StatusForbidden)
-	ErrSessionExpired     = errAPI.Code("session_expired").StatusError("session has expired", http.StatusForbidden)
+	ErrInvalidSessionType  = errAPI.Code("invalid_session_type").StatusError("invalid session type provided for authentication request", http.StatusBadRequest)
+	ErrInvalidPayload      = errAPI.Code("invalid_payload").StatusError("invalid payload provided for authentication request", http.StatusBadRequest)
+	ErrInvalidAuthMethod   = errAPI.Code("invalid_auth_method").StatusError("invalid auth method", http.StatusBadRequest)
+	ErrMissingField        = errAPI.Code("missing_field").StatusErrorPref("request is missing field %s", http.StatusBadRequest)
+	ErrSessionNotFound     = errAPI.Code("session_not_found").StatusError("session could not be found, it might have expired", http.StatusForbidden)
+	ErrSessionExpired      = errAPI.Code("session_expired").StatusError("session has expired", http.StatusForbidden)
+	ErrAuthFailed          = errAPI.Code("auth_failed").StatusError("authentication failed", http.StatusForbidden)
+	ErrCouldNotGetEndpoint = errAPI.Code("wrong_endpoint").StatusError("could not find the AWS endpoint", http.StatusBadRequest)
+	ErrAWSException        = errAPI.Code("aws_exception").StatusError("AWS returned an error", http.StatusFailedDependency)
+	ErrArnNotFound         = errAPI.Code("arn_not_found").StatusError("could not find an account corresponding to the ARN provided", http.StatusNotFound)
 )
 
 type SessionType string
@@ -47,33 +51,42 @@ func NewAuthRequestAWSSTS(sessionType SessionType, region string, stsRequest []b
 	}
 }
 
-func (r AuthRequest) UnmarshalJSON(b []byte) error {
-	encodedPayload := json.RawMessage{}
-	r.Payload = &encodedPayload
-	err := json.Unmarshal(b, &r)
+func (r *AuthRequest) UnmarshalJSON(b []byte) error {
+	// Declare a private type to avoid recursion into this function.
+	type authRequest AuthRequest
+
+	var rawMessage json.RawMessage
+	dec := authRequest{
+		Payload: &rawMessage,
+	}
+
+	err := json.Unmarshal(b, &dec)
 	if err != nil {
 		return err
 	}
 
-	if r.Method == nil {
+	if dec.Method == nil {
 		return ErrInvalidAuthMethod
 	}
 
-	switch *r.Method {
+	switch *dec.Method {
 	case AuthMethodAWSSTS:
-		r.Payload = &AuthPayloadAWSSTS{}
+		dec.Payload = &AuthPayloadAWSSTS{}
 	default:
 		return ErrInvalidAuthMethod
 	}
 
-	err = json.Unmarshal(encodedPayload, r.Payload)
-	if err != nil {
-		return err
+	if rawMessage != nil {
+		err = json.Unmarshal(rawMessage, dec.Payload)
+		if err != nil {
+			return err
+		}
 	}
+	*r = AuthRequest(dec)
 	return nil
 }
 
-func (r AuthRequest) Validate() error {
+func (r *AuthRequest) Validate() error {
 	if r.SessionType == nil {
 		return ErrMissingField("session_type")
 	}
@@ -85,7 +98,7 @@ func (r AuthRequest) Validate() error {
 	}
 	switch *r.Method {
 	case AuthMethodAWSSTS:
-		authPayload, ok := r.Payload.(AuthPayloadAWSSTS)
+		authPayload, ok := r.Payload.(*AuthPayloadAWSSTS)
 		if !ok {
 			return ErrInvalidPayload
 		}
@@ -108,6 +121,18 @@ func (pl AuthPayloadAWSSTS) Validate() error {
 	return nil
 }
 
+func NewSessionHMAC(sessionID uuid.UUID, expiration time.Time, secretKey string) *Session {
+	t := SessionTypeHMAC
+	return &Session{
+		SessionID:  &sessionID,
+		Expiration: &expiration,
+		Type:       &t,
+		Payload: &SessionPayloadHMAC{
+			SecretKey: &secretKey,
+		},
+	}
+}
+
 type Session struct {
 	SessionID  *uuid.UUID   `json:"session_id"`
 	Expiration *time.Time   `json:"expiration"`
@@ -119,33 +144,52 @@ type SessionPayloadHMAC struct {
 	SecretKey *string `json:"secret_key"`
 }
 
-func (s Session) UnmarshalJSON(b []byte) error {
-	encodedPayload := json.RawMessage{}
-	s.Payload = &encodedPayload
-	err := json.Unmarshal(b, &s)
+type SessionHMAC struct {
+	SessionID  uuid.UUID
+	Expiration time.Time
+	Payload    SessionPayloadHMAC
+}
+
+func (s *Session) UnmarshalJSON(b []byte) error {
+	// Declare a private type to avoid recursion into this function.
+	type session Session
+
+	var rawMessage json.RawMessage
+	dec := session{
+		Payload: &rawMessage,
+	}
+
+	err := json.Unmarshal(b, &dec)
 	if err != nil {
 		return err
 	}
 
-	if s.Type == nil {
+	if dec.Type == nil {
 		return ErrInvalidSessionType
 	}
 
-	switch *s.Type {
+	switch *dec.Type {
 	case SessionTypeHMAC:
-		s.Payload = &SessionPayloadHMAC{}
+		dec.Payload = &SessionPayloadHMAC{}
 	default:
 		return ErrInvalidSessionType
 	}
 
-	err = json.Unmarshal(encodedPayload, s.Payload)
-	if err != nil {
-		return err
+	if rawMessage != nil {
+		err = json.Unmarshal(rawMessage, dec.Payload)
+		if err != nil {
+			return err
+		}
 	}
+	*s = Session(dec)
 	return nil
 }
 
-func (s Session) Validate() error {
+type validator interface {
+	Validate() error
+}
+
+func (s *Session) Validate() error {
 	if s.SessionID == nil {
 		return ErrMissingField("session_id")
 	}
@@ -161,10 +205,23 @@ func (s Session) Validate() error {
 	if s.Payload == nil {
 		return ErrMissingField("payload")
 	}
+	payload := s.Payload.(validator)
+	if err := payload.Validate(); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (pl SessionPayloadHMAC) Validate() error {
+func (s *Session) HMAC() *SessionHMAC {
+	payload := s.Payload.(*SessionPayloadHMAC)
+	return &SessionHMAC{
+		SessionID:  *s.SessionID,
+		Expiration: *s.Expiration,
+		Payload:    *payload,
+	}
+}
+
+func (pl *SessionPayloadHMAC) Validate() error {
 	if pl.SecretKey == nil {
 		return ErrMissingField("secret_key")
 	}
