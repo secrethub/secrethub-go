@@ -26,7 +26,7 @@ const (
 	// Current account
 	pathMeUser              = "%s/me/user"
 	pathMeRepos             = "%s/me/repos"
-	pathMeKey               = "%s/me/key"
+	pathMeKey               = "%s/me/key?key_version=v2"
 	pathMeEmailVerification = "%s/me/user/verification-email"
 
 	// Account
