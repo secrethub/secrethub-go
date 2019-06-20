@@ -69,23 +69,28 @@ type CreateServiceRequest struct {
 
 // Validate validates the request fields.
 func (req CreateServiceRequest) Validate() error {
-	err := ValidateServiceDescription(req.Description)
-	if err != nil {
+	if err := ValidateServiceDescription(req.Description); err != nil {
 		return err
 	}
 
-	err = req.Credential.Validate()
-	if err != nil {
+	if req.Credential == nil {
+		return ErrMissingField("credential")
+	}
+	if err := req.Credential.Validate(); err != nil {
 		return err
 	}
 
-	err = req.AccountKey.Validate()
-	if err != nil {
+	if req.AccountKey == nil {
+		return ErrMissingField("account_key")
+	}
+	if err := req.AccountKey.Validate(); err != nil {
 		return err
 	}
 
-	err = req.RepoMember.Validate()
-	if err != nil {
+	if req.RepoMember == nil {
+		return ErrMissingField("repo_member")
+	}
+	if err := req.RepoMember.Validate(); err != nil {
 		return err
 	}
 
