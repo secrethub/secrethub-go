@@ -2,6 +2,7 @@ package secrethub
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
@@ -15,6 +16,8 @@ type ServiceService interface {
 	Get(name string) (*api.Service, error)
 	// List lists all service accounts in a given repository.
 	List(path string) ([]*api.Service, error)
+	// AWS returns a ServiceAWSService that handles operations on AWS services.
+	AWS() ServiceAWSService
 }
 
 func newServiceService(client client) ServiceService {
@@ -79,6 +82,14 @@ func (s serviceService) Create(path string, description string, verifier Verifie
 	return service, nil
 }
 
+func (s serviceService) CreateAWS(path string, description string, keyID, role string) (*api.Service, error) {
+	creator, err := aws.NewServiceCreator(keyID, role)
+	if err != nil {
+		return nil, err
+	}
+	return s.Create(path, description, creator, creator)
+}
+
 // Delete removes a service account.
 func (s serviceService) Delete(name string) (*api.RevokeRepoResponse, error) {
 	err := api.ValidateServiceID(name)
@@ -108,4 +119,9 @@ func (s serviceService) Get(name string) (*api.Service, error) {
 func (s serviceService) List(path string) ([]*api.Service, error) {
 	repoServiceService := newRepoServiceService(s.client)
 	return repoServiceService.List(path)
+}
+
+// AWS returns a ServiceAWSService that handles operations on AWS services.
+func (s serviceService) AWS() ServiceAWSService {
+	return newServiceAWSService(s.client, &s)
 }
