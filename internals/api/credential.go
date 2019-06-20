@@ -20,7 +20,6 @@ var (
 	ErrInvalidAWSEndpoint    = errAPI.Code("invalid_aws_endpoint").StatusError("invalid AWS endpoint provided", http.StatusBadRequest)
 	ErrInvalidProof          = errAPI.Code("invalid_proof").StatusError("invalid proof provided for credential", http.StatusBadRequest)
 	ErrAWSAuthFailed         = errAPI.Code("aws_auth_failed").StatusError("authentication not accepted by AWS", http.StatusForbidden)
-	ErrAWSException          = errAPI.Code("aws_exception").StatusError("unknown error occurred while contacting AWS", http.StatusFailedDependency)
 )
 
 // Credential is used to authenticate to the API and to encrypt the account key.
