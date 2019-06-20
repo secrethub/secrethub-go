@@ -1,7 +1,9 @@
 package secrethub
 
+import "github.com/secrethub/secrethub-go/internals/auth"
+
 type AuthMethodService interface {
-	Authenticate() error
+	Authenticate() (auth.Authenticator, error)
 }
 
 // AccountService handles authentication to the SercretHub API.
