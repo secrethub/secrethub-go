@@ -98,7 +98,7 @@ func (r *AuthRequest) Validate() error {
 	}
 	switch *r.Method {
 	case AuthMethodAWSSTS:
-		authPayload, ok := r.Payload.(AuthPayloadAWSSTS)
+		authPayload, ok := r.Payload.(*AuthPayloadAWSSTS)
 		if !ok {
 			return ErrInvalidPayload
 		}
