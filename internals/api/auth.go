@@ -24,7 +24,7 @@ var (
 	ErrAuthFailed          = errAPI.Code("auth_failed").StatusError("authentication failed", http.StatusForbidden)
 	ErrCouldNotGetEndpoint = errAPI.Code("wrong_endpoint").StatusError("could not find the AWS endpoint", http.StatusBadRequest)
 	ErrAWSException        = errAPI.Code("aws_exception").StatusError("AWS returned an error", http.StatusFailedDependency)
-	ErrArnNotFound         = errAPI.Code("arn_not_found").StatusError("could not find an account corresponding to the ARN provided", http.StatusNotFound)
+	ErrNoServiceWithRole   = errAPI.Code("no_service_with_role").StatusErrorPref("there exists no service account tied to the AWS IAM role '%s'", http.StatusNotFound)
 )
 
 type SessionType string
