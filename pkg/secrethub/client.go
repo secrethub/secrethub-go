@@ -46,6 +46,7 @@ func NewClient(decrypter Decrypter, authenticator auth.Authenticator, opts *Clie
 	}
 }
 
+// NewClientAWS creates a new SecretHub client that uses AWS STS and KMS to access SecretHub.
 func NewClientAWS(opts *ClientOptions) (Client, error) {
 	decrypter, err := aws.NewKMSDecrypter()
 	if err != nil {

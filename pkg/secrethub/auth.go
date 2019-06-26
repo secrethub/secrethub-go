@@ -2,11 +2,12 @@ package secrethub
 
 import "github.com/secrethub/secrethub-go/internals/auth"
 
+// AuthMethodService is an interface for any service that can provide authentication to the server.
 type AuthMethodService interface {
 	Authenticate() (auth.Authenticator, error)
 }
 
-// AccountService handles authentication to the SercretHub API.
+// AuthService handles authentication to the SercretHub API.
 type AuthService interface {
 	AWS() AuthMethodService
 }

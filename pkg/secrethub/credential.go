@@ -379,7 +379,7 @@ func (c RSACredential) Type() api.CredentialType {
 	return api.CredentialTypeRSA
 }
 
-// Proof returns the proof for possession of this credential.
+// AddProof add the proof for possession of this credential to a CreateCredentialRequest .
 func (c RSACredential) AddProof(_ *api.CreateCredentialRequest) error {
 	// Currently not implemented for RSA credentials
 	return nil

@@ -7,7 +7,7 @@ import (
 	awssdk "github.com/aws/aws-sdk-go/aws"
 )
 
-// ServiceService handles operations on service accounts from SecretHub.
+// ServiceAWSService handles operations on service accounts from SecretHub.
 type ServiceAWSService interface {
 	// Create creates a new service account for the given repo.
 	Create(path string, description string, keyID, role string, cfgs ...*awssdk.Config) (*api.Service, error)

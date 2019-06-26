@@ -14,6 +14,8 @@ var (
 
 // EncryptionAlgorithm specifies the encryption algorithm used for EncryptedData.
 type EncryptionAlgorithm string
+
+// HashingAlgorithm specifies the hashing algorithm used for any encryption algorithm using hasing.
 type HashingAlgorithm string
 
 // Supported values for EncryptionAlgorithm.
@@ -35,6 +37,7 @@ type EncryptedData struct {
 	Ciphertext []byte              `json:"ciphertext"`
 }
 
+// NewEncryptedDataAESGCM creates a new EncryptedData with the AES-GCM algorithm.
 func NewEncryptedDataAESGCM(ciphertext, nonce []byte, nonceLength int, key interface{}) *EncryptedData {
 	return &EncryptedData{
 		Algorithm: EncryptionAlgorithmAESGCM,
@@ -49,6 +52,7 @@ func NewEncryptedDataAESGCM(ciphertext, nonce []byte, nonceLength int, key inter
 	}
 }
 
+// NewEncryptedDataRSAOAEP creates a new EncryptedData with the RSA-OAEP algorithm.
 func NewEncryptedDataRSAOAEP(ciphertext []byte, hashingAlgorithm HashingAlgorithm, key interface{}) *EncryptedData {
 	return &EncryptedData{
 		Algorithm: EncryptionAlgorithmRSAOEAP,
@@ -61,6 +65,7 @@ func NewEncryptedDataRSAOAEP(ciphertext []byte, hashingAlgorithm HashingAlgorith
 	}
 }
 
+// NewEncryptedDataAWSKMS creates a new EncryptedData with the AWS-KMS algorithm.
 func NewEncryptedDataAWSKMS(ciphertext []byte, key *EncryptionKeyAWS) *EncryptedData {
 	return &EncryptedData{
 		Algorithm:  EncryptionAlgorithmAWSKMS,
@@ -153,6 +158,7 @@ type keyValidator interface {
 	AlgorithmSupported(EncryptionAlgorithm) bool
 }
 
+// Validate whether the EncryptedData is valid.
 func (ed *EncryptedData) Validate() error {
 	if ed.Algorithm != EncryptionAlgorithmAESGCM &&
 		ed.Algorithm != EncryptionAlgorithmRSAOEAP &&

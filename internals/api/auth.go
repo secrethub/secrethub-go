@@ -8,12 +8,17 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 )
 
+// AuthMethod options
 const (
 	AuthMethodAWSSTS = "aws-sts"
+)
 
+// SessionType options
+const (
 	SessionTypeHMAC SessionType = "hmac"
 )
 
+// Errors
 var (
 	ErrInvalidSessionType  = errAPI.Code("invalid_session_type").StatusError("invalid session type provided for authentication request", http.StatusBadRequest)
 	ErrInvalidPayload      = errAPI.Code("invalid_payload").StatusError("invalid payload provided for authentication request", http.StatusBadRequest)
@@ -27,19 +32,23 @@ var (
 	ErrNoServiceWithRole   = errAPI.Code("no_service_with_role").StatusErrorPref("there exists no service account tied to the AWS IAM role '%s'", http.StatusNotFound)
 )
 
+// SessionType defines how a session can be used.
 type SessionType string
 
+// AuthRequest is a request to authenticate and request a session.
 type AuthRequest struct {
 	Method      *string      `json:"method"`
 	SessionType *SessionType `json:"session_type"`
 	Payload     interface{}  `json:"payload"`
 }
 
+// AuthPayloadAWSSTS is the authentication payload used for authenticating with AWS STS.
 type AuthPayloadAWSSTS struct {
 	Region  *string `json:"region"`
 	Request []byte  `json:"request"`
 }
 
+// NewAuthRequestAWSSTS returns a new AuthRequest for authentication using AWS STS.
 func NewAuthRequestAWSSTS(sessionType SessionType, region string, stsRequest []byte) AuthRequest {
 	return AuthRequest{
 		Method:      String(AuthMethodAWSSTS),
@@ -51,6 +60,7 @@ func NewAuthRequestAWSSTS(sessionType SessionType, region string, stsRequest []b
 	}
 }
 
+// UnmarshalJSON converts a JSON representation into a AuthRequest with the correct Payload.
 func (r *AuthRequest) UnmarshalJSON(b []byte) error {
 	// Declare a private type to avoid recursion into this function.
 	type authRequest AuthRequest
@@ -86,6 +96,7 @@ func (r *AuthRequest) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// Validate whether an AuthRequest is a valid request.
 func (r *AuthRequest) Validate() error {
 	if r.SessionType == nil {
 		return ErrMissingField("session_type")
@@ -111,6 +122,7 @@ func (r *AuthRequest) Validate() error {
 	return nil
 }
 
+// Validate whether the AuthPayloadAWSSTS is valid.
 func (pl AuthPayloadAWSSTS) Validate() error {
 	if pl.Region == nil {
 		return ErrMissingField("region")
@@ -121,6 +133,7 @@ func (pl AuthPayloadAWSSTS) Validate() error {
 	return nil
 }
 
+// NewSessionHMAC returns a HMAC type api.Session.
 func NewSessionHMAC(sessionID uuid.UUID, expiration time.Time, secretKey string) *Session {
 	t := SessionTypeHMAC
 	return &Session{
@@ -133,6 +146,7 @@ func NewSessionHMAC(sessionID uuid.UUID, expiration time.Time, secretKey string)
 	}
 }
 
+// Session represents a session that can be used for authentication to the server.
 type Session struct {
 	SessionID  *uuid.UUID   `json:"session_id"`
 	Expiration *time.Time   `json:"expiration"`
@@ -140,16 +154,19 @@ type Session struct {
 	Payload    interface{}  `json:"payload"`
 }
 
+// SessionPayloadHMAC is the payload of a HMAC typed session.
 type SessionPayloadHMAC struct {
 	SecretKey *string `json:"secret_key"`
 }
 
+// SessionHMAC is an HMAC-specific representation of a session.
 type SessionHMAC struct {
 	SessionID  uuid.UUID
 	Expiration time.Time
 	Payload    SessionPayloadHMAC
 }
 
+// UnmarshalJSON converts a JSON representation into a Session with the correct Payload.
 func (s *Session) UnmarshalJSON(b []byte) error {
 	// Declare a private type to avoid recursion into this function.
 	type session Session
@@ -189,6 +206,7 @@ type validator interface {
 	Validate() error
 }
 
+// Validate whether the Session is valid.
 func (s *Session) Validate() error {
 	if s.SessionID == nil {
 		return ErrMissingField("session_id")
@@ -212,6 +230,7 @@ func (s *Session) Validate() error {
 	return nil
 }
 
+// HMAC returns the HMAC specific representation of this session.
 func (s *Session) HMAC() *SessionHMAC {
 	payload := s.Payload.(*SessionPayloadHMAC)
 	return &SessionHMAC{
@@ -221,6 +240,7 @@ func (s *Session) HMAC() *SessionHMAC {
 	}
 }
 
+// Validate whether the SessionPayloadHMAC is valid.
 func (pl *SessionPayloadHMAC) Validate() error {
 	if pl.SecretKey == nil {
 		return ErrMissingField("secret_key")

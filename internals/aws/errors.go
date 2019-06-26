@@ -5,6 +5,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
+// Errors
 var (
 	awsErr                  = errio.Namespace("aws")
 	ErrNoAWSCredentials     = awsErr.Code("no_aws_credentials").Error("could not find any AWS credentials. See https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html for how to configure your credentials")

@@ -44,6 +44,7 @@ const (
 )
 
 const (
+	// CredentialAWSSTSPlaintextPrefix is the prefix to use in AWS STS proof plaintext.
 	CredentialAWSSTSPlaintextPrefix = "secrethub-allow-role="
 )
 
@@ -64,6 +65,7 @@ type CreateCredentialRequest struct {
 	Proof       interface{}     `json:"proof"`
 }
 
+// UnmarshalJSON converts a JSON representation into a CreateCredentialRequest with the correct Proof.
 func (req *CreateCredentialRequest) UnmarshalJSON(b []byte) error {
 	// Declare a private type to avoid recursion into this function.
 	type createCredentialRequest CreateCredentialRequest
@@ -134,6 +136,7 @@ type CredentialProofAWSSTS struct {
 	Request []byte  `json:"request"`
 }
 
+// Validate whether the CredentialProofAWSSTS is valid.
 func (p CredentialProofAWSSTS) Validate() error {
 	if p.Region == nil {
 		return ErrMissingField("region")

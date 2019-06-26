@@ -17,7 +17,7 @@ func (s *ServiceAWSService) Create(path string, description string, keyID, role 
 	return s.Creater.Create(path, description, keyID, role, cfgs...)
 }
 
-// ServiceCreater mocks the Create function.
+// ServiceAWSCreater mocks the Create function.
 type ServiceAWSCreater struct {
 	ArgPath        string
 	ArgDescription string
