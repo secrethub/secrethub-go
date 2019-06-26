@@ -2,7 +2,6 @@ package secrethub
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
-	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
@@ -80,14 +79,6 @@ func (s serviceService) Create(path string, description string, verifier Verifie
 	}
 
 	return service, nil
-}
-
-func (s serviceService) CreateAWS(path string, description string, keyID, role string) (*api.Service, error) {
-	creator, err := aws.NewServiceCreator(keyID, role)
-	if err != nil {
-		return nil, err
-	}
-	return s.Create(path, description, creator, creator)
 }
 
 // Delete removes a service account.
