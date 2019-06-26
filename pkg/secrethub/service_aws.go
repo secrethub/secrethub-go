@@ -3,12 +3,14 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/aws"
+
+	awssdk "github.com/aws/aws-sdk-go/aws"
 )
 
 // ServiceService handles operations on service accounts from SecretHub.
 type ServiceAWSService interface {
 	// Create creates a new service account for the given repo.
-	Create(path string, description string, keyID, role string) (*api.Service, error)
+	Create(path string, description string, keyID, role string, cfgs ...*awssdk.Config) (*api.Service, error)
 }
 
 func newServiceAWSService(client client, s ServiceService) ServiceAWSService {
@@ -24,8 +26,8 @@ type serviceAWSService struct {
 }
 
 // Create creates a new AWS service account for the given repo.
-func (s serviceAWSService) Create(path string, description string, keyID, role string) (*api.Service, error) {
-	creator, err := aws.NewServiceCreator(keyID, role)
+func (s serviceAWSService) Create(path string, description string, keyID, role string, cfgs ...*awssdk.Config) (*api.Service, error) {
+	creator, err := aws.NewServiceCreator(keyID, role, cfgs...)
 	if err != nil {
 		return nil, err
 	}
