@@ -16,7 +16,7 @@ type KMSDecrypter struct {
 func NewKMSDecrypter(cfgs ...*aws.Config) (*KMSDecrypter, error) {
 	sess, err := session.NewSession(cfgs...)
 	if err != nil {
-		return nil, err
+		return nil, handleError(err)
 	}
 
 	return &KMSDecrypter{
@@ -39,7 +39,7 @@ func (d KMSDecrypter) Unwrap(ciphertext *api.EncryptedData) ([]byte, error) {
 		CiphertextBlob: ciphertext.Ciphertext,
 	})
 	if err != nil {
-		return nil, err
+		return nil, handleError(err)
 	}
 	return resp.Plaintext, nil
 }

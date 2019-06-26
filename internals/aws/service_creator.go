@@ -19,7 +19,7 @@ type ServiceCreator struct {
 func NewServiceCreator(keyID, role string, cfgs ...*aws.Config) (*ServiceCreator, error) {
 	sess, err := session.NewSession(cfgs...)
 	if err != nil {
-		return nil, err
+		return nil, handleError(err)
 	}
 
 	return &ServiceCreator{
@@ -48,13 +48,13 @@ func (c ServiceCreator) AddProof(req *api.CreateCredentialRequest) error {
 
 	err := encryptReq.Sign()
 	if err != nil {
-		return err
+		return handleError(err)
 	}
 
 	var buf bytes.Buffer
 	err = encryptReq.HTTPRequest.Write(&buf)
 	if err != nil {
-		return err
+		return handleError(err)
 	}
 	req.Proof = &api.CredentialProofAWSSTS{
 		Region:  api.String(svc.SigningRegion),
@@ -71,7 +71,7 @@ func (c ServiceCreator) Wrap(plaintext []byte) (*api.EncryptedData, error) {
 		KeyId:     aws.String(c.keyID),
 	})
 	if err != nil {
-		return nil, err
+		return nil, handleError(err)
 	}
 	return api.NewEncryptedDataAWSKMS(resp.CiphertextBlob, api.NewEncryptionKeyAWS(aws.StringValue(resp.KeyId))), nil
 }
