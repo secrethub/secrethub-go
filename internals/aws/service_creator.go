@@ -2,6 +2,13 @@ package aws
 
 import (
 	"bytes"
+	"strings"
+
+	"github.com/aws/aws-sdk-go/service/sts"
+
+	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go/service/iam"
 
 	"github.com/aws/aws-sdk-go/aws"
 
@@ -22,6 +29,20 @@ type ServiceCreator struct {
 // The AWS service is configured with the optionally provided aws.Config.
 func NewServiceCreator(keyID, role string, cfgs ...*aws.Config) (*ServiceCreator, error) {
 	sess, err := session.NewSession(cfgs...)
+	if err != nil {
+		return nil, handleError(err)
+	}
+
+	getAccountId := func() (string, error) {
+		stsSvc := sts.New(sess)
+		identity, err := stsSvc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
+		if err != nil {
+			return "", err
+		}
+		return aws.StringValue(identity.Account), nil
+	}
+
+	role, err = parseRole(role, getAccountId)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -82,4 +103,28 @@ func (c ServiceCreator) Wrap(plaintext []byte) (*api.EncryptedData, error) {
 		return nil, handleError(err)
 	}
 	return api.NewEncryptedDataAWSKMS(resp.CiphertextBlob, api.NewEncryptionKeyAWS(aws.StringValue(resp.KeyId))), nil
+}
+
+// parseRole tries to parse an inputted role into a role ARN.
+// The input can either be an ARN or the name of a role (prefixed with role/ or not)
+// The outputted value is not guaranteed to be a valid ARN.
+func parseRole(role string, getAccountID func() (string, error)) (string, error) {
+	if strings.Contains(role, ":") {
+		return role, nil
+	}
+
+	accountID, err := getAccountID()
+	if err != nil {
+		return "", err
+	}
+
+	if !strings.HasPrefix(role, "role/") {
+		role = "role/" + role
+	}
+	return arn.ARN{
+		Partition: endpoints.AwsPartitionID,
+		Service:   iam.ServiceName,
+		AccountID: accountID,
+		Resource:  role,
+	}.String(), nil
 }
