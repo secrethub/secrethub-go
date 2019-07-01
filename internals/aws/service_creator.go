@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
+	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+
 	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -20,9 +23,13 @@ import (
 // ServiceCreator is an implementation of the secrethub.Verifier and secrethub.Encrypter interface that can be used
 // to create an AWS service account.
 type ServiceCreator struct {
-	awsSession *session.Session
-	keyID      string
-	role       string
+	stsSvc        stsiface.STSAPI
+	kmsSvc        kmsiface.KMSAPI
+	signingRegion string
+	keyID         string
+	role          string
+
+	getEncryptRequest func(plaintext string, keyID string, kms kmsiface.KMSAPI) ([]byte, error)
 }
 
 // NewServiceCreator returns a ServiceCreator that uses the provided AWS KMS key and IAM role to create a new service.
@@ -33,24 +40,21 @@ func NewServiceCreator(keyID, role string, cfgs ...*aws.Config) (*ServiceCreator
 		return nil, handleError(err)
 	}
 
-	getAccountId := func() (string, error) {
-		stsSvc := sts.New(sess)
-		identity, err := stsSvc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
-		if err != nil {
-			return "", err
-		}
-		return aws.StringValue(identity.Account), nil
-	}
+	stsSvc := sts.New(sess)
 
-	role, err = parseRole(role, getAccountId)
+	role, err = parseRole(role, stsSvc)
 	if err != nil {
 		return nil, handleError(err)
 	}
 
+	kmsSvc := kms.New(sess)
 	return &ServiceCreator{
-		awsSession: sess,
-		keyID:      keyID,
-		role:       role,
+		stsSvc:            stsSvc,
+		kmsSvc:            kmsSvc,
+		signingRegion:     kmsSvc.SigningRegion,
+		keyID:             keyID,
+		role:              role,
+		getEncryptRequest: getEncryptRequest,
 	}, nil
 }
 
@@ -66,36 +70,23 @@ func (c ServiceCreator) Verifier() ([]byte, error) {
 
 // AddProof adds proof of access to the AWS account to the CreateCredentialRequest.
 func (c ServiceCreator) AddProof(req *api.CreateCredentialRequest) error {
-	svc := kms.New(c.awsSession)
-
 	plaintext := api.CredentialAWSSTSPlaintextPrefix + c.role
-	encryptReq, _ := svc.EncryptRequest(&kms.EncryptInput{
-		KeyId:     aws.String(c.keyID),
-		Plaintext: []byte(plaintext),
-	})
 
-	err := encryptReq.Sign()
+	encryptReq, err := c.getEncryptRequest(plaintext, c.keyID, c.kmsSvc)
 	if err != nil {
-		return handleError(err)
+		return err
 	}
 
-	var buf bytes.Buffer
-	err = encryptReq.HTTPRequest.Write(&buf)
-	if err != nil {
-		return handleError(err)
-	}
 	req.Proof = &api.CredentialProofAWSSTS{
-		Region:  api.String(svc.SigningRegion),
-		Request: buf.Bytes(),
+		Region:  api.String(c.signingRegion),
+		Request: encryptReq,
 	}
 	return nil
 }
 
 // Wrap the provided plaintext with using AWS KMS.
 func (c ServiceCreator) Wrap(plaintext []byte) (*api.EncryptedData, error) {
-	svc := kms.New(c.awsSession)
-
-	resp, err := svc.Encrypt(&kms.EncryptInput{
+	resp, err := c.kmsSvc.Encrypt(&kms.EncryptInput{
 		Plaintext: plaintext,
 		KeyId:     aws.String(c.keyID),
 	})
@@ -105,18 +96,38 @@ func (c ServiceCreator) Wrap(plaintext []byte) (*api.EncryptedData, error) {
 	return api.NewEncryptedDataAWSKMS(resp.CiphertextBlob, api.NewEncryptionKeyAWS(aws.StringValue(resp.KeyId))), nil
 }
 
+func getEncryptRequest(plaintext string, keyID string, kmsSvc kmsiface.KMSAPI) ([]byte, error) {
+	encryptReq, _ := kmsSvc.EncryptRequest(&kms.EncryptInput{
+		KeyId:     aws.String(keyID),
+		Plaintext: []byte(plaintext),
+	})
+
+	err := encryptReq.Sign()
+	if err != nil {
+		return nil, handleError(err)
+	}
+
+	var buf bytes.Buffer
+	err = encryptReq.HTTPRequest.Write(&buf)
+	if err != nil {
+		return nil, handleError(err)
+	}
+	return buf.Bytes(), nil
+}
+
 // parseRole tries to parse an inputted role into a role ARN.
 // The input can either be an ARN or the name of a role (prefixed with role/ or not)
 // The outputted value is not guaranteed to be a valid ARN.
-func parseRole(role string, getAccountID func() (string, error)) (string, error) {
+func parseRole(role string, stsSvc stsiface.STSAPI) (string, error) {
 	if strings.Contains(role, ":") {
 		return role, nil
 	}
 
-	accountID, err := getAccountID()
+	identity, err := stsSvc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 	if err != nil {
 		return "", err
 	}
+	accountID := aws.StringValue(identity.Account)
 
 	if !strings.HasPrefix(role, "role/") {
 		role = "role/" + role

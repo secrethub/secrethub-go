@@ -3,6 +3,7 @@ package aws
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -11,7 +12,7 @@ import (
 
 // KMSDecrypter is an implementation of the secrethub.Decrypter interface that uses AWS KMS for decryption.
 type KMSDecrypter struct {
-	awsSession *session.Session
+	kmsSvcGetter func(region string) kmsiface.KMSAPI
 }
 
 // NewKMSDecrypter returns a new KMSDecrypter that uses the provided configuration to configure the AWS session.
@@ -22,7 +23,9 @@ func NewKMSDecrypter(cfgs ...*aws.Config) (*KMSDecrypter, error) {
 	}
 
 	return &KMSDecrypter{
-		awsSession: sess,
+		kmsSvcGetter: func(region string) kmsiface.KMSAPI {
+			return kms.New(sess, aws.NewConfig().WithRegion(region))
+		},
 	}, nil
 }
 
@@ -37,7 +40,7 @@ func (d KMSDecrypter) Unwrap(ciphertext *api.EncryptedData) ([]byte, error) {
 		return nil, api.ErrInvalidCiphertext
 	}
 
-	svc := kms.New(d.awsSession, aws.NewConfig().WithRegion(keyARN.Region))
+	svc := d.kmsSvcGetter(keyARN.Region)
 	resp, err := svc.Decrypt(&kms.DecryptInput{
 		CiphertextBlob: ciphertext.Ciphertext,
 	})
