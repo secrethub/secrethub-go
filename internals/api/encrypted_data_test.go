@@ -37,6 +37,18 @@ func TestEncryptedData_MarshalUnmarshalValidate(t *testing.T) {
 			in:          NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, NewEncryptionKeyDerivedScrypt(256, 1, 2, 3, []byte("just-a-salt"))),
 			expectedErr: errors.New("derived key type not yet supported"),
 		},
+		"rsa with missing key": {
+			in:          NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, nil),
+			expectedErr: ErrInvalidKeyType,
+		},
+		"rsa with empty local key": {
+			in:          NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, &EncryptionKey{KeyTypeLocal}),
+			validateErr: ErrMissingField("length"),
+		},
+		"empty encrypted data": {
+			in:          &EncryptedData{Key: &EncryptionKey{KeyTypeLocal}},
+			expectedErr: ErrInvalidEncryptionAlgorithm,
+		},
 	}
 
 	for name, tc := range cases {
@@ -49,8 +61,10 @@ func TestEncryptedData_MarshalUnmarshalValidate(t *testing.T) {
 
 			assert.Equal(t, err, tc.expectedErr)
 			if tc.expectedErr == nil {
-				assert.Equal(t, res, tc.in)
 				assert.Equal(t, res.Validate(), tc.validateErr)
+				if tc.validateErr == nil {
+					assert.Equal(t, res, tc.in)
+				}
 			}
 		})
 	}
