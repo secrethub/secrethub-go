@@ -1,6 +1,7 @@
 package secrethub
 
 import (
+	awssdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/aws"
@@ -47,15 +48,15 @@ func NewClient(decrypter Decrypter, authenticator auth.Authenticator, opts *Clie
 }
 
 // NewClientAWS creates a new SecretHub client that uses AWS STS and KMS to access SecretHub.
-func NewClientAWS(opts *ClientOptions) (Client, error) {
-	decrypter, err := aws.NewKMSDecrypter()
+func NewClientAWS(opts *ClientOptions, awsCfg ...*awssdk.Config) (Client, error) {
+	decrypter, err := aws.NewKMSDecrypter(awsCfg...)
 	if err != nil {
 		return nil, err
 	}
 	client := &clientAdapter{
 		client: newClient(decrypter, auth.NopAuthenticator{}, opts),
 	}
-	authenticator, err := client.Auth().AWS().Authenticate()
+	authenticator, err := client.Auth().AWS(awsCfg...).Authenticate()
 	if err != nil {
 		return nil, err
 	}

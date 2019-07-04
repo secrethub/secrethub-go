@@ -1,6 +1,9 @@
 package secrethub
 
-import "github.com/secrethub/secrethub-go/internals/auth"
+import (
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/secrethub/secrethub-go/internals/auth"
+)
 
 // AuthMethodService is an interface for any service that can provide authentication to the server.
 type AuthMethodService interface {
@@ -9,7 +12,7 @@ type AuthMethodService interface {
 
 // AuthService handles authentication to the SercretHub API.
 type AuthService interface {
-	AWS() AuthMethodService
+	AWS(...*aws.Config) AuthMethodService
 }
 
 func newAuthService(client client) AuthService {
@@ -23,6 +26,6 @@ type authService struct {
 }
 
 // Members returns an OrgMemberService.
-func (s authService) AWS() AuthMethodService {
-	return newAWSAuthService(s.client)
+func (s authService) AWS(awsCfg ...*aws.Config) AuthMethodService {
+	return newAWSAuthService(s.client, awsCfg...)
 }
