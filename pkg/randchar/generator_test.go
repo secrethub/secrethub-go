@@ -43,7 +43,7 @@ func TestMin(t *testing.T) {
 		},
 		"empty min set": {
 			base:              Alphanumeric,
-			minima:            []minimum{{2, nil}},
+			minima:            []minimum{{2, Charset{chars: nil}}},
 			expectedInitError: errors.New("minimum character set cannot be empty"),
 			n:                 3,
 		},
@@ -137,7 +137,11 @@ func TestNewCharset(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			actual := NewCharset(tc.in)
 
-			if !actual.Equal(Charset(tc.expected)) {
+			expected := Charset{
+				chars: []byte(tc.expected),
+			}
+
+			if !actual.Equals(expected) {
 				t.Errorf("unexpected result: %v (actual) != %v (expected)", actual, tc.expected)
 			}
 		})
@@ -193,9 +197,13 @@ func TestAdd(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			actual := Charset(tc.a).Add(Charset(tc.b))
+			actual := NewCharset(tc.a).Add(NewCharset(tc.b))
 
-			if !actual.Equal(Charset(tc.expected)) {
+			expected := Charset{
+				chars: []byte(tc.expected),
+			}
+
+			if !actual.Equals(expected) {
 				t.Errorf("unexpected result: %v (actual) != %v (expected)", actual, tc.expected)
 			}
 		})
@@ -242,9 +250,12 @@ func TestSubtract(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			actual := Charset(tc.a).Subtract(Charset(tc.b))
+			actual := NewCharset(tc.a).Subtract(NewCharset(tc.b))
 
-			if !actual.Equal(Charset(tc.expected)) {
+			expected := Charset{
+				chars: []byte(tc.expected),
+			}
+			if !actual.Equals(expected) {
 				t.Errorf("unexpected result: %v (actual) != %v (expected)", actual, tc.expected)
 			}
 		})
@@ -301,7 +312,7 @@ func TestIsSubset(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			actual := Charset(tc.a).IsSubset(Charset(tc.b))
+			actual := NewCharset(tc.a).IsSubset(NewCharset(tc.b))
 
 			assert.Equal(t, actual, tc.expected)
 		})
@@ -353,7 +364,7 @@ func TestEqual(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			actual := Charset(tc.a).Equal(Charset(tc.b))
+			actual := NewCharset(tc.a).Equals(NewCharset(tc.b))
 
 			assert.Equal(t, actual, tc.expected)
 		})
@@ -363,7 +374,7 @@ func TestEqual(t *testing.T) {
 func countFromSet(characters []byte, from Charset) int {
 	n := 0
 	for _, char := range characters {
-		for _, in := range from {
+		for _, in := range from.chars {
 			if char == in {
 				n++
 				break

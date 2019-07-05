@@ -109,7 +109,7 @@ func Min(n int, charset Charset) Option {
 			return r, errors.New("minimum must be at least 1")
 		}
 
-		if len(charset) == 0 {
+		if charset.Size() == 0 {
 			return r, errors.New("minimum character set cannot be empty")
 		}
 
@@ -119,7 +119,7 @@ func Min(n int, charset Charset) Option {
 
 		// Ensure the biggest minimum takes precedence when same charset minimum applies.
 		for i, minimum := range r.minima {
-			if minimum.charset.Equal(charset) {
+			if minimum.charset.Equals(charset) {
 				if minimum.count >= n {
 					return r, nil
 				}
@@ -213,8 +213,10 @@ func shuffle(reader io.Reader, data []byte) error {
 	return nil
 }
 
-// Charset is a byte slice with a set of unique characters.
-type Charset []byte
+// Charset is a set of unique characters.
+type Charset struct {
+	chars []byte
+}
 
 // NewCharset creates a set of characters from a given byte slice, removing duplicates to ensure the random generators are not biased.
 func NewCharset(characters string) Charset {
@@ -230,17 +232,19 @@ func NewCharset(characters string) Charset {
 		i++
 	}
 
-	return result
+	return Charset{
+		chars: result,
+	}
 }
 
 // Add merges two character sets into one, removing duplicates.
-func (cs Charset) Add(set Charset) Charset {
+func (c Charset) Add(set Charset) Charset {
 	uniques := make(map[byte]struct{})
-	for _, char := range cs {
+	for _, char := range c.chars {
 		uniques[char] = struct{}{}
 	}
 
-	for _, char := range set {
+	for _, char := range set.chars {
 		uniques[char] = struct{}{}
 	}
 
@@ -251,36 +255,48 @@ func (cs Charset) Add(set Charset) Charset {
 		i++
 	}
 
-	return result
+	return Charset{
+		chars: result,
+	}
 }
 
 // Subtract removes all characters from a set that match a given set of characters.
-func (cs Charset) Subtract(set Charset) Charset {
+func (c Charset) Subtract(set Charset) Charset {
 	filter := make(map[byte]struct{})
-	for _, char := range set {
+	for _, char := range set.chars {
 		filter[char] = struct{}{}
 	}
 
 	result := []byte{}
-	for _, char := range cs {
+	for _, char := range c.chars {
 		_, exists := filter[char]
 		if !exists {
 			result = append(result, char)
 		}
 	}
 
-	return result
+	return Charset{
+		chars: result,
+	}
 }
 
 // IsSubset returns true when the character set is a subset of the given set.
 // When both sets are the same it returns true too.
-func (cs Charset) IsSubset(of Charset) bool {
+func (c Charset) IsSubset(of Charset) bool {
+	if c.Size() == 0 {
+		return true
+	}
+
+	if c.Size() > 0 && of.Size() == 0 {
+		return false
+	}
+
 	set := map[byte]struct{}{}
-	for _, char := range of {
+	for _, char := range of.chars {
 		set[char] = struct{}{}
 	}
 
-	for _, char := range cs {
+	for _, char := range c.chars {
 		_, found := set[char]
 		if !found {
 			return false
@@ -290,25 +306,30 @@ func (cs Charset) IsSubset(of Charset) bool {
 	return true
 }
 
-// Equal returns true when both character sets contain the exactly same characters.
-func (cs Charset) Equal(other Charset) bool {
-	if len(cs) != len(other) {
+// Equals returns true when both character sets contain the exactly same characters.
+func (c Charset) Equals(other Charset) bool {
+	if c.Size() != other.Size() {
 		return false
 	}
 
-	return cs.IsSubset(other)
+	return c.IsSubset(other)
 }
 
-// rand returns a byte slice of length n filled with randomly chosen characters
+// Size returns the number of distinct characters in the set.
+func (c Charset) Size() int {
+	return len(c.chars)
+}
+
+// rand fills a given byte slice of length n with randomly chosen characters
 // from the set, using the given reader as source of randomness.
-func (cs Charset) rand(reader io.Reader, data []byte) error {
-	size := big.NewInt(int64(len(cs)))
+func (c Charset) rand(reader io.Reader, data []byte) error {
+	size := big.NewInt(int64(len(c.chars)))
 	for i := 0; i < len(data); i++ {
 		randomIndex, err := rand.Int(reader, size)
 		if err != nil {
 			return err
 		}
-		data[i] = cs[randomIndex.Int64()]
+		data[i] = c.chars[randomIndex.Int64()]
 	}
 	return nil
 }
