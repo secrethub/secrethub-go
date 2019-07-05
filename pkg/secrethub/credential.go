@@ -65,7 +65,7 @@ type Credential interface {
 // Note that when you want to customize the process of parsing and decoding/decrypting
 // a credential (e.g. to prompt only for a passphrase when the credential is encrypted),
 // it is recommended you use a CredentialParser instead (e.g. DefaultCredentialParser).
-func NewCredential(credential string, passphrase string) (Credential, error) {
+func NewCredential(credential string, passphrase string) (*RSACredential, error) {
 	encoded, err := DefaultCredentialParser.Parse(credential)
 	if err != nil {
 		return nil, errio.Error(err)
