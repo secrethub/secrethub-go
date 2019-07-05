@@ -54,7 +54,7 @@ func NewServiceCreator(keyID, role string, cfgs ...*aws.Config) (*ServiceCreator
 		signingRegion:     kmsSvc.SigningRegion,
 		keyID:             keyID,
 		role:              role,
-		getEncryptRequest: getEncryptRequest,
+		getEncryptRequest: GetEncryptRequest,
 	}, nil
 }
 
@@ -96,7 +96,8 @@ func (c ServiceCreator) Wrap(plaintext []byte) (*api.EncryptedData, error) {
 	return api.NewEncryptedDataAWSKMS(resp.CiphertextBlob, api.NewEncryptionKeyAWS(aws.StringValue(resp.KeyId))), nil
 }
 
-func getEncryptRequest(plaintext string, keyID string, kmsSvc kmsiface.KMSAPI) ([]byte, error) {
+// GetEncryptRequest returns the raw bytes of a signed AWS KMS EncryptRequest.
+func GetEncryptRequest(plaintext string, keyID string, kmsSvc kmsiface.KMSAPI) ([]byte, error) {
 	encryptReq, _ := kmsSvc.EncryptRequest(&kms.EncryptInput{
 		KeyId:     aws.String(keyID),
 		Plaintext: []byte(plaintext),
