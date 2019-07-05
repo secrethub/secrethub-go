@@ -125,7 +125,7 @@ func parseRole(role string, stsSvc stsiface.STSAPI) (string, error) {
 
 	identity, err := stsSvc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 	if err != nil {
-		return "", err
+		return "", handleError(err)
 	}
 	accountID := aws.StringValue(identity.Account)
 

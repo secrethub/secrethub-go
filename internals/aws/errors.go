@@ -12,18 +12,21 @@ var (
 	ErrInvalidAWSCredential = awsErr.Code("invalid_credential").Error("credentials were not accepted by AWS")
 	ErrAWSRequestError      = awsErr.Code("request_error").Error("could not send AWS request")
 	ErrAWSNotFound          = awsErr.Code("not_found")
+	ErrAWSAccessDenied      = awsErr.Code("access_denied")
 )
 
 func handleError(err error) error {
 	errAWS, ok := err.(awserr.Error)
 	if ok {
 		switch errAWS.Code() {
-		case "NoCredentialProviders":
+		case "NoCredentialProviders", "MissingAuthenticationToken", "MissingAuthenticationTokenException":
 			return ErrNoAWSCredentials
-		case "UnrecognizedClientException":
+		case "UnrecognizedClientException", "InvalidClientTokenId":
 			return ErrInvalidAWSCredential
 		case "RequestError":
 			return ErrAWSRequestError
+		case "AccessDeniedException":
+			return ErrAWSAccessDenied.Error(errAWS.Message())
 		case "NotFoundException":
 			return ErrAWSNotFound.Error(errAWS.Message())
 		}

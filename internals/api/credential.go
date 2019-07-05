@@ -21,6 +21,7 @@ var (
 	ErrInvalidProof          = errAPI.Code("invalid_proof").StatusError("invalid proof provided for credential", http.StatusBadRequest)
 	ErrAWSAccountMismatch    = errAPI.Code("aws_account_mismatch").StatusError("role account id does not match with authentication account id. Make sure you are using AWS credentials that correspond to the role you are trying to add.", http.StatusBadRequest)
 	ErrAWSAuthFailed         = errAPI.Code("aws_auth_failed").StatusError("authentication not accepted by AWS", http.StatusForbidden)
+	ErrAWSKMSKeyNotFound     = errAPI.Code("aws_kms_key_not_found").StatusError("could not found the KMS key", http.StatusNotFound)
 	ErrInvalidRoleARN        = errAPI.Code("invalid_role_arn").StatusError("provided role is not a valid ARN", http.StatusBadRequest)
 )
 
