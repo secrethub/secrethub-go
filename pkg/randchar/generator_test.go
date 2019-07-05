@@ -183,12 +183,12 @@ func TestAdd(t *testing.T) {
 			b:        "",
 			expected: "",
 		},
-		"different": {
+		"different with overlap": {
 			a:        "ab",
 			b:        "bc",
 			expected: "abc",
 		},
-		"different with overlap": {
+		"different": {
 			a:        "ab",
 			b:        "c",
 			expected: "abc",
