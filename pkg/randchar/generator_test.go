@@ -272,6 +272,11 @@ func TestIsSubset(t *testing.T) {
 			b:        "abc",
 			expected: true,
 		},
+		"not a subset": {
+			a:        "ab",
+			b:        "cd",
+			expected: false,
+		},
 		"superset": {
 			a:        "abc",
 			b:        "ab",
