@@ -20,6 +20,10 @@ func TestMin(t *testing.T) {
 			minima: []minimum{{2, Numeric}},
 			n:      3,
 		},
+		"n == 0": {
+			base: Alphanumeric,
+			n:    0,
+		},
 		"n == min": {
 			base:   Alphanumeric,
 			minima: []minimum{{2, Numeric}},
