@@ -149,7 +149,8 @@ func WithReader(reader io.Reader) Option {
 	}
 }
 
-// Generate returns a randomly generated slice of characters that meets the requirements of the reader.
+// Generate returns a randomly generated slice of characters
+// that meets the requirements of the reader.
 func (r Rand) Generate(n int) ([]byte, error) {
 	if n < r.minLen {
 		return nil, errors.New("n cannot be smaller than the minimum required length of the generator")
@@ -218,7 +219,8 @@ type Charset struct {
 	chars []byte
 }
 
-// NewCharset creates a set of characters from a given byte slice, removing duplicates to ensure the random generators are not biased.
+// NewCharset creates a set of characters from a given byte slice,
+// removing duplicates to ensure the random generators are not biased.
 func NewCharset(characters string) Charset {
 	uniques := make(map[byte]struct{})
 	for _, char := range []byte(characters) {
