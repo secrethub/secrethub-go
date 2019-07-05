@@ -2,6 +2,7 @@ package randchar
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/secrethub/secrethub-go/internals/assert"
@@ -127,7 +128,7 @@ func TestNewCharset(t *testing.T) {
 			in:       "aa",
 			expected: "a",
 		},
-		"multiple": {
+		"multiple characters": {
 			in:       "abc",
 			expected: "abc",
 		},
@@ -141,7 +142,7 @@ func TestNewCharset(t *testing.T) {
 				chars: []byte(tc.expected),
 			}
 
-			if !actual.Equals(expected) {
+			if !reflect.DeepEqual(actual, expected) {
 				t.Errorf("unexpected result: %v (actual) != %v (expected)", actual, tc.expected)
 			}
 		})
