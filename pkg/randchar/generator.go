@@ -285,11 +285,11 @@ func (c Charset) Subtract(set Charset) Charset {
 // IsSubset returns true when the character set is a subset of the given set.
 // When both sets are the same it returns true too.
 func (c Charset) IsSubset(of Charset) bool {
+	// Small speed optimization to avoid looping over either
+	// sets if we can already tell they're not a subset.
 	if c.Size() == 0 {
 		return true
-	}
-
-	if c.Size() > 0 && of.Size() == 0 {
+	} else if c.Size() > 0 && of.Size() == 0 {
 		return false
 	}
 
