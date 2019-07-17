@@ -40,16 +40,17 @@ type Feature struct {
 
 // BillingPlan defines a plan for billing customers.
 type BillingPlan struct {
-	ID              string          `json:"id"` // short tag shared across Stripe plans that together form this plan
-	Name            string          `json:"name"`
-	Description     string          `json:"description"`
-	Currency        string          `json:"currency"` // eur
-	BaseFee         *FixedFee       `json:"base_fee"`
-	PerSecretFee    *MeteredFee     `json:"per_secret_fee,omitempty"`
-	MaxMembers      int             `json:"max_members"`
-	Features        []string        `json:"features"`
-	TrialPeriodDays int64           `json:"trial_period_days"`
-	Type            BillingPlanType `json:"type"`
+	ID                    string          `json:"id"` // short tag shared across Stripe plans that together form this plan
+	Name                  string          `json:"name"`
+	Description           string          `json:"description"`
+	Currency              string          `json:"currency"` // eur
+	BaseFee               *FixedFee       `json:"base_fee"`
+	PerSecretFee          *MeteredFee     `json:"per_secret_fee,omitempty"`
+	MaxMembers            int             `json:"max_members"`
+	Features              []string        `json:"features"`
+	TrialPeriodDays       int64           `json:"trial_period_days"`
+	Type                  BillingPlanType `json:"type"`
+	AuditLogRetentionDays int64           `json:"audit_log_retention_days,omitempty"` // use -1 for indefinite storage
 }
 
 // BillingPlanType is used to distinguish between different types of plans.
