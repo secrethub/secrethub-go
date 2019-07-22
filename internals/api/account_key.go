@@ -8,6 +8,7 @@ import (
 var (
 	ErrAccountNotKeyed    = errAPI.Code("account_not_keyed").StatusError("User has not yet keyed their account", http.StatusBadRequest)
 	ErrAccountKeyNotFound = errAPI.Code("account_key_not_found").StatusError("User has not yet keyed their account", http.StatusNotFound)
+	ErrIllegalKeyVersion  = errHub.Code("illegal_key_version").StatusError("key_version should be either v1 or v2", http.StatusBadRequest)
 )
 
 // EncryptedAccountKey represents an account key encrypted with a credential.
