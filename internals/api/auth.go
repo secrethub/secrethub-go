@@ -20,16 +20,18 @@ const (
 
 // Errors
 var (
-	ErrInvalidSessionType  = errAPI.Code("invalid_session_type").StatusError("invalid session type provided for authentication request", http.StatusBadRequest)
-	ErrInvalidPayload      = errAPI.Code("invalid_payload").StatusError("invalid payload provided for authentication request", http.StatusBadRequest)
-	ErrInvalidAuthMethod   = errAPI.Code("invalid_auth_method").StatusError("invalid auth method", http.StatusBadRequest)
-	ErrMissingField        = errAPI.Code("missing_field").StatusErrorPref("request is missing field %s", http.StatusBadRequest)
-	ErrSessionNotFound     = errAPI.Code("session_not_found").StatusError("session could not be found, it might have expired", http.StatusForbidden)
-	ErrSessionExpired      = errAPI.Code("session_expired").StatusError("session has expired", http.StatusForbidden)
-	ErrAuthFailed          = errAPI.Code("auth_failed").StatusError("authentication failed", http.StatusForbidden)
-	ErrCouldNotGetEndpoint = errAPI.Code("wrong_endpoint").StatusError("could not find the AWS endpoint", http.StatusBadRequest)
-	ErrAWSException        = errAPI.Code("aws_exception").StatusError("AWS returned an error", http.StatusFailedDependency)
-	ErrNoServiceWithRole   = errAPI.Code("no_service_with_role").StatusErrorPref("there exists no service account tied to the AWS IAM role '%s'", http.StatusNotFound)
+	ErrInvalidSessionType    = errAPI.Code("invalid_session_type").StatusError("invalid session type provided for authentication request", http.StatusBadRequest)
+	ErrInvalidPayload        = errAPI.Code("invalid_payload").StatusError("invalid payload provided for authentication request", http.StatusBadRequest)
+	ErrInvalidAuthMethod     = errAPI.Code("invalid_auth_method").StatusError("invalid auth method", http.StatusBadRequest)
+	ErrMissingField          = errAPI.Code("missing_field").StatusErrorPref("request is missing field %s", http.StatusBadRequest)
+	ErrSessionNotFound       = errAPI.Code("session_not_found").StatusError("session could not be found, it might have expired", http.StatusForbidden)
+	ErrSessionExpired        = errAPI.Code("session_expired").StatusError("session has expired", http.StatusForbidden)
+	ErrAuthFailed            = errAPI.Code("auth_failed").StatusError("authentication failed", http.StatusForbidden)
+	ErrCouldNotGetEndpoint   = errAPI.Code("wrong_endpoint").StatusError("could not find the AWS endpoint", http.StatusBadRequest)
+	ErrAWSException          = errAPI.Code("aws_exception").StatusError("AWS returned an error", http.StatusFailedDependency)
+	ErrNoServiceWithRole     = errAPI.Code("no_service_with_role").StatusErrorPref("there exists no service account tied to the AWS IAM role '%s'", http.StatusNotFound)
+	ErrNoAWSCredentials      = errAPI.Code("missing_aws_credentials").StatusError("request was not signed with AWS credentials", http.StatusUnauthorized)
+	ErrInvalidAWSCredentials = errAPI.Code("invalid_aws_credentials").StatusError("credentials were not accepted by AWS", http.StatusUnauthorized)
 )
 
 // SessionType defines how a session can be used.

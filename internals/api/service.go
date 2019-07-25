@@ -21,6 +21,7 @@ var (
 		),
 		http.StatusBadRequest,
 	)
+	ErrAccessDeniedToKMSKey = errAPI.Code("access_denied").StatusError("access to KMS key is denied", http.StatusForbidden)
 )
 
 // Service represents a service account on SecretHub.
