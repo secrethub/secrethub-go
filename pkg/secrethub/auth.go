@@ -5,27 +5,27 @@ import (
 	"github.com/secrethub/secrethub-go/internals/auth"
 )
 
-// AuthMethodService is an interface for any service that can provide authentication to the server.
-type AuthMethodService interface {
-	Authenticate() (auth.Authenticator, error)
+// SessionMethodService is an interface for any service that can provide authentication to the server.
+type SessionMethodService interface {
+	Create() (auth.Authenticator, error)
 }
 
-// AuthService handles authentication to the SercretHub API.
-type AuthService interface {
-	AWS(...*aws.Config) AuthMethodService
+// SessionService handles authentication to the SecretHub API.
+type SessionService interface {
+	AWS(...*aws.Config) SessionMethodService
 }
 
-func newAuthService(client client) AuthService {
-	return &authService{
+func newSessionService(client client) SessionService {
+	return &sessionService{
 		client: client,
 	}
 }
 
-type authService struct {
+type sessionService struct {
 	client client
 }
 
-// Members returns an OrgMemberService.
-func (s authService) AWS(awsCfg ...*aws.Config) AuthMethodService {
-	return newAWSAuthService(s.client, awsCfg...)
+// AWS returns an SessionMethodService for AWS.
+func (s sessionService) AWS(awsCfg ...*aws.Config) SessionMethodService {
+	return newAWSSessionService(s.client, awsCfg...)
 }

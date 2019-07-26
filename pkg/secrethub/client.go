@@ -13,7 +13,7 @@ import (
 type Client interface {
 	AccessRules() AccessRuleService
 	Accounts() AccountService
-	Auth() AuthService
+	sessions() SessionService
 	Dirs() DirService
 	Me() MeService
 	Orgs() OrgService
@@ -56,7 +56,7 @@ func NewClientAWS(opts *ClientOptions, awsCfg ...*awssdk.Config) (Client, error)
 	client := &clientAdapter{
 		client: newClient(decrypter, auth.NopAuthenticator{}, opts),
 	}
-	authenticator, err := client.Auth().AWS(awsCfg...).Authenticate()
+	authenticator, err := client.sessions().AWS(awsCfg...).Create()
 	if err != nil {
 		return nil, err
 	}
@@ -74,9 +74,9 @@ func (c clientAdapter) Accounts() AccountService {
 	return newAccountService(c.client)
 }
 
-// Auth returns an AuthService.
-func (c clientAdapter) Auth() AuthService {
-	return newAuthService(c.client)
+// Auth returns an SessionService.
+func (c clientAdapter) sessions() SessionService {
+	return newSessionService(c.client)
 }
 
 // Dirs returns an DirService.

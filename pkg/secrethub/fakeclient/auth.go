@@ -3,27 +3,28 @@
 package fakeclient
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/pkg/secrethub"
 )
 
-// AuthService is a mock of the AuthService interface.
-type AuthService struct {
-	secrethub.AuthMethodService
+// SessionService is a mock of the SessionService interface.
+type SessionService struct {
+	secrethub.SessionMethodService
 }
 
-// AWS returns the AuthMethodService.
-func (g *AuthService) AWS() secrethub.AuthMethodService {
-	return g.AuthMethodService
+// AWS returns the SessionMethodService.
+func (g *SessionService) AWS(...*aws.Config) secrethub.SessionMethodService {
+	return g.SessionMethodService
 }
 
-// AuthMethod is a mock of the AuthMethodService interface.
-type AuthMethod struct {
+// SessionMethod is a mock of the SessionMethodService interface.
+type SessionMethod struct {
 	err  error
 	auth auth.Authenticator
 }
 
 // Authenticate mocks the Authenticate function.
-func (a AuthMethod) Authenticate() (auth.Authenticator, error) {
+func (a SessionMethod) Create() (auth.Authenticator, error) {
 	return a.auth, a.err
 }

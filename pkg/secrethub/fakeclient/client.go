@@ -6,7 +6,7 @@ import "github.com/secrethub/secrethub-go/pkg/secrethub"
 type Client struct {
 	AccessRuleService *AccessRuleService
 	AccountService    *AccountService
-	AuthService       *AuthService
+	SessionService    *SessionService
 	DirService        *DirService
 	OrgService        *OrgService
 	RepoService       *RepoService
@@ -26,8 +26,8 @@ func (c Client) Accounts() secrethub.AccountService {
 }
 
 // Auth implements the secrethub.Client interface.
-func (c Client) Auth() secrethub.AuthService {
-	return c.AuthService
+func (c Client) sessions() secrethub.SessionService {
+	return c.SessionService
 }
 
 // Dirs implements the secrethub.Client interface.

@@ -13,19 +13,19 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 )
 
-type awsAuthService struct {
+type awsSessionService struct {
 	client    client
 	awsConfig []*aws.Config
 }
 
-func newAWSAuthService(client client, awsCfg ...*aws.Config) AuthMethodService {
-	return &awsAuthService{
+func newAWSSessionService(client client, awsCfg ...*aws.Config) SessionMethodService {
+	return &awsSessionService{
 		client:    client,
 		awsConfig: awsCfg,
 	}
 }
 
-func (s awsAuthService) Authenticate() (auth.Authenticator, error) {
+func (s awsSessionService) Create() (auth.Authenticator, error) {
 	// Currently always use the eu-west-1 region.
 	region := endpoints.EuWest1RegionID
 
