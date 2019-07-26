@@ -13,6 +13,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 )
 
+const (
+	// Currently always use the eu-west-1 region.
+	defaultAWSRegionForSTS = endpoints.EuWest1RegionID
+)
+
 type awsSessionService struct {
 	client    client
 	awsConfig []*aws.Config
@@ -26,8 +31,7 @@ func newAWSSessionService(client client, awsCfg ...*aws.Config) SessionMethodSer
 }
 
 func (s awsSessionService) Create() (auth.Authenticator, error) {
-	// Currently always use the eu-west-1 region.
-	region := endpoints.EuWest1RegionID
+	region := defaultAWSRegionForSTS
 
 	getCallerIdentityReq, err := getCallerIdentityRequest(region, s.awsConfig...)
 	if err != nil {
