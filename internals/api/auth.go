@@ -139,9 +139,9 @@ func (pl AuthPayloadAWSSTS) Validate() error {
 func NewSessionHMAC(sessionID uuid.UUID, expiration time.Time, secretKey string) *Session {
 	t := SessionTypeHMAC
 	return &Session{
-		SessionID:  &sessionID,
-		Expiration: &expiration,
-		Type:       &t,
+		SessionID: &sessionID,
+		Expires:   &expiration,
+		Type:      &t,
 		Payload: &SessionPayloadHMAC{
 			SecretKey: &secretKey,
 		},
@@ -150,10 +150,10 @@ func NewSessionHMAC(sessionID uuid.UUID, expiration time.Time, secretKey string)
 
 // Session represents a session that can be used for authentication to the server.
 type Session struct {
-	SessionID  *uuid.UUID   `json:"session_id"`
-	Expiration *time.Time   `json:"expiration"`
-	Type       *SessionType `json:"type"`
-	Payload    interface{}  `json:"payload"`
+	SessionID *uuid.UUID   `json:"session_id"`
+	Expires   *time.Time   `json:"expires"`
+	Type      *SessionType `json:"type"`
+	Payload   interface{}  `json:"payload"`
 }
 
 // SessionPayloadHMAC is the payload of a HMAC typed session.
@@ -161,7 +161,7 @@ type SessionPayloadHMAC struct {
 	SecretKey *string `json:"secret_key"`
 }
 
-// SessionHMAC is an HMAC-specific representation of a session.
+// SessionHMAC is a session that uses the HMAC algorithm to verify the authentication.
 type SessionHMAC struct {
 	SessionID  uuid.UUID
 	Expiration time.Time
@@ -213,7 +213,7 @@ func (s *Session) Validate() error {
 	if s.SessionID == nil {
 		return ErrMissingField("session_id")
 	}
-	if s.Expiration == nil {
+	if s.Expires == nil {
 		return ErrMissingField("expiration")
 	}
 	if s.Type == nil {
@@ -237,7 +237,7 @@ func (s *Session) HMAC() *SessionHMAC {
 	payload := s.Payload.(*SessionPayloadHMAC)
 	return &SessionHMAC{
 		SessionID:  *s.SessionID,
-		Expiration: *s.Expiration,
+		Expiration: *s.Expires,
 		Payload:    *payload,
 	}
 }
