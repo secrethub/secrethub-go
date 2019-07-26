@@ -17,7 +17,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
-var defaultTestErr = errors.New("test-error")
+var errTest = errors.New("test-error")
 
 type kmsEncryptMock struct {
 	kmsiface.KMSAPI
@@ -56,8 +56,8 @@ func TestServiceCreator_AddProof(t *testing.T) {
 		"getEncryptRequest error": {
 			encryptRequest:       defaultRequest,
 			signingRegion:        defaultRegion,
-			getEncryptRequestErr: defaultTestErr,
-			expectedErr:          defaultTestErr,
+			getEncryptRequestErr: errTest,
+			expectedErr:          errTest,
 		},
 	}
 
@@ -111,8 +111,8 @@ func TestServiceCreator_Wrap(t *testing.T) {
 			expected: api.NewEncryptedDataAWSKMS(ciphertext, api.NewEncryptionKeyAWS(kmsKeyID)),
 		},
 		"encrypt error": {
-			encryptErr:  defaultTestErr,
-			expectedErr: defaultTestErr,
+			encryptErr:  errTest,
+			expectedErr: errTest,
 		},
 	}
 

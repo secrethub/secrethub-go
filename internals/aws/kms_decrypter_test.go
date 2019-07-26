@@ -57,8 +57,8 @@ func TestKMSDecrypter_Unwrap(t *testing.T) {
 		},
 		"decryption error": {
 			input:       api.NewEncryptedDataAWSKMS(defaultCiphertext, api.NewEncryptionKeyAWS(defaultKMSKey)),
-			decryptErr:  defaultTestErr,
-			expectedErr: defaultTestErr,
+			decryptErr:  errTest,
+			expectedErr: errTest,
 		},
 	}
 
