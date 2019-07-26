@@ -144,19 +144,22 @@ func TestServiceCreator_Wrap(t *testing.T) {
 type stsMock struct {
 	stsiface.STSAPI
 	resp *sts.GetCallerIdentityOutput
+	err  error
 }
 
 func (m stsMock) GetCallerIdentity(*sts.GetCallerIdentityInput) (*sts.GetCallerIdentityOutput, error) {
-	return m.resp, nil
+	return m.resp, m.err
 }
 
 func Test_parseRole(t *testing.T) {
 	defaultAccountID := "1234567890"
 	defaultARN := fmt.Sprintf("arn:aws:iam::%s:role/RoleName", defaultAccountID)
+	errTest := errors.New("test")
 
 	cases := map[string]struct {
 		role        string
 		accountID   string
+		err         error
 		expected    string
 		expectedErr error
 	}{
@@ -175,6 +178,12 @@ func Test_parseRole(t *testing.T) {
 			accountID: "1234567890",
 			expected:  defaultARN,
 		},
+		"GetCallerIdentity error": {
+			role:        "RoleName",
+			accountID:   "1234567890",
+			err:         errTest,
+			expectedErr: errTest,
+		},
 	}
 
 	for name, tc := range cases {
@@ -183,6 +192,7 @@ func Test_parseRole(t *testing.T) {
 				resp: &sts.GetCallerIdentityOutput{
 					Account: &tc.accountID,
 				},
+				err: tc.err,
 			}
 
 			actual, err := parseRole(tc.role, m)
