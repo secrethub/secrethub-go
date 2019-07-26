@@ -113,9 +113,11 @@ func GetEncryptRequest(plaintext string, keyID string, kmsSvc kmsiface.KMSAPI) (
 	return buf.Bytes(), nil
 }
 
-// parseRole tries to parse an inputted role into a role ARN.
-// The input can either be an ARN or the name of a role (prefixed with role/ or not)
-// The outputted value is not guaranteed to be a valid ARN.
+// parseRole parses a given role and performs a best effort attempt
+// to find and return the corresponding full ARN. The given role can
+// be either a (partial) ARN or the role name and can be prefixed with
+// "role/". Note that this is a best effort attempt so the returned value
+// is not guaranteed to always be a valid ARN.
 func parseRole(role string, stsSvc stsiface.STSAPI) (string, error) {
 	if strings.Contains(role, ":") {
 		return role, nil
