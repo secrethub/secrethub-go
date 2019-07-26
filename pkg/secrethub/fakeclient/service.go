@@ -9,7 +9,7 @@ import (
 
 // ServiceService is a mock of the ServiceService interface.
 type ServiceService struct {
-	Creater    ServiceCreater
+	Creator    ServiceCreater
 	Deleter    ServiceDeleter
 	Getter     ServiceGetter
 	Lister     RepoServiceLister
@@ -18,7 +18,7 @@ type ServiceService struct {
 
 // Create implements the ServiceService interface Create function.
 func (s *ServiceService) Create(path string, description string, credential secrethub.Verifier, encrypter secrethub.Encrypter) (*api.Service, error) {
-	return s.Creater.Create(path, description, credential, encrypter)
+	return s.Creator.Create(path, description, credential, encrypter)
 }
 
 // Delete implements the ServiceService interface Delete function.

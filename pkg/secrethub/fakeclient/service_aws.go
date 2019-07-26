@@ -9,12 +9,12 @@ import (
 
 // ServiceAWSService is a mock of the ServiceAWSService interface.
 type ServiceAWSService struct {
-	Creater ServiceAWSCreater
+	Creator ServiceAWSCreater
 }
 
 // Create implements the ServiceAWSService interface Create function.
 func (s *ServiceAWSService) Create(path string, description string, keyID, role string, cfgs ...*aws.Config) (*api.Service, error) {
-	return s.Creater.Create(path, description, keyID, role, cfgs...)
+	return s.Creator.Create(path, description, keyID, role, cfgs...)
 }
 
 // ServiceAWSCreater mocks the Create function.
