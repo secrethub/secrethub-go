@@ -170,7 +170,7 @@ func NewEncryptionKeyAccountKey(length int, id uuid.UUID) *EncryptionKeyAccountK
 	}
 }
 
-// EncryptionKeyAccountKey is an encryption key that is the account key of an account.
+// EncryptionKeyAccountKey is an account's master key that is used to encrypt data and/or keys specifically for an account.
 type EncryptionKeyAccountKey struct {
 	EncryptionKey
 	Length *int       `json:"length"`
@@ -199,7 +199,7 @@ func NewEncryptionKeySecretKey(length int, id uuid.UUID) *EncryptionKeySecretKey
 	}
 }
 
-// EncryptionKeySecretKey is an encryption key that is a secret key.
+// EncryptionKeySecretKey is a key that is used to encrypt secrets
 type EncryptionKeySecretKey struct {
 	EncryptionKey
 	Length *int       `json:"length"`
@@ -227,7 +227,7 @@ func NewEncryptionKeyAWS(id string) *EncryptionKeyAWS {
 	}
 }
 
-// EncryptionKeyAWS is an encryption key that is stored in AWS KMS.
+// EncryptionKeyAWS is a key that is stored in the AWS KMS service and which can be used for encryption by calling the AWS KMS API.
 type EncryptionKeyAWS struct {
 	EncryptionKey
 	ID *string `json:"id"`
