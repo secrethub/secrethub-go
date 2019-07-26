@@ -70,16 +70,16 @@ func (c *client) createCredentialRequest(verifier Verifier) (*api.CreateCredenti
 	if err != nil {
 		return nil, errio.Error(err)
 	}
-	fingerprint, err := api.CredentialFingerprint(verifier.Type(), bytes)
+	typ := verifier.Type()
+	fingerprint, err := api.CredentialFingerprint(typ, bytes)
 	if err != nil {
 		return nil, err
 	}
 
-	t := verifier.Type()
 	req := api.CreateCredentialRequest{
 		Fingerprint: api.String(fingerprint),
 		Verifier:    bytes,
-		Type:        &t,
+		Type:        &typ,
 	}
 	err = verifier.AddProof(&req)
 	if err != nil {
