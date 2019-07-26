@@ -161,6 +161,14 @@ type SessionPayloadHMAC struct {
 	SecretKey *string `json:"secret_key"`
 }
 
+// Validate whether the SessionPayloadHMAC is valid.
+func (pl *SessionPayloadHMAC) Validate() error {
+	if pl.SecretKey == nil {
+		return ErrMissingField("secret_key")
+	}
+	return nil
+}
+
 // SessionHMAC is a session that uses the HMAC algorithm to verify the authentication.
 type SessionHMAC struct {
 	SessionID  uuid.UUID
@@ -240,12 +248,4 @@ func (s *Session) HMAC() *SessionHMAC {
 		Expiration: *s.Expires,
 		Payload:    *payload,
 	}
-}
-
-// Validate whether the SessionPayloadHMAC is valid.
-func (pl *SessionPayloadHMAC) Validate() error {
-	if pl.SecretKey == nil {
-		return ErrMissingField("secret_key")
-	}
-	return nil
 }
