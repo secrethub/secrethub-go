@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // Errors
@@ -15,8 +16,20 @@ var (
 // EncryptionAlgorithm specifies the encryption algorithm used for EncryptedData.
 type EncryptionAlgorithm string
 
+// UnmarshalJSON populates an EncryptionAlgorithm by converting an input string to lowercase.
+func (ed *EncryptionAlgorithm) UnmarshalJSON(b []byte) error {
+	*ed = EncryptionAlgorithm(strings.ToLower(string(b)))
+	return nil
+}
+
 // HashingAlgorithm specifies the hashing algorithm used for any encryption algorithm using hasing.
 type HashingAlgorithm string
+
+// UnmarshalJSON populates an HashingAlgorithm by converting an input string to lowercase.
+func (ed *HashingAlgorithm) UnmarshalJSON(b []byte) error {
+	*ed = HashingAlgorithm(strings.ToLower(string(b)))
+	return nil
+}
 
 // Supported values for EncryptionAlgorithm.
 const (

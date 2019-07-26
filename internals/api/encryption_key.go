@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 )
@@ -9,8 +10,20 @@ import (
 // KeyType specifies the type of key used for EncryptedData.
 type KeyType string
 
+// UnmarshalJSON populates an KeyType by converting an input string to lowercase.
+func (ed *KeyType) UnmarshalJSON(b []byte) error {
+	*ed = KeyType(strings.ToLower(string(b)))
+	return nil
+}
+
 // KeyDerivationAlgorithm specifies the key derivation algorithm used for a derived key.
 type KeyDerivationAlgorithm string
+
+// UnmarshalJSON populates an KeyDerivationAlgorithm by converting an input string to lowercase.
+func (ed *KeyDerivationAlgorithm) UnmarshalJSON(b []byte) error {
+	*ed = KeyDerivationAlgorithm(strings.ToLower(string(b)))
+	return nil
+}
 
 // Options for KeyType
 const (
