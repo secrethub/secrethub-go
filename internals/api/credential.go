@@ -45,8 +45,8 @@ const (
 )
 
 const (
-	// CredentialAWSSTSPlaintextPrefix is the prefix to use in AWS STS proof plaintext.
-	CredentialAWSSTSPlaintextPrefix = "secrethub-allow-role="
+	// CredentialProofPrefixAWS is the prefix to use in AWS STS proof plaintext.
+	CredentialProofPrefixAWS = "secrethub-allow-role="
 )
 
 // Validate validates whether the algorithm type is valid.

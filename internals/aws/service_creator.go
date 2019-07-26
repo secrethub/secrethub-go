@@ -70,7 +70,7 @@ func (c ServiceCreator) Verifier() ([]byte, error) {
 
 // AddProof adds proof of access to the AWS account to the CreateCredentialRequest.
 func (c ServiceCreator) AddProof(req *api.CreateCredentialRequest) error {
-	plaintext := api.CredentialAWSSTSPlaintextPrefix + c.role
+	plaintext := api.CredentialProofPrefixAWS + c.role
 
 	encryptReq, err := c.getEncryptRequest(plaintext, c.keyID, c.kmsSvc)
 	if err != nil {

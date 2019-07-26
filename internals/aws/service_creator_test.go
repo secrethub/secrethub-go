@@ -82,7 +82,7 @@ func TestServiceCreator_AddProof(t *testing.T) {
 			assert.Equal(t, err, tc.expectedErr)
 
 			if tc.expectedErr == nil {
-				assert.Equal(t, usedPlaintext, api.CredentialAWSSTSPlaintextPrefix+sc.role)
+				assert.Equal(t, usedPlaintext, api.CredentialProofPrefixAWS+sc.role)
 
 				proof, ok := req.Proof.(*api.CredentialProofAWSSTS)
 				assert.Equal(t, ok, true)
