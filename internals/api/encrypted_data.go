@@ -168,7 +168,7 @@ func (ed *EncryptedData) UnmarshalJSON(b []byte) error {
 
 type keyValidator interface {
 	validator
-	AlgorithmSupported(EncryptionAlgorithm) bool
+	SupportsAlgorithm(EncryptionAlgorithm) bool
 }
 
 // Validate whether the EncryptedData is valid.
@@ -190,7 +190,7 @@ func (ed *EncryptedData) Validate() error {
 	if err := key.Validate(); err != nil {
 		return err
 	}
-	if !key.AlgorithmSupported(ed.Algorithm) {
+	if !key.SupportsAlgorithm(ed.Algorithm) {
 		return ErrKeyAlgorithmMismatch
 	}
 

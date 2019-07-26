@@ -82,8 +82,8 @@ type EncryptionKeyDerived struct {
 	Metadata   interface{}            `json:"metadata,omitempty"`
 }
 
-// AlgorithmSupported returns whether the given EncryptionAlgorithm is supported by this type of encrytpion key.
-func (EncryptionKeyDerived) AlgorithmSupported(a EncryptionAlgorithm) bool {
+// SupportsAlgorithm returns true when the encryption key supports the given algorithm.
+func (EncryptionKeyDerived) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 	return a == EncryptionAlgorithmAESGCM
 }
 
@@ -111,12 +111,12 @@ type EncryptionKeyEncrypted struct {
 	EncryptedKey *EncryptedData `json:"encrypted_key"`
 }
 
-// AlgorithmSupported returns whether the given EncryptionAlgorithm is supported by this type of encrytpion key.
-func (EncryptionKeyEncrypted) AlgorithmSupported(a EncryptionAlgorithm) bool {
+// SupportsAlgorithm returns true when the encryption key supports the given algorithm.
+func (EncryptionKeyEncrypted) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 	return a == EncryptionAlgorithmAESGCM || a == EncryptionAlgorithmRSAOEAP
 }
 
-// Validate whether the EncryptionKeyEncrypted is valid.
+// Validate checks whether all the fields of the response are valid.
 func (k EncryptionKeyEncrypted) Validate() error {
 	if k.Length == nil {
 		return ErrMissingField("length")
@@ -143,8 +143,8 @@ type EncryptionKeyLocal struct {
 	Length *int `json:"length"`
 }
 
-// AlgorithmSupported returns whether the given EncryptionAlgorithm is supported by this type of encrytpion key.
-func (EncryptionKeyLocal) AlgorithmSupported(a EncryptionAlgorithm) bool {
+// SupportsAlgorithm returns true when the encryption key supports the given algorithm.
+func (EncryptionKeyLocal) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 	return a == EncryptionAlgorithmAESGCM || a == EncryptionAlgorithmRSAOEAP
 }
 
@@ -177,8 +177,8 @@ type EncryptionKeyAccountKey struct {
 	ID     *uuid.UUID `json:"id"`
 }
 
-// AlgorithmSupported returns whether the given EncryptionAlgorithm is supported by this type of encrytpion key.
-func (EncryptionKeyAccountKey) AlgorithmSupported(a EncryptionAlgorithm) bool {
+// SupportsAlgorithm returns true when the encryption key supports the given algorithm.
+func (EncryptionKeyAccountKey) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 	return a == EncryptionAlgorithmRSAOEAP
 }
 
@@ -206,8 +206,8 @@ type EncryptionKeySecretKey struct {
 	ID     *uuid.UUID `json:"id"`
 }
 
-// AlgorithmSupported returns whether the given EncryptionAlgorithm is supported by this type of encrytpion key.
-func (EncryptionKeySecretKey) AlgorithmSupported(a EncryptionAlgorithm) bool {
+// SupportsAlgorithm returns true when the encryption key supports the given algorithm.
+func (EncryptionKeySecretKey) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 	return a == EncryptionAlgorithmAESGCM
 }
 
@@ -233,8 +233,8 @@ type EncryptionKeyAWS struct {
 	ID *string `json:"id"`
 }
 
-// AlgorithmSupported returns whether the given EncryptionAlgorithm is supported by this type of encrytpion key.
-func (EncryptionKeyAWS) AlgorithmSupported(a EncryptionAlgorithm) bool {
+// SupportsAlgorithm returns true when the encryption key supports the given algorithm.
+func (EncryptionKeyAWS) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 	return a == EncryptionAlgorithmAWSKMS
 }
 
