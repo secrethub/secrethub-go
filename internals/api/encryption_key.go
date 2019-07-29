@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 
@@ -12,7 +13,12 @@ type KeyType string
 
 // UnmarshalJSON populates an KeyType by converting an input string to lowercase.
 func (ed *KeyType) UnmarshalJSON(b []byte) error {
-	*ed = KeyType(strings.ToLower(string(b)))
+	var v string
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+	*ed = KeyType(strings.ToLower(v))
 	return nil
 }
 
@@ -21,7 +27,12 @@ type KeyDerivationAlgorithm string
 
 // UnmarshalJSON populates an KeyDerivationAlgorithm by converting an input string to lowercase.
 func (ed *KeyDerivationAlgorithm) UnmarshalJSON(b []byte) error {
-	*ed = KeyDerivationAlgorithm(strings.ToLower(string(b)))
+	var v string
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+	*ed = KeyDerivationAlgorithm(strings.ToLower(v))
 	return nil
 }
 

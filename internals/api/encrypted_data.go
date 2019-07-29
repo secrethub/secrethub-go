@@ -18,7 +18,12 @@ type EncryptionAlgorithm string
 
 // UnmarshalJSON populates an EncryptionAlgorithm by converting an input string to lowercase.
 func (ed *EncryptionAlgorithm) UnmarshalJSON(b []byte) error {
-	*ed = EncryptionAlgorithm(strings.ToLower(string(b)))
+	var v string
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+	*ed = EncryptionAlgorithm(strings.ToLower(v))
 	return nil
 }
 
@@ -27,7 +32,12 @@ type HashingAlgorithm string
 
 // UnmarshalJSON populates an HashingAlgorithm by converting an input string to lowercase.
 func (ed *HashingAlgorithm) UnmarshalJSON(b []byte) error {
-	*ed = HashingAlgorithm(strings.ToLower(string(b)))
+	var v string
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+	*ed = HashingAlgorithm(strings.ToLower(v))
 	return nil
 }
 
