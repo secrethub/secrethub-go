@@ -7,10 +7,11 @@ import (
 
 // Errors
 var (
-	ErrInvalidEncryptionAlgorithm = errAPI.Code("invalid_encryption_algorithm").Error("invalid encryption algorithm provided")
-	ErrInvalidKeyType             = errAPI.Code("invalid_key_type").Error("invalid key type")
-	ErrKeyAlgorithmMismatch       = errAPI.Code("key_algorithm_mismatch").Error("mismatch between algorithm and key type")
-	ErrInvalidKeyLength           = errAPI.Code("invalid_key_length").Error("key length value is invalid")
+	ErrInvalidEncryptionAlgorithm    = errAPI.Code("invalid_encryption_algorithm").Error("invalid encryption algorithm provided")
+	ErrInvalidKeyType                = errAPI.Code("invalid_key_type").Error("invalid key type")
+	ErrKeyAlgorithmMismatch          = errAPI.Code("key_algorithm_mismatch").Error("mismatch between algorithm and key type")
+	ErrInvalidKeyLength              = errAPI.Code("invalid_key_length").Error("key length value is invalid")
+	ErrInvalidKeyDerivationAlgorithm = errAPI.Code("invalid_key_derivation_algorithm").Error("invalid key derivation algorithm")
 )
 
 // EncryptionAlgorithm specifies the encryption algorithm used for EncryptedData.

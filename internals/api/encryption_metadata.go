@@ -6,6 +6,9 @@ type EncryptionMetadataAESGCM struct {
 }
 
 // Validate checks whether the EncryptionMetadataAESGCM is valid.
-func (EncryptionMetadataAESGCM) Validate() error {
+func (m EncryptionMetadataAESGCM) Validate() error {
+	if m.Nonce == nil {
+		return ErrMissingField("nonce")
+	}
 	return nil
 }

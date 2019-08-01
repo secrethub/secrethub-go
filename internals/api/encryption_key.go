@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"strings"
 
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
@@ -77,7 +76,7 @@ func newEncryptionKeyDerived(algorithm KeyDerivationAlgorithm, length int, param
 		EncryptionKey: EncryptionKey{
 			Type: KeyTypeDerived,
 		},
-		Length:     Int(length),
+		Length:     length,
 		Algorithm:  algorithm,
 		Parameters: parameters,
 		Metadata:   metadata,
@@ -87,7 +86,7 @@ func newEncryptionKeyDerived(algorithm KeyDerivationAlgorithm, length int, param
 // EncryptionKeyDerived is an encryption key that can be derived from a passphrase.
 type EncryptionKeyDerived struct {
 	EncryptionKey
-	Length     *int                   `json:"length"`
+	Length     int                    `json:"length"`
 	Algorithm  KeyDerivationAlgorithm `json:"algorithm"`
 	Parameters interface{}            `json:"parameters,omitempty"`
 	Metadata   interface{}            `json:"metadata,omitempty"`
@@ -98,9 +97,83 @@ func (EncryptionKeyDerived) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 	return a == EncryptionAlgorithmAESGCM
 }
 
+// UnmarshalJSON populates an EncryptionKeyDerived from a JSON representation.
+func (k *EncryptionKeyDerived) UnmarshalJSON(b []byte) error {
+	// Declare a private type to avoid recursion into this function.
+	type encryptionKeyDerived EncryptionKeyDerived
+
+	var rawParameters, rawMetadata json.RawMessage
+	dec := encryptionKeyDerived{
+		Parameters: &rawParameters,
+		Metadata:   &rawMetadata,
+	}
+	err := json.Unmarshal(b, &dec)
+	if err != nil {
+		return err
+	}
+
+	switch dec.Algorithm {
+	case KeyDerivationAlgorithmScrypt:
+		dec.Metadata = &KeyDerivationMetadataScrypt{}
+		dec.Parameters = &KeyDerivationParametersScrypt{}
+	default:
+		return ErrInvalidKeyDerivationAlgorithm
+	}
+	if rawMetadata == nil {
+		dec.Metadata = nil
+	} else if dec.Metadata != nil {
+		err = json.Unmarshal(rawMetadata, dec.Metadata)
+		if err != nil {
+			return err
+		}
+	}
+	if rawParameters == nil {
+		dec.Parameters = nil
+	} else if dec.Parameters != nil {
+		err = json.Unmarshal(rawParameters, dec.Parameters)
+		if err != nil {
+			return err
+		}
+	}
+	*k = EncryptionKeyDerived(dec)
+	return nil
+}
+
 // Validate whether the EncryptionKeyDerived is valid.
-func (EncryptionKeyDerived) Validate() error {
-	// TODO: implement
+func (k EncryptionKeyDerived) Validate() error {
+	if k.Length == 0 {
+		return ErrMissingField("length")
+	}
+	if k.Length <= 0 {
+		return ErrInvalidKeyLength
+	}
+	if k.Algorithm == "" {
+		return ErrMissingField("algorithm")
+	}
+	if k.Algorithm != KeyDerivationAlgorithmScrypt {
+		return ErrInvalidKeyDerivationAlgorithm
+	}
+
+	if k.Parameters == nil {
+		return ErrMissingField("parameters")
+	}
+	parameters, ok := k.Parameters.(validator)
+	if ok {
+		if err := parameters.Validate(); err != nil {
+			return err
+		}
+	}
+
+	if k.Metadata == nil {
+		return ErrMissingField("metadata")
+	}
+	metadata, ok := k.Metadata.(validator)
+	if ok {
+		if err := metadata.Validate(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -194,8 +267,16 @@ func (EncryptionKeyAccountKey) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 }
 
 // Validate whether the EncryptionKeyAccountKey is valid.
-func (EncryptionKeyAccountKey) Validate() error {
-	// TODO: implement
+func (k EncryptionKeyAccountKey) Validate() error {
+	if k.Length == 0 {
+		return ErrMissingField("length")
+	}
+	if k.Length <= 0 {
+		return ErrInvalidKeyLength
+	}
+	if k.ID.IsZero() {
+		return ErrMissingField("id")
+	}
 	return nil
 }
 
@@ -223,8 +304,16 @@ func (EncryptionKeySecretKey) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 }
 
 // Validate whether the EncryptionKeySecretKey is valid.
-func (EncryptionKeySecretKey) Validate() error {
-	// TODO: implement
+func (k EncryptionKeySecretKey) Validate() error {
+	if k.Length == 0 {
+		return ErrMissingField("length")
+	}
+	if k.Length <= 0 {
+		return ErrInvalidKeyLength
+	}
+	if k.ID.IsZero() {
+		return ErrMissingField("id")
+	}
 	return nil
 }
 
@@ -265,8 +354,16 @@ type KeyDerivationParametersScrypt struct {
 }
 
 // Validate whether the KeyDerivationParametersScrypt is valid.
-func (KeyDerivationParametersScrypt) Validate() error {
-	// TODO: implement
+func (p KeyDerivationParametersScrypt) Validate() error {
+	if p.P == 0 {
+		return ErrMissingField("P")
+	}
+	if p.N == 0 {
+		return ErrMissingField("N")
+	}
+	if p.R == 0 {
+		return ErrMissingField("R")
+	}
 	return nil
 }
 
@@ -276,11 +373,9 @@ type KeyDerivationMetadataScrypt struct {
 }
 
 // Validate whether the KeyDerivationMetadataScrypt is valid.
-func (KeyDerivationMetadataScrypt) Validate() error {
+func (m KeyDerivationMetadataScrypt) Validate() error {
+	if m.Salt == nil {
+		return ErrMissingField("salt")
+	}
 	return nil
-}
-
-// UnmarshalJSON populates an EncryptionKeyDerived from a JSON representation.
-func (ek *EncryptionKeyDerived) UnmarshalJSON(b []byte) error {
-	return errors.New("derived key type not yet supported")
 }
