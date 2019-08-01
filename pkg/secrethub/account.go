@@ -70,7 +70,7 @@ func (c *client) createCredentialRequest(verifier Verifier) (*api.CreateCredenti
 	if err != nil {
 		return nil, errio.Error(err)
 	}
-	fingerprint, err := api.CredentialFingerprint(verifier.Type(), bytes)
+	fingerprint, err := api.GetFingerprint(verifier.Type(), bytes)
 	if err != nil {
 		return nil, err
 	}

@@ -120,7 +120,7 @@ func (req *CreateCredentialRequest) Validate() error {
 	if req.Type == CredentialTypeAWSSTS && req.Proof == nil {
 		return ErrMissingField("proof")
 	}
-	fingerprint, err := CredentialFingerprint(req.Type, req.Verifier)
+	fingerprint, err := GetFingerprint(req.Type, req.Verifier)
 	if err != nil {
 		return err
 	}
@@ -151,8 +151,8 @@ func (p CredentialProofAWSSTS) Validate() error {
 // CredentialProofRSA is proof for when the credential type is RSA.
 type CredentialProofRSA struct{}
 
-// CredentialFingerprint returns the fingerprint of a credential.
-func CredentialFingerprint(t CredentialType, verifier []byte) (string, error) {
+// GetFingerprint returns the fingerprint of a credential.
+func GetFingerprint(t CredentialType, verifier []byte) (string, error) {
 	var toHash []byte
 	if t == CredentialTypeRSA {
 		// Provide compatibility with traditional RSA credentials.
