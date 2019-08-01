@@ -126,7 +126,7 @@ func newHTTPClient(authenticator auth.Authenticator, opts *ClientOptions) *httpC
 func (c *httpClient) Authenticate(in interface{}) (*api.Session, error) {
 	var out api.Session
 	rawURL := fmt.Sprintf(pathAuthenticate, c.base)
-	err := c.post(rawURL, http.StatusOK, in, &out)
+	err := c.post(rawURL, http.StatusCreated, in, &out)
 	return &out, errio.Error(err)
 }
 
