@@ -142,7 +142,7 @@ func NewSessionHMAC(sessionID uuid.UUID, expiration time.Time, secretKey string)
 		Expires:   expiration,
 		Type:      SessionTypeHMAC,
 		Payload: &SessionPayloadHMAC{
-			SecretKey: secretKey,
+			SessionKey: secretKey,
 		},
 	}
 }
@@ -157,22 +157,22 @@ type Session struct {
 
 // SessionPayloadHMAC is the payload of a HMAC typed session.
 type SessionPayloadHMAC struct {
-	SecretKey string `json:"secret_key"`
+	SessionKey string `json:"session_key"`
 }
 
 // Validate whether the SessionPayloadHMAC is valid.
 func (pl *SessionPayloadHMAC) Validate() error {
-	if pl.SecretKey == "" {
-		return ErrMissingField("secret_key")
+	if pl.SessionKey == "" {
+		return ErrMissingField("session_key")
 	}
 	return nil
 }
 
 // SessionHMAC is a session that uses the HMAC algorithm to verify the authentication.
 type SessionHMAC struct {
-	SessionID  uuid.UUID
-	Expiration time.Time
-	Payload    SessionPayloadHMAC
+	SessionID uuid.UUID
+	Expires   time.Time
+	Payload   SessionPayloadHMAC
 }
 
 // UnmarshalJSON converts a JSON representation into a Session with the correct Payload.
@@ -240,8 +240,8 @@ func (s *Session) Validate() error {
 func (s *Session) HMAC() *SessionHMAC {
 	payload := s.Payload.(*SessionPayloadHMAC)
 	return &SessionHMAC{
-		SessionID:  s.SessionID,
-		Expiration: s.Expires,
-		Payload:    *payload,
+		SessionID: s.SessionID,
+		Expires:   s.Expires,
+		Payload:   *payload,
 	}
 }

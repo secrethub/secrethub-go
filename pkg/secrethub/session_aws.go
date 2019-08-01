@@ -46,20 +46,20 @@ func (s awsSessionService) Create() (auth.Authenticator, error) {
 	if resp.Type != api.SessionTypeHMAC {
 		return nil, api.ErrInvalidSessionType
 	}
-	sess := resp.HMAC()
+	hmacSession := resp.HMAC()
 
-	return auth.NewHTTPSigner(auth.NewSessionSigner(sess.SessionID, sess.Payload.SecretKey)), nil
+	return auth.NewHTTPSigner(auth.NewSessionSigner(hmacSession.SessionID, hmacSession.Payload.SessionKey)), nil
 }
 
 // getCallerIdentityRequest returns the raw bytes of a signed GetCallerIdentity request.
 func getCallerIdentityRequest(region string, awsCfg ...*aws.Config) ([]byte, error) {
 	cfg := aws.NewConfig().WithRegion(region).WithEndpoint("sts." + region + ".amazonaws.com")
-	awsSess, err := session.NewSession(append(awsCfg, cfg)...)
+	awsSession, err := session.NewSession(append(awsCfg, cfg)...)
 	if err != nil {
 		return nil, fmt.Errorf("could not get AWS session: %v", err)
 	}
 
-	svc := sts.New(awsSess, cfg)
+	svc := sts.New(awsSession, cfg)
 	stsReq, _ := svc.GetCallerIdentityRequest(&sts.GetCallerIdentityInput{})
 
 	err = stsReq.Sign()
