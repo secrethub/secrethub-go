@@ -25,11 +25,6 @@ func (c Client) Accounts() secrethub.AccountService {
 	return c.AccountService
 }
 
-// Auth implements the secrethub.Client interface.
-func (c Client) sessions() secrethub.SessionService {
-	return c.SessionService
-}
-
 // Dirs implements the secrethub.Client interface.
 func (c Client) Dirs() secrethub.DirService {
 	return c.DirService
