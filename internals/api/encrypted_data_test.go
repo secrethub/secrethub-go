@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"testing"
 
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
@@ -34,8 +33,7 @@ func TestEncryptedData_MarshalUnmarshalValidate(t *testing.T) {
 			in: NewEncryptedDataAWSKMS([]byte("ciphertext"), NewEncryptionKeyAWS("arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab")),
 		},
 		"aes with scrypt": {
-			in:          NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, NewEncryptionKeyDerivedScrypt(256, 1, 2, 3, []byte("just-a-salt"))),
-			expectedErr: errors.New("derived key type not yet supported"),
+			in: NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, NewEncryptionKeyDerivedScrypt(256, 1, 2, 3, []byte("just-a-salt"))),
 		},
 		"rsa with missing key": {
 			in:          NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, nil),
