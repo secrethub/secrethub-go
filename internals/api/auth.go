@@ -27,7 +27,7 @@ var (
 	ErrSessionNotFound       = errAPI.Code("session_not_found").StatusError("session could not be found, it might have expired", http.StatusForbidden)
 	ErrSessionExpired        = errAPI.Code("session_expired").StatusError("session has expired", http.StatusForbidden)
 	ErrAuthFailed            = errAPI.Code("auth_failed").StatusError("authentication failed", http.StatusForbidden)
-	ErrCouldNotGetEndpoint   = errAPI.Code("wrong_endpoint").StatusError("could not find an AWS endpoint for the provided region", http.StatusBadRequest)
+	ErrCouldNotGetEndpoint   = errAPI.Code("aws_endpoint_not_found").StatusError("could not find an AWS endpoint for the provided region", http.StatusBadRequest)
 	ErrAWSException          = errAPI.Code("aws_exception").StatusError("encountered an unexpected problem while verifying your identity on AWS. Please try again later.", http.StatusFailedDependency)
 	ErrNoServiceWithRole     = errAPI.Code("no_service_with_role").StatusErrorPref("no service account found that is linked to the IAM role '%s'", http.StatusNotFound)
 	ErrNoAWSCredentials      = errAPI.Code("missing_aws_credentials").StatusError("request was not signed with AWS credentials", http.StatusUnauthorized)
