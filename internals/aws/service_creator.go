@@ -75,7 +75,7 @@ func (c ServiceCreator) AddProof(req *api.CreateCredentialRequest) error {
 	}
 
 	req.Proof = &api.CredentialProofAWSSTS{
-		Region:  api.String(c.signingRegion),
+		Region:  c.signingRegion,
 		Request: encryptReq,
 	}
 	return nil

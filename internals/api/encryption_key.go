@@ -62,9 +62,9 @@ func NewEncryptionKeyDerivedScrypt(length, p, n, r int, salt []byte) *Encryption
 		KeyDerivationAlgorithmScrypt,
 		length,
 		&KeyDerivationParametersScrypt{
-			P: Int(p),
-			N: Int(n),
-			R: Int(r),
+			P: p,
+			N: n,
+			R: r,
 		},
 		&KeyDerivationMetadataScrypt{
 			Salt: salt,
@@ -144,14 +144,14 @@ func NewEncryptionKeyLocal(length int) *EncryptionKeyLocal {
 		EncryptionKey: EncryptionKey{
 			Type: KeyTypeLocal,
 		},
-		Length: Int(length),
+		Length: length,
 	}
 }
 
 // EncryptionKeyLocal is an encryption key that has is stored locally by the user.
 type EncryptionKeyLocal struct {
 	EncryptionKey
-	Length *int `json:"length"`
+	Length int `json:"length"`
 }
 
 // SupportsAlgorithm returns true when the encryption key supports the given algorithm.
@@ -161,10 +161,10 @@ func (EncryptionKeyLocal) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 
 // Validate whether the EncryptionKeyLocal is valid.
 func (k EncryptionKeyLocal) Validate() error {
-	if k.Length == nil {
+	if k.Length == 0 {
 		return ErrMissingField("length")
 	}
-	if *k.Length <= 0 {
+	if k.Length <= 0 {
 		return ErrInvalidKeyLength
 	}
 	return nil
@@ -176,16 +176,16 @@ func NewEncryptionKeyAccountKey(length int, id uuid.UUID) *EncryptionKeyAccountK
 		EncryptionKey: EncryptionKey{
 			Type: KeyTypeAccountKey,
 		},
-		Length: Int(length),
-		ID:     &id,
+		Length: length,
+		ID:     id,
 	}
 }
 
 // EncryptionKeyAccountKey is an account's master key that is used to encrypt data and/or keys specifically for an account.
 type EncryptionKeyAccountKey struct {
 	EncryptionKey
-	Length *int       `json:"length"`
-	ID     *uuid.UUID `json:"id"`
+	Length int       `json:"length"`
+	ID     uuid.UUID `json:"id"`
 }
 
 // SupportsAlgorithm returns true when the encryption key supports the given algorithm.
@@ -205,16 +205,16 @@ func NewEncryptionKeySecretKey(length int, id uuid.UUID) *EncryptionKeySecretKey
 		EncryptionKey: EncryptionKey{
 			Type: KeyTypeSecretKey,
 		},
-		Length: Int(length),
-		ID:     &id,
+		Length: length,
+		ID:     id,
 	}
 }
 
 // EncryptionKeySecretKey is a key that is used to encrypt secrets
 type EncryptionKeySecretKey struct {
 	EncryptionKey
-	Length *int       `json:"length"`
-	ID     *uuid.UUID `json:"id"`
+	Length int       `json:"length"`
+	ID     uuid.UUID `json:"id"`
 }
 
 // SupportsAlgorithm returns true when the encryption key supports the given algorithm.
@@ -234,14 +234,14 @@ func NewEncryptionKeyAWS(id string) *EncryptionKeyAWS {
 		EncryptionKey: EncryptionKey{
 			Type: KeyTypeAWS,
 		},
-		ID: &id,
+		ID: id,
 	}
 }
 
 // EncryptionKeyAWS is a key that is stored in the AWS KMS service and which can be used for encryption by calling the AWS KMS API.
 type EncryptionKeyAWS struct {
 	EncryptionKey
-	ID *string `json:"id"`
+	ID string `json:"id"`
 }
 
 // SupportsAlgorithm returns true when the encryption key supports the given algorithm.
@@ -251,7 +251,7 @@ func (EncryptionKeyAWS) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 
 // Validate whether the EncryptionKeyAWS is valid.
 func (k EncryptionKeyAWS) Validate() error {
-	if k.ID == nil {
+	if k.ID == "" {
 		return ErrMissingField("id")
 	}
 	return nil
@@ -259,9 +259,9 @@ func (k EncryptionKeyAWS) Validate() error {
 
 // KeyDerivationParametersScrypt are the parameters used by the scrypt key derivation algorithm.
 type KeyDerivationParametersScrypt struct {
-	P *int `json:"p"`
-	N *int `json:"n"`
-	R *int `json:"r"`
+	P int `json:"p"`
+	N int `json:"n"`
+	R int `json:"r"`
 }
 
 // Validate whether the KeyDerivationParametersScrypt is valid.

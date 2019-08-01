@@ -43,12 +43,12 @@ func (s awsSessionService) Create() (auth.Authenticator, error) {
 	if err != nil {
 		return nil, err
 	}
-	if *resp.Type != api.SessionTypeHMAC {
+	if resp.Type != api.SessionTypeHMAC {
 		return nil, api.ErrInvalidSessionType
 	}
 	sess := resp.HMAC()
 
-	return auth.NewHTTPSigner(auth.NewSessionSigner(sess.SessionID, api.StringValue(sess.Payload.SecretKey))), nil
+	return auth.NewHTTPSigner(auth.NewSessionSigner(sess.SessionID, sess.Payload.SecretKey)), nil
 }
 
 // getCallerIdentityRequest returns the raw bytes of a signed GetCallerIdentity request.

@@ -59,11 +59,11 @@ func (a CredentialType) Validate() error {
 
 // CreateCredentialRequest contains the fields to add a credential to an account.
 type CreateCredentialRequest struct {
-	Type        *CredentialType `json:"type"`
-	Fingerprint *string         `json:"fingerprint"`
-	Name        *string         `json:"name,omitempty"`
-	Verifier    []byte          `json:"verifier"`
-	Proof       interface{}     `json:"proof"`
+	Type        CredentialType `json:"type"`
+	Fingerprint string         `json:"fingerprint"`
+	Name        string         `json:"name,omitempty"`
+	Verifier    []byte         `json:"verifier"`
+	Proof       interface{}    `json:"proof"`
 }
 
 // UnmarshalJSON converts a JSON representation into a CreateCredentialRequest with the correct Proof.
@@ -80,11 +80,11 @@ func (req *CreateCredentialRequest) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	if dec.Type == nil {
+	if dec.Type == "" {
 		return ErrMissingField("type")
 	}
 
-	switch *dec.Type {
+	switch dec.Type {
 	case CredentialTypeAWSSTS:
 		dec.Proof = &CredentialProofAWSSTS{}
 	case CredentialTypeRSA:
@@ -104,27 +104,27 @@ func (req *CreateCredentialRequest) UnmarshalJSON(b []byte) error {
 
 // Validate validates the request fields.
 func (req *CreateCredentialRequest) Validate() error {
-	if req.Fingerprint == nil {
+	if req.Fingerprint == "" {
 		return ErrMissingField("fingerprint")
 	}
 	if req.Verifier == nil {
 		return ErrMissingField("verifier")
 	}
-	if req.Type == nil {
+	if req.Type == "" {
 		return ErrMissingField("type")
 	}
 	err := req.Type.Validate()
 	if err != nil {
 		return err
 	}
-	if *req.Type == CredentialTypeAWSSTS && req.Proof == nil {
+	if req.Type == CredentialTypeAWSSTS && req.Proof == nil {
 		return ErrMissingField("proof")
 	}
-	fingerprint, err := CredentialFingerprint(*req.Type, req.Verifier)
+	fingerprint, err := CredentialFingerprint(req.Type, req.Verifier)
 	if err != nil {
 		return err
 	}
-	if *req.Fingerprint != fingerprint {
+	if req.Fingerprint != fingerprint {
 		return ErrInvalidFingerprint
 	}
 
@@ -133,13 +133,13 @@ func (req *CreateCredentialRequest) Validate() error {
 
 // CredentialProofAWSSTS is proof for when the credential type is AWSSTS.
 type CredentialProofAWSSTS struct {
-	Region  *string `json:"region"`
-	Request []byte  `json:"request"`
+	Region  string `json:"region"`
+	Request []byte `json:"request"`
 }
 
 // Validate whether the CredentialProofAWSSTS is valid.
 func (p CredentialProofAWSSTS) Validate() error {
-	if p.Region == nil {
+	if p.Region == "" {
 		return ErrMissingField("region")
 	}
 	if p.Request == nil {

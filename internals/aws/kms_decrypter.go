@@ -35,7 +35,7 @@ func (d KMSDecrypter) Unwrap(ciphertext *api.EncryptedData) ([]byte, error) {
 	if !ok {
 		return nil, api.ErrInvalidKeyType
 	}
-	keyARN, err := arn.Parse(api.StringValue(key.ID))
+	keyARN, err := arn.Parse(key.ID)
 	if err != nil {
 		return nil, api.ErrInvalidCiphertext
 	}

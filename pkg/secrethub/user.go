@@ -79,7 +79,7 @@ func (s userService) create(username, email, fullName string, accountKey crypto.
 		return nil, errio.Error(err)
 	}
 
-	accountKeyResponse, err := s.client.createAccountKey(*credentialRequest.Fingerprint, accountKey, encrypter)
+	accountKeyResponse, err := s.client.createAccountKey(credentialRequest.Fingerprint, accountKey, encrypter)
 	if err != nil {
 		return nil, err
 	}

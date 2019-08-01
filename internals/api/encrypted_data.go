@@ -69,7 +69,7 @@ func NewEncryptedDataAESGCM(ciphertext, nonce []byte, nonceLength int, key inter
 			Nonce: nonce,
 		},
 		Parameters: &EncryptionParametersAESGCM{
-			NonceLength: &nonceLength,
+			NonceLength: nonceLength,
 		},
 		Ciphertext: ciphertext,
 	}

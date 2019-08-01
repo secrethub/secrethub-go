@@ -49,7 +49,7 @@ func TestServiceCreator_AddProof(t *testing.T) {
 			signingRegion:  defaultRegion,
 
 			expected: &api.CredentialProofAWSSTS{
-				Region:  &defaultRegion,
+				Region:  defaultRegion,
 				Request: defaultRequest,
 			},
 		},
