@@ -97,19 +97,9 @@ type httpClient struct {
 
 // newHTTPClient configures a new httpClient and overrides default values
 // when opts is not nil.
-func newHTTPClient(authenticator auth.Authenticator, opts *ClientOptions) *httpClient {
+func newHTTPClient() *httpClient {
 	serverURL := DefaultServerURL
 	timeout := DefaultTimeout
-	if opts != nil {
-		if opts.ServerURL != "" {
-			serverURL = opts.ServerURL
-		}
-
-		if opts.Timeout > 0 {
-			timeout = opts.Timeout
-		}
-	}
-
 	serverURL = strings.TrimSuffix(serverURL, "/")
 	serverURL = serverURL + baseURLPath
 
@@ -117,9 +107,8 @@ func newHTTPClient(authenticator auth.Authenticator, opts *ClientOptions) *httpC
 		client: &http.Client{
 			Timeout: timeout,
 		},
-		authenticator: authenticator,
-		base:          serverURL,
-		version:       ClientVersion,
+		base:    serverURL,
+		version: ClientVersion,
 	}
 }
 

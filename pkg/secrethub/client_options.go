@@ -1,0 +1,45 @@
+package secrethub
+
+import (
+	"net/http"
+	"time"
+
+	"github.com/secrethub/secrethub-go/internals/auth"
+)
+
+type ClientOption func(*client) error
+
+func Timeout(timeout time.Duration) ClientOption {
+	return func(c *client) error {
+		c.httpClient.client.Timeout = timeout
+		return nil
+	}
+}
+
+func Remote(url string) ClientOption {
+	return func(c *client) error {
+		c.httpClient.base = url
+		return nil
+	}
+}
+
+func Transport(roundTripper http.RoundTripper) ClientOption {
+	return func(c *client) error {
+		c.httpClient.client.Transport = roundTripper
+		return nil
+	}
+}
+
+type CredentialProvider func(*client) (auth.Authenticator, Decrypter, error)
+
+func Credentials(provider CredentialProvider) ClientOption {
+	return func(c *client) error {
+		authenticator, decrypter, err := provider(c)
+		if err != nil {
+			return err
+		}
+		c.decrypter = decrypter
+		c.httpClient.authenticator = authenticator
+		return nil
+	}
+}

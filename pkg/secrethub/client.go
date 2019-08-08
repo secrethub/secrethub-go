@@ -1,19 +1,16 @@
 package secrethub
 
 import (
-	awssdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/secrethub/secrethub-go/internals/api"
-	"github.com/secrethub/secrethub-go/internals/auth"
-	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 // Client is the SecretHub client.
-type Client interface {
+type ClientAdapter interface {
 	AccessRules() AccessRuleService
 	Accounts() AccountService
-	sessions() SessionService
+	Sessions() SessionService
 	Dirs() DirService
 	Me() MeService
 	Orgs() OrgService
@@ -35,83 +32,67 @@ type Encrypter interface {
 	Wrap(plaintext []byte) (*api.EncryptedData, error)
 }
 
-type clientAdapter struct {
-	client *client
+func Must(c ClientAdapter, err error) ClientAdapter {
+	if err != nil {
+		panic(err)
+	}
+	return c
 }
 
 // NewClient creates a new SecretHub client.
 // It overrides the default configuration with the options when given.
-func NewClient(decrypter Decrypter, authenticator auth.Authenticator, opts *ClientOptions) Client {
-	return &clientAdapter{
-		client: newClient(decrypter, authenticator, opts),
-	}
-}
-
-// NewClientAWS creates a new SecretHub client that uses AWS STS and KMS to access SecretHub.
-func NewClientAWS(opts *ClientOptions, awsCfg ...*awssdk.Config) (Client, error) {
-	decrypter, err := aws.NewKMSDecrypter(awsCfg...)
-	if err != nil {
-		return nil, err
-	}
-	client := &clientAdapter{
-		client: newClient(decrypter, auth.NopAuthenticator{}, opts),
-	}
-	authenticator, err := client.sessions().AWS(awsCfg...).Create()
-	if err != nil {
-		return nil, err
-	}
-	client.client.httpClient.authenticator = authenticator
-	return client, nil
+func NewClient(options ...ClientOption) (ClientAdapter, error) {
+	return newClient()
 }
 
 // AccessRules returns an AccessRuleService.
-func (c clientAdapter) AccessRules() AccessRuleService {
-	return newAccessRuleService(c.client)
+func (c *client) AccessRules() AccessRuleService {
+	return newAccessRuleService(c)
 }
 
 // Accounts returns an AccountService.
-func (c clientAdapter) Accounts() AccountService {
-	return newAccountService(c.client)
+func (c *client) Accounts() AccountService {
+	return newAccountService(c)
 }
 
 // Auth returns an SessionService.
-func (c clientAdapter) sessions() SessionService {
-	return newSessionService(c.client)
+func (c *client) Sessions() SessionService {
+	return newSessionService(c)
 }
 
 // Dirs returns an DirService.
-func (c clientAdapter) Dirs() DirService {
-	return newDirService(c.client)
+func (c *client) Dirs() DirService {
+	return newDirService(c)
 }
 
 // Me returns a MeService.
-func (c clientAdapter) Me() MeService {
-	return newMeService(c.client)
+func (c *client) Me() MeService {
+	return newMeService(c)
 }
 
 // Orgs returns an OrgService.
-func (c clientAdapter) Orgs() OrgService {
-	return newOrgService(c.client)
+func (c *client) Orgs() OrgService {
+	return newOrgService(c)
 }
 
 // Repos returns an RepoService.
-func (c clientAdapter) Repos() RepoService {
-	return newRepoService(c.client)
+func (c *client) Repos() RepoService {
+	return newRepoService(c)
 }
 
 // Secrets returns an SecretService.
-func (c clientAdapter) Secrets() SecretService {
-	return newSecretService(c.client)
+func (c *client) Secrets() SecretService {
+	return newSecretService(c)
 }
 
 // Services returns an ServiceService.
-func (c clientAdapter) Services() ServiceService {
-	return newServiceService(c.client)
+func (c *client) Services() ServiceService {
+	return newServiceService(c)
 }
 
 // Users returns an UserService.
-func (c clientAdapter) Users() UserService {
-	return newUserService(c.client)
+func (c *client) Users() UserService {
+	return newUserService(c)
 }
 
 var (
@@ -137,13 +118,24 @@ type client struct {
 	repoIndexKeys map[api.RepoPath]*crypto.SymmetricKey
 }
 
-// newClient configures a new client, overriding defaults with options when given.
-func newClient(decrypter Decrypter, authenticator auth.Authenticator, opts *ClientOptions) *client {
-	httpClient := newHTTPClient(authenticator, opts)
+func must(c *client, err error) *client {
+	if err != nil {
+		panic(err)
+	}
+	return c
+}
 
-	return &client{
-		httpClient:    httpClient,
-		decrypter:     decrypter,
+// newClient configures a new client, overriding defaults with options when given.
+func newClient(options ...ClientOption) (*client, error) {
+	client := &client{
+		httpClient:    newHTTPClient(),
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
+	for _, option := range options {
+		err := option(client)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return client, nil
 }

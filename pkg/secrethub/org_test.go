@@ -11,7 +11,6 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/assert"
-	"github.com/secrethub/secrethub-go/internals/auth"
 )
 
 func TestCreateOrg(t *testing.T) {
@@ -19,7 +18,7 @@ func TestCreateOrg(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client := NewClient(cred1, auth.NewHTTPSigner(cred1), opts)
+	client := Must(NewClient(opts...))
 
 	name := "myorg"
 	descr := "My very own organization"
@@ -95,7 +94,7 @@ func TestCreateOrg_InvalidArgs(t *testing.T) {
 	_, opts, cleanup := setup()
 	defer cleanup()
 
-	client := NewClient(cred1, auth.NewHTTPSigner(cred1), opts)
+	client := Must(NewClient(opts...))
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -150,7 +149,7 @@ func TestGetOrg(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client := NewClient(cred1, auth.NewHTTPSigner(cred1), opts)
+			client := Must(NewClient(opts...))
 
 			router.Get("/orgs/{org_name}", func(w http.ResponseWriter, r *http.Request) {
 				// Assert
@@ -229,7 +228,7 @@ func TestListMyOrgs(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client := NewClient(cred1, auth.NewHTTPSigner(cred1), opts)
+			client := Must(NewClient(opts...))
 
 			router.Get("/orgs", func(w http.ResponseWriter, r *http.Request) {
 				// Respond
@@ -286,7 +285,7 @@ func TestDeleteOrg(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client := NewClient(cred1, auth.NewHTTPSigner(cred1), opts)
+			client := Must(NewClient(opts...))
 
 			router.Delete("/orgs/{org_name}", func(w http.ResponseWriter, r *http.Request) {
 				// Assert

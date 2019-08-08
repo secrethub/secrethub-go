@@ -40,7 +40,7 @@ func init() {
 // setup starts a test server and returns a router on which tests can register handlers.
 // Tests should use the returned client options to create new Clients and should call the
 // cleanup func() when done.
-func setup() (chi.Router, *ClientOptions, func()) {
+func setup() (chi.Router, []ClientOption, func()) {
 	// router is the HTTP router used with the test server.
 	router := chi.NewRouter()
 
@@ -51,8 +51,9 @@ func setup() (chi.Router, *ClientOptions, func()) {
 	// server is a test HTTP server used to provide mock API responses.
 	server := httptest.NewServer(handler)
 
-	opts := &ClientOptions{
-		ServerURL: server.URL,
+	opts := []ClientOption{
+		Remote(server.URL),
+		Credentials(RSA(cred1)),
 	}
 
 	return router, opts, server.Close
