@@ -24,7 +24,7 @@ type SessionMethod struct {
 	auth auth.Authenticator
 }
 
-// Authenticate mocks the Authenticate function.
+// Create mocks the Create function.
 func (a SessionMethod) Create() (auth.Authenticator, error) {
 	return a.auth, a.err
 }

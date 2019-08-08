@@ -1,5 +1,6 @@
 package api
 
+// Errors
 var (
 	ErrInvalidNonceLength      = errAPI.Code("invalid_nonce_length").Error("invalid nonce length provided")
 	ErrInvalidHashingAlgorithm = errAPI.Code("invalid_hashing_algorithm").Error("invalid hashing algorithm provided")
