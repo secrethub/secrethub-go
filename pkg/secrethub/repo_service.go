@@ -11,14 +11,14 @@ type RepoServiceService interface {
 	List(path string) ([]*api.Service, error)
 }
 
-func newRepoServiceService(client client) RepoServiceService {
+func newRepoServiceService(client *client) RepoServiceService {
 	return &repoServiceService{
 		client: client,
 	}
 }
 
 type repoServiceService struct {
-	client client
+	client *client
 }
 
 // List lists the services of the given repository.

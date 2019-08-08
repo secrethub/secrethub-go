@@ -15,14 +15,14 @@ type SessionService interface {
 	AWS(...*aws.Config) SessionMethodService
 }
 
-func newSessionService(client client) SessionService {
+func newSessionService(client *client) SessionService {
 	return &sessionService{
 		client: client,
 	}
 }
 
 type sessionService struct {
-	client client
+	client *client
 }
 
 // AWS returns an SessionMethodService for AWS.

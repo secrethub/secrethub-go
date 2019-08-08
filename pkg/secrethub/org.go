@@ -19,14 +19,14 @@ type OrgService interface {
 	ListMine() ([]*api.Org, error)
 }
 
-func newOrgService(client client) OrgService {
+func newOrgService(client *client) OrgService {
 	return orgService{
 		client: client,
 	}
 }
 
 type orgService struct {
-	client client
+	client *client
 }
 
 // Create creates an organization and adds the current account as an admin member.

@@ -19,11 +19,11 @@ const (
 )
 
 type awsSessionService struct {
-	client    client
+	client    *client
 	awsConfig []*aws.Config
 }
 
-func newAWSSessionService(client client, awsCfg ...*aws.Config) SessionMethodService {
+func newAWSSessionService(client *client, awsCfg ...*aws.Config) SessionMethodService {
 	return &awsSessionService{
 		client:    client,
 		awsConfig: awsCfg,

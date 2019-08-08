@@ -28,14 +28,14 @@ type RepoService interface {
 	Services() RepoServiceService
 }
 
-func newRepoService(client client) RepoService {
+func newRepoService(client *client) RepoService {
 	return repoService{
 		client: client,
 	}
 }
 
 type repoService struct {
-	client client
+	client *client
 }
 
 // Delete removes the repo with the given path.

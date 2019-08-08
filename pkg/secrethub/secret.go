@@ -32,14 +32,14 @@ type SecretService interface {
 	Write(path string, data []byte) (*api.SecretVersion, error)
 }
 
-func newSecretService(client client) SecretService {
+func newSecretService(client *client) SecretService {
 	return secretService{
 		client: client,
 	}
 }
 
 type secretService struct {
-	client client
+	client *client
 }
 
 // Delete removes the secret at the given path.

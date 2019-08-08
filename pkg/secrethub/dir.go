@@ -17,14 +17,14 @@ type DirService interface {
 	GetTree(path string, depth int, ancestors bool) (*api.Tree, error)
 }
 
-func newDirService(client client) DirService {
+func newDirService(client *client) DirService {
 	return dirService{
 		client: client,
 	}
 }
 
 type dirService struct {
-	client client
+	client *client
 }
 
 // GetTree retrieves a directory tree at a given path. The contents to the given depth

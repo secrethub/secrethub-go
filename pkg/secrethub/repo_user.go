@@ -15,14 +15,14 @@ type RepoUserService interface {
 	Revoke(path string, username string) (*api.RevokeRepoResponse, error)
 }
 
-func newRepoUserService(client client) RepoUserService {
+func newRepoUserService(client *client) RepoUserService {
 	return repoUserService{
 		client: client,
 	}
 }
 
 type repoUserService struct {
-	client client
+	client *client
 }
 
 // Invite invites the user with given username to the repository at the given path.

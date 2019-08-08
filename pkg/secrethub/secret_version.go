@@ -35,14 +35,14 @@ type SecretVersionService interface {
 	ListWithoutData(path string) ([]*api.SecretVersion, error)
 }
 
-func newSecretVersionService(client client) SecretVersionService {
+func newSecretVersionService(client *client) SecretVersionService {
 	return secretVersionService{
 		client: client,
 	}
 }
 
 type secretVersionService struct {
-	client client
+	client *client
 }
 
 // Delete removes a secret version.

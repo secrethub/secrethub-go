@@ -16,14 +16,14 @@ type UserService interface {
 	Get(username string) (*api.User, error)
 }
 
-func newUserService(client client) UserService {
+func newUserService(client *client) UserService {
 	return userService{
 		client: client,
 	}
 }
 
 type userService struct {
-	client client
+	client *client
 }
 
 // Me gets the account's user if it exists.

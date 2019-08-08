@@ -23,7 +23,7 @@ type AccessRuleService interface {
 	Set(path string, permission string, accountName string) (*api.AccessRule, error)
 }
 
-func newAccessRuleService(client client) AccessRuleService {
+func newAccessRuleService(client *client) AccessRuleService {
 	return accessRuleService{
 		client:         client,
 		accountService: newAccountService(client),
@@ -32,7 +32,7 @@ func newAccessRuleService(client client) AccessRuleService {
 }
 
 type accessRuleService struct {
-	client         client
+	client         *client
 	accountService AccountService
 	dirService     DirService
 }

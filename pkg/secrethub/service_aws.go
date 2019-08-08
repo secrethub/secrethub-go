@@ -13,7 +13,7 @@ type ServiceAWSService interface {
 	Create(path string, description string, keyID, role string, cfgs ...*awssdk.Config) (*api.Service, error)
 }
 
-func newServiceAWSService(client client, s ServiceService) ServiceAWSService {
+func newServiceAWSService(client *client, s ServiceService) ServiceAWSService {
 	return serviceAWSService{
 		client:         client,
 		serviceService: s,
@@ -21,7 +21,7 @@ func newServiceAWSService(client client, s ServiceService) ServiceAWSService {
 }
 
 type serviceAWSService struct {
-	client         client
+	client         *client
 	serviceService ServiceService
 }
 

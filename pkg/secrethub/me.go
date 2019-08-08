@@ -14,12 +14,12 @@ type MeService interface {
 }
 
 type meService struct {
-	client      client
+	client      *client
 	repoService RepoService
 	userService UserService
 }
 
-func newMeService(client client) MeService {
+func newMeService(client *client) MeService {
 	return meService{
 		client:      client,
 		repoService: newRepoService(client),
