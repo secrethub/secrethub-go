@@ -6,6 +6,11 @@ import (
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
+// Errors
+var (
+	ErrNoDecryptionKey = errClient.Code("no_decryption_key").Error("client is not initialized with a method to decrypt the account key")
+)
+
 // AccountService handles operations on SecretHub accounts.
 type AccountService interface {
 	// Get retrieves an account by name.
@@ -120,6 +125,10 @@ func (c *client) getMyAccount() (*api.Account, error) {
 // This function should only be called from client.getAccountKey or client.getMyAccount
 // Don't use this unless you know what you're doing. Use client.getAccountKey instead.
 func (c *client) fetchAccountDetails() error {
+	if c.decrypter == nil {
+		return ErrNoDecryptionKey
+	}
+
 	resp, err := c.httpClient.GetAccountKey()
 	if err != nil {
 		return errio.Error(err)
