@@ -8,7 +8,7 @@ import (
 // ServiceService handles operations on service accounts from SecretHub.
 type ServiceService interface {
 	// Create creates a new service account for the given repo.
-	Create(path string, description string, credential Credential, encrypter Encrypter) (*api.Service, error)
+	Create(path string, description string) (*api.Service, *RSACredential, error)
 	// Delete removes a service account by name.
 	Delete(name string) (*api.RevokeRepoResponse, error)
 	// Get retrieves a service account by name.
@@ -28,7 +28,22 @@ type serviceService struct {
 }
 
 // Create creates a new service account for the given repo.
-func (s serviceService) Create(path string, description string, credential Credential, encrypter Encrypter) (*api.Service, error) {
+func (s serviceService) Create(path string, description string) (*api.Service, *RSACredential, error) {
+	credential, err := GenerateCredential()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	service, err := s.create(path, description, credential, credential)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return service, &credential, nil
+}
+
+// create creates a new service account for the given repo.
+func (s serviceService) create(path string, description string, verifier Verifier, encrypter Encrypter) (*api.Service, error) {
 	repoPath, err := api.NewRepoPath(path)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -44,7 +59,7 @@ func (s serviceService) Create(path string, description string, credential Crede
 		return nil, errio.Error(err)
 	}
 
-	credentialRequest, err := s.client.createCredentialRequest(credential)
+	credentialRequest, err := s.client.createCredentialRequest(verifier)
 	if err != nil {
 		return nil, errio.Error(err)
 	}

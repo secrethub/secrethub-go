@@ -275,7 +275,7 @@ type RSACredential struct {
 
 // GenerateCredential generates a new credential to be used to
 // authenticate the account and to decrypt the account key.
-func GenerateCredential() (Credential, error) {
+func GenerateCredential() (RSACredential, error) {
 	return generateRSACredential(crypto.RSAKeyLength)
 }
 
