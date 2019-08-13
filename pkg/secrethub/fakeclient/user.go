@@ -25,8 +25,8 @@ func (s *UserService) Me() (*api.User, error) {
 }
 
 // Create implements the UserService interface Create function.
-func (s *UserService) Create(username, email, fullName string, verifier secrethub.Verifier, encrypter secrethub.Encrypter) (*api.User, error) {
-	return s.UserCreater.Create(username, email, fullName, verifier, encrypter)
+func (s *UserService) Create(username, email, fullName string) (*api.User, *secrethub.RSACredential, error) {
+	return s.UserCreater.Create(username, email, fullName)
 }
 
 // MeGetter is a wrapper for the return values of the mocked MeGetter method.
@@ -55,17 +55,18 @@ func (g *UserGetter) Get(username string) (*api.User, error) {
 
 // UserCreater mocks the Create function.
 type UserCreater struct {
-	ArgUsername string
-	ArgEmail    string
-	ArgFullName string
-	ReturnsUser *api.User
-	Err         error
+	ArgUsername       string
+	ArgEmail          string
+	ArgFullName       string
+	ReturnsUser       *api.User
+	ReturnsCredential *secrethub.RSACredential
+	Err               error
 }
 
 // Create saves the arguments it was called with and returns the mocked response.
-func (s *UserCreater) Create(username, email, fullName string, verifier secrethub.Verifier, encrypter secrethub.Encrypter) (*api.User, error) {
+func (s *UserCreater) Create(username, email, fullName string) (*api.User, *secrethub.RSACredential, error) {
 	s.ArgUsername = username
 	s.ArgEmail = email
 	s.ArgFullName = fullName
-	return s.ReturnsUser, s.Err
+	return s.ReturnsUser, s.ReturnsCredential, s.Err
 }
