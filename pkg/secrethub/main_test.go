@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	cred1            RSACredential
+	cred1            *RSACredential
 	cred1PublicKey   []byte
 	cred1Fingerprint string
 	cred1Verifier    []byte

@@ -39,7 +39,7 @@ func (s serviceService) Create(path string, description string) (*api.Service, *
 		return nil, nil, err
 	}
 
-	return service, &credential, nil
+	return service, credential, nil
 }
 
 // create creates a new service account for the given repo.
