@@ -11,7 +11,7 @@ type UserService interface {
 	// Me gets the account's user if it exists.
 	Me() (*api.User, error)
 	// Create creates a new user at SecretHub.
-	Create(username, email, fullName string, verifier Verifier, encrypter Encrypter) (*api.User, error)
+	Create(username, email, fullName string) (*api.User, *RSACredential, error)
 	// Get a user by their username.
 	Get(username string) (*api.User, error)
 }
@@ -32,28 +32,38 @@ func (s userService) Me() (*api.User, error) {
 }
 
 // Create creates a new user at SecretHub.
-func (s userService) Create(username, email, fullName string, verifier Verifier, encrypter Encrypter) (*api.User, error) {
+func (s userService) Create(username, email, fullName string) (*api.User, *RSACredential, error) {
 	err := api.ValidateUsername(username)
 	if err != nil {
-		return nil, errio.Error(err)
+		return nil, nil, err
 	}
 
 	err = api.ValidateEmail(email)
 	if err != nil {
-		return nil, errio.Error(err)
+		return nil, nil, err
 	}
 
 	err = api.ValidateFullName(fullName)
 	if err != nil {
-		return nil, errio.Error(err)
+		return nil, nil, err
 	}
 
 	accountKey, err := generateAccountKey()
 	if err != nil {
-		return nil, errio.Error(err)
+		return nil, nil, err
 	}
 
-	return s.create(username, email, fullName, accountKey, verifier, encrypter)
+	credential, err := GenerateCredential()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	user, err := s.create(username, email, fullName, accountKey, credential, credential)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return user, credential, nil
 }
 
 func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, verifier Verifier, encrypter Encrypter) (*api.User, error) {
