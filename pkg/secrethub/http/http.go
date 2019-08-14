@@ -1,4 +1,4 @@
-package secrethub
+package http
 
 import (
 	"fmt"
@@ -8,14 +8,18 @@ import (
 	"time"
 
 	"github.com/secrethub/secrethub-go/internals/auth"
+	"github.com/secrethub/secrethub-go/pkg/secrethub"
 
-	logging "github.com/op/go-logging"
+	"github.com/op/go-logging"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 var (
 	log = logging.MustGetLogger("log")
+
+	errHTTP = errio.Namespace("http")
 )
 
 const (
@@ -87,32 +91,32 @@ type ClientOptions struct {
 	Timeout   time.Duration
 }
 
-// httpClient is a raw client for the SecretHub http API.
-type httpClient struct {
+// Client is a raw client for the SecretHub http API.
+type Client struct {
 	client        *http.Client
 	authenticator auth.Authenticator
 	base          string // base url
 	version       string
 }
 
-// newHTTPClient configures a new httpClient and overrides default values
+// NewClient configures a new Client and overrides default values
 // when opts is not nil.
-func newHTTPClient() *httpClient {
+func NewClient() *Client {
 	serverURL := DefaultServerURL
 	timeout := DefaultTimeout
 	serverURL = strings.TrimSuffix(serverURL, "/")
 	serverURL = serverURL + baseURLPath
 
-	return &httpClient{
+	return &Client{
 		client: &http.Client{
 			Timeout: timeout,
 		},
 		base:    serverURL,
-		version: ClientVersion,
+		version: secrethub.ClientVersion,
 	}
 }
 
-func (c *httpClient) Authenticate(in interface{}) (*api.Session, error) {
+func (c *Client) Authenticate(in interface{}) (*api.Session, error) {
 	var out api.Session
 	rawURL := fmt.Sprintf(pathAuthenticate, c.base)
 	err := c.post(rawURL, http.StatusCreated, in, &out)
@@ -122,14 +126,14 @@ func (c *httpClient) Authenticate(in interface{}) (*api.Session, error) {
 // ME
 
 // ListMyRepos gets a list of repos from SecretHub
-func (c *httpClient) ListMyRepos() ([]*api.Repo, error) {
+func (c *Client) ListMyRepos() ([]*api.Repo, error) {
 	out := []*api.Repo{}
 	rawURL := fmt.Sprintf(pathMeRepos, c.base)
 	err := c.get(rawURL, &out)
 	return out, errio.Error(err)
 }
 
-func (c *httpClient) CreateAccountKey(in *api.CreateAccountKeyRequest, fingerprint string) (*api.EncryptedAccountKey, error) {
+func (c *Client) CreateAccountKey(in *api.CreateAccountKeyRequest, fingerprint string) (*api.EncryptedAccountKey, error) {
 	out := &api.EncryptedAccountKey{}
 	rawURL := fmt.Sprintf(pathCreateAccountKey, c.base, fingerprint)
 	err := c.post(rawURL, http.StatusCreated, in, out)
@@ -137,7 +141,7 @@ func (c *httpClient) CreateAccountKey(in *api.CreateAccountKeyRequest, fingerpri
 }
 
 // GetAccountKey returns the account's intermediate key encrypted with the key identified by key_identifier
-func (c *httpClient) GetAccountKey() (*api.EncryptedAccountKey, error) {
+func (c *Client) GetAccountKey() (*api.EncryptedAccountKey, error) {
 	out := &api.EncryptedAccountKey{}
 	rawURL := fmt.Sprintf(pathMeKey, c.base)
 	err := c.get(rawURL, out)
@@ -145,7 +149,7 @@ func (c *httpClient) GetAccountKey() (*api.EncryptedAccountKey, error) {
 }
 
 // GetMyUser gets the account's user.
-func (c *httpClient) GetMyUser() (*api.User, error) {
+func (c *Client) GetMyUser() (*api.User, error) {
 	out := &api.User{}
 	rawURL := fmt.Sprintf(pathMeUser, c.base)
 	err := c.get(rawURL, out)
@@ -154,7 +158,7 @@ func (c *httpClient) GetMyUser() (*api.User, error) {
 
 // SendVerificationEmail sends an email to the users registered email address for them to prove they
 // own that email address.
-func (c *httpClient) SendVerificationEmail() error {
+func (c *Client) SendVerificationEmail() error {
 	rawURL := fmt.Sprintf(pathMeEmailVerification, c.base)
 	return c.post(rawURL, http.StatusCreated, nil, nil)
 }
@@ -162,7 +166,7 @@ func (c *httpClient) SendVerificationEmail() error {
 // Accounts
 
 // GetAccount returns the account for a name
-func (c *httpClient) GetAccount(name api.AccountName) (*api.Account, error) {
+func (c *Client) GetAccount(name api.AccountName) (*api.Account, error) {
 	out := &api.Account{}
 	rawURL := fmt.Sprintf(pathAccount, c.base, name)
 	err := c.get(rawURL, out)
@@ -172,7 +176,7 @@ func (c *httpClient) GetAccount(name api.AccountName) (*api.Account, error) {
 // USERS
 
 // SignupUser creates a new user at SecretHub
-func (c *httpClient) SignupUser(in *api.CreateUserRequest) (*api.User, error) {
+func (c *Client) SignupUser(in *api.CreateUserRequest) (*api.User, error) {
 	out := &api.User{}
 	rawURL := fmt.Sprintf(pathUsers, c.base)
 	err := c.post(rawURL, http.StatusCreated, in, out)
@@ -180,7 +184,7 @@ func (c *httpClient) SignupUser(in *api.CreateUserRequest) (*api.User, error) {
 }
 
 // GetUser gets a user by its username from SecretHub
-func (c *httpClient) GetUser(username string) (*api.User, error) {
+func (c *Client) GetUser(username string) (*api.User, error) {
 	out := &api.User{}
 	rawURL := fmt.Sprintf(pathUser, c.base, username)
 	err := c.get(rawURL, out)
@@ -190,14 +194,14 @@ func (c *httpClient) GetUser(username string) (*api.User, error) {
 // REPOSITORIES
 
 // GetRepo gets a repo by its namespace and repo name
-func (c *httpClient) GetRepo(namespace, repoName string) (*api.Repo, error) {
+func (c *Client) GetRepo(namespace, repoName string) (*api.Repo, error) {
 	out := &api.Repo{}
 	rawURL := fmt.Sprintf(pathRepo, c.base, namespace, repoName)
 	err := c.get(rawURL, out)
 	return out, errio.Error(err)
 }
 
-func (c *httpClient) ListRepos(namespace string) ([]*api.Repo, error) {
+func (c *Client) ListRepos(namespace string) ([]*api.Repo, error) {
 	out := []*api.Repo{}
 	rawURL := fmt.Sprintf(pathRepos, c.base, namespace)
 	err := c.get(rawURL, &out)
@@ -205,7 +209,7 @@ func (c *httpClient) ListRepos(namespace string) ([]*api.Repo, error) {
 }
 
 // CreateRepo  creates a new repo at SecretHub
-func (c *httpClient) CreateRepo(namespace string, in *api.CreateRepoRequest) (*api.Repo, error) {
+func (c *Client) CreateRepo(namespace string, in *api.CreateRepoRequest) (*api.Repo, error) {
 	out := &api.Repo{}
 	rawURL := fmt.Sprintf(pathRepos, c.base, namespace)
 	err := c.post(rawURL, http.StatusCreated, in, out)
@@ -213,7 +217,7 @@ func (c *httpClient) CreateRepo(namespace string, in *api.CreateRepoRequest) (*a
 }
 
 // GetRepoKeys retrieves the repo key of the user.
-func (c *httpClient) GetRepoKeys(namespace, repoName string) (*api.RepoKeys, error) {
+func (c *Client) GetRepoKeys(namespace, repoName string) (*api.RepoKeys, error) {
 	out := &api.RepoKeys{}
 	rawURL := fmt.Sprintf(pathRepoKey, c.base, namespace, repoName)
 	err := c.get(rawURL, out)
@@ -221,14 +225,14 @@ func (c *httpClient) GetRepoKeys(namespace, repoName string) (*api.RepoKeys, err
 }
 
 // DeleteRepo deletes a repo
-func (c *httpClient) DeleteRepo(namespace, repoName string) error {
+func (c *Client) DeleteRepo(namespace, repoName string) error {
 	rawURL := fmt.Sprintf(pathRepo, c.base, namespace, repoName)
 	err := c.delete(rawURL, nil)
 	return errio.Error(err)
 }
 
 // AuditRepo gets the audit events for a given repo.
-func (c *httpClient) AuditRepo(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	out := []*api.Audit{}
 	rawURL := fmt.Sprintf(pathRepoEvents+"?subject_types=%s", c.base, namespace, repoName, subjectTypes.Join(","))
 	err := c.get(rawURL, &out)
@@ -236,7 +240,7 @@ func (c *httpClient) AuditRepo(namespace, repoName string, subjectTypes api.Audi
 }
 
 // ListRepoAccounts lists the accounts of a repo.
-func (c *httpClient) ListRepoAccounts(namespace, repoName string) ([]*api.Account, error) {
+func (c *Client) ListRepoAccounts(namespace, repoName string) ([]*api.Account, error) {
 	out := []*api.Account{}
 	rawURL := fmt.Sprintf(pathRepoAccounts, c.base, namespace, repoName)
 	err := c.get(rawURL, &out)
@@ -246,7 +250,7 @@ func (c *httpClient) ListRepoAccounts(namespace, repoName string) ([]*api.Accoun
 // REPO USERS
 
 // InviteRepo adds a user to a repo.
-func (c *httpClient) InviteRepo(namespace, repoName string, in *api.InviteUserRequest) (*api.RepoMember, error) {
+func (c *Client) InviteRepo(namespace, repoName string, in *api.InviteUserRequest) (*api.RepoMember, error) {
 	out := &api.RepoMember{}
 	rawURL := fmt.Sprintf(pathRepoUsers, c.base, namespace, repoName)
 	err := c.post(rawURL, http.StatusOK, in, out)
@@ -255,7 +259,7 @@ func (c *httpClient) InviteRepo(namespace, repoName string, in *api.InviteUserRe
 
 // GetRepoUser retrieves a user for a repo.
 // If the user is a repo member, then the user is retrieved.
-func (c *httpClient) GetRepoUser(namespace, repoName, username string) (*api.User, error) {
+func (c *Client) GetRepoUser(namespace, repoName, username string) (*api.User, error) {
 	out := &api.User{}
 	rawURL := fmt.Sprintf(pathRepoUser, c.base, namespace, repoName, username)
 	err := c.get(rawURL, out)
@@ -263,7 +267,7 @@ func (c *httpClient) GetRepoUser(namespace, repoName, username string) (*api.Use
 }
 
 // RemoveUser removes a user from a repo.
-func (c *httpClient) RemoveUser(namespace, repoName, username string) (*api.RevokeRepoResponse, error) {
+func (c *Client) RemoveUser(namespace, repoName, username string) (*api.RevokeRepoResponse, error) {
 	out := &api.RevokeRepoResponse{}
 	rawURL := fmt.Sprintf(pathRepoUser, c.base, namespace, repoName, username)
 	err := c.delete(rawURL, out)
@@ -271,7 +275,7 @@ func (c *httpClient) RemoveUser(namespace, repoName, username string) (*api.Revo
 }
 
 // ListRepoUsers lists the users of a repo.
-func (c *httpClient) ListRepoUsers(namespace, repoName string) ([]*api.User, error) {
+func (c *Client) ListRepoUsers(namespace, repoName string) ([]*api.User, error) {
 	out := []*api.User{}
 	rawURL := fmt.Sprintf(pathRepoUsers, c.base, namespace, repoName)
 	err := c.get(rawURL, &out)
@@ -281,7 +285,7 @@ func (c *httpClient) ListRepoUsers(namespace, repoName string) ([]*api.User, err
 // Service
 
 // CreateService creates a new service for a repo.
-func (c *httpClient) CreateService(namespace, repoName string, in *api.CreateServiceRequest) (*api.Service, error) {
+func (c *Client) CreateService(namespace, repoName string, in *api.CreateServiceRequest) (*api.Service, error) {
 	out := &api.Service{}
 	rawURL := fmt.Sprintf(pathServices, c.base, namespace, repoName)
 	err := c.post(rawURL, http.StatusCreated, in, out)
@@ -289,7 +293,7 @@ func (c *httpClient) CreateService(namespace, repoName string, in *api.CreateSer
 }
 
 // GetServices retrieves a service.
-func (c *httpClient) GetService(service string) (*api.Service, error) {
+func (c *Client) GetService(service string) (*api.Service, error) {
 	out := &api.Service{}
 	rawURL := fmt.Sprintf(pathService, c.base, service)
 	err := c.get(rawURL, out)
@@ -297,7 +301,7 @@ func (c *httpClient) GetService(service string) (*api.Service, error) {
 }
 
 // DeleteService deletes an service.
-func (c *httpClient) DeleteService(service string) (*api.RevokeRepoResponse, error) {
+func (c *Client) DeleteService(service string) (*api.RevokeRepoResponse, error) {
 	out := &api.RevokeRepoResponse{}
 	rawURL := fmt.Sprintf(pathService, c.base, service)
 	err := c.delete(rawURL, out)
@@ -305,7 +309,7 @@ func (c *httpClient) DeleteService(service string) (*api.RevokeRepoResponse, err
 }
 
 // ListServices lists the services for a repo.
-func (c *httpClient) ListServices(namespace, repoName string) ([]*api.Service, error) {
+func (c *Client) ListServices(namespace, repoName string) ([]*api.Service, error) {
 	out := []*api.Service{}
 	rawURL := fmt.Sprintf(pathServices, c.base, namespace, repoName)
 	err := c.get(rawURL, &out)
@@ -315,7 +319,7 @@ func (c *httpClient) ListServices(namespace, repoName string) ([]*api.Service, e
 // DIRS
 
 // CreateDir creates a new directory in the repo.
-func (c *httpClient) CreateDir(namespace, repoName string, in *api.CreateDirRequest) (*api.EncryptedDir, error) {
+func (c *Client) CreateDir(namespace, repoName string, in *api.CreateDirRequest) (*api.EncryptedDir, error) {
 	rawURL := fmt.Sprintf(pathRepoDirs, c.base, namespace, repoName)
 	out := &api.EncryptedDir{}
 	err := c.post(rawURL, http.StatusCreated, in, &out)
@@ -325,7 +329,7 @@ func (c *httpClient) CreateDir(namespace, repoName string, in *api.CreateDirRequ
 // GetTree gets a directory and all of it subdirs and secrets recursively by blind name.
 // If depth is > 0 then the result is limited to depth
 // If ancestors = true then ancestors are added.
-func (c *httpClient) GetTree(dirBlindName string, depth int, ancestor bool) (*api.EncryptedTree, error) {
+func (c *Client) GetTree(dirBlindName string, depth int, ancestor bool) (*api.EncryptedTree, error) {
 	rawURL := fmt.Sprintf(pathDir, c.base, dirBlindName)
 	rawURL = fmt.Sprintf(rawURL+"?depth=%d&ancestors=%v", depth, ancestor)
 	out := &api.EncryptedTree{}
@@ -334,7 +338,7 @@ func (c *httpClient) GetTree(dirBlindName string, depth int, ancestor bool) (*ap
 }
 
 // ListDirAccounts returns all accounts with read access.
-func (c *httpClient) ListDirAccounts(dirBlindName string) ([]*api.Account, error) {
+func (c *Client) ListDirAccounts(dirBlindName string) ([]*api.Account, error) {
 	out := []*api.Account{}
 	rawURL := fmt.Sprintf(pathDirAccounts, c.base, dirBlindName)
 	err := c.get(rawURL, &out)
@@ -342,7 +346,7 @@ func (c *httpClient) ListDirAccounts(dirBlindName string) ([]*api.Account, error
 }
 
 // DeleteDir deletes a directory by blind name.
-func (c *httpClient) DeleteDir(dirBlindName string) error {
+func (c *Client) DeleteDir(dirBlindName string) error {
 	rawURL := fmt.Sprintf(pathDir, c.base, dirBlindName)
 	err := c.delete(rawURL, nil)
 	return errio.Error(err)
@@ -351,7 +355,7 @@ func (c *httpClient) DeleteDir(dirBlindName string) error {
 // ACL
 
 // CreateAccessRule creates an AccessRule.
-func (c *httpClient) CreateAccessRule(dirBlindName string, accountName api.AccountName, in *api.CreateAccessRuleRequest) (*api.AccessRule, error) {
+func (c *Client) CreateAccessRule(dirBlindName string, accountName api.AccountName, in *api.CreateAccessRuleRequest) (*api.AccessRule, error) {
 	out := &api.AccessRule{}
 	rawURL := fmt.Sprintf(pathDirRule, c.base, dirBlindName, accountName)
 	err := c.put(rawURL, http.StatusOK, in, out)
@@ -359,7 +363,7 @@ func (c *httpClient) CreateAccessRule(dirBlindName string, accountName api.Accou
 }
 
 // UpdateAccessRule updates an AccessRule.
-func (c *httpClient) UpdateAccessRule(dirBlindName string, accountName api.AccountName, in *api.UpdateAccessRuleRequest) (*api.AccessRule, error) {
+func (c *Client) UpdateAccessRule(dirBlindName string, accountName api.AccountName, in *api.UpdateAccessRuleRequest) (*api.AccessRule, error) {
 	out := &api.AccessRule{}
 	rawURL := fmt.Sprintf(pathDirRule, c.base, dirBlindName, accountName)
 	err := c.patch(rawURL, http.StatusOK, in, out)
@@ -367,7 +371,7 @@ func (c *httpClient) UpdateAccessRule(dirBlindName string, accountName api.Accou
 }
 
 // GetAccessLevel gets an access level for an account.
-func (c *httpClient) GetAccessLevel(dirBlindName string, accountName api.AccountName) (*api.AccessLevel, error) {
+func (c *Client) GetAccessLevel(dirBlindName string, accountName api.AccountName) (*api.AccessLevel, error) {
 	out := &api.AccessLevel{}
 	rawURL := fmt.Sprintf(pathDirPermission, c.base, dirBlindName, accountName)
 	err := c.get(rawURL, out)
@@ -375,7 +379,7 @@ func (c *httpClient) GetAccessLevel(dirBlindName string, accountName api.Account
 }
 
 // GetAccessRule gets an access rule for an account.
-func (c *httpClient) GetAccessRule(dirBlindName string, accountName api.AccountName) (*api.AccessRule, error) {
+func (c *Client) GetAccessRule(dirBlindName string, accountName api.AccountName) (*api.AccessRule, error) {
 	out := &api.AccessRule{}
 	rawURL := fmt.Sprintf(pathDirRule, c.base, dirBlindName, accountName)
 	err := c.get(rawURL, out)
@@ -383,7 +387,7 @@ func (c *httpClient) GetAccessRule(dirBlindName string, accountName api.AccountN
 }
 
 // ListAccessRules gets the access rules for a given directory.
-func (c *httpClient) ListAccessRules(dirBlindName string, depth int, withAncestors bool) ([]*api.AccessRule, error) {
+func (c *Client) ListAccessRules(dirBlindName string, depth int, withAncestors bool) ([]*api.AccessRule, error) {
 	out := []*api.AccessRule{}
 	rawURL := fmt.Sprintf(pathDirRules, c.base, dirBlindName)
 	rawURL = fmt.Sprintf(rawURL+"?depth=%d&ancestors=%v", depth, withAncestors)
@@ -392,7 +396,7 @@ func (c *httpClient) ListAccessRules(dirBlindName string, depth int, withAncesto
 }
 
 // DeleteAccessRule deletes an access rule for an account.
-func (c *httpClient) DeleteAccessRule(dirBlindName string, accountName api.AccountName) error {
+func (c *Client) DeleteAccessRule(dirBlindName string, accountName api.AccountName) error {
 	rawURL := fmt.Sprintf(pathDirRule, c.base, dirBlindName, accountName)
 	err := c.delete(rawURL, nil)
 	return errio.Error(err)
@@ -401,7 +405,7 @@ func (c *httpClient) DeleteAccessRule(dirBlindName string, accountName api.Accou
 // SECRETS
 
 // CreateSecret writes a new secret.
-func (c httpClient) CreateSecret(namespace, repoName, dirBlindName string, in *api.CreateSecretRequest) (*api.EncryptedSecretVersion, error) {
+func (c Client) CreateSecret(namespace, repoName, dirBlindName string, in *api.CreateSecretRequest) (*api.EncryptedSecretVersion, error) {
 	rawURL := fmt.Sprintf(pathRepoDirSecrets, c.base, namespace, repoName, dirBlindName)
 	out := &api.EncryptedSecretVersion{}
 	err := c.post(rawURL, http.StatusCreated, in, &out)
@@ -410,7 +414,7 @@ func (c httpClient) CreateSecret(namespace, repoName, dirBlindName string, in *a
 
 // GetSecret gets a secret by its blind name.
 // Note that this does not include the versions and secret data.
-func (c *httpClient) GetSecret(secretBlindName string) (*api.EncryptedSecret, error) {
+func (c *Client) GetSecret(secretBlindName string) (*api.EncryptedSecret, error) {
 	out := &api.EncryptedSecret{}
 	rawURL := fmt.Sprintf(pathSecret, c.base, secretBlindName)
 	err := c.get(rawURL, out)
@@ -418,7 +422,7 @@ func (c *httpClient) GetSecret(secretBlindName string) (*api.EncryptedSecret, er
 }
 
 // CreateSecretVersion creates a new version of an existing secret.
-func (c httpClient) CreateSecretVersion(blindName string, in *api.CreateSecretVersionRequest) (*api.EncryptedSecretVersion, error) {
+func (c Client) CreateSecretVersion(blindName string, in *api.CreateSecretVersionRequest) (*api.EncryptedSecretVersion, error) {
 	rawURL := fmt.Sprintf(pathSecretVersions, c.base, blindName)
 	out := &api.EncryptedSecretVersion{}
 	err := c.post(rawURL, http.StatusCreated, in, &out)
@@ -426,7 +430,7 @@ func (c httpClient) CreateSecretVersion(blindName string, in *api.CreateSecretVe
 }
 
 // ListSecretVersions lists all versions of a secret by its name.
-func (c *httpClient) ListSecretVersions(secretBlindName string, withData bool) ([]*api.EncryptedSecretVersion, error) {
+func (c *Client) ListSecretVersions(secretBlindName string, withData bool) ([]*api.EncryptedSecretVersion, error) {
 	out := []*api.EncryptedSecretVersion{}
 	rawURL := fmt.Sprintf(pathSecretVersions+"?encrypted_blob=%t", c.base, secretBlindName, withData)
 	err := c.get(rawURL, &out)
@@ -434,7 +438,7 @@ func (c *httpClient) ListSecretVersions(secretBlindName string, withData bool) (
 }
 
 // GetSecret gets a single secret by its name.
-func (c *httpClient) GetSecretLatestVersion(secretBlindName string, withData bool) (*api.EncryptedSecretVersion, error) {
+func (c *Client) GetSecretLatestVersion(secretBlindName string, withData bool) (*api.EncryptedSecretVersion, error) {
 	out := &api.EncryptedSecretVersion{}
 	rawURL := fmt.Sprintf(pathSecret+"?encrypted_blob=%t", c.base, secretBlindName, withData)
 	err := c.get(rawURL, out)
@@ -442,7 +446,7 @@ func (c *httpClient) GetSecretLatestVersion(secretBlindName string, withData boo
 }
 
 // GetSecretVersion gets a single version of a secret by its name.
-func (c *httpClient) GetSecretVersion(secretBlindName string, version string, withData bool) (*api.EncryptedSecretVersion, error) {
+func (c *Client) GetSecretVersion(secretBlindName string, version string, withData bool) (*api.EncryptedSecretVersion, error) {
 	out := &api.EncryptedSecretVersion{}
 	rawURL := fmt.Sprintf(pathSecretVersion+"?encrypted_blob=%t", c.base, secretBlindName, version, withData)
 	err := c.get(rawURL, out)
@@ -450,7 +454,7 @@ func (c *httpClient) GetSecretVersion(secretBlindName string, version string, wi
 }
 
 // GetCurrentSecretKey gets the secret key currently used for encrypting the secret.
-func (c *httpClient) GetCurrentSecretKey(secretBlindName string) (*api.EncryptedSecretKey, error) {
+func (c *Client) GetCurrentSecretKey(secretBlindName string) (*api.EncryptedSecretKey, error) {
 	out := &api.EncryptedSecretKey{}
 	rawURL := fmt.Sprintf(pathSecretKey, c.base, secretBlindName)
 	err := c.get(rawURL, out)
@@ -458,7 +462,7 @@ func (c *httpClient) GetCurrentSecretKey(secretBlindName string) (*api.Encrypted
 }
 
 // CreateSecretKey creates a new secret key.
-func (c *httpClient) CreateSecretKey(secretBlindName string, in *api.CreateSecretKeyRequest) (*api.EncryptedSecretKey, error) {
+func (c *Client) CreateSecretKey(secretBlindName string, in *api.CreateSecretKeyRequest) (*api.EncryptedSecretKey, error) {
 	out := &api.EncryptedSecretKey{}
 	rawURL := fmt.Sprintf(pathSecretKeys, c.base, secretBlindName)
 	err := c.post(rawURL, http.StatusCreated, in, out)
@@ -466,7 +470,7 @@ func (c *httpClient) CreateSecretKey(secretBlindName string, in *api.CreateSecre
 }
 
 // AuditSecret gets the audit events for a given secret.
-func (c *httpClient) AuditSecret(secretBlindName string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+func (c *Client) AuditSecret(secretBlindName string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	out := []*api.Audit{}
 	rawURL := fmt.Sprintf(pathSecretEvents+"?subject_types=%s", c.base, secretBlindName, subjectTypes.Join(","))
 	err := c.get(rawURL, &out)
@@ -474,21 +478,21 @@ func (c *httpClient) AuditSecret(secretBlindName string, subjectTypes api.AuditS
 }
 
 // DeleteSecret deletes a secret.
-func (c *httpClient) DeleteSecret(secretBlindName string) error {
+func (c *Client) DeleteSecret(secretBlindName string) error {
 	rawURL := fmt.Sprintf(pathSecret, c.base, secretBlindName)
 	err := c.delete(rawURL, nil)
 	return errio.Error(err)
 }
 
 // DeleteSecretVersion deletes a version of a secret.
-func (c *httpClient) DeleteSecretVersion(secretBlindName string, version string) error {
+func (c *Client) DeleteSecretVersion(secretBlindName string, version string) error {
 	rawURL := fmt.Sprintf(pathSecretVersion, c.base, secretBlindName, version)
 	err := c.delete(rawURL, nil)
 	return errio.Error(err)
 }
 
 // ListSecretKeys lists an account's secret keys.
-func (c *httpClient) ListSecretKeys(secretBlindName string) ([]*api.EncryptedSecretKey, error) {
+func (c *Client) ListSecretKeys(secretBlindName string) ([]*api.EncryptedSecretKey, error) {
 	out := []*api.EncryptedSecretKey{}
 	rawURL := fmt.Sprintf(pathSecretKeys, c.base, secretBlindName)
 	err := c.get(rawURL, &out)
@@ -498,7 +502,7 @@ func (c *httpClient) ListSecretKeys(secretBlindName string) ([]*api.EncryptedSec
 // Orgs
 
 // CreateOrg creates an organization.
-func (c *httpClient) CreateOrg(in *api.CreateOrgRequest) (*api.Org, error) {
+func (c *Client) CreateOrg(in *api.CreateOrgRequest) (*api.Org, error) {
 	out := &api.Org{}
 	rawURL := fmt.Sprintf(pathOrgs, c.base)
 	err := c.post(rawURL, http.StatusCreated, in, out)
@@ -506,7 +510,7 @@ func (c *httpClient) CreateOrg(in *api.CreateOrgRequest) (*api.Org, error) {
 }
 
 // GetOrg gets an organization's details.
-func (c *httpClient) GetOrg(name string) (*api.Org, error) {
+func (c *Client) GetOrg(name string) (*api.Org, error) {
 	out := &api.Org{}
 	rawURL := fmt.Sprintf(pathOrg, c.base, name)
 	err := c.get(rawURL, out)
@@ -514,7 +518,7 @@ func (c *httpClient) GetOrg(name string) (*api.Org, error) {
 }
 
 // ListMyOrgs lists the organizations an account is a member of.
-func (c *httpClient) ListMyOrgs() ([]*api.Org, error) {
+func (c *Client) ListMyOrgs() ([]*api.Org, error) {
 	out := []*api.Org{}
 	rawURL := fmt.Sprintf(pathOrgs, c.base)
 	err := c.get(rawURL, &out)
@@ -522,14 +526,14 @@ func (c *httpClient) ListMyOrgs() ([]*api.Org, error) {
 }
 
 // DeleteOrg permanently deletes an organization and all of its resources.
-func (c *httpClient) DeleteOrg(name string) error {
+func (c *Client) DeleteOrg(name string) error {
 	rawURL := fmt.Sprintf(pathOrg, c.base, name)
 	err := c.delete(rawURL, nil)
 	return errio.Error(err)
 }
 
 // ListOrgMembers lists an organization's members.
-func (c *httpClient) ListOrgMembers(name string) ([]*api.OrgMember, error) {
+func (c *Client) ListOrgMembers(name string) ([]*api.OrgMember, error) {
 	out := []*api.OrgMember{}
 	rawURL := fmt.Sprintf(pathOrgMembers, c.base, name)
 	err := c.get(rawURL, &out)
@@ -537,7 +541,7 @@ func (c *httpClient) ListOrgMembers(name string) ([]*api.OrgMember, error) {
 }
 
 // GetOrgMember gets a  user's organization membership details.
-func (c *httpClient) GetOrgMember(name string, username string) (*api.OrgMember, error) {
+func (c *Client) GetOrgMember(name string, username string) (*api.OrgMember, error) {
 	out := &api.OrgMember{}
 	rawURL := fmt.Sprintf(pathOrgMember, c.base, name, username)
 	err := c.get(rawURL, out)
@@ -545,14 +549,14 @@ func (c *httpClient) GetOrgMember(name string, username string) (*api.OrgMember,
 }
 
 // CreateOrgMember creates a new organization member.
-func (c *httpClient) CreateOrgMember(name string, in *api.CreateOrgMemberRequest) (*api.OrgMember, error) {
+func (c *Client) CreateOrgMember(name string, in *api.CreateOrgMemberRequest) (*api.OrgMember, error) {
 	out := &api.OrgMember{}
 	rawURL := fmt.Sprintf(pathOrgMembers, c.base, name)
 	err := c.post(rawURL, http.StatusCreated, in, out)
 	return out, errio.Error(err)
 }
 
-func (c *httpClient) UpdateOrgMember(name string, username string, in *api.UpdateOrgMemberRequest) (*api.OrgMember, error) {
+func (c *Client) UpdateOrgMember(name string, username string, in *api.UpdateOrgMemberRequest) (*api.OrgMember, error) {
 	out := &api.OrgMember{}
 	rawURL := fmt.Sprintf(pathOrgMember, c.base, name, username)
 	err := c.post(rawURL, http.StatusOK, in, out)
@@ -560,7 +564,7 @@ func (c *httpClient) UpdateOrgMember(name string, username string, in *api.Updat
 }
 
 // RevokeOrgMember revokes an organization member.
-func (c *httpClient) RevokeOrgMember(name string, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error) {
+func (c *Client) RevokeOrgMember(name string, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error) {
 	out := &api.RevokeOrgResponse{}
 	rawURL := fmt.Sprintf(pathOrgMember, c.base, name, username)
 	if opts != nil {
@@ -577,31 +581,31 @@ func (c *httpClient) RevokeOrgMember(name string, username string, opts *api.Rev
 // HELPER METHODS
 
 // get is a helper function to make an http GET request.
-func (c *httpClient) get(rawURL string, out interface{}) error {
+func (c *Client) get(rawURL string, out interface{}) error {
 	err := c.do(rawURL, "GET", http.StatusOK, nil, out)
 	return errio.Error(err)
 }
 
 // post is a helper function to make an http POST request
-func (c *httpClient) post(rawURL string, expectedStatus int, in interface{}, out interface{}) error {
+func (c *Client) post(rawURL string, expectedStatus int, in interface{}, out interface{}) error {
 	err := c.do(rawURL, "POST", expectedStatus, in, out)
 	return errio.Error(err)
 }
 
 // put is a helper function to make an http PUT request.
-func (c *httpClient) put(rawURL string, expectedStatus int, in interface{}, out interface{}) error {
+func (c *Client) put(rawURL string, expectedStatus int, in interface{}, out interface{}) error {
 	err := c.do(rawURL, "PUT", expectedStatus, in, out)
 	return errio.Error(err)
 }
 
 // patch is a helper function to make an http PATCH request.
-func (c *httpClient) patch(rawURL string, expectedStatus int, in interface{}, out interface{}) error {
+func (c *Client) patch(rawURL string, expectedStatus int, in interface{}, out interface{}) error {
 	err := c.do(rawURL, "PATCH", expectedStatus, in, out)
 	return errio.Error(err)
 }
 
 // delete is a helper function to make an http DELETE request.
-func (c *httpClient) delete(rawURL string, out interface{}) error {
+func (c *Client) delete(rawURL string, out interface{}) error {
 	err := c.do(rawURL, "DELETE", http.StatusOK, nil, out)
 	return errio.Error(err)
 }
@@ -609,7 +613,7 @@ func (c *httpClient) delete(rawURL string, out interface{}) error {
 // Helper function to make an http request. Parses the url, encodes in as the request body,
 // executes an http request. If the server returns the wrong statuscode, we try to parse
 // the error and return it. If everything went well, it decodes the response body into out.
-func (c *httpClient) do(rawURL string, method string, expectedStatus int, in interface{}, out interface{}) error {
+func (c *Client) do(rawURL string, method string, expectedStatus int, in interface{}, out interface{}) error {
 	uri, err := url.Parse(rawURL)
 	if err != nil {
 		return errio.Error(err)
@@ -640,7 +644,7 @@ func (c *httpClient) do(rawURL string, method string, expectedStatus int, in int
 	}
 
 	if resp.StatusCode == http.StatusUpgradeRequired {
-		return errClient.Code("out_of_date").Errorf(
+		return errHTTP.Code("out_of_date").Errorf(
 			"Client is out of date\n" +
 				"Go to `https://secrethub.io/docs/getting-started/install` to see how to update your client.")
 	} else if resp.StatusCode != expectedStatus {

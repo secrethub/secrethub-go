@@ -4,6 +4,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/http"
 )
 
 // Client is the SecretHub client.
@@ -26,7 +27,7 @@ var (
 
 // Client is a client for the SecretHub HTTP API.
 type Client struct {
-	httpClient *httpClient
+	httpClient *http.Client
 
 	decrypter Decrypter
 
@@ -47,7 +48,7 @@ type Client struct {
 // It overrides the default configuration with the options when given.
 func NewClient(with ...ClientOption) (*Client, error) {
 	client := &Client{
-		httpClient:    newHTTPClient(),
+		httpClient:    http.NewClient(),
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
 	for _, option := range with {

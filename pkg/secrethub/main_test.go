@@ -48,7 +48,7 @@ func setup() (chi.Router, []ClientOption, func()) {
 
 	// Strip prefixes so tests can register routes on e.g. /users instead of /v1/users.
 	handler := http.NewServeMux()
-	handler.Handle(baseURLPath+"/", http.StripPrefix(baseURLPath, router))
+	handler.Handle("/v1/", http.StripPrefix("/v1", router))
 
 	// server is a test HTTP server used to provide mock API responses.
 	server := httptest.NewServer(handler)

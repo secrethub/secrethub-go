@@ -1,4 +1,4 @@
-package secrethub
+package http
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 
 // Errors
 var (
-	ErrWrongContentType = errClient.Code("wrong_content_type").Error("server returned wrong content type in header")
+	ErrWrongContentType = secrethub.errClient.Code("wrong_content_type").Error("server returned wrong content type in header")
 )
 
 // validator is an interface that helps validate the values of arguments.
@@ -39,7 +39,7 @@ func encodeRequest(req *http.Request, in interface{}) error {
 
 	jsonBytes, err := json.Marshal(in)
 	if err != nil {
-		return errClient.Code("cannot_encode_request").StatusErrorf("cannot encode request: %v", http.StatusBadRequest, err)
+		return errHTTP.Code("cannot_encode_request").StatusErrorf("cannot encode request: %v", http.StatusBadRequest, err)
 	}
 
 	buf := bytes.NewBuffer(jsonBytes)
@@ -71,7 +71,7 @@ func decodeResponse(resp *http.Response, out interface{}) error {
 
 	err = json.Unmarshal(bytes, out)
 	if err != nil {
-		return errClient.Code("cannot_decode_response").StatusErrorf("cannot decode response: %v", http.StatusInternalServerError, err)
+		return errHTTP.Code("cannot_decode_response").StatusErrorf("cannot decode response: %v", http.StatusInternalServerError, err)
 	}
 
 	validator, ok := out.(validator)
@@ -89,7 +89,7 @@ func decodeResponse(resp *http.Response, out interface{}) error {
 func parseError(resp *http.Response) error {
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return errClient.Code("cannot_read_response").Errorf("cannot read the server response: %s", err)
+		return errHTTP.Code("cannot_read_response").Errorf("cannot read the server response: %s", err)
 	}
 
 	// Try to unmarshal into a PublicStatusError
