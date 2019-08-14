@@ -32,14 +32,14 @@ type SecretService interface {
 	Write(path string, data []byte) (*api.SecretVersion, error)
 }
 
-func newSecretService(client *client) SecretService {
+func newSecretService(client *Client) SecretService {
 	return secretService{
 		client: client,
 	}
 }
 
 type secretService struct {
-	client *client
+	client *Client
 }
 
 // Delete removes the secret at the given path.
@@ -183,7 +183,7 @@ func (s secretService) Versions() SecretVersionService {
 }
 
 // convertsToBlindName will convert a path to a blindname.
-func (c *client) convertPathToBlindName(path api.BlindNamePath) (string, error) {
+func (c *Client) convertPathToBlindName(path api.BlindNamePath) (string, error) {
 	repoIndexKey, err := c.getRepoIndexKey(path.GetRepoPath())
 	if err != nil {
 		return "", errio.Error(err)

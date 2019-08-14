@@ -17,14 +17,14 @@ type DirService interface {
 	GetTree(path string, depth int, ancestors bool) (*api.Tree, error)
 }
 
-func newDirService(client *client) DirService {
+func newDirService(client *Client) DirService {
 	return dirService{
 		client: client,
 	}
 }
 
 type dirService struct {
-	client *client
+	client *Client
 }
 
 // GetTree retrieves a directory tree at a given path. The contents to the given depth
@@ -147,7 +147,7 @@ func (s dirService) Delete(path string) error {
 }
 
 // ListDirAccounts list the accounts with read permission.
-func (c *client) ListDirAccounts(path api.BlindNamePath) ([]*api.Account, error) {
+func (c *Client) ListDirAccounts(path api.BlindNamePath) ([]*api.Account, error) {
 	blindName, err := c.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)

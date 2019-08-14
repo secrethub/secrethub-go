@@ -1,9 +1,10 @@
 package secrethub
 
 import (
+	"github.com/keylockerbv/secrethub/core/errio"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
-	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 // Client is the SecretHub client.
@@ -20,87 +21,12 @@ type ClientAdapter interface {
 	Users() UserService
 }
 
-// Decrypter decrypts data, typically an account key.
-type Decrypter interface {
-	// Unwrap decrypts data, typically an account key.
-	Unwrap(ciphertext *api.EncryptedData) ([]byte, error)
-}
-
-// Encrypter encrypts data, typically an account key.
-type Encrypter interface {
-	// Wrap encrypts data, typically an account key.
-	Wrap(plaintext []byte) (*api.EncryptedData, error)
-}
-
-func Must(c ClientAdapter, err error) ClientAdapter {
-	if err != nil {
-		panic(err)
-	}
-	return c
-}
-
-// NewClient creates a new SecretHub client.
-// It overrides the default configuration with the options when given.
-func NewClient(options ...ClientOption) (ClientAdapter, error) {
-	return newClient()
-}
-
-// AccessRules returns an AccessRuleService.
-func (c *client) AccessRules() AccessRuleService {
-	return newAccessRuleService(c)
-}
-
-// Accounts returns an AccountService.
-func (c *client) Accounts() AccountService {
-	return newAccountService(c)
-}
-
-// Auth returns an SessionService.
-func (c *client) Sessions() SessionService {
-	return newSessionService(c)
-}
-
-// Dirs returns an DirService.
-func (c *client) Dirs() DirService {
-	return newDirService(c)
-}
-
-// Me returns a MeService.
-func (c *client) Me() MeService {
-	return newMeService(c)
-}
-
-// Orgs returns an OrgService.
-func (c *client) Orgs() OrgService {
-	return newOrgService(c)
-}
-
-// Repos returns an RepoService.
-func (c *client) Repos() RepoService {
-	return newRepoService(c)
-}
-
-// Secrets returns an SecretService.
-func (c *client) Secrets() SecretService {
-	return newSecretService(c)
-}
-
-// Services returns an ServiceService.
-func (c *client) Services() ServiceService {
-	return newServiceService(c)
-}
-
-// Users returns an UserService.
-func (c *client) Users() UserService {
-	return newUserService(c)
-}
-
 var (
 	errClient = errio.Namespace("client")
 )
 
 // Client is a client for the SecretHub HTTP API.
-type client struct {
+type Client struct {
 	httpClient *httpClient
 
 	decrypter Decrypter
@@ -118,16 +44,10 @@ type client struct {
 	repoIndexKeys map[api.RepoPath]*crypto.SymmetricKey
 }
 
-func must(c *client, err error) *client {
-	if err != nil {
-		panic(err)
-	}
-	return c
-}
-
-// newClient configures a new client, overriding defaults with options when given.
-func newClient(options ...ClientOption) (*client, error) {
-	client := &client{
+// NewClient creates a new SecretHub client.
+// It overrides the default configuration with the options when given.
+func NewClient(options ...ClientOption) (*Client, error) {
+	client := &Client{
 		httpClient:    newHTTPClient(),
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
@@ -138,4 +58,80 @@ func newClient(options ...ClientOption) (*client, error) {
 		}
 	}
 	return client, nil
+}
+
+// Must is a helper function to ensure the Client is valid and there was no
+// error when calling a NewClient function.
+//
+// This helper is intended to be used in initialization to load the
+// Session and configuration at startup. For example:
+//
+//     var client = secrethub.Must(secrethub.NewClient())
+func Must(c *Client, err error) *Client {
+	if err != nil {
+		panic(err)
+	}
+	return c
+}
+
+// Decrypter decrypts data, typically an account key.
+type Decrypter interface {
+	// Unwrap decrypts data, typically an account key.
+	Unwrap(ciphertext *api.EncryptedData) ([]byte, error)
+}
+
+// Encrypter encrypts data, typically an account key.
+type Encrypter interface {
+	// Wrap encrypts data, typically an account key.
+	Wrap(plaintext []byte) (*api.EncryptedData, error)
+}
+
+// AccessRules returns an AccessRuleService.
+func (c *Client) AccessRules() AccessRuleService {
+	return newAccessRuleService(c)
+}
+
+// Accounts returns an AccountService.
+func (c *Client) Accounts() AccountService {
+	return newAccountService(c)
+}
+
+// Auth returns a SessionService.
+func (c *Client) Sessions() SessionService {
+	return newSessionService(c)
+}
+
+// Dirs returns an DirService.
+func (c *Client) Dirs() DirService {
+	return newDirService(c)
+}
+
+// Me returns a MeService.
+func (c *Client) Me() MeService {
+	return newMeService(c)
+}
+
+// Orgs returns an OrgService.
+func (c *Client) Orgs() OrgService {
+	return newOrgService(c)
+}
+
+// Repos returns an RepoService.
+func (c *Client) Repos() RepoService {
+	return newRepoService(c)
+}
+
+// Secrets returns an SecretService.
+func (c *Client) Secrets() SecretService {
+	return newSecretService(c)
+}
+
+// Services returns an ServiceService.
+func (c *Client) Services() ServiceService {
+	return newServiceService(c)
+}
+
+// Users returns an UserService.
+func (c *Client) Users() UserService {
+	return newUserService(c)
 }

@@ -19,14 +19,14 @@ type ServiceService interface {
 	AWS() ServiceAWSService
 }
 
-func newServiceService(client *client) ServiceService {
+func newServiceService(client *Client) ServiceService {
 	return serviceService{
 		client: client,
 	}
 }
 
 type serviceService struct {
-	client *client
+	client *Client
 }
 
 // Create creates a new service account for the given repo.

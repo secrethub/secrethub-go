@@ -16,14 +16,14 @@ type UserService interface {
 	Get(username string) (*api.User, error)
 }
 
-func newUserService(client *client) UserService {
+func newUserService(client *Client) UserService {
 	return userService{
 		client: client,
 	}
 }
 
 type userService struct {
-	client *client
+	client *Client
 }
 
 // Me gets the account's user if it exists.
@@ -105,7 +105,7 @@ func (s userService) Get(username string) (*api.User, error) {
 }
 
 // createAccountKey adds the account key for the clients credential.
-func (c *client) createAccountKey(credentialFingerprint string, accountKey crypto.RSAPrivateKey, encrypter Encrypter) (*api.EncryptedAccountKey, error) {
+func (c *Client) createAccountKey(credentialFingerprint string, accountKey crypto.RSAPrivateKey, encrypter Encrypter) (*api.EncryptedAccountKey, error) {
 	accountKeyRequest, err := c.createAccountKeyRequest(encrypter, accountKey)
 	if err != nil {
 		return nil, errio.Error(err)

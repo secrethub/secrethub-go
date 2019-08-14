@@ -28,7 +28,7 @@ func TestSignup(t *testing.T) {
 	defer cleanup()
 
 	userService := userService{
-		client: must(newClient(opts...)),
+		client: Must(NewClient(opts...)),
 	}
 
 	expectedCreateUserRequest := api.CreateUserRequest{
@@ -106,7 +106,7 @@ func TestSignup_AlreadyExists(t *testing.T) {
 	defer cleanup()
 
 	userService := userService{
-		client: must(newClient(opts...)),
+		client: Must(NewClient(opts...)),
 	}
 
 	expected := api.ErrUserEmailAlreadyExists
@@ -135,7 +135,7 @@ func TestSignup_InvalidArgument(t *testing.T) {
 	defer cleanup()
 
 	userService := userService{
-		client: must(newClient(opts...)),
+		client: Must(NewClient(opts...)),
 	}
 
 	key, err := crypto.GenerateRSAPrivateKey(512)
@@ -155,7 +155,7 @@ func TestGetUser(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		must(newClient(opts...)),
+		Must(NewClient(opts...)),
 	)
 
 	now := time.Now().UTC()
@@ -194,7 +194,7 @@ func TestGetUser_NotFound(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		must(newClient(opts...)),
+		Must(NewClient(opts...)),
 	)
 
 	expected := api.ErrUserNotFound
@@ -220,7 +220,7 @@ func TestGetUser_InvalidArgument(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		must(newClient(opts...)),
+		Must(NewClient(opts...)),
 	)
 
 	// Act
@@ -237,7 +237,7 @@ func TestGetMyUser(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		must(newClient(opts...)),
+		Must(NewClient(opts...)),
 	)
 
 	now := time.Now().UTC()
@@ -272,7 +272,7 @@ func TestGetMyUser_NotFound(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		must(newClient(opts...)),
+		Must(NewClient(opts...)),
 	)
 
 	expected := api.ErrRequestNotAuthenticated
