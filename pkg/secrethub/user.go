@@ -2,6 +2,7 @@ package secrethub
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -58,7 +59,7 @@ func (s userService) Create(username, email, fullName string) (*api.User, *RSACr
 		return nil, nil, err
 	}
 
-	user, err := s.create(username, email, fullName, accountKey, credential, credential)
+	user, err := s.create(username, email, fullName, accountKey, credential, credential, auth.NewHTTPSigner(credential))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -66,7 +67,7 @@ func (s userService) Create(username, email, fullName string) (*api.User, *RSACr
 	return user, credential, nil
 }
 
-func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, verifier Verifier, encrypter Encrypter) (*api.User, error) {
+func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, verifier Verifier, encrypter Encrypter, authenticator auth.Authenticator) (*api.User, error) {
 	credentialRequest, err := s.client.createCredentialRequest(verifier)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -84,12 +85,15 @@ func (s userService) create(username, email, fullName string, accountKey crypto.
 		Credential: credentialRequest,
 	}
 
-	user, err := s.client.httpClient.SignupUser(userRequest)
+	client := s.client
+	client.httpClient.authenticator = authenticator
+
+	user, err := client.httpClient.SignupUser(userRequest)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	accountKeyResponse, err := s.client.createAccountKey(accountKey, encrypter)
+	accountKeyResponse, err := client.createAccountKey(accountKey, encrypter)
 	if err != nil {
 		return nil, err
 	}
