@@ -1,10 +1,9 @@
 package secrethub
 
 import (
-	"github.com/keylockerbv/secrethub/core/errio"
-
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
+	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 // Client is the SecretHub client.
@@ -46,12 +45,12 @@ type Client struct {
 
 // NewClient creates a new SecretHub client.
 // It overrides the default configuration with the options when given.
-func NewClient(options ...ClientOption) (*Client, error) {
+func NewClient(with ...ClientOption) (*Client, error) {
 	client := &Client{
 		httpClient:    newHTTPClient(),
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
-	for _, option := range options {
+	for _, option := range with {
 		err := option(client)
 		if err != nil {
 			return nil, err

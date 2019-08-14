@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 
 	"github.com/go-chi/chi"
+
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 )
 
 var (
@@ -52,8 +54,8 @@ func setup() (chi.Router, []ClientOption, func()) {
 	server := httptest.NewServer(handler)
 
 	opts := []ClientOption{
-		Remote(server.URL),
-		Credentials(RSA(cred1)),
+		WithRemote(server.URL),
+		WithCredentials(credentials.RSA(cred1)),
 	}
 
 	return router, opts, server.Close

@@ -9,21 +9,21 @@ import (
 
 type ClientOption func(*Client) error
 
-func Timeout(timeout time.Duration) ClientOption {
+func WithTimeout(timeout time.Duration) ClientOption {
 	return func(c *Client) error {
 		c.httpClient.client.Timeout = timeout
 		return nil
 	}
 }
 
-func Remote(url string) ClientOption {
+func WithRemote(url string) ClientOption {
 	return func(c *Client) error {
 		c.httpClient.base = url
 		return nil
 	}
 }
 
-func Transport(roundTripper http.RoundTripper) ClientOption {
+func WithTransport(roundTripper http.RoundTripper) ClientOption {
 	return func(c *Client) error {
 		c.httpClient.client.Transport = roundTripper
 		return nil
@@ -32,7 +32,7 @@ func Transport(roundTripper http.RoundTripper) ClientOption {
 
 type CredentialProvider func(*Client) (auth.Authenticator, Decrypter, error)
 
-func Credentials(provider CredentialProvider) ClientOption {
+func WithCredentials(provider CredentialProvider) ClientOption {
 	return func(c *Client) error {
 		authenticator, decrypter, err := provider(c)
 		if err != nil {
