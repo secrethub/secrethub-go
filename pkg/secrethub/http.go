@@ -627,9 +627,11 @@ func (c *httpClient) do(rawURL string, method string, expectedStatus int, in int
 		return errio.Error(err)
 	}
 
-	err = c.authenticator.Authenticate(req)
-	if err != nil {
-		return errio.Error(err)
+	if c.authenticator != nil {
+		err = c.authenticator.Authenticate(req)
+		if err != nil {
+			return errio.Error(err)
+		}
 	}
 
 	req.Header.Set("User-Agent", "SecretHub/"+c.version)
