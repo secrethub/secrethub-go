@@ -557,3 +557,15 @@ func (n OrgName) Value() string {
 func (n OrgName) Namespace() Namespace {
 	return Namespace(n)
 }
+
+// JoinPaths joins any number of path elements into a single path.
+func JoinPaths(components ...string) string {
+	var processed []string
+	for _, c := range components {
+		trimmed := strings.Trim(c, pathSeparator)
+		if trimmed != "" {
+			processed = append(processed, trimmed)
+		}
+	}
+	return strings.Join(processed, pathSeparator)
+}
