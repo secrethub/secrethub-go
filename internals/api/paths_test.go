@@ -19,6 +19,10 @@ func TestJoinPaths(t *testing.T) {
 			elements: []string{"namespace/repo", ""},
 			expected: "namespace/repo",
 		},
+		"two empty elements": {
+			elements: []string{"", ""},
+			expected: "",
+		},
 		"two paths, without separator": {
 			elements: []string{"namespace/repo", "dir"},
 			expected: "namespace/repo/dir",
