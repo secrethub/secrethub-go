@@ -3,8 +3,8 @@ package secretpath_test
 import (
 	"testing"
 
-	"github.com/keylockerbv/secrethub-go/pkg/assert"
-	"github.com/keylockerbv/secrethub-go/pkg/secretpath"
+	"github.com/secrethub/secrethub-go/internals/assert"
+	"github.com/secrethub/secrethub-go/pkg/secretpath"
 )
 
 // TODO: implement these functions:
