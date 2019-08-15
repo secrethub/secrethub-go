@@ -13,7 +13,7 @@ import (
 
 // Errors
 var (
-	ErrWrongContentType = secrethub.errClient.Code("wrong_content_type").Error("server returned wrong content type in header")
+	ErrWrongContentType = errHTTP.Code("wrong_content_type").Error("server returned wrong content type in header")
 )
 
 // validator is an interface that helps validate the values of arguments.
