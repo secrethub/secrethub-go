@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	cred1            *RSACredential
+	cred1            *credentials.RSACredential
 	cred1PublicKey   []byte
 	cred1Fingerprint string
 	cred1Verifier    []byte
@@ -18,7 +18,7 @@ var (
 
 func init() {
 	var err error
-	cred1, err = generateRSACredential(1024)
+	cred1, err = credentials.GenerateRSACredential(1024)
 	if err != nil {
 		panic(err)
 	}
@@ -54,8 +54,8 @@ func setup() (chi.Router, []ClientOption, func()) {
 	server := httptest.NewServer(handler)
 
 	opts := []ClientOption{
-		WithRemote(server.URL),
-		WithCredentials(credentials.RSA(cred1)),
+		//	WithRemote(server.URL),
+		//	WithCredentials(credentials.RSA(cred1)),
 	}
 
 	return router, opts, server.Close

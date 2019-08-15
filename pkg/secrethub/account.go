@@ -4,6 +4,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 )
 
 // Errors
@@ -48,7 +49,7 @@ func (s accountService) Keys() AccountKeyService {
 // The public key of the intermediate key is returned.
 // The intermediate key is returned in an CreateAccountKeyRequest ready to be sent to the API.
 // If an error has occurred, it will be returned and the other result should be considered invalid.
-func (c *Client) createAccountKeyRequest(encrypter Encrypter, accountKey crypto.RSAPrivateKey) (*api.CreateAccountKeyRequest, error) {
+func (c *Client) createAccountKeyRequest(encrypter credentials.Encrypter, accountKey crypto.RSAPrivateKey) (*api.CreateAccountKeyRequest, error) {
 	publicAccountKey, err := accountKey.Public().Export()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -70,7 +71,7 @@ func (c *Client) createAccountKeyRequest(encrypter Encrypter, accountKey crypto.
 	}, nil
 }
 
-func (c *Client) createCredentialRequest(verifier Verifier) (*api.CreateCredentialRequest, error) {
+func (c *Client) createCredentialRequest(verifier credentials.Verifier) (*api.CreateCredentialRequest, error) {
 	bytes, err := verifier.Verifier()
 	if err != nil {
 		return nil, errio.Error(err)

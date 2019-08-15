@@ -4,7 +4,7 @@ package fakeclient
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
-	"github.com/secrethub/secrethub-go/pkg/secrethub"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 )
 
 // UserService is a mock of the UserService interface.
@@ -25,7 +25,7 @@ func (s *UserService) Me() (*api.User, error) {
 }
 
 // Create implements the UserService interface Create function.
-func (s *UserService) Create(username, email, fullName string, verifier secrethub.Verifier, encrypter secrethub.Encrypter) (*api.User, error) {
+func (s *UserService) Create(username, email, fullName string, verifier credentials.Verifier, encrypter credentials.Encrypter) (*api.User, error) {
 	return s.UserCreater.Create(username, email, fullName, verifier, encrypter)
 }
 
@@ -63,7 +63,7 @@ type UserCreater struct {
 }
 
 // Create saves the arguments it was called with and returns the mocked response.
-func (s *UserCreater) Create(username, email, fullName string, verifier secrethub.Verifier, encrypter secrethub.Encrypter) (*api.User, error) {
+func (s *UserCreater) Create(username, email, fullName string, verifier credentials.Verifier, encrypter credentials.Encrypter) (*api.User, error) {
 	s.ArgUsername = username
 	s.ArgEmail = email
 	s.ArgFullName = fullName

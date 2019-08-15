@@ -3,12 +3,13 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 )
 
 // ServiceService handles operations on service accounts from SecretHub.
 type ServiceService interface {
 	// Create creates a new service account for the given repo.
-	Create(path string, description string, verifier Verifier, encrypter Encrypter) (*api.Service, error)
+	Create(path string, description string, verifier credentials.Verifier, encrypter credentials.Encrypter) (*api.Service, error)
 	// Delete removes a service account by name.
 	Delete(name string) (*api.RevokeRepoResponse, error)
 	// Get retrieves a service account by name.
@@ -30,7 +31,7 @@ type serviceService struct {
 }
 
 // Create creates a new service account for the given repo.
-func (s serviceService) Create(path string, description string, verifier Verifier, encrypter Encrypter) (*api.Service, error) {
+func (s serviceService) Create(path string, description string, verifier credentials.Verifier, encrypter credentials.Encrypter) (*api.Service, error) {
 	repoPath, err := api.NewRepoPath(path)
 	if err != nil {
 		return nil, errio.Error(err)

@@ -4,6 +4,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/http"
 )
 
@@ -29,7 +30,7 @@ var (
 type Client struct {
 	httpClient *http.Client
 
-	decrypter Decrypter
+	decrypter credentials.Decrypter
 
 	// account is the api.Account for this SecretHub account.
 	// Do not use this field directly, but use client.getMyAccount() instead.
@@ -72,18 +73,6 @@ func Must(c *Client, err error) *Client {
 		panic(err)
 	}
 	return c
-}
-
-// Decrypter decrypts data, typically an account key.
-type Decrypter interface {
-	// Unwrap decrypts data, typically an account key.
-	Unwrap(ciphertext *api.EncryptedData) ([]byte, error)
-}
-
-// Encrypter encrypts data, typically an account key.
-type Encrypter interface {
-	// Wrap encrypts data, typically an account key.
-	Wrap(plaintext []byte) (*api.EncryptedData, error)
 }
 
 // AccessRules returns an AccessRuleService.

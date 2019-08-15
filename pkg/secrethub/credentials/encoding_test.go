@@ -1,4 +1,4 @@
-package secrethub
+package credentials
 
 import (
 	"encoding/base64"
@@ -47,7 +47,7 @@ func TestPassBasedKey(t *testing.T) {
 
 func TestRSACredential(t *testing.T) {
 
-	credential, err := generateRSACredential(1024)
+	credential, err := GenerateRSACredential(1024)
 	assert.OK(t, err)
 
 	t.Run("encoding", func(t *testing.T) {
@@ -84,7 +84,7 @@ func TestRSACredential(t *testing.T) {
 func TestParser(t *testing.T) {
 
 	// Arrange
-	credential, err := generateRSACredential(1024)
+	credential, err := GenerateRSACredential(1024)
 	assert.OK(t, err)
 
 	payload := credential.Export()
@@ -223,7 +223,7 @@ func TestParser(t *testing.T) {
 func TestEncodeCredential(t *testing.T) {
 
 	// Arrange
-	cred, err := generateRSACredential(1024)
+	cred, err := GenerateRSACredential(1024)
 	assert.OK(t, err)
 
 	parser := NewCredentialParser(DefaultCredentialDecoders)
@@ -245,7 +245,7 @@ func TestEncodeCredential(t *testing.T) {
 func TestEncodeEncryptedCredential(t *testing.T) {
 
 	// Arrange
-	cred, err := generateRSACredential(1024)
+	cred, err := GenerateRSACredential(1024)
 	assert.OK(t, err)
 
 	parser := NewCredentialParser(DefaultCredentialDecoders)
