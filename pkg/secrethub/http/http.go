@@ -7,12 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/secrethub/secrethub-go/internals/auth"
-	"github.com/secrethub/secrethub-go/pkg/secrethub"
-
 	"github.com/op/go-logging"
 
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
@@ -91,28 +89,40 @@ type ClientOptions struct {
 	Timeout   time.Duration
 }
 
+type AuthProvider interface {
+	Provide(httpClient *Client) (auth.Authenticator, error)
+}
+
 // Client is a raw client for the SecretHub http API.
 type Client struct {
-	client        *http.Client
-	authenticator auth.Authenticator
-	base          string // base url
-	version       string
+	client       *http.Client
+	authProvider AuthProvider
+	base         string // base url
+	version      string
 }
 
 // NewClient configures a new Client and overrides default values
 // when opts is not nil.
-func NewClient() *Client {
+func NewClient(with ...Option) *Client {
 	serverURL := DefaultServerURL
 	timeout := DefaultTimeout
 	serverURL = strings.TrimSuffix(serverURL, "/")
 	serverURL = serverURL + baseURLPath
 
-	return &Client{
+	client := &Client{
 		client: &http.Client{
 			Timeout: timeout,
 		},
-		base:    serverURL,
-		version: secrethub.ClientVersion,
+		base: serverURL,
+		//version: secrethub.ClientVersion,
+	}
+	client.Options(with...)
+	return client
+}
+
+func (c *Client) Options(with ...Option) {
+	for _, option := range with {
+		option(c)
 	}
 }
 
@@ -629,8 +639,13 @@ func (c *Client) do(rawURL string, method string, expectedStatus int, in interfa
 		return errio.Error(err)
 	}
 
-	if c.authenticator != nil {
-		err = c.authenticator.Authenticate(req)
+	if c.authProvider != nil {
+		authenticator, err := c.authProvider.Provide(c)
+		if err != nil {
+			return errio.Error(err)
+		}
+
+		err = authenticator.Authenticate(req)
 		if err != nil {
 			return errio.Error(err)
 		}
