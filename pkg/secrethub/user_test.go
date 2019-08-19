@@ -92,7 +92,7 @@ func TestSignup(t *testing.T) {
 	})
 
 	// Act
-	actual, err := userService.create(username, email, fullName, accountKey, cred1, cred1)
+	actual, err := userService.create(username, email, fullName, accountKey, cred1, cred1, auth.NewHTTPSigner(cred1))
 
 	// Assert
 	assert.OK(t, err)
@@ -122,7 +122,7 @@ func TestSignup_AlreadyExists(t *testing.T) {
 	assert.OK(t, err)
 
 	// Act
-	_, err = userService.create("dev1", "dev1@testing.com", "Developer Uno", key, cred1, cred1)
+	_, err = userService.create("dev1", "dev1@testing.com", "Developer Uno", key, cred1, cred1, auth.NewHTTPSigner(cred1))
 
 	// Assert
 	assert.Equal(t, err, expected)
@@ -142,7 +142,7 @@ func TestSignup_InvalidArgument(t *testing.T) {
 	assert.OK(t, err)
 
 	// Act
-	_, err = userService.create("invalidname$#@%%", "dev1@testing.com", "Developer Uno", key, cred1, cred1)
+	_, err = userService.create("invalidname$#@%%", "dev1@testing.com", "Developer Uno", key, cred1, cred1, auth.NewHTTPSigner(cred1))
 
 	// Assert
 	assert.Equal(t, err, api.ErrInvalidUsername)
