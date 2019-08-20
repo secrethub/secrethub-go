@@ -45,7 +45,7 @@ func (s staticCredentialAuthProvider) Provide(_ *http.Client) (auth.Authenticato
 
 type Provider func() (http.AuthProvider, Decrypter, error)
 
-func AWS(awsCfg ...*awssdk.Config) Provider {
+func UseAWS(awsCfg ...*awssdk.Config) Provider {
 	return func() (http.AuthProvider, Decrypter, error) {
 		decrypter, err := aws.NewKMSDecrypter(awsCfg...)
 		if err != nil {
@@ -57,13 +57,13 @@ func AWS(awsCfg ...*awssdk.Config) Provider {
 }
 
 // Usage:
-//		credentials.RSA(credentials.Raw("<a credential>"))
-//		credentials.RSA(credentials.File("~/.secrethub/credential"), credentials.Raw("passphrase"))
-func RSA(credentialReader BytesReader, passReader ...BytesReader) Provider {
+//		credentials.UseKey(credentials.FromBytes("<a credential>"))
+//		credentials.UseKey(credentials.FromFile("~/.secrethub/credential"), credentials.FromString("passphrase"))
+func UseKey(credentialReader Reader, passReader Reader) Provider {
 	return func() (http.AuthProvider, Decrypter, error) {
 		// This function can be cleaned up a lot. It is mainly for demonstrating the overall idea.
 
-		bytes, err := credentialReader.Data()
+		bytes, err := credentialReader.Read()
 		if err != nil {
 			return nil, nil, err
 		}
@@ -72,10 +72,10 @@ func RSA(credentialReader BytesReader, passReader ...BytesReader) Provider {
 			return nil, nil, err
 		}
 		if encoded.IsEncrypted() {
-			if len(passReader) == 0 || passReader[0] == nil {
+			if passReader == nil {
 				return nil, nil, errors.New("need passphrase")
 			}
-			passphrase, err := passReader[0].Data()
+			passphrase, err := passReader.Read()
 			if err != nil {
 				return nil, nil, err
 			}
