@@ -31,14 +31,6 @@ const (
 	ServiceTypeRSA ServiceType = "rsa"
 )
 
-type ServiceMetaDataKey string
-
-// Service metadata keys
-const (
-	ServiceMetaDataAWSKMSKey ServiceMetaDataKey = "kms_key"
-	ServiceMetaDataAWSRole   ServiceMetaDataKey = "role"
-)
-
 // Service represents a service account on SecretHub.
 type Service struct {
 	AccountID   *uuid.UUID        `json:"account_id"`
@@ -48,7 +40,6 @@ type Service struct {
 	CreatedBy   *uuid.UUID        `json:"created_by,omitempty"`
 	CreatedAt   time.Time         `json:"created_at"`
 	Type        ServiceType       `json:"type"`
-	MetaData    map[string]string `json:"meta_data,omitempty"`
 }
 
 // Trim removes all non-essential fields from Service for output

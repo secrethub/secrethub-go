@@ -40,12 +40,21 @@ func (a CredentialType) Validate() error {
 	return ErrInvalidAlgorithm
 }
 
+type CredentialMetaDataKey string
+
+// Service metadata keys
+const (
+	ServiceMetaDataAWSKMSKey CredentialMetaDataKey = "kms_key"
+	ServiceMetaDataAWSRole   CredentialMetaDataKey = "role"
+)
+
 // CreateCredentialRequest contains the fields to add a credential to an account.
 type CreateCredentialRequest struct {
-	Type        CredentialType `json:"type"`
-	Fingerprint string         `json:"fingerprint"`
-	Name        string         `json:"name,omitempty"`
-	Verifier    []byte         `json:"verifier"`
+	Type        CredentialType    `json:"type"`
+	Fingerprint string            `json:"fingerprint"`
+	Name        string            `json:"name,omitempty"`
+	Verifier    []byte            `json:"verifier"`
+	Metadata    map[string]string `json:"metadata,omitempty"`
 }
 
 // Validate validates the request fields.
