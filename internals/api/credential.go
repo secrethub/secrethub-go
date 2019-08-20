@@ -44,8 +44,8 @@ type CredentialMetaDataKey string
 
 // Service metadata keys
 const (
-	ServiceMetaDataAWSKMSKey CredentialMetaDataKey = "kms_key"
-	ServiceMetaDataAWSRole   CredentialMetaDataKey = "role"
+	ServiceMetaDataAWSKMSKey CredentialMetaDataKey = "aws_kms_key"
+	ServiceMetaDataAWSRole   CredentialMetaDataKey = "aws_role"
 )
 
 // CreateCredentialRequest contains the fields to add a credential to an account.
