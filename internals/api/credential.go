@@ -25,14 +25,24 @@ var (
 	ErrInvalidRoleARN        = errAPI.Code("invalid_role_arn").StatusError("provided role is not a valid ARN", http.StatusBadRequest)
 )
 
+// CredentialMetadataKey is a key that can be used for the metadata of a credential.
+type CredentialMetadataKey string
+
+// Credential metadata keys
+const (
+	CredentialMetadataAWSKMSKey CredentialMetadataKey = "aws_kms_key"
+	CredentialMetadataAWSRole   CredentialMetadataKey = "aws_role"
+)
+
 // Credential is used to authenticate to the API and to encrypt the account key.
 type Credential struct {
-	AccountID   *uuid.UUID     `json:"account_id"`
-	Type        CredentialType `json:"algorithm"`
-	CreatedAt   time.Time      `json:"created_at"`
-	Fingerprint string         `json:"fingerprint"`
-	Name        string         `json:"name"`
-	Verifier    []byte         `json:"verifier"`
+	AccountID   *uuid.UUID                       `json:"account_id"`
+	Type        CredentialType                   `json:"algorithm"`
+	CreatedAt   time.Time                        `json:"created_at"`
+	Fingerprint string                           `json:"fingerprint"`
+	Name        string                           `json:"name"`
+	Verifier    []byte                           `json:"verifier"`
+	Metadata    map[CredentialMetadataKey]string `json:"metadata,omitempty"`
 }
 
 // CredentialType is used to identify the type of algorithm that is used for a credential.
