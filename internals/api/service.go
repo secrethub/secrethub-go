@@ -23,6 +23,12 @@ var (
 	)
 )
 
+// Service types
+const (
+	ServiceTypeAWS = "aws"
+	ServiceTypeRSA = "rsa"
+)
+
 // Service represents a service account on SecretHub.
 type Service struct {
 	AccountID   *uuid.UUID `json:"account_id"`
@@ -31,6 +37,9 @@ type Service struct {
 	Description string     `json:"description"`
 	CreatedBy   *uuid.UUID `json:"created_by,omitempty"`
 	CreatedAt   time.Time  `json:"created_at"`
+	Type        string     `json:"type"`
+	KMSKey      string     `json:"kms_key,omitempty"` // Set when type is aws
+	Role        string     `json:"role,omitempty"`    // Set when type is aws
 }
 
 // Trim removes all non-essential fields from Service for output
