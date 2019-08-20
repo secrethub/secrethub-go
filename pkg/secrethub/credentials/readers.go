@@ -4,6 +4,9 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+
+	"github.com/mitchellh/go-homedir"
 )
 
 // Errors
@@ -50,5 +53,25 @@ func FromBytes(raw []byte) Reader {
 func FromString(raw string) Reader {
 	return readerFunc(func() ([]byte, error) {
 		return []byte(raw), nil
+	})
+}
+
+func fromDefault() Reader {
+	return readerFunc(func() ([]byte, error) {
+		envCredential := os.Getenv("SECRETHUB_CREDENTIAL")
+		if envCredential != "" {
+			return []byte(envCredential), nil
+		}
+
+		configDir := os.Getenv("SECRETHUB_CONFIG_DIR")
+		if configDir == "" {
+			home, err := homedir.Dir()
+			if err != nil {
+				return nil, ErrCannotFindHomeDir(err)
+			}
+			configDir = filepath.Join(home, ".secrethub")
+		}
+
+		return FromFile(filepath.Join(configDir, ".credential")).Read()
 	})
 }

@@ -62,6 +62,9 @@ func UseAWS(awsCfg ...*awssdk.Config) Provider {
 func UseKey(credentialReader Reader, passReader Reader) Provider {
 	return func() (http.AuthProvider, Decrypter, error) {
 		// This function can be cleaned up a lot. It is mainly for demonstrating the overall idea.
+		if credentialReader == nil {
+			credentialReader = fromDefault()
+		}
 
 		bytes, err := credentialReader.Read()
 		if err != nil {
