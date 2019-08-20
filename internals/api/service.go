@@ -31,6 +31,14 @@ const (
 	ServiceTypeRSA ServiceType = "rsa"
 )
 
+type ServiceMetaDataKey string
+
+// Service metadata keys
+const (
+	ServiceMetaDataAWSKMSKey ServiceMetaDataKey = "kms_key"
+	ServiceMetaDataAWSRole   ServiceMetaDataKey = "role"
+)
+
 // Service represents a service account on SecretHub.
 type Service struct {
 	AccountID   *uuid.UUID        `json:"account_id"`
