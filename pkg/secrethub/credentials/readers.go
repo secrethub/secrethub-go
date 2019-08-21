@@ -1,10 +1,11 @@
 package credentials
 
 import (
+	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/mitchellh/go-homedir"
 )
@@ -20,47 +21,45 @@ type Reader interface {
 	Read() ([]byte, error)
 }
 
-type readerFunc func() ([]byte, error)
+type readerFunc func() (io.Reader, error)
 
-func (f readerFunc) Read() ([]byte, error) {
-	return f()
+func (f readerFunc) Read(p []byte) (n int, err error) {
+	reader, err := f()
+	if err != nil {
+		return 0, err
+	}
+	return reader.Read(p)
 }
 
-func FromReader(reader io.Reader) Reader {
-	return readerFunc(func() ([]byte, error) {
-		return ioutil.ReadAll(reader)
+func FromFile(path string) io.Reader {
+	return readerFunc(func() (io.Reader, error) {
+		return os.Open(path)
 	})
 }
 
-func FromFile(path string) Reader {
-	return readerFunc(func() ([]byte, error) {
-		return ioutil.ReadFile(path)
+func FromEnv(key string) io.Reader {
+	return readerFunc(func() (io.Reader, error) {
+		return strings.NewReader(os.Getenv(key)), nil
 	})
 }
 
-func FromEnv(key string) Reader {
-	return readerFunc(func() ([]byte, error) {
-		return []byte(os.Getenv(key)), nil
+func FromBytes(raw []byte) io.Reader {
+	return readerFunc(func() (io.Reader, error) {
+		return bytes.NewReader(raw), nil
 	})
 }
 
-func FromBytes(raw []byte) Reader {
-	return readerFunc(func() ([]byte, error) {
-		return raw, nil
+func FromString(raw string) io.Reader {
+	return readerFunc(func() (io.Reader, error) {
+		return strings.NewReader(raw), nil
 	})
 }
 
-func FromString(raw string) Reader {
-	return readerFunc(func() ([]byte, error) {
-		return []byte(raw), nil
-	})
-}
-
-func fromDefault() Reader {
-	return readerFunc(func() ([]byte, error) {
+func fromDefault() io.Reader {
+	return readerFunc(func() (io.Reader, error) {
 		envCredential := os.Getenv("SECRETHUB_CREDENTIAL")
 		if envCredential != "" {
-			return []byte(envCredential), nil
+			return strings.NewReader(envCredential), nil
 		}
 
 		configDir := os.Getenv("SECRETHUB_CONFIG_DIR")
@@ -72,6 +71,6 @@ func fromDefault() Reader {
 			configDir = filepath.Join(home, ".secrethub")
 		}
 
-		return FromFile(filepath.Join(configDir, ".credential")).Read()
+		return os.Open(filepath.Join(configDir, ".credential"))
 	})
 }

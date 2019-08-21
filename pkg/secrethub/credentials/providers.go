@@ -2,6 +2,8 @@ package credentials
 
 import (
 	"errors"
+	"io"
+	"io/ioutil"
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
 
@@ -51,14 +53,14 @@ func UseAWS(awsCfg ...*awssdk.Config) Provider {
 // Usage:
 //		credentials.UseKey(credentials.FromBytes("<a credential>"))
 //		credentials.UseKey(credentials.FromFile("~/.secrethub/credential"), credentials.FromString("passphrase"))
-func UseKey(credentialReader Reader, passReader Reader) Provider {
+func UseKey(credentialReader io.Reader, passReader io.Reader) Provider {
 	return func(_ *http.Client) (auth.Authenticator, Decrypter, error) {
 		// This function can be cleaned up a lot. It is mainly for demonstrating the overall idea.
 		if credentialReader == nil {
 			credentialReader = fromDefault()
 		}
 
-		bytes, err := credentialReader.Read()
+		bytes, err := ioutil.ReadAll(credentialReader)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -70,7 +72,7 @@ func UseKey(credentialReader Reader, passReader Reader) Provider {
 			if passReader == nil {
 				return nil, nil, errors.New("need passphrase")
 			}
-			passphrase, err := passReader.Read()
+			passphrase, err := ioutil.ReadAll(passReader)
 			if err != nil {
 				return nil, nil, err
 			}
