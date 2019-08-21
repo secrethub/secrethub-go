@@ -96,8 +96,8 @@ func TestParser(t *testing.T) {
 	assert.OK(t, err)
 	raw := fmt.Sprintf(
 		"%s.%s",
-		DefaultCredentialEncoding.EncodeToString(headerBytes),
-		DefaultCredentialEncoding.EncodeToString(payload),
+		DefaultEncoding.EncodeToString(headerBytes),
+		DefaultEncoding.EncodeToString(payload),
 	)
 
 	headerEncrypted := map[string]interface{}{
@@ -108,8 +108,8 @@ func TestParser(t *testing.T) {
 	assert.OK(t, err)
 	rawEncrypted := fmt.Sprintf(
 		"%s.%s",
-		DefaultCredentialEncoding.EncodeToString(headerEncryptedBytes),
-		DefaultCredentialEncoding.EncodeToString(payload), // payload isn't actually encrypted but that does not matter for the parser.
+		DefaultEncoding.EncodeToString(headerEncryptedBytes),
+		DefaultEncoding.EncodeToString(payload), // payload isn't actually encrypted but that does not matter for the parser.
 	)
 
 	headerTypeNotSet, err := json.Marshal(map[string]interface{}{"foo": "bar"})
@@ -148,30 +148,30 @@ func TestParser(t *testing.T) {
 			err: nil,
 		},
 		"header_one_segment": {
-			raw:      DefaultCredentialEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
+			raw:      DefaultEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
 			expected: nil,
 			err:      ErrInvalidNumberOfCredentialSegments(1),
 		},
 		"header_three_segments": {
 			raw: fmt.Sprintf(
 				"%s.%s.%s",
-				DefaultCredentialEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
-				DefaultCredentialEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
-				DefaultCredentialEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
+				DefaultEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
+				DefaultEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
+				DefaultEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
 			),
 			expected: nil,
 			err:      ErrInvalidNumberOfCredentialSegments(3),
 		},
 		"header_not_base64": {
-			raw:      fmt.Sprintf("#not_base64.%s", DefaultCredentialEncoding.EncodeToString(payload)),
+			raw:      fmt.Sprintf("#not_base64.%s", DefaultEncoding.EncodeToString(payload)),
 			expected: nil,
 			err:      ErrCannotDecodeCredentialHeader("illegal base64 data at input byte 0"),
 		},
 		"header_not_json": {
 			raw: fmt.Sprintf(
 				"%s.%s",
-				DefaultCredentialEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
-				DefaultCredentialEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
+				DefaultEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
+				DefaultEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
 			),
 			expected: nil,
 			err:      ErrCannotDecodeCredentialHeader("cannot unmarshal json: invalid character '\\x00' looking for beginning of value"),
@@ -179,8 +179,8 @@ func TestParser(t *testing.T) {
 		"header_type_not_set": {
 			raw: fmt.Sprintf(
 				"%s.%s",
-				DefaultCredentialEncoding.EncodeToString(headerTypeNotSet),
-				DefaultCredentialEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
+				DefaultEncoding.EncodeToString(headerTypeNotSet),
+				DefaultEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
 			),
 			expected: nil,
 			err:      ErrInvalidCredentialHeaderField("type"),
@@ -188,8 +188,8 @@ func TestParser(t *testing.T) {
 		"header_unsupported_type": {
 			raw: fmt.Sprintf(
 				"%s.%s",
-				DefaultCredentialEncoding.EncodeToString(headerUnsupportedType),
-				DefaultCredentialEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
+				DefaultEncoding.EncodeToString(headerUnsupportedType),
+				DefaultEncoding.EncodeToString([]byte{0, 1, 2, 3, 4, 5}),
 			),
 			expected: nil,
 			err:      ErrUnsupportedCredentialType("unsupported"),
@@ -197,14 +197,14 @@ func TestParser(t *testing.T) {
 		"payload_not_base64": {
 			raw: fmt.Sprintf(
 				"%s.#not_base64",
-				DefaultCredentialEncoding.EncodeToString(headerBytes),
+				DefaultEncoding.EncodeToString(headerBytes),
 			),
 			expected: nil,
 			err:      ErrCannotDecodeCredentialPayload("illegal base64 data at input byte 0"),
 		},
 	}
 
-	parser := newCredentialParser(DefaultCredentialDecoders)
+	parser := newParser(DefaultDecoders)
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -226,7 +226,7 @@ func TestEncodeCredential(t *testing.T) {
 	cred, err := GenerateRSACredential(1024)
 	assert.OK(t, err)
 
-	parser := newCredentialParser(DefaultCredentialDecoders)
+	parser := newParser(DefaultDecoders)
 
 	// Act
 	raw, err := encodeCredential(cred)
@@ -248,7 +248,7 @@ func TestEncodeEncryptedCredential(t *testing.T) {
 	cred, err := GenerateRSACredential(1024)
 	assert.OK(t, err)
 
-	parser := newCredentialParser(DefaultCredentialDecoders)
+	parser := newParser(DefaultDecoders)
 
 	pass := []byte("Password123")
 	key, err := NewPassBasedKey(pass)

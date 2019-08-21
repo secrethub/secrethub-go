@@ -58,7 +58,7 @@ func (c RSACredential) Verifier() ([]byte, error) {
 }
 
 // Decoder returns the decoder for the rsa private key.
-func (c RSACredential) Decoder() credentialDecoder {
+func (c RSACredential) Decoder() decoder {
 	return rsaPrivateKeyDecoder{}
 }
 
