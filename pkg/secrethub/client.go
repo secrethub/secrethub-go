@@ -57,6 +57,16 @@ func NewClient(with ...ClientOption) (*Client, error) {
 			return nil, err
 		}
 	}
+
+	// Try to use default key credentials if none provided explicitly
+	if client.decrypter == nil {
+		err := WithCredentials(credentials.UseKey(nil, nil))(client)
+		if err != nil {
+			// Maybe log that default loading of credentials failed.
+			// Do go on because we want to allow an unauthenticated client.
+		}
+	}
+
 	return client, nil
 }
 
