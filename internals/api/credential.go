@@ -25,6 +25,8 @@ var (
 	ErrAWSKMSKeyNotFound     = errAPI.Code("aws_kms_key_not_found").StatusError("could not found the KMS key", http.StatusNotFound)
 	ErrInvalidRoleARN        = errAPI.Code("invalid_role_arn").StatusError("provided role is not a valid ARN", http.StatusBadRequest)
 	ErrMissingMetadata       = errAPI.Code("missing_metadata").StatusErrorPref("expecting %s metadata provided for credentials of type %s", http.StatusBadRequest)
+	ErrInvalidMetadataKey    = errAPI.Code("invalid_metadata_key").StatusErrorPref("invalid metadata key %s for credential type %s", http.StatusBadRequest)
+	ErrUnknownMetadataKey    = errAPI.Code("unknown_metadata_key").StatusErrorPref("unknown metadata key: %s", http.StatusBadRequest)
 )
 
 // CredentialMetadataKey is a key that can be used for the metadata of a credential.
@@ -158,6 +160,14 @@ func (req *CreateCredentialRequest) Validate() error {
 		_, ok = req.Metadata[CredentialMetadataAWSKMSKey]
 		if !ok {
 			return ErrMissingMetadata(CredentialMetadataAWSKMSKey, CredentialTypeAWSSTS)
+		}
+	}
+
+	for key := range req.Metadata {
+		if key != CredentialMetadataAWSKMSKey && key != CredentialMetadataAWSRole {
+			return ErrUnknownMetadataKey(key)
+		} else if req.Type != CredentialTypeAWSSTS {
+			return ErrInvalidMetadataKey(key, req.Type)
 		}
 	}
 
