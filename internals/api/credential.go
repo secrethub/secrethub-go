@@ -69,11 +69,12 @@ func (a CredentialType) Validate() error {
 
 // CreateCredentialRequest contains the fields to add a credential to an account.
 type CreateCredentialRequest struct {
-	Type        CredentialType `json:"type"`
-	Fingerprint string         `json:"fingerprint"`
-	Name        string         `json:"name,omitempty"`
-	Verifier    []byte         `json:"verifier"`
-	Proof       interface{}    `json:"proof"`
+	Type        CredentialType                   `json:"type"`
+	Fingerprint string                           `json:"fingerprint"`
+	Name        string                           `json:"name,omitempty"`
+	Verifier    []byte                           `json:"verifier"`
+	Proof       interface{}                      `json:"proof"`
+	Metadata    map[CredentialMetadataKey]string `json:"metadata"`
 }
 
 // UnmarshalJSON converts a JSON representation into a CreateCredentialRequest with the correct Proof.
