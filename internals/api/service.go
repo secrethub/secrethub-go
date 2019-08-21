@@ -24,15 +24,6 @@ var (
 	ErrAccessDeniedToKMSKey = errAPI.Code("access_denied").StatusError("access to KMS key is denied", http.StatusForbidden)
 )
 
-// ServiceType is a possible value of Service.Type.
-type ServiceType string
-
-// Service types
-const (
-	ServiceTypeAWS ServiceType = "aws"
-	ServiceTypeRSA ServiceType = "rsa"
-)
-
 // Service represents a service account on SecretHub.
 type Service struct {
 	AccountID   *uuid.UUID  `json:"account_id"`
@@ -40,7 +31,7 @@ type Service struct {
 	Repo        *Repo       `json:"repo"`
 	Description string      `json:"description"`
 	CreatedBy   *uuid.UUID  `json:"created_by,omitempty"`
-	Type        ServiceType `json:"type"`
+	Credential  *Credential `json:"credential"`
 }
 
 // Trim removes all non-essential fields from Service for output
