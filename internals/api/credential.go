@@ -27,6 +27,7 @@ var (
 	ErrMissingMetadata       = errAPI.Code("missing_metadata").StatusErrorPref("expecting %s metadata provided for credentials of type %s", http.StatusBadRequest)
 	ErrInvalidMetadataKey    = errAPI.Code("invalid_metadata_key").StatusErrorPref("invalid metadata key %s for credential type %s", http.StatusBadRequest)
 	ErrUnknownMetadataKey    = errAPI.Code("unknown_metadata_key").StatusErrorPref("unknown metadata key: %s", http.StatusBadRequest)
+	ErrRoleDoesNotMatch      = errAPI.Code("role_does_not_match").StatusError("role in metadata does not match the verifier", http.StatusBadRequest)
 )
 
 // CredentialMetadataKey is a key that can be used for the metadata of a credential.
@@ -154,7 +155,7 @@ func (req *CreateCredentialRequest) Validate() error {
 			return ErrMissingMetadata(CredentialMetadataAWSRole, CredentialTypeAWSSTS)
 		}
 		if !bytes.Equal(req.Verifier, []byte(role)) {
-			return ErrInvalidVerifier
+			return ErrRoleDoesNotMatch
 		}
 
 		_, ok = req.Metadata[CredentialMetadataAWSKMSKey]
