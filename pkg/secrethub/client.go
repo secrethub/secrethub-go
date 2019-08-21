@@ -5,7 +5,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
-	"github.com/secrethub/secrethub-go/pkg/secrethub/http"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
 // Client is the SecretHub client.

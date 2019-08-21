@@ -10,7 +10,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials/sessions"
-	"github.com/secrethub/secrethub-go/pkg/secrethub/http"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
 // Verifier exports verification bytes that can be used to verify signed data is processed by the owner of a signer.

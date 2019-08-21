@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/secrethub/secrethub-go/internals/api"
-	"github.com/secrethub/secrethub-go/pkg/secrethub/http"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/endpoints"

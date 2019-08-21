@@ -5,7 +5,7 @@ import (
 
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/auth"
-	"github.com/secrethub/secrethub-go/pkg/secrethub/http"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
 const expirationMargin = time.Second * 30

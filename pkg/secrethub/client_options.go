@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
-	httpclient "github.com/secrethub/secrethub-go/pkg/secrethub/http"
+	httpclient "github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
 type ClientOption func(*Client) error

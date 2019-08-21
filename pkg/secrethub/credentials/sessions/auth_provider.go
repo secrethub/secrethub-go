@@ -3,7 +3,7 @@ package sessions
 import (
 	"net/http"
 
-	httpclient "github.com/secrethub/secrethub-go/pkg/secrethub/http"
+	httpclient "github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
 func NewSessionRefresher(httpClient *httpclient.Client, sessionCreator SessionCreator) *SessionRefresher {
