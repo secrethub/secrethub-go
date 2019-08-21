@@ -4,7 +4,6 @@ package fakeclient
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
-	"github.com/secrethub/secrethub-go/pkg/secrethub"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 )
 
@@ -18,8 +17,8 @@ type ServiceService struct {
 }
 
 // Create implements the ServiceService interface Create function.
-func (s *ServiceService) Create(path string, description string, credential credentials.Verifier, encrypter credentials.Encrypter) (*api.Service, error) {
-	return s.Creator.Create(path, description, credential, encrypter)
+func (s *ServiceService) Create(path string, description string, credentialCreator credentials.Creator) (*api.Service, error) {
+	return s.Creator.Create(path, description, credentialCreator)
 }
 
 // Delete implements the ServiceService interface Delete function.
@@ -37,25 +36,20 @@ func (s *ServiceService) List(path string) ([]*api.Service, error) {
 	return s.Lister.List(path)
 }
 
-// AWS implements the ServiceService interface AWS function.
-func (s *ServiceService) AWS() secrethub.ServiceAWSService {
-	return s.AWSService
-}
-
 // ServiceCreater mocks the Create function.
 type ServiceCreater struct {
-	ArgPath        string
-	ArgDescription string
-	ArgCredential  credentials.Verifier
-	ReturnsService *api.Service
-	Err            error
+	ArgPath              string
+	ArgDescription       string
+	ArgCredentialCreator credentials.Creator
+	ReturnsService       *api.Service
+	Err                  error
 }
 
 // Create saves the arguments it was called with and returns the mocked response.
-func (c *ServiceCreater) Create(path string, description string, credential credentials.Verifier, encrypter credentials.Encrypter) (*api.Service, error) {
+func (c *ServiceCreater) Create(path string, description string, credentialCreator credentials.Creator) (*api.Service, error) {
 	c.ArgPath = path
 	c.ArgDescription = description
-	c.ArgCredential = credential
+	c.ArgCredentialCreator = credentialCreator
 	return c.ReturnsService, c.Err
 }
 

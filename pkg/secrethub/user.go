@@ -12,7 +12,7 @@ type UserService interface {
 	// Me gets the account's user if it exists.
 	Me() (*api.User, error)
 	// Create creates a new user at SecretHub.
-	Create(username, email, fullName string, verifier credentials.Verifier, encrypter credentials.Encrypter) (*api.User, error)
+	Create(username, email, fullName string, credential credentials.Creator) (*api.User, error)
 	// Get a user by their username.
 	Get(username string) (*api.User, error)
 }
@@ -33,7 +33,7 @@ func (s userService) Me() (*api.User, error) {
 }
 
 // Create creates a new user at SecretHub.
-func (s userService) Create(username, email, fullName string, verifier credentials.Verifier, encrypter credentials.Encrypter) (*api.User, error) {
+func (s userService) Create(username, email, fullName string, credentialCreator credentials.Creator) (*api.User, error) {
 	err := api.ValidateUsername(username)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -47,6 +47,11 @@ func (s userService) Create(username, email, fullName string, verifier credentia
 	err = api.ValidateFullName(fullName)
 	if err != nil {
 		return nil, errio.Error(err)
+	}
+
+	verifier, encrypter, err := credentialCreator.Create()
+	if err != nil {
+		return nil, err
 	}
 
 	accountKey, err := generateAccountKey()
