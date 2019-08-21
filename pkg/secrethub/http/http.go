@@ -126,7 +126,7 @@ func (c *Client) Options(with ...Option) {
 	}
 }
 
-func (c *Client) Authenticate(in interface{}) (*api.Session, error) {
+func (c *Client) CreateSession(in interface{}) (*api.Session, error) {
 	var out api.Session
 	rawURL := fmt.Sprintf(pathAuthenticate, c.base)
 	err := c.post(rawURL, http.StatusCreated, in, &out)
@@ -618,6 +618,16 @@ func (c *Client) patch(rawURL string, expectedStatus int, in interface{}, out in
 func (c *Client) delete(rawURL string, out interface{}) error {
 	err := c.do(rawURL, "DELETE", http.StatusOK, nil, out)
 	return errio.Error(err)
+}
+
+func (c *Client) authenticateRequest(r *http.Request) {
+	authenticator := c.authenticator
+
+	if c.sessionProvider != nil {
+		authenticator = c.sessionProvider.GetSession(c)
+	}
+
+	authenticator.Authenticate(r)
 }
 
 // Helper function to make an http request. Parses the url, encodes in as the request body,

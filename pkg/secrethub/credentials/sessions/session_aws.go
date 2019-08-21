@@ -37,7 +37,7 @@ func (s *awsSessionCreator) Create(httpClient *http.Client) (Session, error) {
 	}
 
 	req := api.NewAuthRequestAWSSTS(api.SessionTypeHMAC, region, getCallerIdentityReq)
-	resp, err := httpClient.Authenticate(req)
+	resp, err := httpClient.CreateSession(req)
 	if err != nil {
 		return nil, err
 	}
