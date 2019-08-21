@@ -9,9 +9,9 @@ import (
 
 type Option func(*Client)
 
-func WithServerURL(remote string) Option {
+func WithServerURL(url string) Option {
 	return func(client *Client) {
-		client.base = remote
+		client.base = url
 	}
 }
 
