@@ -7,7 +7,7 @@ import (
 
 type Option func(*Client)
 
-func WithRemote(remote string) Option {
+func WithServerURL(remote string) Option {
 	return func(client *Client) {
 		client.base = remote
 	}

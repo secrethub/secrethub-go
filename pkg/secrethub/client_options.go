@@ -17,9 +17,9 @@ func WithTimeout(timeout time.Duration) ClientOption {
 	}
 }
 
-func WithRemote(url string) ClientOption {
+func WithServerURL(url string) ClientOption {
 	return func(c *Client) error {
-		c.httpClient.Options(httpclient.WithRemote(url))
+		c.httpClient.Options(httpclient.WithServerURL(url))
 		return nil
 	}
 }
