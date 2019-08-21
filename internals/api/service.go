@@ -1,9 +1,9 @@
 package api
 
 import (
-	"net/http"
-
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 )
@@ -31,6 +31,7 @@ type Service struct {
 	Repo        *Repo       `json:"repo"`
 	Description string      `json:"description"`
 	CreatedBy   *uuid.UUID  `json:"created_by,omitempty"`
+	CreatedAt   time.Time   `json:"created_at"`
 	Credential  *Credential `json:"credential"`
 }
 
