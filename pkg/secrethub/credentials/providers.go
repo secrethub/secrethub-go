@@ -35,23 +35,15 @@ type Encrypter interface {
 	Wrap(plaintext []byte) (*api.EncryptedData, error)
 }
 
-type staticCredentialAuthProvider struct {
-	credential auth.Signer
-}
-
-func (s staticCredentialAuthProvider) Provide(_ *http.Client) (auth.Authenticator, error) {
-	return auth.NewHTTPSigner(s.credential), nil
-}
-
-type Provider func() (http.AuthProvider, Decrypter, error)
+type Provider func(*http.Client) (auth.Authenticator, Decrypter, error)
 
 func UseAWS(awsCfg ...*awssdk.Config) Provider {
-	return func() (http.AuthProvider, Decrypter, error) {
+	return func(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
 		decrypter, err := aws.NewKMSDecrypter(awsCfg...)
 		if err != nil {
 			return nil, nil, err
 		}
-		authProvider := sessions.NewAuthProvider(sessions.NewAWSSessionCreator(awsCfg...))
+		authProvider := sessions.NewSessionRefresher(httpClient, sessions.NewAWSSessionCreator(awsCfg...))
 		return authProvider, decrypter, nil
 	}
 }
@@ -60,7 +52,7 @@ func UseAWS(awsCfg ...*awssdk.Config) Provider {
 //		credentials.UseKey(credentials.FromBytes("<a credential>"))
 //		credentials.UseKey(credentials.FromFile("~/.secrethub/credential"), credentials.FromString("passphrase"))
 func UseKey(credentialReader Reader, passReader Reader) Provider {
-	return func() (http.AuthProvider, Decrypter, error) {
+	return func(_ *http.Client) (auth.Authenticator, Decrypter, error) {
 		// This function can be cleaned up a lot. It is mainly for demonstrating the overall idea.
 		if credentialReader == nil {
 			credentialReader = fromDefault()
@@ -93,13 +85,13 @@ func UseKey(credentialReader Reader, passReader Reader) Provider {
 			} else if err != nil {
 				return nil, nil, err
 			}
-			return staticCredentialAuthProvider{credential: credential}, credential, nil
+			return auth.NewHTTPSigner(credential), credential, nil
 		}
 		credential, err := encoded.Decode()
 		if err != nil {
 			return nil, nil, err
 		}
 
-		return staticCredentialAuthProvider{credential: credential}, credential, nil
+		return auth.NewHTTPSigner(credential), credential, nil
 	}
 }

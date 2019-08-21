@@ -3,6 +3,8 @@ package http
 import (
 	"net/http"
 	"time"
+
+	"github.com/secrethub/secrethub-go/internals/auth"
 )
 
 type Option func(*Client)
@@ -25,8 +27,8 @@ func WithTimeout(timeout time.Duration) Option {
 	}
 }
 
-func WithAuthProvider(provider AuthProvider) Option {
+func WithAuthenticator(authenticator auth.Authenticator) Option {
 	return func(client *Client) {
-		client.authProvider = provider
+		client.authenticator = authenticator
 	}
 }

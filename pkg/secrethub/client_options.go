@@ -33,12 +33,12 @@ func WithTransport(transport http.RoundTripper) ClientOption {
 
 func WithCredentials(provider credentials.Provider) ClientOption {
 	return func(c *Client) error {
-		authProvider, decrypter, err := provider()
+		authProvider, decrypter, err := provider(c.httpClient)
 		if err != nil {
 			return err
 		}
 		c.decrypter = decrypter
-		c.httpClient.Options(httpclient.WithAuthProvider(authProvider))
+		c.httpClient.Options(httpclient.WithAuthenticator(authProvider))
 		return nil
 	}
 }

@@ -1,28 +1,31 @@
 package sessions
 
 import (
-	"github.com/secrethub/secrethub-go/internals/auth"
-	"github.com/secrethub/secrethub-go/pkg/secrethub/http"
+	"net/http"
+
+	httpclient "github.com/secrethub/secrethub-go/pkg/secrethub/http"
 )
 
-func NewAuthProvider(sessionCreator SessionCreator) *AuthProvider {
-	return &AuthProvider{
+func NewSessionRefresher(httpClient *httpclient.Client, sessionCreator SessionCreator) *SessionRefresher {
+	return &SessionRefresher{
+		httpClient:     httpClient,
 		sessionCreator: sessionCreator,
 	}
 }
 
-type AuthProvider struct {
+type SessionRefresher struct {
+	httpClient     *httpclient.Client
 	currentSession Session
 	sessionCreator SessionCreator
 }
 
-func (p *AuthProvider) Provide(httpClient *http.Client) (auth.Authenticator, error) {
-	if p.currentSession == nil || p.currentSession.NeedsRefresh() {
-		newSession, err := p.sessionCreator.Create(httpClient)
+func (r *SessionRefresher) Authenticate(req *http.Request) error {
+	if r.currentSession == nil || r.currentSession.NeedsRefresh() {
+		newSession, err := r.sessionCreator.Create(r.httpClient)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		p.currentSession = newSession
+		r.currentSession = newSession
 	}
-	return p.currentSession.Authenticator(), nil
+	return r.currentSession.Authenticator().Authenticate(req)
 }

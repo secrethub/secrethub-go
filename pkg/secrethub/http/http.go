@@ -89,16 +89,12 @@ type ClientOptions struct {
 	Timeout   time.Duration
 }
 
-type AuthProvider interface {
-	Provide(httpClient *Client) (auth.Authenticator, error)
-}
-
 // Client is a raw client for the SecretHub http API.
 type Client struct {
-	client       *http.Client
-	authProvider AuthProvider
-	base         string // base url
-	version      string
+	client        *http.Client
+	authenticator auth.Authenticator
+	base          string // base url
+	version       string
 }
 
 // NewClient configures a new Client and overrides default values
@@ -620,16 +616,6 @@ func (c *Client) delete(rawURL string, out interface{}) error {
 	return errio.Error(err)
 }
 
-func (c *Client) authenticateRequest(r *http.Request) {
-	authenticator := c.authenticator
-
-	if c.sessionProvider != nil {
-		authenticator = c.sessionProvider.GetSession(c)
-	}
-
-	authenticator.Authenticate(r)
-}
-
 // Helper function to make an http request. Parses the url, encodes in as the request body,
 // executes an http request. If the server returns the wrong statuscode, we try to parse
 // the error and return it. If everything went well, it decodes the response body into out.
@@ -649,13 +635,8 @@ func (c *Client) do(rawURL string, method string, expectedStatus int, in interfa
 		return errio.Error(err)
 	}
 
-	if c.authProvider != nil {
-		authenticator, err := c.authProvider.Provide(c)
-		if err != nil {
-			return errio.Error(err)
-		}
-
-		err = authenticator.Authenticate(req)
+	if c.authenticator != nil {
+		err = c.authenticator.Authenticate(req)
 		if err != nil {
 			return errio.Error(err)
 		}
