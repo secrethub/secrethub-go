@@ -64,7 +64,7 @@ func UseKey(credentialReader io.Reader, passReader io.Reader) Provider {
 		if err != nil {
 			return nil, nil, err
 		}
-		encoded, err := DefaultCredentialParser.Parse(string(bytes))
+		encoded, err := DefaultCredentialParser.parse(string(bytes))
 		if err != nil {
 			return nil, nil, err
 		}

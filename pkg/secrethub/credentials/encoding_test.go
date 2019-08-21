@@ -120,12 +120,12 @@ func TestParser(t *testing.T) {
 
 	cases := map[string]struct {
 		raw      string
-		expected *EncodedCredential
+		expected *encodedCredential
 		err      error
 	}{
 		"valid_rsa": {
 			raw: raw,
-			expected: &EncodedCredential{
+			expected: &encodedCredential{
 				Raw:                 raw,
 				Header:              header,
 				RawHeader:           headerBytes,
@@ -137,7 +137,7 @@ func TestParser(t *testing.T) {
 		},
 		"valid_rsa_encrypted": {
 			raw: rawEncrypted,
-			expected: &EncodedCredential{
+			expected: &encodedCredential{
 				Raw:                 rawEncrypted,
 				Header:              headerEncrypted,
 				RawHeader:           headerEncryptedBytes,
@@ -204,12 +204,12 @@ func TestParser(t *testing.T) {
 		},
 	}
 
-	parser := NewCredentialParser(DefaultCredentialDecoders)
+	parser := newCredentialParser(DefaultCredentialDecoders)
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// Act
-			actual, err := parser.Parse(tc.raw)
+			actual, err := parser.parse(tc.raw)
 
 			// Assert
 			assert.Equal(t, err, tc.err)
@@ -226,13 +226,13 @@ func TestEncodeCredential(t *testing.T) {
 	cred, err := GenerateRSACredential(1024)
 	assert.OK(t, err)
 
-	parser := NewCredentialParser(DefaultCredentialDecoders)
+	parser := newCredentialParser(DefaultCredentialDecoders)
 
 	// Act
-	raw, err := EncodeCredential(cred)
+	raw, err := encodeCredential(cred)
 	assert.OK(t, err)
 
-	parsed, err := parser.Parse(raw)
+	parsed, err := parser.parse(raw)
 	assert.OK(t, err)
 
 	decoded, err := parsed.Decode()
@@ -248,7 +248,7 @@ func TestEncodeEncryptedCredential(t *testing.T) {
 	cred, err := GenerateRSACredential(1024)
 	assert.OK(t, err)
 
-	parser := NewCredentialParser(DefaultCredentialDecoders)
+	parser := newCredentialParser(DefaultCredentialDecoders)
 
 	pass := []byte("Password123")
 	key, err := NewPassBasedKey(pass)
@@ -258,7 +258,7 @@ func TestEncodeEncryptedCredential(t *testing.T) {
 	raw, err := EncodeEncryptedCredential(cred, key)
 	assert.OK(t, err)
 
-	parsed, err := parser.Parse(raw)
+	parsed, err := parser.parse(raw)
 	assert.OK(t, err)
 
 	decoded, err := parsed.DecodeEncrypted(key)
@@ -325,7 +325,7 @@ func TestCredentialIsEncrypted(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			cred := &EncodedCredential{
+			cred := &encodedCredential{
 				EncryptionAlgorithm: tc.algorithm,
 			}
 

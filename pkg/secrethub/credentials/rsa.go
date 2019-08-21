@@ -58,8 +58,8 @@ func (c RSACredential) Verifier() ([]byte, error) {
 }
 
 // Decoder returns the decoder for the rsa private key.
-func (c RSACredential) Decoder() CredentialDecoder {
-	return RSAPrivateKeyDecoder{}
+func (c RSACredential) Decoder() credentialDecoder {
+	return rsaPrivateKeyDecoder{}
 }
 
 // Wrap encrypts data, typically an account key.
