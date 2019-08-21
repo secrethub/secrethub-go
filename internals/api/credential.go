@@ -23,6 +23,7 @@ var (
 	ErrAWSAuthFailed         = errAPI.Code("aws_auth_failed").StatusError("authentication not accepted by AWS", http.StatusUnauthorized)
 	ErrAWSKMSKeyNotFound     = errAPI.Code("aws_kms_key_not_found").StatusError("could not found the KMS key", http.StatusNotFound)
 	ErrInvalidRoleARN        = errAPI.Code("invalid_role_arn").StatusError("provided role is not a valid ARN", http.StatusBadRequest)
+	ErrMissingMetadata       = errAPI.Code("missing_metadata").StatusErrorPref("expecting %s metadata provided for credentials of type %s", http.StatusBadRequest)
 )
 
 // CredentialMetadataKey is a key that can be used for the metadata of a credential.
@@ -118,25 +119,42 @@ func (req *CreateCredentialRequest) Validate() error {
 	if req.Fingerprint == "" {
 		return ErrMissingField("fingerprint")
 	}
+
 	if req.Verifier == nil {
 		return ErrMissingField("verifier")
 	}
+
 	if req.Type == "" {
 		return ErrMissingField("type")
 	}
+
 	err := req.Type.Validate()
 	if err != nil {
 		return err
 	}
+
 	if req.Type == CredentialTypeAWSSTS && req.Proof == nil {
 		return ErrMissingField("proof")
 	}
+
 	fingerprint, err := GetFingerprint(req.Type, req.Verifier)
 	if err != nil {
 		return err
 	}
 	if req.Fingerprint != fingerprint {
 		return ErrInvalidFingerprint
+	}
+
+	if req.Type == CredentialTypeAWSSTS {
+		_, ok := req.Metadata[CredentialMetadataAWSRole]
+		if !ok {
+			return ErrMissingMetadata(CredentialMetadataAWSRole, CredentialTypeAWSSTS)
+		}
+
+		_, ok = req.Metadata[CredentialMetadataAWSKMSKey]
+		if !ok {
+			return ErrMissingMetadata(CredentialMetadataAWSKMSKey, CredentialTypeAWSSTS)
+		}
 	}
 
 	return nil
