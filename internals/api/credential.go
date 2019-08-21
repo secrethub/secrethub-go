@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
@@ -146,9 +147,12 @@ func (req *CreateCredentialRequest) Validate() error {
 	}
 
 	if req.Type == CredentialTypeAWSSTS {
-		_, ok := req.Metadata[CredentialMetadataAWSRole]
+		role, ok := req.Metadata[CredentialMetadataAWSRole]
 		if !ok {
 			return ErrMissingMetadata(CredentialMetadataAWSRole, CredentialTypeAWSSTS)
+		}
+		if !bytes.Equal(req.Verifier, []byte(role)) {
+			return ErrInvalidVerifier
 		}
 
 		_, ok = req.Metadata[CredentialMetadataAWSKMSKey]
