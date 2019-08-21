@@ -26,11 +26,12 @@ var (
 
 // Service represents a service account on SecretHub.
 type Service struct {
-	AccountID   *uuid.UUID `json:"account_id"`
-	ServiceID   string     `json:"service_id"`
-	Repo        *Repo      `json:"repo"`
-	Description string     `json:"description"`
-	CreatedBy   *uuid.UUID `json:"created_by,omitempty"`
+	AccountID   *uuid.UUID  `json:"account_id"`
+	ServiceID   string      `json:"service_id"`
+	Repo        *Repo       `json:"repo"`
+	Description string      `json:"description"`
+	CreatedBy   *uuid.UUID  `json:"created_by,omitempty"`
+	Credential  *Credential `json:"credential"`
 }
 
 // Trim removes all non-essential fields from Service for output
