@@ -54,8 +54,8 @@ func setup() (chi.Router, []ClientOption, func()) {
 	server := httptest.NewServer(handler)
 
 	opts := []ClientOption{
-		//	WithServerURL(server.URL),
-		//	WithCredentials(credentials.RSA(cred1)),
+		WithServerURL(server.URL),
+		WithCredentials(cred1),
 	}
 
 	return router, opts, server.Close
