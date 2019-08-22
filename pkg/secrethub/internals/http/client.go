@@ -18,6 +18,9 @@ var (
 	log = logging.MustGetLogger("log")
 
 	errHTTP = errio.Namespace("http")
+
+	ErrClientTimeout = errHTTP.Code("timeout").Error("client timed out during request. Please try again.")
+	ErrRequestFailed = errHTTP.Code("request_failed").ErrorPref("request to API server failed: %v")
 )
 
 const (
@@ -642,7 +645,11 @@ func (c *Client) do(rawURL string, method string, expectedStatus int, in interfa
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return errio.Error(err)
+		urlErr := err.(*url.Error)
+		if urlErr.Timeout() {
+			return ErrClientTimeout
+		}
+		return ErrRequestFailed(urlErr.Error())
 	}
 
 	if resp.StatusCode == http.StatusUpgradeRequired {
