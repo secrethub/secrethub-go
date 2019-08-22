@@ -83,7 +83,7 @@ const (
 	// DefaultServerURL defines the default SecretHub API endpoint.
 	DefaultServerURL = "https://api.secrethub.io"
 	// DefaultTimeout defines the default client http timeout.
-	DefaultTimeout = time.Second * 10
+	DefaultTimeout = time.Second * 30
 )
 
 // Client is a raw client for the SecretHub HTTP API.
