@@ -55,7 +55,7 @@ func FromString(raw string) io.Reader {
 	})
 }
 
-func fromDefault() io.Reader {
+func credentialFromDefault() io.Reader {
 	return readerFunc(func() (io.Reader, error) {
 		envCredential := os.Getenv("SECRETHUB_CREDENTIAL")
 		if envCredential != "" {

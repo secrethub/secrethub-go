@@ -57,7 +57,7 @@ func UseKey(credentialReader io.Reader, passReader io.Reader) Provider {
 	return func(_ *http.Client) (auth.Authenticator, Decrypter, error) {
 		// This function can be cleaned up a lot. It is mainly for demonstrating the overall idea.
 		if credentialReader == nil {
-			credentialReader = fromDefault()
+			credentialReader = credentialFromDefault()
 		}
 
 		bytes, err := ioutil.ReadAll(credentialReader)
