@@ -367,6 +367,10 @@ func TestCount(t *testing.T) {
 			path:     "foo/bar",
 			expected: 2,
 		},
+		"unclean": {
+			path:     "foo//bar",
+			expected: 2,
+		},
 	}
 
 	for name, tc := range cases {

@@ -21,13 +21,6 @@ const (
 // Join joins any number of elements into a path, adding a separator
 // if necessary. Empty string elements are ignored.
 func Join(elements ...string) string {
-	switch len(elements) {
-	case 0:
-		return ""
-	case 1:
-		return strings.Trim(elements[0], elemSep)
-	}
-
 	result := ""
 	for _, e := range elements {
 		e = strings.Trim(e, elemSep)
@@ -38,7 +31,7 @@ func Join(elements ...string) string {
 		}
 	}
 
-	return result
+	return Clean(result)
 }
 
 // HasVersion returns true when a version suffix is specified in the path.
@@ -94,13 +87,13 @@ func AddVersion(path string, version int) string {
 		return path + suffix
 	}
 
-	return path[:i] + suffix
+	return Clean(path[:i] + suffix)
 }
 
 // Base returns the last element of a path. Trailing separators and version
 // numbers are removed.
 func Base(path string) string {
-	path = strings.Trim(path, elemSep)
+	path = Clean(path)
 
 	for i := len(path) - 1; i >= 0; i-- {
 		if path[i] == elemSepByte {
@@ -152,7 +145,7 @@ func Repo(path string) string {
 
 // Namespace returns the first element of a path, removing trailing separators.
 func Namespace(path string) string {
-	path = strings.Trim(path, elemSep)
+	path = Clean(path)
 	if len(path) == 0 {
 		return ""
 	}
@@ -172,6 +165,13 @@ func Namespace(path string) string {
 func Clean(path string) string {
 	if len(path) == 0 {
 		return ""
+	}
+
+	split := strings.SplitN(path, versionSep, 2)
+	path = split[0]
+	versionSuffix := ""
+	if len(split) > 1 {
+		versionSuffix = versionSep + split[1]
 	}
 
 	out := []byte{}
@@ -196,7 +196,7 @@ func Clean(path string) string {
 		out = append(out, path[i])
 	}
 
-	return string(out)
+	return string(out) + versionSuffix
 }
 
 // Count returns the number of elements in a path, excluding the version suffix.
