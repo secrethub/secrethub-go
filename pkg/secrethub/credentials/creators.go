@@ -36,7 +36,7 @@ func (c *KeyCreator) Export() []byte {
 
 func CreateAWS(kmsKeyID string, roleARN string, awsCfg ...*awssdk.Config) Creator {
 	return creatorFunc(func() (Verifier, Encrypter, error) {
-		creator, err := aws.NewServiceCreator(kmsKeyID, roleARN, awsCfg...)
+		creator, err := aws.NewCredentialCreator(kmsKeyID, roleARN, awsCfg...)
 		if err != nil {
 			return nil, nil, err
 		}

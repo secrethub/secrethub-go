@@ -66,7 +66,7 @@ func TestServiceCreator_AddProof(t *testing.T) {
 
 			var usedPlaintext string
 
-			sc := ServiceCreator{
+			sc := CredentialCreator{
 				kmsSvc: &kmsEncryptMock{},
 				getEncryptRequest: func(plaintext string, keyID string, kms kmsiface.KMSAPI) ([]byte, error) {
 					usedPlaintext = plaintext
@@ -125,7 +125,7 @@ func TestServiceCreator_Wrap(t *testing.T) {
 				err:  tc.encryptErr,
 			}
 
-			sc := ServiceCreator{
+			sc := CredentialCreator{
 				kmsSvc: &kmsMock,
 			}
 
