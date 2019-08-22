@@ -13,7 +13,7 @@ type ClientOption func(*Client)
 // WithServerURL overrides the default server endpoint URL used by the HTTP client.
 func WithServerURL(url string) ClientOption {
 	return func(client *Client) {
-		client.base = url
+		client.base = getBaseURL(url)
 	}
 }
 

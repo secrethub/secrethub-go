@@ -38,7 +38,7 @@ func WithTransport(transport http.RoundTripper) ClientOption {
 // WithCredentials sets the credential to be used for authenticating to the API and decrypting the account key.
 func WithCredentials(provider credentials.Provider) ClientOption {
 	return func(c *Client) error {
-		credential, err := provider(c.httpClient)
+		credential, err := provider.Provide(c.httpClient)
 		if err != nil {
 			return err
 		}

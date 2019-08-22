@@ -94,16 +94,13 @@ type Client struct {
 
 // NewClient configures a new Client and applies the provided ClientOptions.
 func NewClient(with ...ClientOption) *Client {
-	serverURL := DefaultServerURL
 	timeout := DefaultTimeout
-	serverURL = strings.TrimSuffix(serverURL, "/")
-	serverURL = serverURL + baseURLPath
 
 	client := &Client{
 		client: &http.Client{
 			Timeout: timeout,
 		},
-		base: serverURL,
+		base: getBaseURL(DefaultServerURL),
 		//version: secrethub.ClientVersion,
 	}
 	client.Options(with...)
@@ -662,4 +659,8 @@ func (c *Client) do(rawURL string, method string, expectedStatus int, in interfa
 	}
 
 	return nil
+}
+
+func getBaseURL(serverURL string) string {
+	return strings.TrimSuffix(serverURL, "/") + baseURLPath
 }
