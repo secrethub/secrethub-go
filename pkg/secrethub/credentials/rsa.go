@@ -1,9 +1,13 @@
 package credentials
 
 import (
+	"net/http"
+
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	httpclient "github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
 // RSACredential implements a Credential for an RSA key.
@@ -115,4 +119,14 @@ func (c RSACredential) Type() api.CredentialType {
 func (c RSACredential) AddProof(_ *api.CreateCredentialRequest) error {
 	// Currently not implemented for RSA credentials
 	return nil
+}
+
+// Authenticate implements the auth.Authenticator interface.
+func (c RSACredential) Authenticate(r *http.Request) error {
+	return auth.NewHTTPSigner(c).Authenticate(r)
+}
+
+// Provide implements the credentials.Provider interface.
+func (c RSACredential) Provide(_ *httpclient.Client) (UsableCredential, error) {
+	return c, nil
 }

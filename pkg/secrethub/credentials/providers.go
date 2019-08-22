@@ -25,7 +25,9 @@ type usableCredential struct {
 }
 
 // Provider provides a credential that can be used for authentication and decryption when called.
-type Provider func(*http.Client) (UsableCredential, error)
+type Provider interface {
+	Provide(*http.Client) (UsableCredential, error)
+}
 
 // UseAWS returns a Provider that can be used to use an assumed AWS role as a credential for SecretHub.
 // The provided awsCfg is used to configure the AWS client.
@@ -36,14 +38,14 @@ type Provider func(*http.Client) (UsableCredential, error)
 //		credentials.UseAWS()
 //		credentials.UseAWS(&aws.Config{Region: aws.String("eu-west-1")})
 func UseAWS(awsCfg ...*awssdk.Config) Provider {
-	return func(httpClient *http.Client) (UsableCredential, error) {
+	return providerFunc(func(httpClient *http.Client) (UsableCredential, error) {
 		decrypter, err := aws.NewKMSDecrypter(awsCfg...)
 		if err != nil {
 			return nil, err
 		}
 		authProvider := sessions.NewSessionRefresher(httpClient, sessions.NewAWSSessionCreator(awsCfg...))
 		return usableCredential{decrypter, authProvider}, nil
-	}
+	})
 }
 
 // UseKey returns a Provider that reads a key credential from credentialReader.
@@ -58,7 +60,7 @@ func UseAWS(awsCfg ...*awssdk.Config) Provider {
 //		credentials.UseKey(credentials.FromString("<a credential>"), nil)
 //		credentials.UseKey(credentials.FromFile("/path/to/credential"), credentials.FromString("passphrase"))
 func UseKey(credentialReader io.Reader, passReader io.Reader) Provider {
-	return func(_ *http.Client) (UsableCredential, error) {
+	return providerFunc(func(_ *http.Client) (UsableCredential, error) {
 		// This function can be cleaned up a lot. It is mainly for demonstrating the overall idea.
 		if credentialReader == nil {
 			credentialReader = credentialFromDefault()
@@ -101,6 +103,14 @@ func UseKey(credentialReader io.Reader, passReader io.Reader) Provider {
 			return nil, err
 		}
 
-		return usableCredential{credential, auth.NewHTTPSigner(credential)}, nil
-	}
+		return credential, nil
+	})
+}
+
+// providerFunc is a helper type to let any func(*http.Client) (UsableCredential, error) implement the Provider interface.
+type providerFunc func(*http.Client) (UsableCredential, error)
+
+// Provide lets providerFunc implement the Provider interface.
+func (f providerFunc) Provide(httpClient *http.Client) (UsableCredential, error) {
+	return f(httpClient)
 }
