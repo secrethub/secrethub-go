@@ -57,8 +57,8 @@ func (c RSACredential) Verifier() ([]byte, error) {
 	return c.RSAPrivateKey.Public().Export()
 }
 
-// Decoder returns the decoder for the rsa private key.
-func (c RSACredential) Decoder() decoder {
+// Decoder returns the Decoder for the rsa private key.
+func (c RSACredential) Decoder() Decoder {
 	return rsaPrivateKeyDecoder{}
 }
 

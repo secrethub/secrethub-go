@@ -28,12 +28,12 @@ var (
 )
 
 var (
-	// DefaultParser defines the default parser for credentials.
-	DefaultParser = newParser(DefaultDecoders)
 	// DefaultDecoders defines the default list of supported decoders.
-	DefaultDecoders = []decoder{rsaPrivateKeyDecoder{}}
-	// DefaultEncoding defines the default encoding used for encoding credential segments.
-	DefaultEncoding = base64.URLEncoding.WithPadding(base64.NoPadding)
+	DefaultDecoders = []Decoder{rsaPrivateKeyDecoder{}}
+	// defaultParser defines the default parser for credentials.
+	defaultParser = newParser(DefaultDecoders)
+	// defaultEncoding defines the default encoding used for encoding credential segments.
+	defaultEncoding = base64.URLEncoding.WithPadding(base64.NoPadding)
 )
 
 // Credential used to be an interface that contained functions to encrypt, decrypt and authenticate.
@@ -42,8 +42,8 @@ var (
 type EncodableCredential interface {
 	// Export exports the credential in a format that can be decoded by its Decoder.
 	Export() []byte
-	// Decoder returns a decoder that can decode an exported key back into a Credential.
-	Decoder() decoder
+	// Decoder returns a Decoder that can decode an exported key back into a Credential.
+	Decoder() Decoder
 }
 
 // NewCredential is a shorthand function to decode a credential string and optionally
@@ -52,9 +52,9 @@ type EncodableCredential interface {
 //
 // Note that when you want to customize the process of parsing and decoding/decrypting
 // a credential (e.g. to prompt only for a passphrase when the credential is encrypted),
-// it is recommended you use a CredentialParser instead (e.g. DefaultParser).
+// it is recommended you use a CredentialParser instead (e.g. defaultParser).
 func UnpackRSACredential(credential string, passphrase string) (*RSACredential, error) {
-	encoded, err := DefaultParser.parse(credential)
+	encoded, err := defaultParser.parse(credential)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -94,7 +94,7 @@ type encodedCredential struct {
 	EncryptionAlgorithm string
 	// Decoder is used to decode the payload into a Credential.
 	// Populated when you Parse a credential string.
-	Decoder decoder
+	Decoder Decoder
 }
 
 // Decode decodes an unencrypted credential string into a Credential.
@@ -177,20 +177,20 @@ func encodeCredentialPartsToString(header map[string]interface{}, payload []byte
 		return "", ErrInvalidCredential.Errorf("cannot encode header as json: %s", err)
 	}
 
-	parts[0] = DefaultEncoding.EncodeToString(headerBytes)
-	parts[1] = DefaultEncoding.EncodeToString(payload)
+	parts[0] = defaultEncoding.EncodeToString(headerBytes)
+	parts[1] = defaultEncoding.EncodeToString(payload)
 	return strings.Join(parts, "."), nil
 }
 
 // parser parses a credential string with support
 // for different credential decoders.
 type parser struct {
-	supportedDecoders map[string]decoder
+	supportedDecoders map[string]Decoder
 }
 
 // newParser returns a new credential parser
-func newParser(decoders []decoder) parser {
-	supportedDecoders := map[string]decoder{}
+func newParser(decoders []Decoder) parser {
+	supportedDecoders := map[string]Decoder{}
 	for _, decoder := range decoders {
 		supportedDecoders[decoder.Name()] = decoder
 	}
@@ -214,7 +214,7 @@ func (p parser) parse(raw string) (*encodedCredential, error) {
 
 	// Decode the header
 	var err error
-	cred.RawHeader, err = DefaultEncoding.DecodeString(parts[0])
+	cred.RawHeader, err = defaultEncoding.DecodeString(parts[0])
 	if err != nil {
 		return nil, ErrCannotDecodeCredentialHeader(err)
 	}
@@ -235,7 +235,7 @@ func (p parser) parse(raw string) (*encodedCredential, error) {
 		return nil, ErrUnsupportedCredentialType(payloadType)
 	}
 
-	cred.Payload, err = DefaultEncoding.DecodeString(parts[1])
+	cred.Payload, err = defaultEncoding.DecodeString(parts[1])
 	if err != nil {
 		return nil, ErrCannotDecodeCredentialPayload(err)
 	}
@@ -248,7 +248,7 @@ func (p parser) parse(raw string) (*encodedCredential, error) {
 	return cred, nil
 }
 
-// rsaPrivateKeyDecoder implements the decoder interface for an RSA private key.
+// rsaPrivateKeyDecoder implements the Decoder interface for an RSA private key.
 type rsaPrivateKeyDecoder struct{}
 
 // Decode converts a encodedCredential's payload into an RSA ClientKey.
@@ -268,8 +268,8 @@ func (d rsaPrivateKeyDecoder) Name() string {
 	return "rsa"
 }
 
-// decoder converts a payload into a Credential.
-type decoder interface {
+// Decoder converts a payload into a Credential.
+type Decoder interface {
 	// Decode decodes a payload into a Credential.
 	Decode(payload []byte) (*RSACredential, error)
 	// Name returns the name of the encoding.
