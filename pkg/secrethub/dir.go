@@ -85,7 +85,7 @@ func (s dirService) Create(path string) (*api.Dir, error) {
 		return nil, errio.Error(err)
 	}
 
-	accounts, err := s.client.ListDirAccounts(parentPath)
+	accounts, err := s.client.listDirAccounts(parentPath)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -146,8 +146,8 @@ func (s dirService) Delete(path string) error {
 	return nil
 }
 
-// ListDirAccounts list the accounts with read permission.
-func (c *Client) ListDirAccounts(path api.BlindNamePath) ([]*api.Account, error) {
+// listDirAccounts list the accounts with read permission.
+func (c *Client) listDirAccounts(path api.BlindNamePath) ([]*api.Account, error) {
 	blindName, err := c.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)

@@ -203,7 +203,7 @@ func (c *Client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 	}
 
 	// Get all accounts that have permission to read the secret.
-	accounts, err := c.ListDirAccounts(parentPath)
+	accounts, err := c.listDirAccounts(parentPath)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
