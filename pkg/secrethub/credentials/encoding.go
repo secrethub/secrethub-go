@@ -36,7 +36,7 @@ var (
 	defaultEncoding = base64.URLEncoding.WithPadding(base64.NoPadding)
 )
 
-// Credential used to be an interface that contained functions to encrypt, decrypt and authenticate.
+// EncodableCredential used to be an interface that contained functions to encrypt, decrypt and authenticate.
 // We'll migrate away from using it and use smaller interfaces instead.
 // See Verifier, Decrypter and Encrypter for the smaller interfaces.
 type EncodableCredential interface {
@@ -46,7 +46,7 @@ type EncodableCredential interface {
 	Decoder() Decoder
 }
 
-// NewCredential is a shorthand function to decode a credential string and optionally
+// UnpackRSACredential is a shorthand function to decode a credential string and optionally
 // decrypt it with a passphrase. When an encrypted credential is given, the passphrase
 // cannot be empty.
 //
@@ -200,7 +200,7 @@ func newParser(decoders []Decoder) parser {
 	}
 }
 
-// p arse parses a credential string.
+// parse parses a credential string.
 func (p parser) parse(raw string) (*encodedCredential, error) {
 	parts := strings.Split(raw, ".")
 	if len(parts) != 2 {

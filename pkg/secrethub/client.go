@@ -8,7 +8,7 @@ import (
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
-// Client is the SecretHub client.
+// ClientAdapter is an interface that can be used to consume the SecretHub client and is implemented by secrethub.Client.
 type ClientAdapter interface {
 	AccessRules() AccessRuleService
 	Accounts() AccountService
@@ -44,8 +44,13 @@ type Client struct {
 	repoIndexKeys map[api.RepoPath]*crypto.SymmetricKey
 }
 
-// NewClient creates a new SecretHub client.
-// It overrides the default configuration with the options when given.
+// NewClient creates a new SecretHub client. Provided options are applied to the client.
+//
+// If no WithCredentials() option is provided, the client tries to find a key credential at the following locations (in order):
+//   1. The SECRETHUB_CREDENTIAL environment variable.
+//   2. The credential file placed in the directory given by the SECRETHUB_CONFIG_DIR environment variable.
+//   3. The credential file found in <user's home directory>/.secrethub/credential.
+// If no key credential could be found, a Client is returned that can only be used for unauthenticated routes.
 func NewClient(with ...ClientOption) (*Client, error) {
 	client := &Client{
 		httpClient:    http.NewClient(),

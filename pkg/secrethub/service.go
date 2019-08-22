@@ -40,7 +40,7 @@ func (s serviceService) Create(path string, description string, credentialCreato
 		return nil, errio.Error(err)
 	}
 
-	verifier, encrypter, err := credentialCreator.Create()
+	credential, err := credentialCreator.Create()
 	if err != nil {
 		return nil, err
 	}
@@ -50,12 +50,12 @@ func (s serviceService) Create(path string, description string, credentialCreato
 		return nil, errio.Error(err)
 	}
 
-	credentialRequest, err := s.client.createCredentialRequest(verifier)
+	credentialRequest, err := s.client.createCredentialRequest(credential)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	accountKeyRequest, err := s.client.createAccountKeyRequest(encrypter, accountKey)
+	accountKeyRequest, err := s.client.createAccountKeyRequest(credential, accountKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}

@@ -22,12 +22,14 @@ type awsSessionCreator struct {
 	awsConfig []*aws.Config
 }
 
+// NewAWSSessionCreator returns a SessionCreator that uses AWS STS authentication to request sessions.
 func NewAWSSessionCreator(awsCfg ...*aws.Config) SessionCreator {
 	return &awsSessionCreator{
 		awsConfig: awsCfg,
 	}
 }
 
+// Create a new Session using AWS STS for authentication.
 func (s *awsSessionCreator) Create(httpClient *http.Client) (Session, error) {
 	region := defaultAWSRegionForSTS
 

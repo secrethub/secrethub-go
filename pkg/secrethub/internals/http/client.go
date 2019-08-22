@@ -83,7 +83,8 @@ const (
 	DefaultTimeout = time.Second * 10
 )
 
-// Client is a raw client for the SecretHub http API.
+// Client is a raw client for the SecretHub HTTP API.
+// This client just makes HTTP calls, use secrethub.Client for a user-friendly client that can decrypt secrets and more.
 type Client struct {
 	client        *http.Client
 	authenticator auth.Authenticator
@@ -91,8 +92,7 @@ type Client struct {
 	version       string
 }
 
-// NewClient configures a new Client and overrides default values
-// when opts is not nil.
+// NewClient configures a new Client and applies the provided ClientOptions.
 func NewClient(with ...ClientOption) *Client {
 	serverURL := DefaultServerURL
 	timeout := DefaultTimeout
@@ -110,6 +110,7 @@ func NewClient(with ...ClientOption) *Client {
 	return client
 }
 
+// Options applies the provided options to an existing client.
 func (c *Client) Options(with ...ClientOption) {
 	for _, option := range with {
 		option(c)

@@ -7,7 +7,6 @@ import (
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
 
-	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/crypto"
@@ -15,46 +14,51 @@ import (
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
-// Verifier exports verification bytes that can be used to verify signed data is processed by the owner of a signer.
-type Verifier interface {
-	// Verifier returns the data to be stored server side to verify an http request authenticated with this credential.
-	Verifier() ([]byte, error)
-	// Type returns what type of credential this is.
-	Type() api.CredentialType
-	// AddProof adds the proof of this credential's possession to a CreateCredentialRequest.
-	AddProof(req *api.CreateCredentialRequest) error
+type UsableCredential interface {
+	Decrypter
+	auth.Authenticator
 }
 
-// Decrypter decrypts data, typically an account key.
-type Decrypter interface {
-	// Unwrap decrypts data, typically an account key.
-	Unwrap(ciphertext *api.EncryptedData) ([]byte, error)
+type usableCredential struct {
+	Decrypter
+	auth.Authenticator
 }
 
-// Encrypter encrypts data, typically an account key.
-type Encrypter interface {
-	// Wrap encrypts data, typically an account key.
-	Wrap(plaintext []byte) (*api.EncryptedData, error)
-}
+// Provider provides a credential that can be used for authentication and decryption when called.
+type Provider func(*http.Client) (UsableCredential, error)
 
-type Provider func(*http.Client) (auth.Authenticator, Decrypter, error)
-
+// UseAWS returns a Provider that can be used to use an assumed AWS role as a credential for SecretHub.
+// The provided awsCfg is used to configure the AWS client.
+// If used on AWS (e.g. from an EC2-instance), this extra configuration is not required and the correct configuration
+// should be auto-detected by the AWS client.
+//
+// Usage:
+//		credentials.UseAWS()
+//		credentials.UseAWS(&aws.Config{Region: aws.String("eu-west-1")})
 func UseAWS(awsCfg ...*awssdk.Config) Provider {
-	return func(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
+	return func(httpClient *http.Client) (UsableCredential, error) {
 		decrypter, err := aws.NewKMSDecrypter(awsCfg...)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		authProvider := sessions.NewSessionRefresher(httpClient, sessions.NewAWSSessionCreator(awsCfg...))
-		return authProvider, decrypter, nil
+		return usableCredential{decrypter, authProvider}, nil
 	}
 }
 
+// UseKey returns a Provider that reads a key credential from credentialReader.
+// If the key credential is encrypted, a passphrase is read from passReader and used for decryption,
+// The passReader argument can be set to nil if the credential is not encrypted.
+// If credentialReader argument is set to nil, the following default locations are searched for a credential:
+//   1. The SECRETHUB_CREDENTIAL environment variable.
+//   2. The credential file placed in the directory given by the SECRETHUB_CONFIG_DIR environment variable.
+//   3. The credential file found in <user's home directory>/.secrethub/credential.
+//
 // Usage:
-//		credentials.UseKey(credentials.FromBytes("<a credential>"))
-//		credentials.UseKey(credentials.FromFile("~/.secrethub/credential"), credentials.FromString("passphrase"))
+//		credentials.UseKey(credentials.FromString("<a credential>"), nil)
+//		credentials.UseKey(credentials.FromFile("/path/to/credential"), credentials.FromString("passphrase"))
 func UseKey(credentialReader io.Reader, passReader io.Reader) Provider {
-	return func(_ *http.Client) (auth.Authenticator, Decrypter, error) {
+	return func(_ *http.Client) (UsableCredential, error) {
 		// This function can be cleaned up a lot. It is mainly for demonstrating the overall idea.
 		if credentialReader == nil {
 			credentialReader = credentialFromDefault()
@@ -62,38 +66,41 @@ func UseKey(credentialReader io.Reader, passReader io.Reader) Provider {
 
 		bytes, err := ioutil.ReadAll(credentialReader)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		encoded, err := defaultParser.parse(string(bytes))
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		if encoded.IsEncrypted() {
 			if passReader == nil {
-				return nil, nil, errors.New("need passphrase")
+				return nil, errors.New("need passphrase")
 			}
 			passphrase, err := ioutil.ReadAll(passReader)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			key, err := NewPassBasedKey(passphrase)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 
 			credential, err := encoded.DecodeEncrypted(key)
 			if crypto.IsWrongKey(err) {
-				return nil, nil, ErrCannotDecryptCredential
+				return nil, ErrCannotDecryptCredential
 			} else if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
-			return auth.NewHTTPSigner(credential), credential, nil
+			return struct {
+				Decrypter
+				auth.Authenticator
+			}{credential, auth.NewHTTPSigner(credential)}, nil
 		}
 		credential, err := encoded.Decode()
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		return auth.NewHTTPSigner(credential), credential, nil
+		return usableCredential{credential, auth.NewHTTPSigner(credential)}, nil
 	}
 }
