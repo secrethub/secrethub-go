@@ -117,6 +117,7 @@ func (c *Client) Options(with ...ClientOption) {
 	}
 }
 
+// CreateSession tries to create a new session that can be used for temporary authentication to the SecretHub API.
 func (c *Client) CreateSession(in interface{}) (*api.Session, error) {
 	var out api.Session
 	rawURL := fmt.Sprintf(pathAuthenticate, c.base)
@@ -134,6 +135,7 @@ func (c *Client) ListMyRepos() ([]*api.Repo, error) {
 	return out, errio.Error(err)
 }
 
+// CreateAccountKey creates a new account key encrypted by the credential with the given fingerprint.
 func (c *Client) CreateAccountKey(in *api.CreateAccountKeyRequest, fingerprint string) (*api.EncryptedAccountKey, error) {
 	out := &api.EncryptedAccountKey{}
 	rawURL := fmt.Sprintf(pathCreateAccountKey, c.base, fingerprint)
@@ -202,6 +204,7 @@ func (c *Client) GetRepo(namespace, repoName string) (*api.Repo, error) {
 	return out, errio.Error(err)
 }
 
+// ListRepos lists all repos in the given namespace.
 func (c *Client) ListRepos(namespace string) ([]*api.Repo, error) {
 	out := []*api.Repo{}
 	rawURL := fmt.Sprintf(pathRepos, c.base, namespace)
@@ -293,7 +296,7 @@ func (c *Client) CreateService(namespace, repoName string, in *api.CreateService
 	return out, errio.Error(err)
 }
 
-// GetServices retrieves a service.
+// GetService retrieves a service.
 func (c *Client) GetService(service string) (*api.Service, error) {
 	out := &api.Service{}
 	rawURL := fmt.Sprintf(pathService, c.base, service)
@@ -438,7 +441,7 @@ func (c *Client) ListSecretVersions(secretBlindName string, withData bool) ([]*a
 	return out, errio.Error(err)
 }
 
-// GetSecret gets a single secret by its name.
+// GetSecretLatestVersion gets the latest version of the secret with the given blind name.
 func (c *Client) GetSecretLatestVersion(secretBlindName string, withData bool) (*api.EncryptedSecretVersion, error) {
 	out := &api.EncryptedSecretVersion{}
 	rawURL := fmt.Sprintf(pathSecret+"?encrypted_blob=%t", c.base, secretBlindName, withData)
@@ -557,6 +560,7 @@ func (c *Client) CreateOrgMember(name string, in *api.CreateOrgMemberRequest) (*
 	return out, errio.Error(err)
 }
 
+// UpdateOrgMember updates the role of the given username in the org with the given name.
 func (c *Client) UpdateOrgMember(name string, username string, in *api.UpdateOrgMemberRequest) (*api.OrgMember, error) {
 	out := &api.OrgMember{}
 	rawURL := fmt.Sprintf(pathOrgMember, c.base, name, username)

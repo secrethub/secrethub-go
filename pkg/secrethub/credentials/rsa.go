@@ -11,12 +11,6 @@ type RSACredential struct {
 	crypto.RSAPrivateKey
 }
 
-// GenerateCredential generates a new credential to be used to
-// authenticate the account and to decrypt the account key.
-func GenerateCredential() (*RSACredential, error) {
-	return GenerateRSACredential(crypto.RSAKeyLength)
-}
-
 func GenerateRSACredential(keyLength int) (*RSACredential, error) {
 	key, err := crypto.GenerateRSAPrivateKey(keyLength)
 	if err != nil {

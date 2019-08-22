@@ -6,6 +6,7 @@ import (
 	awssdk "github.com/aws/aws-sdk-go/aws"
 
 	"github.com/secrethub/secrethub-go/internals/aws"
+	"github.com/secrethub/secrethub-go/internals/crypto"
 )
 
 type CreatedCredential interface {
@@ -33,7 +34,7 @@ func CreateKey() *KeyCreator {
 
 // Create generates a new key and stores it in the KeyCreator.
 func (c *KeyCreator) Create() (CreatedCredential, error) {
-	key, err := GenerateCredential()
+	key, err := GenerateRSACredential(crypto.RSAKeyLength)
 	if err != nil {
 		return nil, err
 	}
