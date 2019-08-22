@@ -83,12 +83,6 @@ const (
 	DefaultTimeout = time.Second * 10
 )
 
-// ClientOptions define client options, overriding the default settings.
-type ClientOptions struct {
-	ServerURL string
-	Timeout   time.Duration
-}
-
 // Client is a raw client for the SecretHub http API.
 type Client struct {
 	client        *http.Client
@@ -99,7 +93,7 @@ type Client struct {
 
 // NewClient configures a new Client and overrides default values
 // when opts is not nil.
-func NewClient(with ...Option) *Client {
+func NewClient(with ...ClientOption) *Client {
 	serverURL := DefaultServerURL
 	timeout := DefaultTimeout
 	serverURL = strings.TrimSuffix(serverURL, "/")
@@ -116,7 +110,7 @@ func NewClient(with ...Option) *Client {
 	return client
 }
 
-func (c *Client) Options(with ...Option) {
+func (c *Client) Options(with ...ClientOption) {
 	for _, option := range with {
 		option(c)
 	}

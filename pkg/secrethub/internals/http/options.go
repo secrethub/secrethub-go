@@ -7,27 +7,27 @@ import (
 	"github.com/secrethub/secrethub-go/internals/auth"
 )
 
-type Option func(*Client)
+type ClientOption func(*Client)
 
-func WithServerURL(url string) Option {
+func WithServerURL(url string) ClientOption {
 	return func(client *Client) {
 		client.base = url
 	}
 }
 
-func WithTransport(transport http.RoundTripper) Option {
+func WithTransport(transport http.RoundTripper) ClientOption {
 	return func(client *Client) {
 		client.client.Transport = transport
 	}
 }
 
-func WithTimeout(timeout time.Duration) Option {
+func WithTimeout(timeout time.Duration) ClientOption {
 	return func(client *Client) {
 		client.client.Timeout = timeout
 	}
 }
 
-func WithAuthenticator(authenticator auth.Authenticator) Option {
+func WithAuthenticator(authenticator auth.Authenticator) ClientOption {
 	return func(client *Client) {
 		client.authenticator = authenticator
 	}
