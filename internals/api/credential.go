@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
@@ -23,16 +24,30 @@ var (
 	ErrAWSAuthFailed         = errAPI.Code("aws_auth_failed").StatusError("authentication not accepted by AWS", http.StatusUnauthorized)
 	ErrAWSKMSKeyNotFound     = errAPI.Code("aws_kms_key_not_found").StatusError("could not found the KMS key", http.StatusNotFound)
 	ErrInvalidRoleARN        = errAPI.Code("invalid_role_arn").StatusError("provided role is not a valid ARN", http.StatusBadRequest)
+	ErrMissingMetadata       = errAPI.Code("missing_metadata").StatusErrorPref("expecting %s metadata provided for credentials of type %s", http.StatusBadRequest)
+	ErrInvalidMetadataKey    = errAPI.Code("invalid_metadata_key").StatusErrorPref("invalid metadata key %s for credential type %s", http.StatusBadRequest)
+	ErrUnknownMetadataKey    = errAPI.Code("unknown_metadata_key").StatusErrorPref("unknown metadata key: %s", http.StatusBadRequest)
+	ErrRoleDoesNotMatch      = errAPI.Code("role_does_not_match").StatusError("role in metadata does not match the verifier", http.StatusBadRequest)
+)
+
+// CredentialMetadataKey is a key that can be used for the metadata of a credential.
+type CredentialMetadataKey string
+
+// Credential metadata keys
+const (
+	CredentialMetadataAWSKMSKey CredentialMetadataKey = "aws_kms_key"
+	CredentialMetadataAWSRole   CredentialMetadataKey = "aws_role"
 )
 
 // Credential is used to authenticate to the API and to encrypt the account key.
 type Credential struct {
-	AccountID   *uuid.UUID     `json:"account_id"`
-	Type        CredentialType `json:"algorithm"`
-	CreatedAt   time.Time      `json:"created_at"`
-	Fingerprint string         `json:"fingerprint"`
-	Name        string         `json:"name"`
-	Verifier    []byte         `json:"verifier"`
+	AccountID   *uuid.UUID                       `json:"account_id"`
+	Type        CredentialType                   `json:"algorithm"`
+	CreatedAt   time.Time                        `json:"created_at"`
+	Fingerprint string                           `json:"fingerprint"`
+	Name        string                           `json:"name"`
+	Verifier    []byte                           `json:"verifier"`
+	Metadata    map[CredentialMetadataKey]string `json:"metadata,omitempty"`
 }
 
 // CredentialType is used to identify the type of algorithm that is used for a credential.
@@ -59,11 +74,12 @@ func (a CredentialType) Validate() error {
 
 // CreateCredentialRequest contains the fields to add a credential to an account.
 type CreateCredentialRequest struct {
-	Type        CredentialType `json:"type"`
-	Fingerprint string         `json:"fingerprint"`
-	Name        string         `json:"name,omitempty"`
-	Verifier    []byte         `json:"verifier"`
-	Proof       interface{}    `json:"proof"`
+	Type        CredentialType                   `json:"type"`
+	Fingerprint string                           `json:"fingerprint"`
+	Name        string                           `json:"name,omitempty"`
+	Verifier    []byte                           `json:"verifier"`
+	Proof       interface{}                      `json:"proof"`
+	Metadata    map[CredentialMetadataKey]string `json:"metadata"`
 }
 
 // UnmarshalJSON converts a JSON representation into a CreateCredentialRequest with the correct Proof.
@@ -107,25 +123,53 @@ func (req *CreateCredentialRequest) Validate() error {
 	if req.Fingerprint == "" {
 		return ErrMissingField("fingerprint")
 	}
+
 	if req.Verifier == nil {
 		return ErrMissingField("verifier")
 	}
+
 	if req.Type == "" {
 		return ErrMissingField("type")
 	}
+
 	err := req.Type.Validate()
 	if err != nil {
 		return err
 	}
+
 	if req.Type == CredentialTypeAWSSTS && req.Proof == nil {
 		return ErrMissingField("proof")
 	}
+
 	fingerprint, err := GetFingerprint(req.Type, req.Verifier)
 	if err != nil {
 		return err
 	}
 	if req.Fingerprint != fingerprint {
 		return ErrInvalidFingerprint
+	}
+
+	if req.Type == CredentialTypeAWSSTS {
+		role, ok := req.Metadata[CredentialMetadataAWSRole]
+		if !ok {
+			return ErrMissingMetadata(CredentialMetadataAWSRole, CredentialTypeAWSSTS)
+		}
+		if !bytes.Equal(req.Verifier, []byte(role)) {
+			return ErrRoleDoesNotMatch
+		}
+
+		_, ok = req.Metadata[CredentialMetadataAWSKMSKey]
+		if !ok {
+			return ErrMissingMetadata(CredentialMetadataAWSKMSKey, CredentialTypeAWSSTS)
+		}
+	}
+
+	for key := range req.Metadata {
+		if key != CredentialMetadataAWSKMSKey && key != CredentialMetadataAWSRole {
+			return ErrUnknownMetadataKey(key)
+		} else if req.Type != CredentialTypeAWSSTS {
+			return ErrInvalidMetadataKey(key, req.Type)
+		}
 	}
 
 	return nil
