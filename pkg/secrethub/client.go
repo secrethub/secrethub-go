@@ -8,6 +8,10 @@ import (
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
+const (
+	userAgentPrefix = "SecretHub/v1 GoClient/" + ClientVersion
+)
+
 // ClientAdapter is an interface that can be used to consume the SecretHub client and is implemented by secrethub.Client.
 type ClientAdapter interface {
 	AccessRules() AccessRuleService
@@ -42,6 +46,27 @@ type Client struct {
 	// repoindexKeys are the keys used to generate blind names in the repo.
 	// These are cached
 	repoIndexKeys map[api.RepoPath]*crypto.SymmetricKey
+
+	appInfo *AppInfo
+}
+
+// AppInfo contains information about the application that is using the SecretHub client.
+// It is used to identify the application to the SecretHub API.
+type AppInfo struct {
+	Name            string
+	Version         string
+	OperatingSystem string
+}
+
+func (i AppInfo) userAgentSuffix() string {
+	res := i.Name
+	if i.Version != "" {
+		res += "/" + i.Version
+	}
+	if i.OperatingSystem != "" {
+		res += " (" + i.OperatingSystem + ")"
+	}
+	return res
 }
 
 // NewClient creates a new SecretHub client. Provided options are applied to the client.
@@ -72,6 +97,13 @@ func NewClient(with ...ClientOption) (*Client, error) {
 			// Do go on because we want to allow an unauthenticated client.
 		}
 	}
+
+	userAgent := userAgentPrefix
+	if client.appInfo != nil {
+		userAgent += " " + client.appInfo.userAgentSuffix()
+	}
+
+	client.httpClient.Options(http.WithUserAgent(userAgent))
 
 	return client, nil
 }

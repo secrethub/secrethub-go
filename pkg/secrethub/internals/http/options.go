@@ -31,6 +31,13 @@ func WithTimeout(timeout time.Duration) ClientOption {
 	}
 }
 
+// WithUserAgent overrides the default user-agent supplied by HTTP client in requests.
+func WithUserAgent(userAgent string) ClientOption {
+	return func(client *Client) {
+		client.userAgent = userAgent
+	}
+}
+
 // WithAuthenticator sets the authenticator used to authenticate requests made by the HTTP client.
 func WithAuthenticator(authenticator auth.Authenticator) ClientOption {
 	return func(client *Client) {

@@ -87,6 +87,8 @@ const (
 	DefaultServerURL = "https://api.secrethub.io"
 	// DefaultTimeout defines the default client http timeout.
 	DefaultTimeout = time.Second * 30
+	// DefaultUserAgent is the user-agent the client uses when none is explicitly provided.
+	DefaultUserAgent = "secrethub-go"
 )
 
 // Client is a raw client for the SecretHub HTTP API.
@@ -95,7 +97,7 @@ type Client struct {
 	client        *http.Client
 	authenticator auth.Authenticator
 	base          string // base url
-	version       string
+	userAgent     string
 }
 
 // NewClient configures a new Client and applies the provided ClientOptions.
@@ -106,8 +108,8 @@ func NewClient(with ...ClientOption) *Client {
 		client: &http.Client{
 			Timeout: timeout,
 		},
-		base: getBaseURL(DefaultServerURL),
-		//version: secrethub.ClientVersion,
+		base:      getBaseURL(DefaultServerURL),
+		userAgent: DefaultUserAgent,
 	}
 	client.Options(with...)
 	return client
@@ -644,7 +646,7 @@ func (c *Client) do(rawURL string, method string, expectedStatus int, in interfa
 		}
 	}
 
-	req.Header.Set("User-Agent", "SecretHub/"+c.version)
+	req.Header.Set("User-Agent", c.userAgent)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
