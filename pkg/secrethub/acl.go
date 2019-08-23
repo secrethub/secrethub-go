@@ -23,7 +23,7 @@ type AccessRuleService interface {
 	Set(path string, permission string, accountName string) (*api.AccessRule, error)
 }
 
-func newAccessRuleService(client client) AccessRuleService {
+func newAccessRuleService(client *Client) AccessRuleService {
 	return accessRuleService{
 		client:         client,
 		accountService: newAccountService(client),
@@ -32,7 +32,7 @@ func newAccessRuleService(client client) AccessRuleService {
 }
 
 type accessRuleService struct {
-	client         client
+	client         *Client
 	accountService AccountService
 	dirService     DirService
 }
@@ -273,7 +273,7 @@ func (s accessRuleService) update(path api.BlindNamePath, permission api.Permiss
 
 // GetAccessLevel retrieves the permissions of an account on a directory, defined by
 // one or more access rules on the directory itself or its parent(s).
-func (c *client) getAccessLevel(path api.BlindNamePath, accountName api.AccountName) (*api.AccessLevel, error) {
+func (c *Client) getAccessLevel(path api.BlindNamePath, accountName api.AccountName) (*api.AccessLevel, error) {
 	blindName, err := c.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)

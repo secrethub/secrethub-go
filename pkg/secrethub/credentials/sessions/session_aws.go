@@ -1,11 +1,11 @@
-package secrethub
+package sessions
 
 import (
 	"bytes"
 	"fmt"
 
 	"github.com/secrethub/secrethub-go/internals/api"
-	"github.com/secrethub/secrethub-go/internals/auth"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
@@ -18,19 +18,19 @@ const (
 	defaultAWSRegionForSTS = endpoints.EuWest1RegionID
 )
 
-type awsSessionService struct {
-	client    client
+type awsSessionCreator struct {
 	awsConfig []*aws.Config
 }
 
-func newAWSSessionService(client client, awsCfg ...*aws.Config) SessionMethodService {
-	return &awsSessionService{
-		client:    client,
+// NewAWSSessionCreator returns a SessionCreator that uses AWS STS authentication to request sessions.
+func NewAWSSessionCreator(awsCfg ...*aws.Config) SessionCreator {
+	return &awsSessionCreator{
 		awsConfig: awsCfg,
 	}
 }
 
-func (s awsSessionService) Create() (auth.Authenticator, error) {
+// Create a new Session using AWS STS for authentication.
+func (s *awsSessionCreator) Create(httpClient *http.Client) (Session, error) {
 	region := defaultAWSRegionForSTS
 
 	getCallerIdentityReq, err := getCallerIdentityRequest(region, s.awsConfig...)
@@ -39,16 +39,20 @@ func (s awsSessionService) Create() (auth.Authenticator, error) {
 	}
 
 	req := api.NewAuthRequestAWSSTS(api.SessionTypeHMAC, region, getCallerIdentityReq)
-	resp, err := s.client.httpClient.Authenticate(req)
+	resp, err := httpClient.CreateSession(req)
 	if err != nil {
 		return nil, err
 	}
 	if resp.Type != api.SessionTypeHMAC {
 		return nil, api.ErrInvalidSessionType
 	}
-	hmacSession := resp.HMAC()
+	sess := resp.HMAC()
 
-	return auth.NewHTTPSigner(auth.NewSessionSigner(hmacSession.SessionID, hmacSession.Payload.SessionKey)), nil
+	return &hmacSession{
+		sessionID:  sess.SessionID,
+		sessionKey: sess.Payload.SessionKey,
+		expireTime: expireTime(sess.Expires),
+	}, nil
 }
 
 // getCallerIdentityRequest returns the raw bytes of a signed GetCallerIdentity request.

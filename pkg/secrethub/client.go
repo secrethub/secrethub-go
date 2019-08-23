@@ -1,19 +1,17 @@
 package secrethub
 
 import (
-	awssdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/secrethub/secrethub-go/internals/api"
-	"github.com/secrethub/secrethub-go/internals/auth"
-	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
-// Client is the SecretHub client.
-type Client interface {
+// ClientAdapter is an interface that can be used to consume the SecretHub client and is implemented by secrethub.Client.
+type ClientAdapter interface {
 	AccessRules() AccessRuleService
 	Accounts() AccountService
-	sessions() SessionService
 	Dirs() DirService
 	Me() MeService
 	Orgs() OrgService
@@ -23,106 +21,15 @@ type Client interface {
 	Users() UserService
 }
 
-// Decrypter decrypts data, typically an account key.
-type Decrypter interface {
-	// Unwrap decrypts data, typically an account key.
-	Unwrap(ciphertext *api.EncryptedData) ([]byte, error)
-}
-
-// Encrypter encrypts data, typically an account key.
-type Encrypter interface {
-	// Wrap encrypts data, typically an account key.
-	Wrap(plaintext []byte) (*api.EncryptedData, error)
-}
-
-type clientAdapter struct {
-	client client
-}
-
-// NewClient creates a new SecretHub client.
-// It overrides the default configuration with the options when given.
-func NewClient(decrypter Decrypter, authenticator auth.Authenticator, opts *ClientOptions) Client {
-	return &clientAdapter{
-		client: newClient(decrypter, authenticator, opts),
-	}
-}
-
-// NewClientAWS creates a new SecretHub client that uses AWS STS and KMS to access SecretHub.
-func NewClientAWS(opts *ClientOptions, awsCfg ...*awssdk.Config) (Client, error) {
-	decrypter, err := aws.NewKMSDecrypter(awsCfg...)
-	if err != nil {
-		return nil, err
-	}
-	client := &clientAdapter{
-		client: newClient(decrypter, auth.NopAuthenticator{}, opts),
-	}
-	authenticator, err := client.sessions().AWS(awsCfg...).Create()
-	if err != nil {
-		return nil, err
-	}
-	client.client.httpClient.authenticator = authenticator
-	return client, nil
-}
-
-// AccessRules returns an AccessRuleService.
-func (c clientAdapter) AccessRules() AccessRuleService {
-	return newAccessRuleService(c.client)
-}
-
-// Accounts returns an AccountService.
-func (c clientAdapter) Accounts() AccountService {
-	return newAccountService(c.client)
-}
-
-// Auth returns an SessionService.
-func (c clientAdapter) sessions() SessionService {
-	return newSessionService(c.client)
-}
-
-// Dirs returns an DirService.
-func (c clientAdapter) Dirs() DirService {
-	return newDirService(c.client)
-}
-
-// Me returns a MeService.
-func (c clientAdapter) Me() MeService {
-	return newMeService(c.client)
-}
-
-// Orgs returns an OrgService.
-func (c clientAdapter) Orgs() OrgService {
-	return newOrgService(c.client)
-}
-
-// Repos returns an RepoService.
-func (c clientAdapter) Repos() RepoService {
-	return newRepoService(c.client)
-}
-
-// Secrets returns an SecretService.
-func (c clientAdapter) Secrets() SecretService {
-	return newSecretService(c.client)
-}
-
-// Services returns an ServiceService.
-func (c clientAdapter) Services() ServiceService {
-	return newServiceService(c.client)
-}
-
-// Users returns an UserService.
-func (c clientAdapter) Users() UserService {
-	return newUserService(c.client)
-}
-
 var (
 	errClient = errio.Namespace("client")
 )
 
 // Client is a client for the SecretHub HTTP API.
-type client struct {
-	httpClient *httpClient
+type Client struct {
+	httpClient *http.Client
 
-	decrypter Decrypter
+	decrypter credentials.Decrypter
 
 	// account is the api.Account for this SecretHub account.
 	// Do not use this field directly, but use client.getMyAccount() instead.
@@ -137,13 +44,93 @@ type client struct {
 	repoIndexKeys map[api.RepoPath]*crypto.SymmetricKey
 }
 
-// newClient configures a new client, overriding defaults with options when given.
-func newClient(decrypter Decrypter, authenticator auth.Authenticator, opts *ClientOptions) client {
-	httpClient := newHTTPClient(authenticator, opts)
-
-	return client{
-		httpClient:    httpClient,
-		decrypter:     decrypter,
+// NewClient creates a new SecretHub client. Provided options are applied to the client.
+//
+// If no WithCredentials() option is provided, the client tries to find a key credential at the following locations (in order):
+//   1. The SECRETHUB_CREDENTIAL environment variable.
+//   2. The credential file placed in the directory given by the SECRETHUB_CONFIG_DIR environment variable.
+//   3. The credential file found in <user's home directory>/.secrethub/credential.
+// If no key credential could be found, a Client is returned that can only be used for unauthenticated routes.
+func NewClient(with ...ClientOption) (*Client, error) {
+	client := &Client{
+		httpClient:    http.NewClient(),
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
+	for _, option := range with {
+		err := option(client)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Try to use default key credentials if none provided explicitly
+	if client.decrypter == nil {
+		err := WithCredentials(credentials.UseKey(nil, nil))(client)
+		// nolint: staticcheck
+		if err != nil {
+			// TODO: log that default credential was not loaded.
+			// Do go on because we want to allow an unauthenticated client.
+		}
+	}
+
+	return client, nil
+}
+
+// Must is a helper function to ensure the Client is valid and there was no
+// error when calling a NewClient function.
+//
+// This helper is intended to be used in initialization to load the
+// Session and configuration at startup. For example:
+//
+//     var client = secrethub.Must(secrethub.NewClient())
+func Must(c *Client, err error) *Client {
+	if err != nil {
+		panic(err)
+	}
+	return c
+}
+
+// AccessRules returns an AccessRuleService.
+func (c *Client) AccessRules() AccessRuleService {
+	return newAccessRuleService(c)
+}
+
+// Accounts returns an AccountService.
+func (c *Client) Accounts() AccountService {
+	return newAccountService(c)
+}
+
+// Dirs returns an DirService.
+func (c *Client) Dirs() DirService {
+	return newDirService(c)
+}
+
+// Me returns a MeService.
+func (c *Client) Me() MeService {
+	return newMeService(c)
+}
+
+// Orgs returns an OrgService.
+func (c *Client) Orgs() OrgService {
+	return newOrgService(c)
+}
+
+// Repos returns an RepoService.
+func (c *Client) Repos() RepoService {
+	return newRepoService(c)
+}
+
+// Secrets returns an SecretService.
+func (c *Client) Secrets() SecretService {
+	return newSecretService(c)
+}
+
+// Services returns an ServiceService.
+func (c *Client) Services() ServiceService {
+	return newServiceService(c)
+}
+
+// Users returns an UserService.
+func (c *Client) Users() UserService {
+	return newUserService(c)
 }

@@ -6,7 +6,6 @@ import "github.com/secrethub/secrethub-go/pkg/secrethub"
 type Client struct {
 	AccessRuleService *AccessRuleService
 	AccountService    *AccountService
-	SessionService    *SessionService
 	DirService        *DirService
 	OrgService        *OrgService
 	RepoService       *RepoService

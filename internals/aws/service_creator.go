@@ -17,9 +17,9 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 )
 
-// ServiceCreator is an implementation of the secrethub.Verifier and secrethub.Encrypter interface that can be used
+// CredentialCreator is an implementation of the secrethub.Verifier and secrethub.Encrypter interface that can be used
 // to create an AWS service account.
-type ServiceCreator struct {
+type CredentialCreator struct {
 	stsSvc        stsiface.STSAPI
 	kmsSvc        kmsiface.KMSAPI
 	signingRegion string
@@ -29,9 +29,9 @@ type ServiceCreator struct {
 	getEncryptRequest func(plaintext string, keyID string, kms kmsiface.KMSAPI) ([]byte, error)
 }
 
-// NewServiceCreator returns a ServiceCreator that uses the provided AWS KMS key and IAM role to create a new service.
-// The AWS service is configured with the optionally provided aws.Config.
-func NewServiceCreator(keyID, role string, cfgs ...*aws.Config) (*ServiceCreator, error) {
+// NewCredentialCreator returns a CredentialCreator that uses the provided AWS KMS key and IAM role to create a new credential.
+// The AWS credential is configured with the optionally provided aws.Config.
+func NewCredentialCreator(keyID, role string, cfgs ...*aws.Config) (*CredentialCreator, error) {
 	sess, err := session.NewSession(cfgs...)
 	if err != nil {
 		return nil, handleError(err)
@@ -45,7 +45,7 @@ func NewServiceCreator(keyID, role string, cfgs ...*aws.Config) (*ServiceCreator
 	}
 
 	kmsSvc := kms.New(sess)
-	return &ServiceCreator{
+	return &CredentialCreator{
 		stsSvc:            stsSvc,
 		kmsSvc:            kmsSvc,
 		signingRegion:     kmsSvc.SigningRegion,
@@ -56,17 +56,17 @@ func NewServiceCreator(keyID, role string, cfgs ...*aws.Config) (*ServiceCreator
 }
 
 // Type returns the credential type of an AWS service.
-func (c ServiceCreator) Type() api.CredentialType {
+func (c CredentialCreator) Type() api.CredentialType {
 	return api.CredentialTypeAWSSTS
 }
 
 // Verifier returns the verifier of an AWS service.
-func (c ServiceCreator) Verifier() ([]byte, error) {
+func (c CredentialCreator) Verifier() ([]byte, error) {
 	return []byte(c.role), nil
 }
 
 // AddProof adds proof of access to the AWS account to the CreateCredentialRequest.
-func (c ServiceCreator) AddProof(req *api.CreateCredentialRequest) error {
+func (c CredentialCreator) AddProof(req *api.CreateCredentialRequest) error {
 	plaintext := api.CredentialProofPrefixAWS + c.role
 
 	encryptReq, err := c.getEncryptRequest(plaintext, c.keyID, c.kmsSvc)
@@ -82,7 +82,7 @@ func (c ServiceCreator) AddProof(req *api.CreateCredentialRequest) error {
 }
 
 // Wrap the provided plaintext with using AWS KMS.
-func (c ServiceCreator) Wrap(plaintext []byte) (*api.EncryptedData, error) {
+func (c CredentialCreator) Wrap(plaintext []byte) (*api.EncryptedData, error) {
 	resp, err := c.kmsSvc.Encrypt(&kms.EncryptInput{
 		Plaintext: plaintext,
 		KeyId:     aws.String(c.keyID),

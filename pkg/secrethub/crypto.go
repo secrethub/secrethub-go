@@ -7,7 +7,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
-func (c *client) encryptDirFor(dir *api.Dir, accounts ...*api.Account) ([]api.EncryptedNameForNodeRequest, error) {
+func (c *Client) encryptDirFor(dir *api.Dir, accounts ...*api.Account) ([]api.EncryptedNameForNodeRequest, error) {
 	currentDir, err := encryptNameForNodeAccounts(dir.DirID, dir.Name, accounts...)
 	return currentDir, errio.Error(err)
 }
@@ -15,7 +15,7 @@ func (c *client) encryptDirFor(dir *api.Dir, accounts ...*api.Account) ([]api.En
 // encryptSecretFor encrypts the secret for every account.
 // The SecretKeys are retrieved from the API.
 // The keys are decrypted, then for every account this key is encrypted.
-func (c *client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) ([]api.SecretAccessRequest, error) {
+func (c *Client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) ([]api.SecretAccessRequest, error) {
 	results := make([]api.SecretAccessRequest, len(accounts))
 
 	secretKeys, err := c.httpClient.ListSecretKeys(secret.BlindName)

@@ -28,14 +28,14 @@ type RepoService interface {
 	Services() RepoServiceService
 }
 
-func newRepoService(client client) RepoService {
+func newRepoService(client *Client) RepoService {
 	return repoService{
 		client: client,
 	}
 }
 
 type repoService struct {
-	client client
+	client *Client
 }
 
 // Delete removes the repo with the given path.
@@ -203,7 +203,7 @@ func (s repoService) Services() RepoServiceService {
 }
 
 // Creates a new RepoMemberRequests for a given account.
-func (c *client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey []byte) (*api.CreateRepoMemberRequest, error) {
+func (c *Client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey []byte) (*api.CreateRepoMemberRequest, error) {
 	repoKey, err := c.httpClient.GetRepoKeys(repoPath.GetNamespaceAndRepoName())
 	if err != nil {
 		return nil, errio.Error(err)
@@ -237,7 +237,7 @@ func (c *client) createRepoMemberRequest(repoPath api.RepoPath, accountPublicKey
 
 // getRepoIndexKey retrieves a RepoIndexKey for a repo.
 // These keys are cached in the client.
-func (c *client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.SymmetricKey, error) {
+func (c *Client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.SymmetricKey, error) {
 	repoIndexKey, cached := c.repoIndexKeys[repoPath]
 	if cached {
 		return repoIndexKey, nil

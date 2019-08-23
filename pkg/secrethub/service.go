@@ -3,34 +3,33 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 )
 
 // ServiceService handles operations on service accounts from SecretHub.
 type ServiceService interface {
 	// Create creates a new service account for the given repo.
-	Create(path string, description string, verifier Verifier, encrypter Encrypter) (*api.Service, error)
+	Create(path string, description string, credential credentials.Creator) (*api.Service, error)
 	// Delete removes a service account by name.
 	Delete(name string) (*api.RevokeRepoResponse, error)
 	// Get retrieves a service account by name.
 	Get(name string) (*api.Service, error)
 	// List lists all service accounts in a given repository.
 	List(path string) ([]*api.Service, error)
-	// AWS returns a ServiceAWSService that handles operations on AWS services.
-	AWS() ServiceAWSService
 }
 
-func newServiceService(client client) ServiceService {
+func newServiceService(client *Client) ServiceService {
 	return serviceService{
 		client: client,
 	}
 }
 
 type serviceService struct {
-	client client
+	client *Client
 }
 
 // Create creates a new service account for the given repo.
-func (s serviceService) Create(path string, description string, verifier Verifier, encrypter Encrypter) (*api.Service, error) {
+func (s serviceService) Create(path string, description string, credentialCreator credentials.Creator) (*api.Service, error) {
 	repoPath, err := api.NewRepoPath(path)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -39,6 +38,11 @@ func (s serviceService) Create(path string, description string, verifier Verifie
 	err = api.ValidateServiceDescription(description)
 	if err != nil {
 		return nil, errio.Error(err)
+	}
+
+	verifier, encrypter, err := credentialCreator.Create()
+	if err != nil {
+		return nil, err
 	}
 
 	accountKey, err := generateAccountKey()
@@ -110,9 +114,4 @@ func (s serviceService) Get(name string) (*api.Service, error) {
 func (s serviceService) List(path string) ([]*api.Service, error) {
 	repoServiceService := newRepoServiceService(s.client)
 	return repoServiceService.List(path)
-}
-
-// AWS returns a ServiceAWSService that handles operations on AWS services.
-func (s serviceService) AWS() ServiceAWSService {
-	return newServiceAWSService(s.client, &s)
 }
