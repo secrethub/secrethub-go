@@ -14,19 +14,9 @@ import (
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
-type UsableCredential interface {
-	Decrypter
-	auth.Authenticator
-}
-
-type usableCredential struct {
-	Decrypter
-	auth.Authenticator
-}
-
 // Provider provides a credential that can be used for authentication and decryption when called.
 type Provider interface {
-	Provide(*http.Client) (UsableCredential, error)
+	Provide(*http.Client) (auth.Authenticator, Decrypter, error)
 }
 
 // UseAWS returns a Provider that can be used to use an assumed AWS role as a credential for SecretHub.
@@ -38,13 +28,13 @@ type Provider interface {
 //		credentials.UseAWS()
 //		credentials.UseAWS(&aws.Config{Region: aws.String("eu-west-1")})
 func UseAWS(awsCfg ...*awssdk.Config) Provider {
-	return providerFunc(func(httpClient *http.Client) (UsableCredential, error) {
+	return providerFunc(func(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
 		decrypter, err := aws.NewKMSDecrypter(awsCfg...)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		authProvider := sessions.NewSessionRefresher(httpClient, sessions.NewAWSSessionCreator(awsCfg...))
-		return usableCredential{decrypter, authProvider}, nil
+		authenticator := sessions.NewSessionRefresher(httpClient, sessions.NewAWSSessionCreator(awsCfg...))
+		return authenticator, decrypter, nil
 	})
 }
 
@@ -60,7 +50,7 @@ func UseAWS(awsCfg ...*awssdk.Config) Provider {
 //		credentials.UseKey(credentials.FromString("<a credential>"), nil)
 //		credentials.UseKey(credentials.FromFile("/path/to/credential"), credentials.FromString("passphrase"))
 func UseKey(credentialReader io.Reader, passReader io.Reader) Provider {
-	return providerFunc(func(_ *http.Client) (UsableCredential, error) {
+	return providerFunc(func(_ *http.Client) (auth.Authenticator, Decrypter, error) {
 		// This function can be cleaned up a lot. It is mainly for demonstrating the overall idea.
 		if credentialReader == nil {
 			credentialReader = credentialFromDefault()
@@ -68,49 +58,46 @@ func UseKey(credentialReader io.Reader, passReader io.Reader) Provider {
 
 		bytes, err := ioutil.ReadAll(credentialReader)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		encoded, err := defaultParser.parse(string(bytes))
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if encoded.IsEncrypted() {
 			if passReader == nil {
-				return nil, errors.New("need passphrase")
+				return nil, nil, errors.New("need passphrase")
 			}
 			passphrase, err := ioutil.ReadAll(passReader)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			key, err := NewPassBasedKey(passphrase)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			credential, err := encoded.DecodeEncrypted(key)
 			if crypto.IsWrongKey(err) {
-				return nil, ErrCannotDecryptCredential
+				return nil, nil, ErrCannotDecryptCredential
 			} else if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
-			return struct {
-				Decrypter
-				auth.Authenticator
-			}{credential, auth.NewHTTPSigner(credential)}, nil
+			return credential, credential, nil
 		}
 		credential, err := encoded.Decode()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
-		return credential, nil
+		return credential, credential, nil
 	})
 }
 
 // providerFunc is a helper type to let any func(*http.Client) (UsableCredential, error) implement the Provider interface.
-type providerFunc func(*http.Client) (UsableCredential, error)
+type providerFunc func(*http.Client) (auth.Authenticator, Decrypter, error)
 
 // Provide lets providerFunc implement the Provider interface.
-func (f providerFunc) Provide(httpClient *http.Client) (UsableCredential, error) {
+func (f providerFunc) Provide(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
 	return f(httpClient)
 }

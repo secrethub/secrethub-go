@@ -49,7 +49,7 @@ func (s userService) Create(username, email, fullName string, credentialCreator 
 		return nil, errio.Error(err)
 	}
 
-	credential, err := credentialCreator.Create()
+	verifier, encrypter, err := credentialCreator.Create()
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (s userService) Create(username, email, fullName string, credentialCreator 
 		return nil, errio.Error(err)
 	}
 
-	return s.create(username, email, fullName, accountKey, credential, credential)
+	return s.create(username, email, fullName, accountKey, verifier, encrypter)
 }
 
 func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, verifier credentials.Verifier, encrypter credentials.Encrypter) (*api.User, error) {

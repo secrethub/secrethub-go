@@ -127,6 +127,6 @@ func (c RSACredential) Authenticate(r *http.Request) error {
 }
 
 // Provide implements the credentials.Provider interface.
-func (c RSACredential) Provide(_ *httpclient.Client) (UsableCredential, error) {
-	return c, nil
+func (c RSACredential) Provide(_ *httpclient.Client) (auth.Authenticator, Decrypter, error) {
+	return c, c, nil
 }

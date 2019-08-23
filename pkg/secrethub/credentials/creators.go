@@ -9,14 +9,9 @@ import (
 	"github.com/secrethub/secrethub-go/internals/crypto"
 )
 
-type CreatedCredential interface {
-	Encrypter
-	Verifier
-}
-
 // Creator is an interface is accepted by functions that need a new credential to be created.
 type Creator interface {
-	Create() (CreatedCredential, error)
+	Create() (Verifier, Encrypter, error)
 }
 
 // KeyCreator is used to create a new key-based credential.
@@ -33,13 +28,13 @@ func CreateKey() *KeyCreator {
 }
 
 // Create generates a new key and stores it in the KeyCreator.
-func (c *KeyCreator) Create() (CreatedCredential, error) {
+func (c *KeyCreator) Create() (Verifier, Encrypter, error) {
 	key, err := GenerateRSACredential(crypto.RSAKeyLength)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	c.key = key
-	return c.key, nil
+	return c.key, c.key, nil
 }
 
 // Export the key of this credential to string format to save for later use.
@@ -58,19 +53,19 @@ func (c *KeyCreator) Export() (string, error) {
 // The role should have decryption permission on the provided KMS key.
 // awsCfg can be used to optionally configure the used AWS client. For example to set the region.
 func CreateAWS(kmsKeyID string, roleARN string, awsCfg ...*awssdk.Config) Creator {
-	return creatorFunc(func() (CreatedCredential, error) {
+	return creatorFunc(func() (Verifier, Encrypter, error) {
 		creator, err := aws.NewCredentialCreator(kmsKeyID, roleARN, awsCfg...)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return creator, nil
+		return creator, creator, nil
 	})
 }
 
 // creatorFunc is a helper type that can transform any func() (CreatedCredential, error) into a Creator.
-type creatorFunc func() (CreatedCredential, error)
+type creatorFunc func() (Verifier, Encrypter, error)
 
 // Create is implemented to let creatorFunc implement the Creator interface.
-func (f creatorFunc) Create() (CreatedCredential, error) {
+func (f creatorFunc) Create() (Verifier, Encrypter, error) {
 	return f()
 }
