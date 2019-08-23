@@ -40,11 +40,6 @@ func Join(elements ...string) string {
 
 // HasVersion returns true when a version suffix is specified in the path.
 func HasVersion(path string) bool {
-	return hasVersion(path)
-}
-
-// hasVersion returns true when a version suffix is specified in the path.
-func hasVersion(path string) bool {
 	i := strings.LastIndex(path, versionSep)
 	return i >= 0 && i < len(path)-1
 }
@@ -53,7 +48,7 @@ func hasVersion(path string) bool {
 // when :latest or negative version numbers are given. If no version
 // suffix is set or it cannot be parsed to an integer, 0 is returned.
 func Version(path string) int {
-	if !hasVersion(path) {
+	if !HasVersion(path) {
 		return 0
 	}
 
