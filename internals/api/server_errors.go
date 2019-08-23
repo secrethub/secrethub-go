@@ -101,3 +101,12 @@ var (
 	// Dirs
 	ErrCannotRemoveLastRootAdmin = errHub.Code("cannot_remove_last_root_admin").StatusError("Cannot remove the last admin on the repo root", http.StatusBadRequest)
 )
+
+// IsErrNotFound returns whether the given error is caused by a un-existing resource.
+func IsErrNotFound(err error) bool {
+	statusError, ok := err.(errio.PublicStatusError)
+	if !ok {
+		return false
+	}
+	return statusError.StatusCode == 404
+}
