@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	UserAgentPrefix = "SecretHub/v1 GoClient/" + ClientVersion
+	userAgentPrefix = "SecretHub/v1 GoClient/" + ClientVersion
 )
 
 // ClientAdapter is an interface that can be used to consume the SecretHub client and is implemented by secrethub.Client.
@@ -98,7 +98,7 @@ func NewClient(with ...ClientOption) (*Client, error) {
 		}
 	}
 
-	userAgent := UserAgentPrefix
+	userAgent := userAgentPrefix
 	if client.appInfo != nil {
 		userAgent += " " + client.appInfo.userAgentSuffix()
 	}
