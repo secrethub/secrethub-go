@@ -24,9 +24,13 @@ func Join(elements ...string) string {
 	result := ""
 	for _, e := range elements {
 		e = strings.Trim(e, elemSep)
-		if len(e) != 0 && len(result) == 0 {
+		if len(e) == 0 {
+			continue
+		}
+
+		if len(result) == 0 {
 			result += e
-		} else if len(e) != 0 {
+		} else {
 			result += elemSep + e
 		}
 	}
