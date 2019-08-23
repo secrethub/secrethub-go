@@ -299,6 +299,10 @@ func TestClean(t *testing.T) {
 		path     string
 		expected string
 	}{
+		"empty": {
+			path:     "",
+			expected: "",
+		},
 		"only sep": {
 			path:     "/",
 			expected: "",

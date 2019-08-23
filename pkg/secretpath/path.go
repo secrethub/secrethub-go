@@ -145,9 +145,6 @@ func Repo(path string) string {
 // Namespace returns the first element of a path, removing trailing separators.
 func Namespace(path string) string {
 	path = Clean(path)
-	if len(path) == 0 {
-		return ""
-	}
 
 	for i := 0; i < len(path); i++ {
 		if path[i] == elemSepByte {
@@ -162,10 +159,6 @@ func Namespace(path string) string {
 // by lexical processing. It removes trailing and multiple separator
 // elements. Version suffixes are not removed.
 func Clean(path string) string {
-	if len(path) == 0 {
-		return ""
-	}
-
 	split := strings.SplitN(path, versionSep, 2)
 	path = split[0]
 	versionSuffix := ""
