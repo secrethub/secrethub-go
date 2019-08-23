@@ -181,7 +181,7 @@ func TestHasVersion(t *testing.T) {
 		},
 		"empty version": {
 			path:     "foo/bar/baz:",
-			expected: false,
+			expected: true,
 		},
 	}
 
@@ -201,11 +201,11 @@ func TestVersion(t *testing.T) {
 	}{
 		"empty string": {
 			path:     "",
-			expected: 0,
+			expected: -1,
 		},
 		"one element": {
 			path:     "foo",
-			expected: 0,
+			expected: -1,
 		},
 		"numbered version": {
 			path:     "foo/bar/baz:1",
@@ -229,6 +229,10 @@ func TestVersion(t *testing.T) {
 		},
 		"empty version": {
 			path:     "foo/bar/baz:",
+			expected: 0,
+		},
+		"version 0": {
+			path:     "foo/bar/baz:0",
 			expected: 0,
 		},
 	}
