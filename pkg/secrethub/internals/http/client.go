@@ -16,7 +16,10 @@ import (
 
 var (
 	log = logging.MustGetLogger("log")
+)
 
+// Errors
+var (
 	errHTTP = errio.Namespace("http")
 
 	ErrClientTimeout = errHTTP.Code("timeout").Error("client timed out during request. Please try again.")

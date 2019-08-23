@@ -15,6 +15,8 @@ type RSACredential struct {
 	crypto.RSAPrivateKey
 }
 
+// GenerateRSACredential generates a new credential that has uses RSA key with keyLength bits for
+// encryption and authentication.
 func GenerateRSACredential(keyLength int) (*RSACredential, error) {
 	key, err := crypto.GenerateRSAPrivateKey(keyLength)
 	if err != nil {
