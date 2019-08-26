@@ -23,3 +23,9 @@ type Encrypter interface {
 	// Wrap encrypts data, typically an account key.
 	Wrap(plaintext []byte) (*api.EncryptedData, error)
 }
+
+// CreatorProvider is both a credential creator and provider.
+type CreatorProvider interface {
+	Creator
+	Provider
+}

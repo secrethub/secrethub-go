@@ -2,8 +2,10 @@ package credentials
 
 import (
 	"errors"
+	"net/http"
 
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 
@@ -46,6 +48,11 @@ func (c *KeyCreator) Export() (string, error) {
 		return "", errors.New("key has not yet been generated created. Use KeyCreator before calling Export()")
 	}
 	return EncodeCredential(c.key)
+}
+
+// Provide returns a credential that can be used for authentication and decryption.
+func (c *KeyCreator) Provide(*http.Client) (auth.Authenticator, Decrypter, error) {
+	return c.key, c.key, nil
 }
 
 // CreateAWS returns a Creator that creates an AWS-based credential.
