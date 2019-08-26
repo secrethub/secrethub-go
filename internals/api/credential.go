@@ -30,24 +30,21 @@ var (
 	ErrRoleDoesNotMatch      = errAPI.Code("role_does_not_match").StatusError("role in metadata does not match the verifier", http.StatusBadRequest)
 )
 
-// CredentialMetadataKey is a key that can be used for the metadata of a credential.
-type CredentialMetadataKey string
-
 // Credential metadata keys
 const (
-	CredentialMetadataAWSKMSKey CredentialMetadataKey = "aws_kms_key"
-	CredentialMetadataAWSRole   CredentialMetadataKey = "aws_role"
+	CredentialMetadataAWSKMSKey = "aws_kms_key_id"
+	CredentialMetadataAWSRole   = "aws_role"
 )
 
 // Credential is used to authenticate to the API and to encrypt the account key.
 type Credential struct {
-	AccountID   *uuid.UUID                       `json:"account_id"`
-	Type        CredentialType                   `json:"algorithm"`
-	CreatedAt   time.Time                        `json:"created_at"`
-	Fingerprint string                           `json:"fingerprint"`
-	Name        string                           `json:"name"`
-	Verifier    []byte                           `json:"verifier"`
-	Metadata    map[CredentialMetadataKey]string `json:"metadata,omitempty"`
+	AccountID   *uuid.UUID        `json:"account_id"`
+	Type        CredentialType    `json:"algorithm"`
+	CreatedAt   time.Time         `json:"created_at"`
+	Fingerprint string            `json:"fingerprint"`
+	Name        string            `json:"name"`
+	Verifier    []byte            `json:"verifier"`
+	Metadata    map[string]string `json:"metadata,omitempty"`
 }
 
 // CredentialType is used to identify the type of algorithm that is used for a credential.
@@ -74,12 +71,12 @@ func (a CredentialType) Validate() error {
 
 // CreateCredentialRequest contains the fields to add a credential to an account.
 type CreateCredentialRequest struct {
-	Type        CredentialType                   `json:"type"`
-	Fingerprint string                           `json:"fingerprint"`
-	Name        string                           `json:"name,omitempty"`
-	Verifier    []byte                           `json:"verifier"`
-	Proof       interface{}                      `json:"proof"`
-	Metadata    map[CredentialMetadataKey]string `json:"metadata"`
+	Type        CredentialType    `json:"type"`
+	Fingerprint string            `json:"fingerprint"`
+	Name        string            `json:"name,omitempty"`
+	Verifier    []byte            `json:"verifier"`
+	Proof       interface{}       `json:"proof"`
+	Metadata    map[string]string `json:"metadata"`
 }
 
 // UnmarshalJSON converts a JSON representation into a CreateCredentialRequest with the correct Proof.
