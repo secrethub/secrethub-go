@@ -30,10 +30,12 @@ var (
 	ErrRoleDoesNotMatch      = errAPI.Code("role_does_not_match").StatusError("role in metadata does not match the verifier", http.StatusBadRequest)
 )
 
+// CredentialMetadata stores the metadata of credentials.
+// Only the keys defined below are allowed to be used.
+type CredentialMetadata map[CredentialMetadataKey]string
+
 // CredentialMetadataKey is a key that can be used for the metadata of a credential.
 type CredentialMetadataKey string
-
-type CredentialMetadata map[CredentialMetadataKey]string
 
 // Credential metadata keys
 const (
