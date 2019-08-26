@@ -71,7 +71,7 @@ func (c *Client) createAccountKeyRequest(encrypter credentials.Encrypter, accoun
 	}, nil
 }
 
-func (c *Client) createCredentialRequest(verifier credentials.Verifier, metadata api.CredentialMetadata) (*api.CreateCredentialRequest, error) {
+func (c *Client) createCredentialRequest(verifier credentials.Verifier, metadata map[string]string) (*api.CreateCredentialRequest, error) {
 	bytes, err := verifier.Verifier()
 	if err != nil {
 		return nil, errio.Error(err)

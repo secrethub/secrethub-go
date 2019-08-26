@@ -62,7 +62,7 @@ func (s userService) Create(username, email, fullName string, credentialCreator 
 	return s.create(username, email, fullName, accountKey, verifier, encrypter, metadata)
 }
 
-func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, verifier credentials.Verifier, encrypter credentials.Encrypter, metadata api.CredentialMetadata) (*api.User, error) {
+func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, verifier credentials.Verifier, encrypter credentials.Encrypter, metadata map[string]string) (*api.User, error) {
 	credentialRequest, err := s.client.createCredentialRequest(verifier, metadata)
 	if err != nil {
 		return nil, errio.Error(err)
