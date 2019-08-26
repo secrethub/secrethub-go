@@ -77,7 +77,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 				Fingerprint: "8eb80fb7b3cf1a3efc8c1afbbfb53cf371db6c8cef8947368d8f78a324d22462",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
 				Proof:       &CredentialProofAWSSTS{},
-				Metadata: map[CredentialMetadataKey]string{
+				Metadata: CredentialMetadata{
 					CredentialMetadataAWSRole:   "arn:aws:iam::123456:role/path/to/role",
 					CredentialMetadataAWSKMSKey: "arn:aws:kms:us-east-1:123456:key/12345678-1234-1234-1234-123456789012",
 				},
@@ -90,7 +90,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 				Fingerprint: "8eb80fb7b3cf1a3efc8c1afbbfb53cf371db6c8cef8947368d8f78a324d22462",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
 				Proof:       &CredentialProofAWSSTS{},
-				Metadata: map[CredentialMetadataKey]string{
+				Metadata: CredentialMetadata{
 					CredentialMetadataAWSKMSKey: "arn:aws:kms:us-east-1:123456:key/12345678-1234-1234-1234-123456789012",
 				},
 			},
@@ -102,7 +102,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 				Fingerprint: "8eb80fb7b3cf1a3efc8c1afbbfb53cf371db6c8cef8947368d8f78a324d22462",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
 				Proof:       &CredentialProofAWSSTS{},
-				Metadata: map[CredentialMetadataKey]string{
+				Metadata: CredentialMetadata{
 					CredentialMetadataAWSRole: "arn:aws:iam::123456:role/path/to/role",
 				},
 			},
@@ -114,7 +114,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 				Type:        CredentialTypeRSA,
 				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 				Verifier:    []byte("verifier"),
-				Metadata: map[CredentialMetadataKey]string{
+				Metadata: CredentialMetadata{
 					"foo": "bar",
 				},
 			},
@@ -126,7 +126,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 				Fingerprint: "8eb80fb7b3cf1a3efc8c1afbbfb53cf371db6c8cef8947368d8f78a324d22462",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
 				Proof:       &CredentialProofAWSSTS{},
-				Metadata: map[CredentialMetadataKey]string{
+				Metadata: CredentialMetadata{
 					CredentialMetadataAWSRole:   "arn:aws:iam::123456:role/path/to/role",
 					CredentialMetadataAWSKMSKey: "arn:aws:kms:us-east-1:123456:key/12345678-1234-1234-1234-123456789012",
 					"foo":                       "bar",
