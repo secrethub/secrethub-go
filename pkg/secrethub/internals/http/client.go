@@ -591,6 +591,9 @@ func (c *Client) RevokeOrgMember(name string, username string, opts *api.RevokeO
 // HELPER METHODS
 
 // get is a helper function to make an http GET request.
+//
+// nolint: unparam // Also receive authenticate param here, even if it is true for every call, to be consistent with
+// the other helper functions.
 func (c *Client) get(rawURL string, authenticate bool, out interface{}) error {
 	err := c.do(rawURL, "GET", authenticate, http.StatusOK, nil, out)
 	return errio.Error(err)
@@ -615,6 +618,9 @@ func (c *Client) patch(rawURL string, authenticate bool, expectedStatus int, in 
 }
 
 // delete is a helper function to make an http DELETE request.
+//
+// nolint: unparam // Also receive authenticate param here, even if it is true for every call, to be consistent with
+// the other helper functions.
 func (c *Client) delete(rawURL string, authenticate bool, out interface{}) error {
 	err := c.do(rawURL, "DELETE", authenticate, http.StatusOK, nil, out)
 	return errio.Error(err)
