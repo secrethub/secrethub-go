@@ -51,11 +51,7 @@ func (k Key) Export() ([]byte, error) {
 	return EncodeCredential(k.key)
 }
 
-func ImportKey(credentialReader Reader, passphraseReader Reader) (Key, error) {
-	return readKey(credentialReader, passphraseReader)
-}
-
-func readKey(credentialReader, passphraseReader Reader) (Key, error) {
+func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
 	bytes, err := credentialReader.Read()
 	if err != nil {
 		return Key{}, err

@@ -61,7 +61,7 @@ func (k KeyProvider) Passphrase(passphraseReader Reader) Provider {
 }
 
 func (k KeyProvider) Provide(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
-	key, err := readKey(k.credentialReader, k.passphraseReader)
+	key, err := ImportKey(k.credentialReader, k.passphraseReader)
 	if err != nil {
 		return nil, nil, err
 	}
