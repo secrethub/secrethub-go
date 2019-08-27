@@ -46,39 +46,6 @@ type EncodableCredential interface {
 	Decoder() Decoder
 }
 
-// UnpackRSACredential is a shorthand function to decode a credential string and optionally
-// decrypt it with a passphrase. When an encrypted credential is given, the passphrase
-// cannot be empty.
-//
-// Note that when you want to customize the process of parsing and decoding/decrypting
-// a credential (e.g. to prompt only for a passphrase when the credential is encrypted),
-// it is recommended you use a CredentialParser instead (e.g. defaultParser).
-func UnpackRSACredential(credential string, passphrase string) (*RSACredential, error) {
-	encoded, err := defaultParser.parse(credential)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	if encoded.IsEncrypted() {
-		if passphrase == "" {
-			return nil, ErrEmptyCredentialPassphrase
-		}
-
-		key, err := NewPassBasedKey([]byte(passphrase))
-		if err != nil {
-			return nil, err
-		}
-
-		credential, err := encoded.DecodeEncrypted(key)
-		if crypto.IsWrongKey(err) {
-			return nil, ErrCannotDecryptCredential
-		}
-		return credential, err
-	}
-
-	return encoded.Decode()
-}
-
 // encodedCredential is an intermediary format for encoding and decoding credentials.
 type encodedCredential struct {
 	// Raw is the raw credential string.
@@ -127,14 +94,14 @@ func (c encodedCredential) IsEncrypted() bool {
 }
 
 // EncodeCredential encodes a Credential as a one line string that can be transferred.
-func EncodeCredential(credential EncodableCredential) (string, error) {
+func EncodeCredential(credential EncodableCredential) ([]byte, error) {
 	cred := newEncodedCredential(credential)
 
 	return encodeCredentialPartsToString(cred.Header, cred.Payload)
 }
 
 // EncodeEncryptedCredential encrypts and encodes a Credential as a one line string token that can be transferred.
-func EncodeEncryptedCredential(credential EncodableCredential, key PassBasedKey) (string, error) {
+func EncodeEncryptedCredential(credential EncodableCredential, key PassBasedKey) ([]byte, error) {
 	cred := newEncodedCredential(credential)
 
 	// Set the `enc` header so it can be used to decrypt later.
@@ -142,7 +109,7 @@ func EncodeEncryptedCredential(credential EncodableCredential, key PassBasedKey)
 
 	payload, additionalheaders, err := key.Encrypt(cred.Payload)
 	if err != nil {
-		return "", errio.Error(err)
+		return nil, errio.Error(err)
 	}
 
 	for key, value := range additionalheaders {
@@ -166,20 +133,20 @@ func newEncodedCredential(credential EncodableCredential) *encodedCredential {
 }
 
 // encodeCredentialPartsToString encodes an header and payload in a format string: header.payload
-func encodeCredentialPartsToString(header map[string]interface{}, payload []byte) (string, error) {
+func encodeCredentialPartsToString(header map[string]interface{}, payload []byte) ([]byte, error) {
 	if len(header) == 0 {
-		return "", ErrEmptyCredentialHeader
+		return nil, ErrEmptyCredentialHeader
 	}
 
 	parts := make([]string, 2)
 	headerBytes, err := json.Marshal(header)
 	if err != nil {
-		return "", ErrInvalidCredential.Errorf("cannot encode header as json: %s", err)
+		return nil, ErrInvalidCredential.Errorf("cannot encode header as json: %s", err)
 	}
 
 	parts[0] = defaultEncoding.EncodeToString(headerBytes)
 	parts[1] = defaultEncoding.EncodeToString(payload)
-	return strings.Join(parts, "."), nil
+	return []byte(strings.Join(parts, ".")), nil
 }
 
 // parser parses a credential string with support
