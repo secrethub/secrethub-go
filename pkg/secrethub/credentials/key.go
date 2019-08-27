@@ -96,6 +96,10 @@ func decryptKey(passphraseReader Reader, encoded *encodedCredential) (*RSACreden
 	if err != nil {
 		return nil, err
 	}
+	if len(passphrase) == 0 {
+		return nil, errors.New("no passphrase given")
+	}
+
 	key, err := NewPassBasedKey(passphrase)
 	if err != nil {
 		return nil, err
