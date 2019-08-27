@@ -17,14 +17,23 @@ const (
 
 // ClientAdapter is an interface that can be used to consume the SecretHub client and is implemented by secrethub.Client.
 type ClientAdapter interface {
+	// AccessRules returns a service used to manage access rules.
 	AccessRules() AccessRuleService
+	// Accounts returns a service used to manage SecretHub accounts.
 	Accounts() AccountService
+	// Dirs returns a service used to manage directories.
 	Dirs() DirService
+	// Me returns a service used to manage the current authenticated account.
 	Me() MeService
+	// Orgs returns a service used to manage shared organization workspaces.
 	Orgs() OrgService
+	// Repos returns a service used to manage repositories.
 	Repos() RepoService
+	// Secrets returns a service used to manage secrets.
 	Secrets() SecretService
+	// Services returns a service used to manage non-human service accounts.
 	Services() ServiceService
+	// Users returns a service used to manage (human) user accounts.
 	Users() UserService
 }
 
@@ -136,47 +145,47 @@ func Must(c *Client, err error) *Client {
 	return c
 }
 
-// AccessRules returns an AccessRuleService.
+// AccessRules returns a service used to manage access rules.
 func (c *Client) AccessRules() AccessRuleService {
 	return newAccessRuleService(c)
 }
 
-// Accounts returns an AccountService.
+// Accounts returns a service used to manage SecretHub accounts.
 func (c *Client) Accounts() AccountService {
 	return newAccountService(c)
 }
 
-// Dirs returns an DirService.
+// Dirs returns a service used to manage directories.
 func (c *Client) Dirs() DirService {
 	return newDirService(c)
 }
 
-// Me returns a MeService.
+// Me returns a service used to manage the current authenticated account.
 func (c *Client) Me() MeService {
 	return newMeService(c)
 }
 
-// Orgs returns an OrgService.
+// Orgs returns a service used to manage shared organization workspaces.
 func (c *Client) Orgs() OrgService {
 	return newOrgService(c)
 }
 
-// Repos returns an RepoService.
+// Repos returns a service used to manage repositories.
 func (c *Client) Repos() RepoService {
 	return newRepoService(c)
 }
 
-// Secrets returns an SecretService.
+// Secrets returns a service used to manage secrets.
 func (c *Client) Secrets() SecretService {
 	return newSecretService(c)
 }
 
-// Services returns an ServiceService.
+// Services returns a service used to manage non-human service accounts.
 func (c *Client) Services() ServiceService {
 	return newServiceService(c)
 }
 
-// Users returns an UserService.
+// Users returns a service used to manage (human) user accounts.
 func (c *Client) Users() UserService {
 	return newUserService(c)
 }
