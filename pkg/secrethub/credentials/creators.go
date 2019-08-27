@@ -14,12 +14,15 @@ import (
 
 // Creator is an interface is accepted by functions that need a new credential to be created.
 type Creator interface {
-	Create() (Verifier, Encrypter, map[string]string, error)
+	Create() error
+	Verifier() Verifier
+	Encrypter() Encrypter
+	Metadata() map[string]string
 }
 
 // KeyCreator is used to create a new key-based credential.
 type KeyCreator struct {
-	key *RSACredential
+	Key
 }
 
 // CreateKey returns a Creator that creates a key based credential.
@@ -31,13 +34,36 @@ func CreateKey() *KeyCreator {
 }
 
 // Create generates a new key and stores it in the KeyCreator.
-func (c *KeyCreator) Create() (Verifier, Encrypter, map[string]string, error) {
+func (kc *KeyCreator) Create() error {
 	key, err := GenerateRSACredential(crypto.RSAKeyLength)
 	if err != nil {
-		return nil, nil, nil, err
+		return err
 	}
-	c.key = key
-	return c.key, c.key, map[string]string{}, nil
+	kc.key = key
+	return nil
+}
+
+func (kc *KeyCreator) Metadata() map[string]string {
+	return map[string]string{}
+}
+
+type awsCreator struct {
+	kmsKeyID string
+	roleARN  string
+	awsCfg   []*awssdk.Config
+
+	verifier  Verifier
+	encrypter Encrypter
+}
+
+func (ac *awsCreator) Create() error {
+	creator, err := aws.NewCredentialCreator(ac.kmsKeyID, ac.roleARN, ac.awsCfg...)
+	if err != nil {
+		return err
+	}
+	ac.encrypter = creator
+	ac.verifier = creator
+	return nil
 }
 
 // Export the key of this credential to string format to save for later use.
@@ -55,6 +81,13 @@ func (c *KeyCreator) Provide(*http.Client) (auth.Authenticator, Decrypter, error
 	return c.key, c.key, nil
 }
 
+func (ac *awsCreator) Metadata() map[string]string {
+	return map[string]string{
+		api.CredentialMetadataAWSKMSKey: ac.kmsKeyID,
+		api.CredentialMetadataAWSRole:   ac.roleARN,
+	}
+}
+
 // CreateAWS returns a Creator that creates an AWS-based credential.
 // The kmsKeyID is the ID of the key in KMS that is used to encrypt the account key.
 // The roleARN is for the IAM role that should be assumed to use this credential.
@@ -62,22 +95,9 @@ func (c *KeyCreator) Provide(*http.Client) (auth.Authenticator, Decrypter, error
 // awsCfg can be used to optionally configure the used AWS client. For example to set the region.
 // The KMS key id and role are returned in the credentials metadata.
 func CreateAWS(kmsKeyID string, roleARN string, awsCfg ...*awssdk.Config) Creator {
-	return creatorFunc(func() (Verifier, Encrypter, map[string]string, error) {
-		creator, err := aws.NewCredentialCreator(kmsKeyID, roleARN, awsCfg...)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		return creator, creator, map[string]string{
-			api.CredentialMetadataAWSKMSKey: kmsKeyID,
-			api.CredentialMetadataAWSRole:   roleARN,
-		}, nil
-	})
-}
-
-// creatorFunc is a helper type that can transform any func() (Verifier, Encrypter, map[string]string, error) into a Creator.
-type creatorFunc func() (Verifier, Encrypter, map[string]string, error)
-
-// Create is implemented to let creatorFunc implement the Creator interface.
-func (f creatorFunc) Create() (Verifier, Encrypter, map[string]string, error) {
-	return f()
+	return &awsCreator{
+		kmsKeyID: kmsKeyID,
+		roleARN:  roleARN,
+		awsCfg:   awsCfg,
+	}
 }
