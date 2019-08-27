@@ -190,6 +190,9 @@ func (c *Client) Users() UserService {
 	return newUserService(c)
 }
 
+// DefaultCredential returns a reader pointing to the configured credential,
+// sourcing it either from the SECRETHUB_CREDENTIAL environment variable or
+// from the configuration directory.
 func (c *Client) DefaultCredential() credentials.Reader {
 	envCredential := os.Getenv("SECRETHUB_CREDENTIAL")
 	if envCredential != "" {
