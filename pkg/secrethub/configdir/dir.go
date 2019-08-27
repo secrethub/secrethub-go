@@ -62,13 +62,11 @@ type CredentialFile struct {
 
 // Write writes the given bytes to the credential file.
 func (f *CredentialFile) Write(data []byte) error {
-	// TOOD: correct permission?
-	err := os.MkdirAll(filepath.Dir(f.Path), 0600)
+	err := os.MkdirAll(filepath.Dir(f.Path), os.FileMode(0700))
 	if err != nil {
 		return err
 	}
-	// TOOD: correct permission?
-	return ioutil.WriteFile(f.Path, data, 0600)
+	return ioutil.WriteFile(f.Path, data, os.FileMode(0600))
 }
 
 // Exists returns true when a file exists at the path this credential points to.
