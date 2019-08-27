@@ -10,9 +10,13 @@ import (
 
 // Creator is an interface is accepted by functions that need a new credential to be created.
 type Creator interface {
+	// Create creates the actual credential (e.g. by generating a key).
 	Create() error
+	// Verifier returns information that the server can use to verify a request authenticated with the credential.
 	Verifier() Verifier
+	// Encrypter returns a wrapper that is used to encrypt data, typically an account key.
 	Encrypter() Encrypter
+	// Metadata returns a set of metadata about the credential. The result can be empty if no metadata is provided.
 	Metadata() map[string]string
 }
 
@@ -39,6 +43,7 @@ func (kc *KeyCreator) Create() error {
 	return nil
 }
 
+// Metadata returns a set of metadata associated with this credential.
 func (kc *KeyCreator) Metadata() map[string]string {
 	return map[string]string{}
 }
