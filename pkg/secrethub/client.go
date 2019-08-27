@@ -93,7 +93,6 @@ func NewClient(with ...ClientOption) (*Client, error) {
 	client := &Client{
 		httpClient:    http.NewClient(),
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
-		ConfigDir:     &configdir.Dir{},
 	}
 	err := client.with(with...)
 	if err != nil {
