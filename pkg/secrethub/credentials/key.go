@@ -60,7 +60,7 @@ func readKey(credentialReader, passphraseReader Reader) (Key, error) {
 	if err != nil {
 		return Key{}, err
 	}
-	encoded, err := defaultParser.parse(string(bytes))
+	encoded, err := defaultParser.parse(bytes)
 	if err != nil {
 		return Key{}, err
 	}

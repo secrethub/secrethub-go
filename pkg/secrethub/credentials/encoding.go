@@ -50,7 +50,7 @@ type EncodableCredential interface {
 type encodedCredential struct {
 	// Raw is the raw credential string.
 	// Populated when you Parse a credential.
-	Raw string
+	Raw []byte
 	// Header is the decoded first part of the credential string.
 	Header map[string]interface{}
 	// RawHeader is the first part of the credential string, encoded as json.
@@ -168,8 +168,8 @@ func newParser(decoders []Decoder) parser {
 }
 
 // parse parses a credential string.
-func (p parser) parse(raw string) (*encodedCredential, error) {
-	parts := strings.Split(raw, ".")
+func (p parser) parse(raw []byte) (*encodedCredential, error) {
+	parts := strings.Split(string(raw), ".")
 	if len(parts) != 2 {
 		return nil, ErrInvalidNumberOfCredentialSegments(len(parts))
 	}

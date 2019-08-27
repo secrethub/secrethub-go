@@ -126,7 +126,7 @@ func TestParser(t *testing.T) {
 		"valid_rsa": {
 			raw: raw,
 			expected: &encodedCredential{
-				Raw:                 raw,
+				Raw:                 []byte(raw),
 				Header:              header,
 				RawHeader:           headerBytes,
 				Payload:             payload,
@@ -138,7 +138,7 @@ func TestParser(t *testing.T) {
 		"valid_rsa_encrypted": {
 			raw: rawEncrypted,
 			expected: &encodedCredential{
-				Raw:                 rawEncrypted,
+				Raw:                 []byte(rawEncrypted),
 				Header:              headerEncrypted,
 				RawHeader:           headerEncryptedBytes,
 				Payload:             payload,
@@ -209,7 +209,7 @@ func TestParser(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// Act
-			actual, err := parser.parse(tc.raw)
+			actual, err := parser.parse([]byte(tc.raw))
 
 			// Assert
 			assert.Equal(t, err, tc.err)
