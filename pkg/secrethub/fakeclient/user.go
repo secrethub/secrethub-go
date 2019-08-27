@@ -25,7 +25,7 @@ func (s *UserService) Me() (*api.User, error) {
 }
 
 // Create implements the UserService interface Create function.
-func (s *UserService) Create(username, email, fullName string, credentialCreator credentials.Creator) (*api.User, error) {
+func (s *UserService) Create(username, email, fullName string, credentialCreator credentials.CreatorProvider) (*api.User, error) {
 	return s.UserCreater.Create(username, email, fullName, credentialCreator)
 }
 
@@ -63,7 +63,7 @@ type UserCreater struct {
 }
 
 // Create saves the arguments it was called with and returns the mocked response.
-func (s *UserCreater) Create(username, email, fullName string, credentialCreator credentials.Creator) (*api.User, error) {
+func (s *UserCreater) Create(username, email, fullName string, credentialCreator credentials.CreatorProvider) (*api.User, error) {
 	s.ArgUsername = username
 	s.ArgEmail = email
 	s.ArgFullName = fullName
