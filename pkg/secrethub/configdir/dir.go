@@ -12,6 +12,11 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
+var (
+	// ErrCredentialNotFound is returned when a credential file does not exist but CredentialFile.Read() is called.
+	ErrCredentialNotFound = errors.New("credential not found")
+)
+
 // Dir represents the configuration directory located at some path
 // on the file system.
 type Dir struct {
@@ -78,8 +83,7 @@ func (f *CredentialFile) Exists() bool {
 func (f *CredentialFile) Read() ([]byte, error) {
 	file, err := os.Open(f.Path)
 	if os.IsNotExist(err) {
-		// TOOD: return more usable error
-		return nil, errors.New("credential not found. Please signup first")
+		return nil, ErrCredentialNotFound
 	} else if err != nil {
 		return nil, err
 	}
