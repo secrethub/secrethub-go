@@ -45,6 +45,10 @@ func (c Dir) Credential() *CredentialFile {
 	}
 }
 
+func (c Dir) String() string {
+	return c.Path
+}
+
 // CredentialFile represents the file that contains the SecretHub API credential.
 // By default, it's a file named "credential" in the configuration directory.
 type CredentialFile struct {
