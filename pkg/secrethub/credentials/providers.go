@@ -34,12 +34,7 @@ func UseAWS(awsCfg ...*awssdk.Config) Provider {
 }
 
 // UseKey returns a Provider that reads a key credential from credentialReader.
-// If the key credential is encrypted, a passphrase is read from passReader and used for decryption,
-// The passReader argument can be set to nil if the credential is not encrypted.
-// If credentialReader argument is set to nil, the following default locations are searched for a credential:
-//   1. The SECRETHUB_CREDENTIAL environment variable.
-//   2. The credential file placed in the directory given by the SECRETHUB_CONFIG_DIR environment variable.
-//   3. The credential file found in <user's home directory>/.secrethub/credential.
+// If the key credential is encrypted, a passphrase must be set by calling Passphrase on the returned KeyProvider,
 //
 // Usage:
 //		credentials.UseKey(credentials.FromString("<a credential>"))

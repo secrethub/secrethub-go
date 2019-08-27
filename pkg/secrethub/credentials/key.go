@@ -8,31 +8,36 @@ import (
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
+// Key is a credential that uses a local key for all its operations.
 type Key struct {
 	key              *RSACredential
 	exportPassphrase Reader
 }
 
+// Verifier returns a Verifier that can be used for creating a new credential from this Key.
 func (k Key) Verifier() Verifier {
 	return k.key
 }
 
+// Encrypter returns a Encrypter that can be used to encrypt data with this Key.
 func (k Key) Encrypter() Encrypter {
 	return k.key
 }
 
+// Provide implements the Provider interface for a Key.
 func (k Key) Provide(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
 	return k.key, k.key, nil
 }
 
+// Passphrase returns a new Key that uses the provided passphraseReader to obtain a passphrase that is used for
+// encryption when Export() is called.
 func (k Key) Passphrase(passphraseReader Reader) Key {
 	k.exportPassphrase = passphraseReader
 	return k
 }
 
 // Export the key of this credential to string format to save for later use.
-// This can only be called after Create() is executed, for example by secrethub.UserService.Create([...])
-// or secrethub.ServiceService.Create([...])
+// If a passphrase was set with Passphrase(), this passphrase is used for encrypting the key.
 func (k Key) Export() ([]byte, error) {
 	if k.key == nil {
 		return nil, errors.New("key has not yet been generated created. Use KeyCreator before calling Export()")
@@ -51,6 +56,9 @@ func (k Key) Export() ([]byte, error) {
 	return EncodeCredential(k.key)
 }
 
+// ImportKey returns a Key by loading it from the provided credentialReader.
+// If the key is encrypted with a passphrase, passphraseReader should be provided. This is used to read a passphrase
+// from that is used for decryption. If the passphrase is incorrect, a new passphrase will be read up to 3 times.
 func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
 	bytes, err := credentialReader.Read()
 	if err != nil {
