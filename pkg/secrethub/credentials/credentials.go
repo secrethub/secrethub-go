@@ -1,3 +1,4 @@
+// Package credentials provides utilities for managing SecretHub API credentials.
 package credentials
 
 import "github.com/secrethub/secrethub-go/internals/api"
