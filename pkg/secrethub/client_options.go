@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/secrethub/secrethub-go/pkg/secrethub/configdir"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 	httpclient "github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
@@ -43,6 +44,13 @@ func WithAppInfo(appInfo *AppInfo) ClientOption {
 			return errors.New("name must be set for AppInfo")
 		}
 		c.appInfo = appInfo
+		return nil
+	}
+}
+
+func WithConfigDir(configDir configdir.Dir) ClientOption {
+	return func(c *Client) error {
+		c.ConfigDir = &configDir
 		return nil
 	}
 }

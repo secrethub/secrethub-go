@@ -4,6 +4,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/configdir"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
@@ -47,7 +48,8 @@ type Client struct {
 	// These are cached
 	repoIndexKeys map[api.RepoPath]*crypto.SymmetricKey
 
-	appInfo *AppInfo
+	appInfo   *AppInfo
+	ConfigDir *configdir.Dir
 }
 
 // AppInfo contains information about the application that is using the SecretHub client.
@@ -80,12 +82,22 @@ func NewClient(with ...ClientOption) (*Client, error) {
 	client := &Client{
 		httpClient:    http.NewClient(),
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
+		ConfigDir:     &configdir.Dir{},
 	}
 	for _, option := range with {
 		err := option(client)
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	// ConfigDir should be fully initialized before loading any default credentials.
+	if client.ConfigDir == nil {
+		configDir, err := configdir.Default()
+		if err != nil {
+			return nil, err
+		}
+		client.ConfigDir = configDir
 	}
 
 	// Try to use default key credentials if none provided explicitly
