@@ -1,6 +1,7 @@
 package credentials
 
 import (
+	"bytes"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -169,19 +170,20 @@ func newParser(decoders []Decoder) parser {
 
 // parse parses a credential string.
 func (p parser) parse(raw []byte) (*encodedCredential, error) {
-	parts := strings.Split(string(raw), ".")
+	parts := bytes.Split(raw, []byte("."))
 	if len(parts) != 2 {
 		return nil, ErrInvalidNumberOfCredentialSegments(len(parts))
 	}
 
 	cred := &encodedCredential{
-		Raw:    raw,
-		Header: make(map[string]interface{}),
+		Raw:       raw,
+		Header:    make(map[string]interface{}),
+		RawHeader: make([]byte, defaultEncoding.DecodedLen(len(parts[0]))),
+		Payload:   make([]byte, defaultEncoding.DecodedLen(len(parts[1]))),
 	}
 
 	// Decode the header
-	var err error
-	cred.RawHeader, err = defaultEncoding.DecodeString(parts[0])
+	_, err := defaultEncoding.Decode(cred.RawHeader, parts[0])
 	if err != nil {
 		return nil, ErrCannotDecodeCredentialHeader(err)
 	}
@@ -202,7 +204,7 @@ func (p parser) parse(raw []byte) (*encodedCredential, error) {
 		return nil, ErrUnsupportedCredentialType(payloadType)
 	}
 
-	cred.Payload, err = defaultEncoding.DecodeString(parts[1])
+	_, err = defaultEncoding.Decode(cred.Payload, parts[1])
 	if err != nil {
 		return nil, ErrCannotDecodeCredentialPayload(err)
 	}
