@@ -20,17 +20,17 @@ type Creator interface {
 	Metadata() map[string]string
 }
 
-// KeyCreator is used to create a new key-based credential.
-type KeyCreator struct {
-	Key
-}
-
 // CreateKey returns a Creator that creates a key based credential.
 // After use, the key can be accessed with the Export() method.
 // The user of CreateKey() is responsible for saving the exported key.
 // If this is not done, the credential will be unusable.
 func CreateKey() *KeyCreator {
 	return &KeyCreator{}
+}
+
+// KeyCreator is used to create a new key-based credential.
+type KeyCreator struct {
+	Key
 }
 
 // Create generates a new key and stores it in the KeyCreator.
@@ -48,40 +48,6 @@ func (kc *KeyCreator) Metadata() map[string]string {
 	return map[string]string{}
 }
 
-type awsCreator struct {
-	kmsKeyID string
-	roleARN  string
-	awsCfg   []*awssdk.Config
-
-	verifier  Verifier
-	encrypter Encrypter
-}
-
-func (ac *awsCreator) Create() error {
-	creator, err := aws.NewCredentialCreator(ac.kmsKeyID, ac.roleARN, ac.awsCfg...)
-	if err != nil {
-		return err
-	}
-	ac.encrypter = creator
-	ac.verifier = creator
-	return nil
-}
-
-func (ac *awsCreator) Verifier() Verifier {
-	return ac.verifier
-}
-
-func (ac *awsCreator) Encrypter() Encrypter {
-	return ac.encrypter
-}
-
-func (ac *awsCreator) Metadata() map[string]string {
-	return map[string]string{
-		api.CredentialMetadataAWSKMSKey: ac.kmsKeyID,
-		api.CredentialMetadataAWSRole:   ac.roleARN,
-	}
-}
-
 // CreateAWS returns a Creator that creates an AWS-based credential.
 // The kmsKeyID is the ID of the key in KMS that is used to encrypt the account key.
 // The roleARN is for the IAM role that should be assumed to use this credential.
@@ -93,5 +59,37 @@ func CreateAWS(kmsKeyID string, roleARN string, awsCfg ...*awssdk.Config) Creato
 		kmsKeyID: kmsKeyID,
 		roleARN:  roleARN,
 		awsCfg:   awsCfg,
+	}
+}
+
+type awsCreator struct {
+	kmsKeyID string
+	roleARN  string
+	awsCfg   []*awssdk.Config
+
+	credentialCreator *aws.CredentialCreator
+}
+
+func (ac *awsCreator) Create() error {
+	creator, err := aws.NewCredentialCreator(ac.kmsKeyID, ac.roleARN, ac.awsCfg...)
+	if err != nil {
+		return err
+	}
+	ac.credentialCreator = creator
+	return nil
+}
+
+func (ac *awsCreator) Verifier() Verifier {
+	return ac.credentialCreator
+}
+
+func (ac *awsCreator) Encrypter() Encrypter {
+	return ac.credentialCreator
+}
+
+func (ac *awsCreator) Metadata() map[string]string {
+	return map[string]string{
+		api.CredentialMetadataAWSKMSKey: ac.kmsKeyID,
+		api.CredentialMetadataAWSRole:   ac.roleARN,
 	}
 }
