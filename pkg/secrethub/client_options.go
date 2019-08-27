@@ -48,6 +48,7 @@ func WithAppInfo(appInfo *AppInfo) ClientOption {
 	}
 }
 
+// WithConfigDir sets the configuration directory to use (among others) for sourcing the credential file from.
 func WithConfigDir(configDir configdir.Dir) ClientOption {
 	return func(c *Client) error {
 		c.ConfigDir = &configDir
