@@ -1,11 +1,7 @@
 package credentials
 
 import (
-	"errors"
-	"net/http"
-
 	"github.com/secrethub/secrethub-go/internals/api"
-	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 
@@ -66,19 +62,12 @@ func (ac *awsCreator) Create() error {
 	return nil
 }
 
-// Export the key of this credential to string format to save for later use.
-// This can only be called after Create() is executed, for example by secrethub.UserService.Create([...])
-// or secrethub.ServiceService.Create([...])
-func (c *KeyCreator) Export() (string, error) {
-	if c.key == nil {
-		return "", errors.New("key has not yet been generated created. Use KeyCreator before calling Export()")
-	}
-	return EncodeCredential(c.key)
+func (ac *awsCreator) Verifier() Verifier {
+	return ac.verifier
 }
 
-// Provide returns a credential that can be used for authentication and decryption.
-func (c *KeyCreator) Provide(*http.Client) (auth.Authenticator, Decrypter, error) {
-	return c.key, c.key, nil
+func (ac *awsCreator) Encrypter() Encrypter {
+	return ac.encrypter
 }
 
 func (ac *awsCreator) Metadata() map[string]string {
