@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/crypto"
@@ -63,14 +62,11 @@ func (c *KeyCreator) Provide(*http.Client) (auth.Authenticator, Decrypter, error
 // The KMS key id and role are returned in the credentials metadata.
 func CreateAWS(kmsKeyID string, roleARN string, awsCfg ...*awssdk.Config) Creator {
 	return creatorFunc(func() (Verifier, Encrypter, map[string]string, error) {
-		creator, err := aws.NewCredentialCreator(kmsKeyID, roleARN, awsCfg...)
+		creator, metadata, err := aws.NewCredentialCreator(kmsKeyID, roleARN, awsCfg...)
 		if err != nil {
 			return nil, nil, nil, err
 		}
-		return creator, creator, map[string]string{
-			api.CredentialMetadataAWSKMSKey: kmsKeyID,
-			api.CredentialMetadataAWSRole:   roleARN,
-		}, nil
+		return creator, creator, metadata, nil
 	})
 }
 
