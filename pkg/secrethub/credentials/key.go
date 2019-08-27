@@ -65,9 +65,17 @@ func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
 			return Key{}, errors.New("need passphrase")
 		}
 
+		// Try up to three times to get the correct passphrase.
 		for i := 0; i < 3; i++ {
-			credential, err := decryptKey(passphraseReader, encoded)
+			passphrase, err := passphraseReader.Read()
+			if err != nil {
+				return Key{}, err
+			}
+			if len(passphrase) == 0 {
+				return Key{}, errors.New("no passphrase given")
+			}
 
+			credential, err := decryptKey(passphrase, encoded)
 			if crypto.IsWrongKey(err) {
 				continue
 			} else if err != nil {
@@ -87,15 +95,7 @@ func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
 	return Key{key: credential}, nil
 }
 
-func decryptKey(passphraseReader Reader, encoded *encodedCredential) (*RSACredential, error) {
-	passphrase, err := passphraseReader.Read()
-	if err != nil {
-		return nil, err
-	}
-	if len(passphrase) == 0 {
-		return nil, errors.New("no passphrase given")
-	}
-
+func decryptKey(passphrase []byte, encoded *encodedCredential) (*RSACredential, error) {
 	key, err := NewPassBasedKey(passphrase)
 	if err != nil {
 		return nil, err
