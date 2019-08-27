@@ -1,6 +1,8 @@
 package secrethub
 
 import (
+	"os"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
@@ -102,7 +104,7 @@ func NewClient(with ...ClientOption) (*Client, error) {
 
 	// Try to use default key credentials if none provided explicitly
 	if client.decrypter == nil {
-		err := WithCredentials(credentials.UseKey(nil, nil))(client)
+		err := WithCredentials(credentials.UseKey(client.DefaultCredential()))(client)
 		// nolint: staticcheck
 		if err != nil {
 			// TODO: log that default credential was not loaded.
@@ -177,4 +179,13 @@ func (c *Client) Services() ServiceService {
 // Users returns an UserService.
 func (c *Client) Users() UserService {
 	return newUserService(c)
+}
+
+func (c *Client) DefaultCredential() credentials.Reader {
+	envCredential := os.Getenv("SECRETHUB_CREDENTIAL")
+	if envCredential != "" {
+		return credentials.FromString(envCredential)
+	}
+
+	return c.ConfigDir.Credential()
 }
