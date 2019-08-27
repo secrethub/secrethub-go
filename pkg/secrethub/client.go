@@ -95,11 +95,9 @@ func NewClient(with ...ClientOption) (*Client, error) {
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 		ConfigDir:     &configdir.Dir{},
 	}
-	for _, option := range with {
-		err := option(client)
-		if err != nil {
-			return nil, err
-		}
+	err := client.with(with...)
+	if err != nil {
+		return nil, err
 	}
 
 	// ConfigDir should be fully initialized before loading any default credentials.
@@ -113,7 +111,7 @@ func NewClient(with ...ClientOption) (*Client, error) {
 
 	// Try to use default key credentials if none provided explicitly
 	if client.decrypter == nil {
-		err := WithCredentials(credentials.UseKey(client.DefaultCredential()))(client)
+		err := client.with(WithCredentials(credentials.UseKey(client.DefaultCredential())))
 		// nolint: staticcheck
 		if err != nil {
 			// TODO: log that default credential was not loaded.
@@ -188,6 +186,17 @@ func (c *Client) Services() ServiceService {
 // Users returns a service used to manage (human) user accounts.
 func (c *Client) Users() UserService {
 	return newUserService(c)
+}
+
+// with applies ClientOptions to a Client. Should only be called during initialization.
+func (c *Client) with(options ...ClientOption) error {
+	for _, o := range options {
+		err := o(c)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // DefaultCredential returns a reader pointing to the configured credential,
