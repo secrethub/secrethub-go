@@ -73,6 +73,16 @@ func (c CredentialCreator) Verifier() ([]byte, error) {
 	return []byte(c.role), nil
 }
 
+// Fingerprint returns the key identifier by which the server can identify the credential.
+func (c CredentialCreator) Fingerprint() (string, error) {
+	verifier, err := c.Verifier()
+	if err != nil {
+		return "", err
+	}
+
+	return api.GetFingerprint(c.Type(), verifier)
+}
+
 // AddProof adds proof of access to the AWS account to the CreateCredentialRequest.
 func (c CredentialCreator) AddProof(req *api.CreateCredentialRequest) error {
 	plaintext := api.CredentialProofPrefixAWS + c.role

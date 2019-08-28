@@ -11,6 +11,8 @@ type Verifier interface {
 	Type() api.CredentialType
 	// AddProof adds the proof of this credential's possession to a CreateCredentialRequest.
 	AddProof(req *api.CreateCredentialRequest) error
+	// Fingerprint returns the key identifier by which the server can identify the verifier.
+	Fingerprint() (string, error)
 }
 
 // Decrypter decrypts data, typically an account key.
