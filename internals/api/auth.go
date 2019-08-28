@@ -139,7 +139,7 @@ func (pl AuthPayloadAWSSTS) Validate() error {
 func NewSessionHMAC(sessionID uuid.UUID, expiration time.Time, secretKey string) *Session {
 	return &Session{
 		SessionID: sessionID,
-		Expires:   expiration,
+		ExpiresAt: expiration,
 		Type:      SessionTypeHMAC,
 		Payload: &SessionPayloadHMAC{
 			SessionKey: secretKey,
@@ -150,7 +150,7 @@ func NewSessionHMAC(sessionID uuid.UUID, expiration time.Time, secretKey string)
 // Session represents a session that can be used for authentication to the server.
 type Session struct {
 	SessionID uuid.UUID   `json:"session_id"`
-	Expires   time.Time   `json:"expires"`
+	ExpiresAt time.Time   `json:"expires_at"`
 	Type      SessionType `json:"type"`
 	Payload   interface{} `json:"payload"`
 }
@@ -217,7 +217,7 @@ type validator interface {
 
 // Validate whether the Session is valid.
 func (s *Session) Validate() error {
-	if s.Expires.IsZero() {
+	if s.ExpiresAt.IsZero() {
 		return ErrMissingField("expiration")
 	}
 	if s.Type == "" {
@@ -241,7 +241,7 @@ func (s *Session) HMAC() *SessionHMAC {
 	payload := s.Payload.(*SessionPayloadHMAC)
 	return &SessionHMAC{
 		SessionID: s.SessionID,
-		Expires:   s.Expires,
+		Expires:   s.ExpiresAt,
 		Payload:   *payload,
 	}
 }
