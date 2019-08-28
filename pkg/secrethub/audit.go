@@ -5,7 +5,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
-func (c *client) decryptAuditEvents(events ...*api.Audit) error {
+func (c *Client) decryptAuditEvents(events ...*api.Audit) error {
 	accountKey, err := c.getAccountKey()
 	if err != nil {
 		return errio.Error(err)

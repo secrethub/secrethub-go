@@ -19,14 +19,14 @@ type OrgMemberService interface {
 	Update(org string, username string, role string) (*api.OrgMember, error)
 }
 
-func newOrgMemberService(client client) OrgMemberService {
+func newOrgMemberService(client *Client) OrgMemberService {
 	return orgMemberService{
 		client: client,
 	}
 }
 
 type orgMemberService struct {
-	client client
+	client *Client
 }
 
 // Get retrieves a users organization membership details.

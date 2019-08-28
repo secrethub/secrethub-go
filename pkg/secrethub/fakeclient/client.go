@@ -12,6 +12,7 @@ type Client struct {
 	SecretService     *SecretService
 	ServiceService    *ServiceService
 	UserService       *UserService
+	secrethub.Client
 }
 
 // AccessRules implements the secrethub.Client interface.

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/secrethub/secrethub-go/pkg/secrethub"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 
 	"github.com/secrethub/secrethub-go/internals/assert"
 	"github.com/secrethub/secrethub-go/internals/auth"
@@ -18,7 +18,7 @@ func TestSignRequest_CheckHeadersAreSet(t *testing.T) {
 		panic(err)
 	}
 
-	signer := auth.NewHTTPSigner(secrethub.RSACredential{RSAPrivateKey: clientKey})
+	signer := auth.NewHTTPSigner(credentials.RSACredential{RSAPrivateKey: clientKey})
 
 	req, err := http.NewRequest("GET", "https://api.secrethub.io/repos/jdoe/catpictures", nil)
 	assert.OK(t, err)

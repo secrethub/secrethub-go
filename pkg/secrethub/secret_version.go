@@ -35,14 +35,14 @@ type SecretVersionService interface {
 	ListWithoutData(path string) ([]*api.SecretVersion, error)
 }
 
-func newSecretVersionService(client client) SecretVersionService {
+func newSecretVersionService(client *Client) SecretVersionService {
 	return secretVersionService{
 		client: client,
 	}
 }
 
 type secretVersionService struct {
-	client client
+	client *Client
 }
 
 // Delete removes a secret version.
@@ -158,7 +158,7 @@ func (s secretVersionService) ListWithoutData(path string) ([]*api.SecretVersion
 // createSecretVersion creates a new version of an existing secret.
 // The provided key should not be a flagged key. When it is,
 // createSecretVersion will return an error.
-func (c *client) createSecretVersion(secretPath api.SecretPath, data []byte, secretKey *api.SecretKey) (*api.SecretVersion, error) {
+func (c *Client) createSecretVersion(secretPath api.SecretPath, data []byte, secretKey *api.SecretKey) (*api.SecretVersion, error) {
 	var err error
 	encryptedData, err := secretKey.Key.Encrypt(data)
 	if err != nil {
@@ -191,7 +191,7 @@ func (c *client) createSecretVersion(secretPath api.SecretPath, data []byte, sec
 // createSecret creates a new secret, including its first version.
 // It generates a secret key, encrypts the key and the secret name
 // for the accounts that need access to the secret.
-func (c *client) createSecret(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error) {
+func (c *Client) createSecret(secretPath api.SecretPath, data []byte) (*api.SecretVersion, error) {
 	parentPath, err := secretPath.GetParentPath()
 	if err != nil {
 		return nil, errio.Error(err)
@@ -203,7 +203,7 @@ func (c *client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 	}
 
 	// Get all accounts that have permission to read the secret.
-	accounts, err := c.ListDirAccounts(parentPath)
+	accounts, err := c.listDirAccounts(parentPath)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -255,7 +255,7 @@ func (c *client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 }
 
 // decryptSecretVersions decrypts EncryptedSecretVersions to a list of SecretVersions
-func (c *client) decryptSecretVersions(encVersions ...*api.EncryptedSecretVersion) ([]*api.SecretVersion, error) {
+func (c *Client) decryptSecretVersions(encVersions ...*api.EncryptedSecretVersion) ([]*api.SecretVersion, error) {
 	accountKey, err := c.getAccountKey()
 	if err != nil {
 		return nil, errio.Error(err)

@@ -190,8 +190,8 @@ func TestCreateUserRequest_Validate(t *testing.T) {
 				FullName: "Test Tester",
 				Credential: &CreateCredentialRequest{
 					Name:        "Personal laptop credential",
-					Type:        CredentialTypeRSA,
-					Fingerprint: "fingerprint",
+					Type:        CredentialTypeKey,
+					Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 					Verifier:    []byte("verifier"),
 				},
 			},
@@ -231,67 +231,6 @@ func TestCreateUserRequest_Validate(t *testing.T) {
 				Password: "hello world",
 			},
 			err: ErrInvalidFullName,
-		},
-	}
-
-	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
-			// Do
-			err := tc.req.Validate()
-
-			// Assert
-			assert.Equal(t, err, tc.err)
-		})
-	}
-}
-
-func TestCreateCredentialRequest_Validate(t *testing.T) {
-	cases := map[string]struct {
-		req CreateCredentialRequest
-		err error
-	}{
-		"success": {
-			req: CreateCredentialRequest{
-				Name:        "Personal laptop credential",
-				Type:        CredentialTypeRSA,
-				Fingerprint: "fingerprint",
-				Verifier:    []byte("verifier"),
-			},
-			err: nil,
-		},
-		"success without name": {
-			req: CreateCredentialRequest{
-				Type:        CredentialTypeRSA,
-				Fingerprint: "fingerprint",
-				Verifier:    []byte("verifier"),
-			},
-			err: nil,
-		},
-		"empty fingerprint": {
-			req: CreateCredentialRequest{
-				Type:        CredentialTypeRSA,
-				Name:        "Personal laptop credential",
-				Fingerprint: "",
-				Verifier:    []byte("verifier"),
-			},
-			err: ErrInvalidFingerprint,
-		},
-		"empty verifier": {
-			req: CreateCredentialRequest{
-				Type:        CredentialTypeRSA,
-				Name:        "Personal laptop credential",
-				Fingerprint: "fingerprint",
-				Verifier:    []byte(""),
-			},
-			err: ErrInvalidVerifier,
-		},
-		"empty algorithm": {
-			req: CreateCredentialRequest{
-				Name:        "Personal laptop credential",
-				Fingerprint: "fingerprint",
-				Verifier:    []byte("verifier"),
-			},
-			err: ErrInvalidAlgorithm,
 		},
 	}
 
