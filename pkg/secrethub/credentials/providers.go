@@ -1,15 +1,10 @@
 package credentials
 
 import (
-	"errors"
-	"io"
-	"io/ioutil"
-
 	awssdk "github.com/aws/aws-sdk-go/aws"
 
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/aws"
-	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials/sessions"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
@@ -39,59 +34,38 @@ func UseAWS(awsCfg ...*awssdk.Config) Provider {
 }
 
 // UseKey returns a Provider that reads a key credential from credentialReader.
-// If the key credential is encrypted, a passphrase is read from passReader and used for decryption,
-// The passReader argument can be set to nil if the credential is not encrypted.
-// If credentialReader argument is set to nil, the following default locations are searched for a credential:
-//   1. The SECRETHUB_CREDENTIAL environment variable.
-//   2. The credential file placed in the directory given by the SECRETHUB_CONFIG_DIR environment variable.
-//   3. The credential file found in <user's home directory>/.secrethub/credential.
+// If the key credential is encrypted, a passphrase must be set by calling Passphrase on the returned KeyProvider,
 //
 // Usage:
-//		credentials.UseKey(credentials.FromString("<a credential>"), nil)
-//		credentials.UseKey(credentials.FromFile("/path/to/credential"), credentials.FromString("passphrase"))
-func UseKey(credentialReader io.Reader, passReader io.Reader) Provider {
-	return providerFunc(func(_ *http.Client) (auth.Authenticator, Decrypter, error) {
-		// This function can be cleaned up a lot. It is mainly for demonstrating the overall idea.
-		if credentialReader == nil {
-			credentialReader = credentialFromDefault()
-		}
+//		credentials.UseKey(credentials.FromString("<a credential>"))
+//		credentials.UseKey(credentials.FromFile("/path/to/credential")).Passphrase(credentials.FromString("passphrase"))
+func UseKey(credentialReader Reader) KeyProvider {
+	return KeyProvider{
+		credentialReader: credentialReader,
+	}
+}
 
-		bytes, err := ioutil.ReadAll(credentialReader)
-		if err != nil {
-			return nil, nil, err
-		}
-		encoded, err := defaultParser.parse(string(bytes))
-		if err != nil {
-			return nil, nil, err
-		}
-		if encoded.IsEncrypted() {
-			if passReader == nil {
-				return nil, nil, errors.New("need passphrase")
-			}
-			passphrase, err := ioutil.ReadAll(passReader)
-			if err != nil {
-				return nil, nil, err
-			}
-			key, err := NewPassBasedKey(passphrase)
-			if err != nil {
-				return nil, nil, err
-			}
+// KeyProvider is a Provider that reads a key from a Reader.
+// If the key is encrypted with a passphrase, Passphrase() should be called on the KeyProvider to set the Reader that
+// provides the passphrase that can be used to decrypt the key.
+type KeyProvider struct {
+	credentialReader Reader
+	passphraseReader Reader
+}
 
-			credential, err := encoded.DecodeEncrypted(key)
-			if crypto.IsWrongKey(err) {
-				return nil, nil, ErrCannotDecryptCredential
-			} else if err != nil {
-				return nil, nil, err
-			}
-			return credential, credential, nil
-		}
-		credential, err := encoded.Decode()
-		if err != nil {
-			return nil, nil, err
-		}
+// Passphrase returns a new Provider that uses the passphraseReader to read a passphrase if the read key is encrypted.
+func (k KeyProvider) Passphrase(passphraseReader Reader) Provider {
+	k.passphraseReader = passphraseReader
+	return k
+}
 
-		return credential, credential, nil
-	})
+// Provide implements the Provider interface for a KeyProvider.
+func (k KeyProvider) Provide(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
+	key, err := ImportKey(k.credentialReader, k.passphraseReader)
+	if err != nil {
+		return nil, nil, err
+	}
+	return key.Provide(httpClient)
 }
 
 // providerFunc is a helper type to let any func(*http.Client) (UsableCredential, error) implement the Provider interface.

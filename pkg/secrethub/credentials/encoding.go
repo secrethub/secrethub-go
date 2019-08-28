@@ -1,6 +1,7 @@
 package credentials
 
 import (
+	"bytes"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -40,50 +41,17 @@ var (
 // We'll migrate away from using it and use smaller interfaces instead.
 // See Verifier, Decrypter and Encrypter for the smaller interfaces.
 type EncodableCredential interface {
-	// Export exports the credential in a format that can be decoded by its Decoder.
-	Export() []byte
+	// Encode the credential to a format that can be decoded by its Decoder.
+	Encode() []byte
 	// Decoder returns a Decoder that can decode an exported key back into a Credential.
 	Decoder() Decoder
-}
-
-// UnpackRSACredential is a shorthand function to decode a credential string and optionally
-// decrypt it with a passphrase. When an encrypted credential is given, the passphrase
-// cannot be empty.
-//
-// Note that when you want to customize the process of parsing and decoding/decrypting
-// a credential (e.g. to prompt only for a passphrase when the credential is encrypted),
-// it is recommended you use a CredentialParser instead (e.g. defaultParser).
-func UnpackRSACredential(credential string, passphrase string) (*RSACredential, error) {
-	encoded, err := defaultParser.parse(credential)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	if encoded.IsEncrypted() {
-		if passphrase == "" {
-			return nil, ErrEmptyCredentialPassphrase
-		}
-
-		key, err := NewPassBasedKey([]byte(passphrase))
-		if err != nil {
-			return nil, err
-		}
-
-		credential, err := encoded.DecodeEncrypted(key)
-		if crypto.IsWrongKey(err) {
-			return nil, ErrCannotDecryptCredential
-		}
-		return credential, err
-	}
-
-	return encoded.Decode()
 }
 
 // encodedCredential is an intermediary format for encoding and decoding credentials.
 type encodedCredential struct {
 	// Raw is the raw credential string.
 	// Populated when you Parse a credential.
-	Raw string
+	Raw []byte
 	// Header is the decoded first part of the credential string.
 	Header map[string]interface{}
 	// RawHeader is the first part of the credential string, encoded as json.
@@ -127,14 +95,14 @@ func (c encodedCredential) IsEncrypted() bool {
 }
 
 // EncodeCredential encodes a Credential as a one line string that can be transferred.
-func EncodeCredential(credential EncodableCredential) (string, error) {
+func EncodeCredential(credential EncodableCredential) ([]byte, error) {
 	cred := newEncodedCredential(credential)
 
-	return encodeCredentialPartsToString(cred.Header, cred.Payload)
+	return encodeCredentialParts(cred.Header, cred.Payload)
 }
 
 // EncodeEncryptedCredential encrypts and encodes a Credential as a one line string token that can be transferred.
-func EncodeEncryptedCredential(credential EncodableCredential, key PassBasedKey) (string, error) {
+func EncodeEncryptedCredential(credential EncodableCredential, key PassBasedKey) ([]byte, error) {
 	cred := newEncodedCredential(credential)
 
 	// Set the `enc` header so it can be used to decrypt later.
@@ -142,14 +110,14 @@ func EncodeEncryptedCredential(credential EncodableCredential, key PassBasedKey)
 
 	payload, additionalheaders, err := key.Encrypt(cred.Payload)
 	if err != nil {
-		return "", errio.Error(err)
+		return nil, errio.Error(err)
 	}
 
 	for key, value := range additionalheaders {
 		cred.Header[key] = value
 	}
 
-	return encodeCredentialPartsToString(cred.Header, payload)
+	return encodeCredentialParts(cred.Header, payload)
 }
 
 // newEncodedCredential creates exports and encodes a credential in the payload.
@@ -160,26 +128,26 @@ func newEncodedCredential(credential EncodableCredential) *encodedCredential {
 		Header: map[string]interface{}{
 			"type": decoder.Name(),
 		},
-		Payload: credential.Export(),
+		Payload: credential.Encode(),
 		Decoder: decoder,
 	}
 }
 
-// encodeCredentialPartsToString encodes an header and payload in a format string: header.payload
-func encodeCredentialPartsToString(header map[string]interface{}, payload []byte) (string, error) {
+// encodeCredentialParts encodes an header and payload in `header.payload` format.
+func encodeCredentialParts(header map[string]interface{}, payload []byte) ([]byte, error) {
 	if len(header) == 0 {
-		return "", ErrEmptyCredentialHeader
+		return nil, ErrEmptyCredentialHeader
 	}
 
 	parts := make([]string, 2)
 	headerBytes, err := json.Marshal(header)
 	if err != nil {
-		return "", ErrInvalidCredential.Errorf("cannot encode header as json: %s", err)
+		return nil, ErrInvalidCredential.Errorf("cannot encode header as json: %s", err)
 	}
 
 	parts[0] = defaultEncoding.EncodeToString(headerBytes)
 	parts[1] = defaultEncoding.EncodeToString(payload)
-	return strings.Join(parts, "."), nil
+	return []byte(strings.Join(parts, ".")), nil
 }
 
 // parser parses a credential string with support
@@ -201,20 +169,21 @@ func newParser(decoders []Decoder) parser {
 }
 
 // parse parses a credential string.
-func (p parser) parse(raw string) (*encodedCredential, error) {
-	parts := strings.Split(raw, ".")
+func (p parser) parse(raw []byte) (*encodedCredential, error) {
+	parts := bytes.Split(raw, []byte("."))
 	if len(parts) != 2 {
 		return nil, ErrInvalidNumberOfCredentialSegments(len(parts))
 	}
 
 	cred := &encodedCredential{
-		Raw:    raw,
-		Header: make(map[string]interface{}),
+		Raw:       raw,
+		Header:    make(map[string]interface{}),
+		RawHeader: make([]byte, defaultEncoding.DecodedLen(len(parts[0]))),
+		Payload:   make([]byte, defaultEncoding.DecodedLen(len(parts[1]))),
 	}
 
 	// Decode the header
-	var err error
-	cred.RawHeader, err = defaultEncoding.DecodeString(parts[0])
+	_, err := defaultEncoding.Decode(cred.RawHeader, parts[0])
 	if err != nil {
 		return nil, ErrCannotDecodeCredentialHeader(err)
 	}
@@ -235,7 +204,7 @@ func (p parser) parse(raw string) (*encodedCredential, error) {
 		return nil, ErrUnsupportedCredentialType(payloadType)
 	}
 
-	cred.Payload, err = defaultEncoding.DecodeString(parts[1])
+	_, err = defaultEncoding.Decode(cred.Payload, parts[1])
 	if err != nil {
 		return nil, ErrCannotDecodeCredentialPayload(err)
 	}

@@ -1,10 +1,6 @@
 package credentials
 
 import (
-	"errors"
-	"net/http"
-
-	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 
@@ -13,12 +9,14 @@ import (
 
 // Creator is an interface is accepted by functions that need a new credential to be created.
 type Creator interface {
-	Create() (Verifier, Encrypter, map[string]string, error)
-}
-
-// KeyCreator is used to create a new key-based credential.
-type KeyCreator struct {
-	key *RSACredential
+	// Create creates the actual credential (e.g. by generating a key).
+	Create() error
+	// Verifier returns information that the server can use to verify a request authenticated with the credential.
+	Verifier() Verifier
+	// Encrypter returns a wrapper that is used to encrypt data, typically an account key.
+	Encrypter() Encrypter
+	// Metadata returns a set of metadata about the credential. The result can be empty if no metadata is provided.
+	Metadata() map[string]string
 }
 
 // CreateKey returns a Creator that creates a key based credential.
@@ -29,29 +27,24 @@ func CreateKey() *KeyCreator {
 	return &KeyCreator{}
 }
 
+// KeyCreator is used to create a new key-based credential.
+type KeyCreator struct {
+	Key
+}
+
 // Create generates a new key and stores it in the KeyCreator.
-func (c *KeyCreator) Create() (Verifier, Encrypter, map[string]string, error) {
+func (kc *KeyCreator) Create() error {
 	key, err := GenerateRSACredential(crypto.RSAKeyLength)
 	if err != nil {
-		return nil, nil, nil, err
+		return err
 	}
-	c.key = key
-	return c.key, c.key, map[string]string{}, nil
+	kc.key = key
+	return nil
 }
 
-// Export the key of this credential to string format to save for later use.
-// This can only be called after Create() is executed, for example by secrethub.UserService.Create([...])
-// or secrethub.ServiceService.Create([...])
-func (c *KeyCreator) Export() (string, error) {
-	if c.key == nil {
-		return "", errors.New("key has not yet been generated created. Use KeyCreator before calling Export()")
-	}
-	return EncodeCredential(c.key)
-}
-
-// Provide returns a credential that can be used for authentication and decryption.
-func (c *KeyCreator) Provide(*http.Client) (auth.Authenticator, Decrypter, error) {
-	return c.key, c.key, nil
+// Metadata returns a set of metadata associated with this credential.
+func (kc *KeyCreator) Metadata() map[string]string {
+	return map[string]string{}
 }
 
 // CreateAWS returns a Creator that creates an AWS-based credential.
@@ -61,19 +54,40 @@ func (c *KeyCreator) Provide(*http.Client) (auth.Authenticator, Decrypter, error
 // awsCfg can be used to optionally configure the used AWS client. For example to set the region.
 // The KMS key id and role are returned in the credentials metadata.
 func CreateAWS(kmsKeyID string, roleARN string, awsCfg ...*awssdk.Config) Creator {
-	return creatorFunc(func() (Verifier, Encrypter, map[string]string, error) {
-		creator, metadata, err := aws.NewCredentialCreator(kmsKeyID, roleARN, awsCfg...)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		return creator, creator, metadata, nil
-	})
+	return &awsCreator{
+		kmsKeyID: kmsKeyID,
+		roleARN:  roleARN,
+		awsCfg:   awsCfg,
+	}
 }
 
-// creatorFunc is a helper type that can transform any func() (Verifier, Encrypter, map[string]string, error) into a Creator.
-type creatorFunc func() (Verifier, Encrypter, map[string]string, error)
+type awsCreator struct {
+	kmsKeyID string
+	roleARN  string
+	awsCfg   []*awssdk.Config
 
-// Create is implemented to let creatorFunc implement the Creator interface.
-func (f creatorFunc) Create() (Verifier, Encrypter, map[string]string, error) {
-	return f()
+	credentialCreator *aws.CredentialCreator
+	metadata          map[string]string
+}
+
+func (ac *awsCreator) Create() error {
+	creator, metadata, err := aws.NewCredentialCreator(ac.kmsKeyID, ac.roleARN, ac.awsCfg...)
+	if err != nil {
+		return err
+	}
+	ac.credentialCreator = creator
+	ac.metadata = metadata
+	return nil
+}
+
+func (ac *awsCreator) Verifier() Verifier {
+	return ac.credentialCreator
+}
+
+func (ac *awsCreator) Encrypter() Encrypter {
+	return ac.credentialCreator
+}
+
+func (ac *awsCreator) Metadata() map[string]string {
+	return ac.metadata
 }

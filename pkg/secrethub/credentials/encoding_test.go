@@ -51,7 +51,7 @@ func TestRSACredential(t *testing.T) {
 	assert.OK(t, err)
 
 	t.Run("encoding", func(t *testing.T) {
-		exported := credential.Export()
+		exported := credential.Encode()
 
 		decoder := credential.Decoder()
 		actual, err := decoder.Decode(exported)
@@ -87,7 +87,7 @@ func TestParser(t *testing.T) {
 	credential, err := GenerateRSACredential(1024)
 	assert.OK(t, err)
 
-	payload := credential.Export()
+	payload := credential.Encode()
 
 	header := map[string]interface{}{
 		"type": credential.Decoder().Name(),
@@ -126,7 +126,7 @@ func TestParser(t *testing.T) {
 		"valid_rsa": {
 			raw: raw,
 			expected: &encodedCredential{
-				Raw:                 raw,
+				Raw:                 []byte(raw),
 				Header:              header,
 				RawHeader:           headerBytes,
 				Payload:             payload,
@@ -138,7 +138,7 @@ func TestParser(t *testing.T) {
 		"valid_rsa_encrypted": {
 			raw: rawEncrypted,
 			expected: &encodedCredential{
-				Raw:                 rawEncrypted,
+				Raw:                 []byte(rawEncrypted),
 				Header:              headerEncrypted,
 				RawHeader:           headerEncryptedBytes,
 				Payload:             payload,
@@ -209,7 +209,7 @@ func TestParser(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// Act
-			actual, err := parser.parse(tc.raw)
+			actual, err := parser.parse([]byte(tc.raw))
 
 			// Assert
 			assert.Equal(t, err, tc.err)
@@ -268,19 +268,19 @@ func TestEncodeEncryptedCredential(t *testing.T) {
 	assert.Equal(t, cred, decoded)
 }
 
-func TestEncodeCredentialPartsToString(t *testing.T) {
+func TestEncodeCredentialParts(t *testing.T) {
 
 	// Arrange
 	cases := map[string]struct {
 		header   map[string]interface{}
 		payload  []byte
-		expected string
+		expected []byte
 		err      error
 	}{
 		"success": {
 			header:   exampleHeader,
 			payload:  []byte(foo),
-			expected: fmt.Sprintf("%s.%s", exampleHeaderEncoded, fooEncoded),
+			expected: []byte(fmt.Sprintf("%s.%s", exampleHeaderEncoded, fooEncoded)),
 		},
 		"nil_header": {
 			header:  nil,
@@ -297,7 +297,7 @@ func TestEncodeCredentialPartsToString(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// Act
-			actual, err := encodeCredentialPartsToString(tc.header, tc.payload)
+			actual, err := encodeCredentialParts(tc.header, tc.payload)
 			assert.Equal(t, err, tc.err)
 
 			// Assert

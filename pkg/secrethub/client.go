@@ -1,9 +1,12 @@
 package secrethub
 
 import (
+	"os"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/configdir"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
@@ -14,14 +17,23 @@ const (
 
 // ClientAdapter is an interface that can be used to consume the SecretHub client and is implemented by secrethub.Client.
 type ClientAdapter interface {
+	// AccessRules returns a service used to manage access rules.
 	AccessRules() AccessRuleService
+	// Accounts returns a service used to manage SecretHub accounts.
 	Accounts() AccountService
+	// Dirs returns a service used to manage directories.
 	Dirs() DirService
+	// Me returns a service used to manage the current authenticated account.
 	Me() MeService
+	// Orgs returns a service used to manage shared organization workspaces.
 	Orgs() OrgService
+	// Repos returns a service used to manage repositories.
 	Repos() RepoService
+	// Secrets returns a service used to manage secrets.
 	Secrets() SecretService
+	// Services returns a service used to manage non-human service accounts.
 	Services() ServiceService
+	// Users returns a service used to manage (human) user accounts.
 	Users() UserService
 }
 
@@ -47,7 +59,8 @@ type Client struct {
 	// These are cached
 	repoIndexKeys map[api.RepoPath]*crypto.SymmetricKey
 
-	appInfo *AppInfo
+	appInfo   *AppInfo
+	ConfigDir *configdir.Dir
 }
 
 // AppInfo contains information about the application that is using the SecretHub client.
@@ -81,16 +94,23 @@ func NewClient(with ...ClientOption) (*Client, error) {
 		httpClient:    http.NewClient(),
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
-	for _, option := range with {
-		err := option(client)
+	err := client.with(with...)
+	if err != nil {
+		return nil, err
+	}
+
+	// ConfigDir should be fully initialized before loading any default credentials.
+	if client.ConfigDir == nil {
+		configDir, err := configdir.Default()
 		if err != nil {
 			return nil, err
 		}
+		client.ConfigDir = configDir
 	}
 
 	// Try to use default key credentials if none provided explicitly
 	if client.decrypter == nil {
-		err := WithCredentials(credentials.UseKey(nil, nil))(client)
+		err := client.with(WithCredentials(credentials.UseKey(client.DefaultCredential())))
 		// nolint: staticcheck
 		if err != nil {
 			// TODO: log that default credential was not loaded.
@@ -122,47 +142,70 @@ func Must(c *Client, err error) *Client {
 	return c
 }
 
-// AccessRules returns an AccessRuleService.
+// AccessRules returns a service used to manage access rules.
 func (c *Client) AccessRules() AccessRuleService {
 	return newAccessRuleService(c)
 }
 
-// Accounts returns an AccountService.
+// Accounts returns a service used to manage SecretHub accounts.
 func (c *Client) Accounts() AccountService {
 	return newAccountService(c)
 }
 
-// Dirs returns an DirService.
+// Dirs returns a service used to manage directories.
 func (c *Client) Dirs() DirService {
 	return newDirService(c)
 }
 
-// Me returns a MeService.
+// Me returns a service used to manage the current authenticated account.
 func (c *Client) Me() MeService {
 	return newMeService(c)
 }
 
-// Orgs returns an OrgService.
+// Orgs returns a service used to manage shared organization workspaces.
 func (c *Client) Orgs() OrgService {
 	return newOrgService(c)
 }
 
-// Repos returns an RepoService.
+// Repos returns a service used to manage repositories.
 func (c *Client) Repos() RepoService {
 	return newRepoService(c)
 }
 
-// Secrets returns an SecretService.
+// Secrets returns a service used to manage secrets.
 func (c *Client) Secrets() SecretService {
 	return newSecretService(c)
 }
 
-// Services returns an ServiceService.
+// Services returns a service used to manage non-human service accounts.
 func (c *Client) Services() ServiceService {
 	return newServiceService(c)
 }
 
-// Users returns an UserService.
+// Users returns a service used to manage (human) user accounts.
 func (c *Client) Users() UserService {
 	return newUserService(c)
+}
+
+// with applies ClientOptions to a Client. Should only be called during initialization.
+func (c *Client) with(options ...ClientOption) error {
+	for _, o := range options {
+		err := o(c)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DefaultCredential returns a reader pointing to the configured credential,
+// sourcing it either from the SECRETHUB_CREDENTIAL environment variable or
+// from the configuration directory.
+func (c *Client) DefaultCredential() credentials.Reader {
+	envCredential := os.Getenv("SECRETHUB_CREDENTIAL")
+	if envCredential != "" {
+		return credentials.FromString(envCredential)
+	}
+
+	return c.ConfigDir.Credential()
 }
