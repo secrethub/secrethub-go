@@ -80,7 +80,7 @@ func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
 				return Key{}, err
 			}
 			if len(passphrase) == 0 {
-				return Key{}, errors.New("no passphrase given")
+				continue
 			}
 
 			credential, err := decryptKey(passphrase, encoded)
