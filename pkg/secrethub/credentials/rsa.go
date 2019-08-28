@@ -29,17 +29,22 @@ func GenerateRSACredential(keyLength int) (*RSACredential, error) {
 }
 
 // Fingerprint returns the key identifier by which the server can identify the credential.
-func (c RSACredential) Fingerprint() (string, error) {
-	verifier, err := c.Verifier()
+func (c RSACredential) Export() ([]byte, string, error) {
+	verifier, err := c.RSAPrivateKey.Public().Encode()
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
-	return api.GetFingerprint(c.Type(), verifier)
+	fingerprint, err := api.GetFingerprint(c.Type(), verifier)
+	if err != nil {
+		return nil, "", err
+	}
+	return verifier, fingerprint, nil
 }
 
 // ID returns a string by which the credential can be identified.
 func (c RSACredential) ID() (string, error) {
-	return c.Fingerprint()
+	_, fingerprint, err := c.Export()
+	return fingerprint, err
 }
 
 // Sign provides proof the given bytes are processed by the owner of the credential.
@@ -50,11 +55,6 @@ func (c RSACredential) Sign(data []byte) ([]byte, error) {
 // SignMethod returns a string by which the signing method can be identified.
 func (c RSACredential) SignMethod() string {
 	return "PKCS1v15"
-}
-
-// Verifier returns the public key to be stored server side to verify an http request authenticated with this credential.
-func (c RSACredential) Verifier() ([]byte, error) {
-	return c.RSAPrivateKey.Public().Export()
 }
 
 // Decoder returns the Decoder for the rsa private key.

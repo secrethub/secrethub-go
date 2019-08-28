@@ -107,7 +107,7 @@ func TestSign_Verify(t *testing.T) {
 		t.Error(err)
 
 	}
-	pk, _ := key1.Public().Export()
+	pk, _ := key1.Public().Encode()
 
 	err = Verify(pk, message, signature)
 	if err != nil {
@@ -118,7 +118,7 @@ func TestSign_Verify(t *testing.T) {
 func TestImport_Exported_PublicKey(t *testing.T) {
 	key1 := getTestKey1(t)
 
-	exportedPublicKey, err := key1.Public().Export()
+	exportedPublicKey, err := key1.Public().Encode()
 	if err != nil {
 		t.Error(err)
 	}
@@ -135,7 +135,7 @@ func TestImport_Exported_ServiceKey(t *testing.T) {
 		t.Errorf("generateServiceKey generates error: %s", err)
 	}
 
-	public, err := clientKey.Public().Export()
+	public, err := clientKey.Public().Encode()
 	if err != nil {
 		t.Errorf("cannot import generated public key: %s", err)
 	}

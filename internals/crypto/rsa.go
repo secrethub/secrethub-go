@@ -145,7 +145,7 @@ func Verify(encodedPublicKey, message, signature []byte) error {
 
 // Fingerprint returns the SHA256 hash of the public key, encoded as a hexadecimal string.
 func (pub RSAPublicKey) Fingerprint() (string, error) {
-	exported, err := pub.Export()
+	exported, err := pub.Encode()
 	if err != nil {
 		return "", errio.Error(err)
 	}
@@ -154,9 +154,9 @@ func (pub RSAPublicKey) Fingerprint() (string, error) {
 	return hex.EncodeToString(sum[:]), nil
 }
 
-// Export uses PEM encoding to encode the public key as bytes so it
+// Encode uses PEM encoding to encode the public key as bytes so it
 // can be easily stored and transferred between systems.
-func (pub RSAPublicKey) Export() ([]byte, error) {
+func (pub RSAPublicKey) Encode() ([]byte, error) {
 	asn1, err := x509.MarshalPKIXPublicKey(pub.publicKey)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -295,7 +295,7 @@ func (prv RSAPrivateKey) unwrap(encryptedData []byte) ([]byte, error) {
 }
 
 // Export returns the private key in ASN.1 DER encoded format.
-func (prv RSAPrivateKey) Export() []byte {
+func (prv RSAPrivateKey) Encode() []byte {
 	return x509.MarshalPKCS1PrivateKey(prv.private)
 }
 

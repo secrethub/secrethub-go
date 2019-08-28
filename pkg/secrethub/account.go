@@ -50,7 +50,7 @@ func (s accountService) Keys() AccountKeyService {
 // The intermediate key is returned in an CreateAccountKeyRequest ready to be sent to the API.
 // If an error has occurred, it will be returned and the other result should be considered invalid.
 func (c *Client) createAccountKeyRequest(encrypter credentials.Encrypter, accountKey crypto.RSAPrivateKey) (*api.CreateAccountKeyRequest, error) {
-	publicAccountKey, err := accountKey.Public().Export()
+	publicAccountKey, err := accountKey.Public().Encode()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -72,13 +72,9 @@ func (c *Client) createAccountKeyRequest(encrypter credentials.Encrypter, accoun
 }
 
 func (c *Client) createCredentialRequest(verifier credentials.Verifier, metadata map[string]string) (*api.CreateCredentialRequest, error) {
-	bytes, err := verifier.Verifier()
+	bytes, fingerprint, err := verifier.Export()
 	if err != nil {
 		return nil, errio.Error(err)
-	}
-	fingerprint, err := api.GetFingerprint(verifier.Type(), bytes)
-	if err != nil {
-		return nil, err
 	}
 
 	req := api.CreateCredentialRequest{
