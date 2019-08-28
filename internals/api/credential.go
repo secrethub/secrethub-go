@@ -39,7 +39,7 @@ const (
 // Credential is used to authenticate to the API and to encrypt the account key.
 type Credential struct {
 	AccountID   *uuid.UUID        `json:"account_id"`
-	Type        CredentialType    `json:"algorithm"`
+	Type        CredentialType    `json:"type"`
 	CreatedAt   time.Time         `json:"created_at"`
 	Fingerprint string            `json:"fingerprint"`
 	Name        string            `json:"name"`
