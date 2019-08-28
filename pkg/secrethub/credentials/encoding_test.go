@@ -274,13 +274,13 @@ func TestEncodeCredentialParts(t *testing.T) {
 	cases := map[string]struct {
 		header   map[string]interface{}
 		payload  []byte
-		expected string
+		expected []byte
 		err      error
 	}{
 		"success": {
 			header:   exampleHeader,
 			payload:  []byte(foo),
-			expected: fmt.Sprintf("%s.%s", exampleHeaderEncoded, fooEncoded),
+			expected: []byte(fmt.Sprintf("%s.%s", exampleHeaderEncoded, fooEncoded)),
 		},
 		"nil_header": {
 			header:  nil,
