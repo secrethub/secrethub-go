@@ -15,8 +15,8 @@ const (
 	userAgentPrefix = "SecretHub/v1 GoClient/" + ClientVersion
 )
 
-// ClientAdapter is an interface that can be used to consume the SecretHub client and is implemented by secrethub.Client.
-type ClientAdapter interface {
+// ClientInterface is an interface that can be used to consume the SecretHub client and is implemented by secrethub.Client.
+type ClientInterface interface {
 	// AccessRules returns a service used to manage access rules.
 	AccessRules() AccessRuleService
 	// Accounts returns a service used to manage SecretHub accounts.
