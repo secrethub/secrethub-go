@@ -268,7 +268,7 @@ func TestEncodeEncryptedCredential(t *testing.T) {
 	assert.Equal(t, cred, decoded)
 }
 
-func TestEncodeCredentialPartsToString(t *testing.T) {
+func TestEncodeCredentialParts(t *testing.T) {
 
 	// Arrange
 	cases := map[string]struct {
@@ -297,7 +297,7 @@ func TestEncodeCredentialPartsToString(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// Act
-			actual, err := encodeCredentialPartsToString(tc.header, tc.payload)
+			actual, err := encodeCredentialParts(tc.header, tc.payload)
 			assert.Equal(t, err, tc.err)
 
 			// Assert

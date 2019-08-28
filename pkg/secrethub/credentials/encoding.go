@@ -98,7 +98,7 @@ func (c encodedCredential) IsEncrypted() bool {
 func EncodeCredential(credential EncodableCredential) ([]byte, error) {
 	cred := newEncodedCredential(credential)
 
-	return encodeCredentialPartsToString(cred.Header, cred.Payload)
+	return encodeCredentialParts(cred.Header, cred.Payload)
 }
 
 // EncodeEncryptedCredential encrypts and encodes a Credential as a one line string token that can be transferred.
@@ -117,7 +117,7 @@ func EncodeEncryptedCredential(credential EncodableCredential, key PassBasedKey)
 		cred.Header[key] = value
 	}
 
-	return encodeCredentialPartsToString(cred.Header, payload)
+	return encodeCredentialParts(cred.Header, payload)
 }
 
 // newEncodedCredential creates exports and encodes a credential in the payload.
@@ -133,8 +133,8 @@ func newEncodedCredential(credential EncodableCredential) *encodedCredential {
 	}
 }
 
-// encodeCredentialPartsToString encodes an header and payload in a format string: header.payload
-func encodeCredentialPartsToString(header map[string]interface{}, payload []byte) ([]byte, error) {
+// encodeCredentialParts encodes an header and payload in `header.payload` format.
+func encodeCredentialParts(header map[string]interface{}, payload []byte) ([]byte, error) {
 	if len(header) == 0 {
 		return nil, ErrEmptyCredentialHeader
 	}
