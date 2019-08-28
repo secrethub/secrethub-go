@@ -57,6 +57,7 @@ func (s *awsSessionCreator) Create(httpClient *http.Client) (Session, error) {
 
 // getCallerIdentityRequest returns the raw bytes of a signed GetCallerIdentity request.
 func getCallerIdentityRequest(region string, awsCfg ...*aws.Config) ([]byte, error) {
+	// Explicitly set the endpoint because the aws sdk by default uses the global endpoint.
 	cfg := aws.NewConfig().WithRegion(region).WithEndpoint("sts." + region + ".amazonaws.com")
 	awsSession, err := session.NewSession(append(awsCfg, cfg)...)
 	if err != nil {
@@ -64,15 +65,16 @@ func getCallerIdentityRequest(region string, awsCfg ...*aws.Config) ([]byte, err
 	}
 
 	svc := sts.New(awsSession, cfg)
-	stsReq, _ := svc.GetCallerIdentityRequest(&sts.GetCallerIdentityInput{})
+	identityRequest, _ := svc.GetCallerIdentityRequest(&sts.GetCallerIdentityInput{})
 
-	err = stsReq.Sign()
+	// Sign the CallerIdentityRequest with the AWS access key
+	err = identityRequest.Sign()
 	if err != nil {
 		return nil, fmt.Errorf("could not sign STS request: %v", err)
 	}
 
 	var buf bytes.Buffer
-	err = stsReq.HTTPRequest.Write(&buf)
+	err = identityRequest.HTTPRequest.Write(&buf)
 	if err != nil {
 		return nil, err
 	}
