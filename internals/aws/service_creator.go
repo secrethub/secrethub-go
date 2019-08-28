@@ -69,8 +69,14 @@ func (c CredentialCreator) Type() api.CredentialType {
 }
 
 // Verifier returns the verifier of an AWS service.
-func (c CredentialCreator) Verifier() ([]byte, error) {
-	return []byte(c.role), nil
+func (c CredentialCreator) Export() ([]byte, string, error) {
+	verifier := []byte(c.role)
+
+	fingerprint, err := api.GetFingerprint(c.Type(), verifier)
+	if err != nil {
+		return nil, "", err
+	}
+	return verifier, fingerprint, nil
 }
 
 // AddProof adds proof of access to the AWS account to the CreateCredentialRequest.

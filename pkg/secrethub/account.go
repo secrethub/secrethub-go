@@ -72,13 +72,9 @@ func (c *Client) createAccountKeyRequest(encrypter credentials.Encrypter, accoun
 }
 
 func (c *Client) createCredentialRequest(verifier credentials.Verifier, metadata map[string]string) (*api.CreateCredentialRequest, error) {
-	bytes, err := verifier.Verifier()
+	bytes, fingerprint, err := verifier.Export()
 	if err != nil {
 		return nil, errio.Error(err)
-	}
-	fingerprint, err := api.GetFingerprint(verifier.Type(), bytes)
-	if err != nil {
-		return nil, err
 	}
 
 	req := api.CreateCredentialRequest{

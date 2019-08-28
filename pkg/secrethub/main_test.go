@@ -28,12 +28,7 @@ func init() {
 		panic(err)
 	}
 
-	cred1Fingerprint, err = cred1.Fingerprint()
-	if err != nil {
-		panic(err)
-	}
-
-	cred1Verifier, err = cred1.Verifier()
+	cred1Verifier, cred1Fingerprint, err = cred1.Export()
 	if err != nil {
 		panic(err)
 	}
