@@ -1,7 +1,6 @@
 package credentials
 
 import (
-	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 
@@ -68,14 +67,16 @@ type awsCreator struct {
 	awsCfg   []*awssdk.Config
 
 	credentialCreator *aws.CredentialCreator
+	metadata          map[string]string
 }
 
 func (ac *awsCreator) Create() error {
-	creator, err := aws.NewCredentialCreator(ac.kmsKeyID, ac.roleARN, ac.awsCfg...)
+	creator, metadata, err := aws.NewCredentialCreator(ac.kmsKeyID, ac.roleARN, ac.awsCfg...)
 	if err != nil {
 		return err
 	}
 	ac.credentialCreator = creator
+	ac.metadata = metadata
 	return nil
 }
 
@@ -88,8 +89,5 @@ func (ac *awsCreator) Encrypter() Encrypter {
 }
 
 func (ac *awsCreator) Metadata() map[string]string {
-	return map[string]string{
-		api.CredentialMetadataAWSKMSKey: ac.kmsKeyID,
-		api.CredentialMetadataAWSRole:   ac.roleARN,
-	}
+	return ac.metadata
 }

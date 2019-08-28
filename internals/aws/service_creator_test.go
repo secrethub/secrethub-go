@@ -10,10 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
 
-	"github.com/aws/aws-sdk-go/service/sts"
-
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
-
 	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
@@ -141,27 +137,14 @@ func TestServiceCreator_Wrap(t *testing.T) {
 	}
 }
 
-type stsMock struct {
-	stsiface.STSAPI
-	resp *sts.GetCallerIdentityOutput
-	err  error
-}
-
-func (m stsMock) GetCallerIdentity(*sts.GetCallerIdentityInput) (*sts.GetCallerIdentityOutput, error) {
-	return m.resp, m.err
-}
-
 func Test_parseRole(t *testing.T) {
 	defaultAccountID := "1234567890"
 	defaultARN := fmt.Sprintf("arn:aws:iam::%s:role/RoleName", defaultAccountID)
-	errTest := errors.New("test")
 
 	cases := map[string]struct {
-		role        string
-		accountID   string
-		err         error
-		expected    string
-		expectedErr error
+		role      string
+		accountID string
+		expected  string
 	}{
 		"role name only": {
 			role:      "RoleName",
@@ -178,26 +161,76 @@ func Test_parseRole(t *testing.T) {
 			accountID: "1234567890",
 			expected:  defaultARN,
 		},
-		"GetCallerIdentity error": {
-			role:        "RoleName",
-			accountID:   "1234567890",
-			err:         errTest,
-			expectedErr: errTest,
+		"complete ARN different account": {
+			role:      defaultARN,
+			accountID: "0987654321",
+			expected:  defaultARN,
 		},
 	}
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			m := stsMock{
-				resp: &sts.GetCallerIdentityOutput{
-					Account: &tc.accountID,
-				},
-				err: tc.err,
-			}
-
-			actual, err := parseRole(tc.role, m)
+			actual := parseRole(tc.role, tc.accountID)
 			assert.Equal(t, actual, tc.expected)
-			assert.Equal(t, err, tc.expectedErr)
+		})
+	}
+}
+
+func Test_parseKey(t *testing.T) {
+	cases := map[string]struct {
+		key       string
+		accountID string
+		region    string
+		expected  string
+	}{
+		"key id only": {
+			key:       "12345678-1234-1234-1234-123456789012",
+			accountID: "123456789012",
+			region:    "us-east-1",
+			expected:  "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+		},
+		"with key prefix": {
+			key:       "key/12345678-1234-1234-1234-123456789012",
+			accountID: "123456789012",
+			region:    "us-east-1",
+			expected:  "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+		},
+		"complete ARN": {
+			key:       "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+			accountID: "123456789012",
+			region:    "us-east-1",
+			expected:  "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+		},
+		"complete ARN different account": {
+			key:       "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+			accountID: "0987654321",
+			region:    "us-east-1",
+			expected:  "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+		},
+		"complete ARN different region": {
+			key:       "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+			accountID: "123456789012",
+			region:    "eu-west-1",
+			expected:  "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+		},
+		"complete alias ARN": {
+			key:       "arn:aws:kms:us-east-1:123456789012:alias/my-key",
+			accountID: "123456789012",
+			region:    "us-east-1",
+			expected:  "arn:aws:kms:us-east-1:123456789012:alias/my-key",
+		},
+		"alias": {
+			key:       "alias/my-key",
+			accountID: "123456789012",
+			region:    "us-east-1",
+			expected:  "arn:aws:kms:us-east-1:123456789012:alias/my-key",
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			actual := parseKey(tc.key, tc.accountID, tc.region)
+			assert.Equal(t, actual, tc.expected)
 		})
 	}
 }

@@ -31,28 +31,36 @@ type CredentialCreator struct {
 
 // NewCredentialCreator returns a CredentialCreator that uses the provided AWS KMS key and IAM role to create a new credential.
 // The AWS credential is configured with the optionally provided aws.Config.
-func NewCredentialCreator(keyID, role string, cfgs ...*aws.Config) (*CredentialCreator, error) {
+func NewCredentialCreator(keyID, role string, cfgs ...*aws.Config) (*CredentialCreator, map[string]string, error) {
 	sess, err := session.NewSession(cfgs...)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, nil, handleError(err)
 	}
 
 	stsSvc := sts.New(sess)
 
-	role, err = parseRole(role, stsSvc)
+	identity, err := stsSvc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 	if err != nil {
-		return nil, handleError(err)
+		return nil, nil, handleError(err)
 	}
+	accountID := aws.StringValue(identity.Account)
+
+	role = parseRole(role, accountID)
 
 	kmsSvc := kms.New(sess)
+	keyID = parseKey(keyID, accountID, kmsSvc.SigningRegion)
+
 	return &CredentialCreator{
-		stsSvc:            stsSvc,
-		kmsSvc:            kmsSvc,
-		signingRegion:     kmsSvc.SigningRegion,
-		keyID:             keyID,
-		role:              role,
-		getEncryptRequest: GetEncryptRequest,
-	}, nil
+			stsSvc:            stsSvc,
+			kmsSvc:            kmsSvc,
+			signingRegion:     kmsSvc.SigningRegion,
+			keyID:             keyID,
+			role:              role,
+			getEncryptRequest: GetEncryptRequest,
+		}, map[string]string{
+			api.CredentialMetadataAWSKMSKey: keyID,
+			api.CredentialMetadataAWSRole:   role,
+		}, nil
 }
 
 // Type returns the credential type of an AWS service.
@@ -114,20 +122,17 @@ func GetEncryptRequest(plaintext string, keyID string, kmsSvc kmsiface.KMSAPI) (
 }
 
 // parseRole parses a given role and performs a best effort attempt
-// to find and return the corresponding full ARN. The given role can
-// be either a (partial) ARN or the role name and can be prefixed with
-// "role/". Note that this is a best effort attempt so the returned value
-// is not guaranteed to always be a valid ARN.
-func parseRole(role string, stsSvc stsiface.STSAPI) (string, error) {
+// to find and return the corresponding full ARN. The given role can be:
+// - A role name (e.g. my-role)
+// - A role name, prefixed with "role/" (e.g. role/my-role)
+// - A full ARN (e.g. arn:aws:iam::123456789012:role/my-role)
+//
+// Note that this is a best effort attempt so the returned value is not guaranteed to
+// always be a valid ARN.
+func parseRole(role string, accountID string) string {
 	if strings.Contains(role, ":") {
-		return role, nil
+		return role
 	}
-
-	identity, err := stsSvc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
-	if err != nil {
-		return "", handleError(err)
-	}
-	accountID := aws.StringValue(identity.Account)
 
 	if !strings.HasPrefix(role, "role/") {
 		role = "role/" + role
@@ -137,5 +142,35 @@ func parseRole(role string, stsSvc stsiface.STSAPI) (string, error) {
 		Service:   iam.ServiceName,
 		AccountID: accountID,
 		Resource:  role,
-	}.String(), nil
+	}.String()
+}
+
+// parseKey parses a given keyID and performs a best effort attempt
+// to find and return the corresponding full ARN. The given keyID can be:
+// - A key ID (e.g. 12345678-1234-1234-1234-123456789012)
+// - A key ID, prefixed with "key/" (e.g. key/12345678-1234-1234-1234-123456789012)
+// - A full ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012)
+// - An alias, prefixed with "alias/" (e.g. alias/my-key)
+// - A full alias ARN (e.g. arn:aws:kms:us-east-1:123456789012:alias/my-key)
+//
+// When the account or region is not given in the keyID, the supplied value is used.
+//
+// Note that this is a best effort attempt so the returned value is not guaranteed to
+// always be a valid ARN.
+func parseKey(keyID string, accountID string, region string) string {
+	if strings.Contains(keyID, ":") {
+		return keyID
+	}
+
+	if !(strings.HasPrefix(keyID, "key/") || strings.HasPrefix(keyID, "alias/")) {
+		keyID = "key/" + keyID
+	}
+
+	return arn.ARN{
+		Partition: endpoints.AwsPartitionID,
+		Service:   kms.ServiceName,
+		Region:    region,
+		AccountID: accountID,
+		Resource:  keyID,
+	}.String()
 }
