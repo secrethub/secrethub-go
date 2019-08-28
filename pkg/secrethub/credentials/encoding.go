@@ -41,8 +41,8 @@ var (
 // We'll migrate away from using it and use smaller interfaces instead.
 // See Verifier, Decrypter and Encrypter for the smaller interfaces.
 type EncodableCredential interface {
-	// Export exports the credential in a format that can be decoded by its Decoder.
-	Export() []byte
+	// Encode the credential to a format that can be decoded by its Decoder.
+	Encode() []byte
 	// Decoder returns a Decoder that can decode an exported key back into a Credential.
 	Decoder() Decoder
 }
@@ -128,7 +128,7 @@ func newEncodedCredential(credential EncodableCredential) *encodedCredential {
 		Header: map[string]interface{}{
 			"type": decoder.Name(),
 		},
-		Payload: credential.Export(),
+		Payload: credential.Encode(),
 		Decoder: decoder,
 	}
 }

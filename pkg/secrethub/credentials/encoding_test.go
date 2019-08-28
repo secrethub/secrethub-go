@@ -51,7 +51,7 @@ func TestRSACredential(t *testing.T) {
 	assert.OK(t, err)
 
 	t.Run("encoding", func(t *testing.T) {
-		exported := credential.Export()
+		exported := credential.Encode()
 
 		decoder := credential.Decoder()
 		actual, err := decoder.Decode(exported)
@@ -87,7 +87,7 @@ func TestParser(t *testing.T) {
 	credential, err := GenerateRSACredential(1024)
 	assert.OK(t, err)
 
-	payload := credential.Export()
+	payload := credential.Encode()
 
 	header := map[string]interface{}{
 		"type": credential.Decoder().Name(),
