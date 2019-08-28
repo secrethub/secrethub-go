@@ -20,7 +20,14 @@ var (
 // Dir represents the configuration directory located at some path
 // on the file system.
 type Dir struct {
-	Path string
+	path string
+}
+
+// New a new Dir which represents a configuration directory at the given location.
+func New(path string) Dir {
+	return Dir{
+		path: path,
+	}
 }
 
 // Default is the default way to get the location of the SecretHub
@@ -30,7 +37,7 @@ func Default() (*Dir, error) {
 	envDir := os.Getenv("SECRETHUB_CONFIG_DIR")
 	if envDir != "" {
 		return &Dir{
-			Path: envDir,
+			path: envDir,
 		}, nil
 	}
 
@@ -39,39 +46,49 @@ func Default() (*Dir, error) {
 		return &Dir{}, fmt.Errorf("cannot get home directory: %v", err)
 	}
 	return &Dir{
-		Path: filepath.Join(homeDir, ".secrethub"),
+		path: filepath.Join(homeDir, ".secrethub"),
 	}, nil
 }
 
 // Credential returns the file that contains the SecretHub API credential.
 func (c Dir) Credential() *CredentialFile {
 	return &CredentialFile{
-		Path: filepath.Join(c.Path, "credential"),
+		path: filepath.Join(c.path, "credential"),
 	}
 }
 
+// Path returns the path on the filesystem at which the config directory is located.
+func (c Dir) Path() string {
+	return c.path
+}
+
 func (c Dir) String() string {
-	return c.Path
+	return c.path
 }
 
 // CredentialFile represents the file that contains the SecretHub API credential.
 // By default, it's a file named "credential" in the configuration directory.
 type CredentialFile struct {
-	Path string
+	path string
+}
+
+// Path returns the path on the filesystem at which the credential file is located.
+func (f *CredentialFile) Path() string {
+	return f.path
 }
 
 // Write writes the given bytes to the credential file.
 func (f *CredentialFile) Write(data []byte) error {
-	err := os.MkdirAll(filepath.Dir(f.Path), os.FileMode(0700))
+	err := os.MkdirAll(filepath.Dir(f.path), os.FileMode(0700))
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(f.Path, data, os.FileMode(0600))
+	return ioutil.WriteFile(f.path, data, os.FileMode(0600))
 }
 
 // Exists returns true when a file exists at the path this credential points to.
 func (f *CredentialFile) Exists() bool {
-	if _, err := os.Stat(f.Path); os.IsNotExist(err) {
+	if _, err := os.Stat(f.path); os.IsNotExist(err) {
 		return false
 	}
 	return true
@@ -79,7 +96,7 @@ func (f *CredentialFile) Exists() bool {
 
 // Read reads from the filesystem and returns the contents of the credential file.
 func (f *CredentialFile) Read() ([]byte, error) {
-	file, err := os.Open(f.Path)
+	file, err := os.Open(f.path)
 	if os.IsNotExist(err) {
 		return nil, ErrCredentialNotFound
 	} else if err != nil {
