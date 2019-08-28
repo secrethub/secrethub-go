@@ -74,7 +74,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		"success aws": {
 			req: CreateCredentialRequest{
 				Type:        CredentialTypeAWS,
-				Fingerprint: "8eb80fb7b3cf1a3efc8c1afbbfb53cf371db6c8cef8947368d8f78a324d22462",
+				Fingerprint: "81e5c41692870d5f59875aa6bbd18d0099140795cb968824a2279d3d35095907",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
 				Proof:       &CredentialProofAWS{},
 				Metadata: map[string]string{
@@ -87,7 +87,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		"aws role missing": {
 			req: CreateCredentialRequest{
 				Type:        CredentialTypeAWS,
-				Fingerprint: "8eb80fb7b3cf1a3efc8c1afbbfb53cf371db6c8cef8947368d8f78a324d22462",
+				Fingerprint: "81e5c41692870d5f59875aa6bbd18d0099140795cb968824a2279d3d35095907",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
 				Proof:       &CredentialProofAWS{},
 				Metadata: map[string]string{
@@ -99,7 +99,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		"aws kms key missing": {
 			req: CreateCredentialRequest{
 				Type:        CredentialTypeAWS,
-				Fingerprint: "8eb80fb7b3cf1a3efc8c1afbbfb53cf371db6c8cef8947368d8f78a324d22462",
+				Fingerprint: "81e5c41692870d5f59875aa6bbd18d0099140795cb968824a2279d3d35095907",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
 				Proof:       &CredentialProofAWS{},
 				Metadata: map[string]string{
@@ -123,7 +123,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		"extra metadata aws": {
 			req: CreateCredentialRequest{
 				Type:        CredentialTypeAWS,
-				Fingerprint: "8eb80fb7b3cf1a3efc8c1afbbfb53cf371db6c8cef8947368d8f78a324d22462",
+				Fingerprint: "81e5c41692870d5f59875aa6bbd18d0099140795cb968824a2279d3d35095907",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
 				Proof:       &CredentialProofAWS{},
 				Metadata: map[string]string{
