@@ -65,7 +65,7 @@ func NewCredentialCreator(keyID, role string, cfgs ...*aws.Config) (*CredentialC
 
 // Type returns the credential type of an AWS service.
 func (c CredentialCreator) Type() api.CredentialType {
-	return api.CredentialTypeAWSSTS
+	return api.CredentialTypeAWS
 }
 
 // Verifier returns the verifier of an AWS service.
@@ -88,7 +88,7 @@ func (c CredentialCreator) AddProof(req *api.CreateCredentialRequest) error {
 		return err
 	}
 
-	req.Proof = &api.CredentialProofAWSSTS{
+	req.Proof = &api.CredentialProofAWS{
 		Region:  c.signingRegion,
 		Request: encryptReq,
 	}

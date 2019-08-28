@@ -114,7 +114,7 @@ func (c RSACredential) Unwrap(ciphertext *api.EncryptedData) ([]byte, error) {
 
 // Type returns what type of credential this is.
 func (c RSACredential) Type() api.CredentialType {
-	return api.CredentialTypeRSA
+	return api.CredentialTypeKey
 }
 
 // AddProof add the proof for possession of this credential to a CreateCredentialRequest .

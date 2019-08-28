@@ -14,7 +14,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		"success": {
 			req: CreateCredentialRequest{
 				Name:        "Personal laptop credential",
-				Type:        CredentialTypeRSA,
+				Type:        CredentialTypeKey,
 				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 				Verifier:    []byte("verifier"),
 			},
@@ -22,7 +22,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"success without name": {
 			req: CreateCredentialRequest{
-				Type:        CredentialTypeRSA,
+				Type:        CredentialTypeKey,
 				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 				Verifier:    []byte("verifier"),
 			},
@@ -30,7 +30,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"no fingerprint": {
 			req: CreateCredentialRequest{
-				Type:     CredentialTypeRSA,
+				Type:     CredentialTypeKey,
 				Name:     "Personal laptop credential",
 				Verifier: []byte("verifier"),
 			},
@@ -38,7 +38,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"invalid fingerprint": {
 			req: CreateCredentialRequest{
-				Type:        CredentialTypeRSA,
+				Type:        CredentialTypeKey,
 				Name:        "Personal laptop credential",
 				Fingerprint: "not-valid",
 				Verifier:    []byte("verifier"),
@@ -47,7 +47,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"empty verifier": {
 			req: CreateCredentialRequest{
-				Type:        CredentialTypeRSA,
+				Type:        CredentialTypeKey,
 				Name:        "Personal laptop credential",
 				Fingerprint: "fingerprint",
 				Verifier:    nil,
@@ -73,10 +73,10 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"success aws": {
 			req: CreateCredentialRequest{
-				Type:        CredentialTypeAWSSTS,
+				Type:        CredentialTypeAWS,
 				Fingerprint: "8eb80fb7b3cf1a3efc8c1afbbfb53cf371db6c8cef8947368d8f78a324d22462",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
-				Proof:       &CredentialProofAWSSTS{},
+				Proof:       &CredentialProofAWS{},
 				Metadata: map[string]string{
 					CredentialMetadataAWSRole:   "arn:aws:iam::123456:role/path/to/role",
 					CredentialMetadataAWSKMSKey: "arn:aws:kms:us-east-1:123456:key/12345678-1234-1234-1234-123456789012",
@@ -86,32 +86,32 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"aws role missing": {
 			req: CreateCredentialRequest{
-				Type:        CredentialTypeAWSSTS,
+				Type:        CredentialTypeAWS,
 				Fingerprint: "8eb80fb7b3cf1a3efc8c1afbbfb53cf371db6c8cef8947368d8f78a324d22462",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
-				Proof:       &CredentialProofAWSSTS{},
+				Proof:       &CredentialProofAWS{},
 				Metadata: map[string]string{
 					CredentialMetadataAWSKMSKey: "arn:aws:kms:us-east-1:123456:key/12345678-1234-1234-1234-123456789012",
 				},
 			},
-			err: ErrMissingMetadata(CredentialMetadataAWSRole, CredentialTypeAWSSTS),
+			err: ErrMissingMetadata(CredentialMetadataAWSRole, CredentialTypeAWS),
 		},
 		"aws kms key missing": {
 			req: CreateCredentialRequest{
-				Type:        CredentialTypeAWSSTS,
+				Type:        CredentialTypeAWS,
 				Fingerprint: "8eb80fb7b3cf1a3efc8c1afbbfb53cf371db6c8cef8947368d8f78a324d22462",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
-				Proof:       &CredentialProofAWSSTS{},
+				Proof:       &CredentialProofAWS{},
 				Metadata: map[string]string{
 					CredentialMetadataAWSRole: "arn:aws:iam::123456:role/path/to/role",
 				},
 			},
-			err: ErrMissingMetadata(CredentialMetadataAWSKMSKey, CredentialTypeAWSSTS),
+			err: ErrMissingMetadata(CredentialMetadataAWSKMSKey, CredentialTypeAWS),
 		},
 		"extra metadata": {
 			req: CreateCredentialRequest{
 				Name:        "Personal laptop credential",
-				Type:        CredentialTypeRSA,
+				Type:        CredentialTypeKey,
 				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 				Verifier:    []byte("verifier"),
 				Metadata: map[string]string{
@@ -122,10 +122,10 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"extra metadata aws": {
 			req: CreateCredentialRequest{
-				Type:        CredentialTypeAWSSTS,
+				Type:        CredentialTypeAWS,
 				Fingerprint: "8eb80fb7b3cf1a3efc8c1afbbfb53cf371db6c8cef8947368d8f78a324d22462",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
-				Proof:       &CredentialProofAWSSTS{},
+				Proof:       &CredentialProofAWS{},
 				Metadata: map[string]string{
 					CredentialMetadataAWSRole:   "arn:aws:iam::123456:role/path/to/role",
 					CredentialMetadataAWSKMSKey: "arn:aws:kms:us-east-1:123456:key/12345678-1234-1234-1234-123456789012",

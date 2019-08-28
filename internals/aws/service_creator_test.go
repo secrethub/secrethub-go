@@ -38,13 +38,13 @@ func TestServiceCreator_AddProof(t *testing.T) {
 		signingRegion        string
 
 		expectedErr error
-		expected    *api.CredentialProofAWSSTS
+		expected    *api.CredentialProofAWS
 	}{
 		"success": {
 			encryptRequest: defaultRequest,
 			signingRegion:  defaultRegion,
 
-			expected: &api.CredentialProofAWSSTS{
+			expected: &api.CredentialProofAWS{
 				Region:  defaultRegion,
 				Request: defaultRequest,
 			},
@@ -80,7 +80,7 @@ func TestServiceCreator_AddProof(t *testing.T) {
 			if tc.expectedErr == nil {
 				assert.Equal(t, usedPlaintext, api.CredentialProofPrefixAWS+sc.role)
 
-				proof, ok := req.Proof.(*api.CredentialProofAWSSTS)
+				proof, ok := req.Proof.(*api.CredentialProofAWS)
 				assert.Equal(t, ok, true)
 				assert.Equal(t, proof, tc.expected)
 			}
