@@ -39,7 +39,7 @@ const (
 // Credential is used to authenticate to the API and to encrypt the account key.
 type Credential struct {
 	AccountID   *uuid.UUID        `json:"account_id"`
-	Type        CredentialType    `json:"algorithm"`
+	Type        CredentialType    `json:"type"`
 	CreatedAt   time.Time         `json:"created_at"`
 	Fingerprint string            `json:"fingerprint"`
 	Name        string            `json:"name"`
@@ -52,8 +52,8 @@ type CredentialType string
 
 // Credential types
 const (
-	CredentialTypeRSA    CredentialType = "rsa"
-	CredentialTypeAWSSTS CredentialType = "aws-sts"
+	CredentialTypeKey CredentialType = "key"
+	CredentialTypeAWS CredentialType = "aws"
 )
 
 const (
@@ -63,7 +63,7 @@ const (
 
 // Validate validates whether the algorithm type is valid.
 func (a CredentialType) Validate() error {
-	if a == CredentialTypeRSA || a == CredentialTypeAWSSTS {
+	if a == CredentialTypeKey || a == CredentialTypeAWS {
 		return nil
 	}
 	return ErrInvalidCredentialType
@@ -98,10 +98,10 @@ func (req *CreateCredentialRequest) UnmarshalJSON(b []byte) error {
 	}
 
 	switch dec.Type {
-	case CredentialTypeAWSSTS:
-		dec.Proof = &CredentialProofAWSSTS{}
-	case CredentialTypeRSA:
-		dec.Proof = &CredentialProofRSA{}
+	case CredentialTypeAWS:
+		dec.Proof = &CredentialProofAWS{}
+	case CredentialTypeKey:
+		dec.Proof = &CredentialProofKey{}
 	default:
 		return ErrInvalidCredentialType
 	}
@@ -134,7 +134,7 @@ func (req *CreateCredentialRequest) Validate() error {
 		return err
 	}
 
-	if req.Type == CredentialTypeAWSSTS && req.Proof == nil {
+	if req.Type == CredentialTypeAWS && req.Proof == nil {
 		return ErrMissingField("proof")
 	}
 
@@ -146,10 +146,10 @@ func (req *CreateCredentialRequest) Validate() error {
 		return ErrInvalidFingerprint
 	}
 
-	if req.Type == CredentialTypeAWSSTS {
+	if req.Type == CredentialTypeAWS {
 		role, ok := req.Metadata[CredentialMetadataAWSRole]
 		if !ok {
-			return ErrMissingMetadata(CredentialMetadataAWSRole, CredentialTypeAWSSTS)
+			return ErrMissingMetadata(CredentialMetadataAWSRole, CredentialTypeAWS)
 		}
 		if !bytes.Equal(req.Verifier, []byte(role)) {
 			return ErrRoleDoesNotMatch
@@ -157,14 +157,14 @@ func (req *CreateCredentialRequest) Validate() error {
 
 		_, ok = req.Metadata[CredentialMetadataAWSKMSKey]
 		if !ok {
-			return ErrMissingMetadata(CredentialMetadataAWSKMSKey, CredentialTypeAWSSTS)
+			return ErrMissingMetadata(CredentialMetadataAWSKMSKey, CredentialTypeAWS)
 		}
 	}
 
 	for key := range req.Metadata {
 		if key != CredentialMetadataAWSKMSKey && key != CredentialMetadataAWSRole {
 			return ErrUnknownMetadataKey(key)
-		} else if req.Type != CredentialTypeAWSSTS {
+		} else if req.Type != CredentialTypeAWS {
 			return ErrInvalidMetadataKey(key, req.Type)
 		}
 	}
@@ -172,14 +172,14 @@ func (req *CreateCredentialRequest) Validate() error {
 	return nil
 }
 
-// CredentialProofAWSSTS is proof for when the credential type is AWSSTS.
-type CredentialProofAWSSTS struct {
+// CredentialProofAWS is proof for when the credential type is AWSSTS.
+type CredentialProofAWS struct {
 	Region  string `json:"region"`
 	Request []byte `json:"request"`
 }
 
-// Validate whether the CredentialProofAWSSTS is valid.
-func (p CredentialProofAWSSTS) Validate() error {
+// Validate whether the CredentialProofAWS is valid.
+func (p CredentialProofAWS) Validate() error {
 	if p.Region == "" {
 		return ErrMissingField("region")
 	}
@@ -189,13 +189,13 @@ func (p CredentialProofAWSSTS) Validate() error {
 	return nil
 }
 
-// CredentialProofRSA is proof for when the credential type is RSA.
-type CredentialProofRSA struct{}
+// CredentialProofKey is proof for when the credential type is RSA.
+type CredentialProofKey struct{}
 
 // GetFingerprint returns the fingerprint of a credential.
 func GetFingerprint(t CredentialType, verifier []byte) (string, error) {
 	var toHash []byte
-	if t == CredentialTypeRSA {
+	if t == CredentialTypeKey {
 		// Provide compatibility with traditional RSA credentials.
 		toHash = verifier
 	} else {

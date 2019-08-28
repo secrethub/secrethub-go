@@ -36,10 +36,10 @@ func TestSignup(t *testing.T) {
 		FullName: fullName,
 		Email:    email,
 		Credential: &api.CreateCredentialRequest{
-			Type:        api.CredentialTypeRSA,
+			Type:        api.CredentialTypeKey,
 			Fingerprint: cred1Fingerprint,
 			Verifier:    cred1Verifier,
-			Proof:       &api.CredentialProofRSA{},
+			Proof:       &api.CredentialProofKey{},
 		},
 	}
 
