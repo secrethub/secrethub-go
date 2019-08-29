@@ -4,11 +4,13 @@ require (
 	bitbucket.org/zombiezen/cardcpx v0.0.0-20150417151802-902f68ff43ef
 	github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf
 	github.com/aws/aws-sdk-go v1.19.38
+	github.com/docker/docker v1.13.1
 	github.com/docker/go-units v0.3.3
 	github.com/go-chi/chi v4.0.1+incompatible
 	github.com/google/go-querystring v1.0.0
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348
+	github.com/mattn/go-shellwords v1.0.6 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/satori/go.uuid v1.2.0

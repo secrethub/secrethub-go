@@ -2,6 +2,10 @@ package secrethub
 
 import (
 	"os"
+	"runtime"
+	"strings"
+
+	"github.com/docker/docker/pkg/parsers/operatingsystem"
 
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
@@ -66,18 +70,14 @@ type Client struct {
 // AppInfo contains information about the application that is using the SecretHub client.
 // It is used to identify the application to the SecretHub API.
 type AppInfo struct {
-	Name            string
-	Version         string
-	OperatingSystem string
+	Name    string
+	Version string
 }
 
 func (i AppInfo) userAgentSuffix() string {
 	res := i.Name
 	if i.Version != "" {
 		res += "/" + i.Version
-	}
-	if i.OperatingSystem != "" {
-		res += " (" + i.OperatingSystem + ")"
 	}
 	return res
 }
@@ -118,10 +118,7 @@ func NewClient(with ...ClientOption) (*Client, error) {
 		}
 	}
 
-	userAgent := userAgentPrefix
-	if client.appInfo != nil {
-		userAgent += " " + client.appInfo.userAgentSuffix()
-	}
+	userAgent := client.userAgent()
 
 	client.httpClient.Options(http.WithUserAgent(userAgent))
 
@@ -208,4 +205,16 @@ func (c *Client) DefaultCredential() credentials.Reader {
 	}
 
 	return c.ConfigDir.Credential()
+}
+
+func (c *Client) userAgent() string {
+	userAgent := userAgentPrefix
+	if c.appInfo != nil {
+		userAgent += " " + c.appInfo.userAgentSuffix()
+	}
+	osName, err := operatingsystem.GetOperatingSystem()
+	if err != nil {
+		osName = strings.Title(runtime.GOOS)
+	}
+	userAgent += " (" + osName + "; " + runtime.GOARCH + ")"
 }
