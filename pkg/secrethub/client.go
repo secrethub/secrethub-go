@@ -216,6 +216,7 @@ func (c *Client) userAgent() string {
 	if err != nil {
 		osName = strings.Title(runtime.GOOS)
 	}
+	osName = strings.TrimSpace(osName) // GetOperatingSystem may read from a cmd output without trimming whitespace
 	userAgent += " (" + osName + "; " + runtime.GOARCH + ")"
 
 	return userAgent
