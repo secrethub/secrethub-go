@@ -217,4 +217,6 @@ func (c *Client) userAgent() string {
 		osName = strings.Title(runtime.GOOS)
 	}
 	userAgent += " (" + osName + "; " + runtime.GOARCH + ")"
+
+	return userAgent
 }
