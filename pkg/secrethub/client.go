@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	userAgentPrefix = "SecretHub/v1 GoClient/" + ClientVersion
+	userAgentPrefix = "SecretHub/v1 secrethub-go/" + ClientVersion
 )
 
 // ClientInterface is an interface that can be used to consume the SecretHub client and is implemented by secrethub.Client.
