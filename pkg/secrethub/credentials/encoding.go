@@ -183,10 +183,11 @@ func (p parser) parse(raw []byte) (*encodedCredential, error) {
 	}
 
 	// Decode the header
-	_, err := defaultEncoding.Decode(cred.RawHeader, parts[0])
+	n, err := defaultEncoding.Decode(cred.RawHeader, parts[0])
 	if err != nil {
 		return nil, ErrCannotDecodeCredentialHeader(err)
 	}
+	cred.RawHeader = cred.RawHeader[:n]
 
 	err = json.Unmarshal(cred.RawHeader, &cred.Header)
 	if err != nil {
@@ -204,10 +205,11 @@ func (p parser) parse(raw []byte) (*encodedCredential, error) {
 		return nil, ErrUnsupportedCredentialType(payloadType)
 	}
 
-	_, err = defaultEncoding.Decode(cred.Payload, parts[1])
+	n, err = defaultEncoding.Decode(cred.Payload, parts[1])
 	if err != nil {
 		return nil, ErrCannotDecodeCredentialPayload(err)
 	}
+	cred.Payload = cred.Payload[:n]
 
 	encryptionAlgorithm, ok := cred.Header["enc"].(string)
 	if ok {
