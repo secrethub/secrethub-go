@@ -9,6 +9,8 @@ import (
 type DirService interface {
 	// Create a directory at a given path.
 	Create(path string) (*api.Dir, error)
+	// Get returns the directory on the given path.
+	Get(path string) (*api.Dir, error)
 	// Delete removes the directory at the given path.
 	Delete(path string) error
 	// GetTree retrieves a directory at a given path and all of its descendants up to a given depth.
@@ -25,6 +27,36 @@ func newDirService(client *Client) DirService {
 
 type dirService struct {
 	client *Client
+}
+
+// Get returns the directory on the given path.
+func (s dirService) Get(path string) (*api.Dir, error) {
+	p, err := api.NewDirPath(path)
+	if err != nil {
+		return nil, err
+	}
+
+	blindName, err := s.client.convertPathToBlindName(p)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	encDir, err := s.client.httpClient.GetDir(p.GetNamespace(), p.GetRepo(), blindName)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	accountKey, err := s.client.getAccountKey()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	dir, err := encDir.Decrypt(accountKey)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return dir, nil
 }
 
 // GetTree retrieves a directory tree at a given path. The contents to the given depth
