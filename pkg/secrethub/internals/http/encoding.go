@@ -3,7 +3,6 @@ package http
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -98,21 +97,17 @@ func parseError(resp *http.Response) error {
 	if err != nil {
 		// Degrade with a best effort error message.
 		log.Debugf("body: %v", string(bytes))
-		return errio.UnexpectedStatusError(
-			fmt.Errorf("(cannot_parse_server_response) %d - %s: %v",
-				resp.StatusCode,
-				resp.Status,
-				err,
-			),
+		return errHTTP.Code("cannot_parse_server_response").Errorf("%d - %s: %v",
+			resp.StatusCode,
+			resp.Status,
+			err,
 		)
 	}
 	if e.Message == "" {
-		return errio.UnexpectedStatusError(
-			fmt.Errorf("(unexpected_message_in_server_error) %d - %s. Response:\n%s",
-				resp.StatusCode,
-				resp.Status,
-				string(bytes),
-			),
+		return errHTTP.Code("unexpected_message_in_server_error").Errorf("%d - %s. Response:\n%s",
+			resp.StatusCode,
+			resp.Status,
+			string(bytes),
 		)
 	}
 
