@@ -18,7 +18,7 @@ func TestCreateOrg(t *testing.T) {
 	router, opts, cleanup := setup()
 	defer cleanup()
 
-	client := NewClient(cred1, opts)
+	client := Must(NewClient(opts...))
 
 	name := "myorg"
 	descr := "My very own organization"
@@ -94,7 +94,7 @@ func TestCreateOrg_InvalidArgs(t *testing.T) {
 	_, opts, cleanup := setup()
 	defer cleanup()
 
-	client := NewClient(cred1, opts)
+	client := Must(NewClient(opts...))
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -149,7 +149,7 @@ func TestGetOrg(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client := NewClient(cred1, opts)
+			client := Must(NewClient(opts...))
 
 			router.Get("/orgs/{org_name}", func(w http.ResponseWriter, r *http.Request) {
 				// Assert
@@ -228,7 +228,7 @@ func TestListMyOrgs(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client := NewClient(cred1, opts)
+			client := Must(NewClient(opts...))
 
 			router.Get("/orgs", func(w http.ResponseWriter, r *http.Request) {
 				// Respond
@@ -285,7 +285,7 @@ func TestDeleteOrg(t *testing.T) {
 			router, opts, cleanup := setup()
 			defer cleanup()
 
-			client := NewClient(cred1, opts)
+			client := Must(NewClient(opts...))
 
 			router.Delete("/orgs/{org_name}", func(w http.ResponseWriter, r *http.Request) {
 				// Assert

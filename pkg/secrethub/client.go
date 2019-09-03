@@ -1,79 +1,44 @@
 package secrethub
 
 import (
+	"os"
+	"runtime"
+	"strings"
+
+	"github.com/docker/docker/pkg/parsers/operatingsystem"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/configdir"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
-// Client is the SecretHub client.
-type Client interface {
+const (
+	userAgentPrefix = "SecretHub/v1 secrethub-go/" + ClientVersion
+)
+
+// ClientInterface is an interface that can be used to consume the SecretHub client and is implemented by secrethub.Client.
+type ClientInterface interface {
+	// AccessRules returns a service used to manage access rules.
 	AccessRules() AccessRuleService
+	// Accounts returns a service used to manage SecretHub accounts.
 	Accounts() AccountService
+	// Dirs returns a service used to manage directories.
 	Dirs() DirService
+	// Me returns a service used to manage the current authenticated account.
 	Me() MeService
+	// Orgs returns a service used to manage shared organization workspaces.
 	Orgs() OrgService
+	// Repos returns a service used to manage repositories.
 	Repos() RepoService
+	// Secrets returns a service used to manage secrets.
 	Secrets() SecretService
+	// Services returns a service used to manage non-human service accounts.
 	Services() ServiceService
+	// Users returns a service used to manage (human) user accounts.
 	Users() UserService
-}
-
-type clientAdapter struct {
-	client client
-}
-
-// NewClient creates a new SecretHub client.
-// It overrides the default configuration with the options when given.
-func NewClient(credential Credential, opts *ClientOptions) Client {
-	return &clientAdapter{
-		client: newClient(credential, opts),
-	}
-}
-
-// AccessRules returns an AccessRuleService.
-func (c clientAdapter) AccessRules() AccessRuleService {
-	return newAccessRuleService(c.client)
-}
-
-// Accounts returns an AccountService.
-func (c clientAdapter) Accounts() AccountService {
-	return newAccountService(c.client)
-}
-
-// Dirs returns an DirService.
-func (c clientAdapter) Dirs() DirService {
-	return newDirService(c.client)
-}
-
-// Me returns a MeService.
-func (c clientAdapter) Me() MeService {
-	return newMeService(c.client)
-}
-
-// Orgs returns an OrgService.
-func (c clientAdapter) Orgs() OrgService {
-	return newOrgService(c.client)
-}
-
-// Repos returns an RepoService.
-func (c clientAdapter) Repos() RepoService {
-	return newRepoService(c.client)
-}
-
-// Secrets returns an SecretService.
-func (c clientAdapter) Secrets() SecretService {
-	return newSecretService(c.client)
-}
-
-// Services returns an ServiceService.
-func (c clientAdapter) Services() ServiceService {
-	return newServiceService(c.client)
-}
-
-// Users returns an UserService.
-func (c clientAdapter) Users() UserService {
-	return newUserService(c.client)
 }
 
 var (
@@ -81,12 +46,10 @@ var (
 )
 
 // Client is a client for the SecretHub HTTP API.
-type client struct {
-	httpClient *httpClient
+type Client struct {
+	httpClient *http.Client
 
-	// credential is the key used by a client to decrypt the account key and authenticate the requests.
-	// It is passed to the httpClient to provide authentication.
-	credential Credential
+	decrypter credentials.Decrypter
 
 	// account is the api.Account for this SecretHub account.
 	// Do not use this field directly, but use client.getMyAccount() instead.
@@ -99,15 +62,162 @@ type client struct {
 	// repoindexKeys are the keys used to generate blind names in the repo.
 	// These are cached
 	repoIndexKeys map[api.RepoPath]*crypto.SymmetricKey
+
+	appInfo   *AppInfo
+	ConfigDir *configdir.Dir
 }
 
-// newClient configures a new client, overriding defaults with options when given.
-func newClient(credential Credential, opts *ClientOptions) client {
-	httpClient := newHTTPClient(credential, opts)
+// AppInfo contains information about the application that is using the SecretHub client.
+// It is used to identify the application to the SecretHub API.
+type AppInfo struct {
+	Name    string
+	Version string
+}
 
-	return client{
-		httpClient:    httpClient,
-		credential:    credential,
+func (i AppInfo) userAgentSuffix() string {
+	res := i.Name
+	if i.Version != "" {
+		res += "/" + i.Version
+	}
+	return res
+}
+
+// NewClient creates a new SecretHub client. Provided options are applied to the client.
+//
+// If no WithCredentials() option is provided, the client tries to find a key credential at the following locations (in order):
+//   1. The SECRETHUB_CREDENTIAL environment variable.
+//   2. The credential file placed in the directory given by the SECRETHUB_CONFIG_DIR environment variable.
+//   3. The credential file found in <user's home directory>/.secrethub/credential.
+// If no key credential could be found, a Client is returned that can only be used for unauthenticated routes.
+func NewClient(with ...ClientOption) (*Client, error) {
+	client := &Client{
+		httpClient:    http.NewClient(),
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
 	}
+	err := client.with(with...)
+	if err != nil {
+		return nil, err
+	}
+
+	// ConfigDir should be fully initialized before loading any default credentials.
+	if client.ConfigDir == nil {
+		configDir, err := configdir.Default()
+		if err != nil {
+			return nil, err
+		}
+		client.ConfigDir = configDir
+	}
+
+	// Try to use default key credentials if none provided explicitly
+	if client.decrypter == nil {
+		err := client.with(WithCredentials(credentials.UseKey(client.DefaultCredential())))
+		// nolint: staticcheck
+		if err != nil {
+			// TODO: log that default credential was not loaded.
+			// Do go on because we want to allow an unauthenticated client.
+		}
+	}
+
+	userAgent := client.userAgent()
+
+	client.httpClient.Options(http.WithUserAgent(userAgent))
+
+	return client, nil
+}
+
+// Must is a helper function to ensure the Client is valid and there was no
+// error when calling a NewClient function.
+//
+// This helper is intended to be used in initialization to load the
+// Session and configuration at startup. For example:
+//
+//     var client = secrethub.Must(secrethub.NewClient())
+func Must(c *Client, err error) *Client {
+	if err != nil {
+		panic(err)
+	}
+	return c
+}
+
+// AccessRules returns a service used to manage access rules.
+func (c *Client) AccessRules() AccessRuleService {
+	return newAccessRuleService(c)
+}
+
+// Accounts returns a service used to manage SecretHub accounts.
+func (c *Client) Accounts() AccountService {
+	return newAccountService(c)
+}
+
+// Dirs returns a service used to manage directories.
+func (c *Client) Dirs() DirService {
+	return newDirService(c)
+}
+
+// Me returns a service used to manage the current authenticated account.
+func (c *Client) Me() MeService {
+	return newMeService(c)
+}
+
+// Orgs returns a service used to manage shared organization workspaces.
+func (c *Client) Orgs() OrgService {
+	return newOrgService(c)
+}
+
+// Repos returns a service used to manage repositories.
+func (c *Client) Repos() RepoService {
+	return newRepoService(c)
+}
+
+// Secrets returns a service used to manage secrets.
+func (c *Client) Secrets() SecretService {
+	return newSecretService(c)
+}
+
+// Services returns a service used to manage non-human service accounts.
+func (c *Client) Services() ServiceService {
+	return newServiceService(c)
+}
+
+// Users returns a service used to manage (human) user accounts.
+func (c *Client) Users() UserService {
+	return newUserService(c)
+}
+
+// with applies ClientOptions to a Client. Should only be called during initialization.
+func (c *Client) with(options ...ClientOption) error {
+	for _, o := range options {
+		err := o(c)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DefaultCredential returns a reader pointing to the configured credential,
+// sourcing it either from the SECRETHUB_CREDENTIAL environment variable or
+// from the configuration directory.
+func (c *Client) DefaultCredential() credentials.Reader {
+	envCredential := os.Getenv("SECRETHUB_CREDENTIAL")
+	if envCredential != "" {
+		return credentials.FromString(envCredential)
+	}
+
+	return c.ConfigDir.Credential()
+}
+
+func (c *Client) userAgent() string {
+	userAgent := userAgentPrefix
+	if c.appInfo != nil {
+		userAgent += " " + c.appInfo.userAgentSuffix()
+	}
+	osName, err := operatingsystem.GetOperatingSystem()
+	if err != nil {
+		osName = strings.Title(runtime.GOOS)
+	}
+	osName = strings.TrimSpace(osName) // GetOperatingSystem may read from a cmd output without trimming whitespace
+	userAgent += " (" + osName + "; " + runtime.GOARCH + ")"
+
+	return userAgent
 }

@@ -3,12 +3,13 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 )
 
 // ServiceService handles operations on service accounts from SecretHub.
 type ServiceService interface {
 	// Create creates a new service account for the given repo.
-	Create(path string, description string, credential Credential) (*api.Service, error)
+	Create(path string, description string, credential credentials.Creator) (*api.Service, error)
 	// Delete removes a service account by name.
 	Delete(name string) (*api.RevokeRepoResponse, error)
 	// Get retrieves a service account by name.
@@ -17,18 +18,18 @@ type ServiceService interface {
 	List(path string) ([]*api.Service, error)
 }
 
-func newServiceService(client client) ServiceService {
+func newServiceService(client *Client) ServiceService {
 	return serviceService{
 		client: client,
 	}
 }
 
 type serviceService struct {
-	client client
+	client *Client
 }
 
 // Create creates a new service account for the given repo.
-func (s serviceService) Create(path string, description string, credential Credential) (*api.Service, error) {
+func (s serviceService) Create(path string, description string, credentialCreator credentials.Creator) (*api.Service, error) {
 	repoPath, err := api.NewRepoPath(path)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -39,17 +40,22 @@ func (s serviceService) Create(path string, description string, credential Crede
 		return nil, errio.Error(err)
 	}
 
+	err = credentialCreator.Create()
+	if err != nil {
+		return nil, err
+	}
+
 	accountKey, err := generateAccountKey()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	credentialRequest, err := s.client.createCredentialRequest(credential)
+	credentialRequest, err := s.client.createCredentialRequest(credentialCreator.Verifier(), credentialCreator.Metadata())
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	accountKeyRequest, err := s.client.createAccountKeyRequest(credential, accountKey)
+	accountKeyRequest, err := s.client.createAccountKeyRequest(credentialCreator.Encrypter(), accountKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}

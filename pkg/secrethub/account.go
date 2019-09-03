@@ -4,6 +4,12 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
+)
+
+// Errors
+var (
+	ErrNoDecryptionKey = errClient.Code("no_decryption_key").Error("client is not initialized with a method to decrypt the account key")
 )
 
 // AccountService handles operations on SecretHub accounts.
@@ -14,14 +20,14 @@ type AccountService interface {
 	Keys() AccountKeyService
 }
 
-func newAccountService(client client) AccountService {
+func newAccountService(client *Client) AccountService {
 	return &accountService{
 		client: client,
 	}
 }
 
 type accountService struct {
-	client client
+	client *Client
 }
 
 // Get retrieves an account by name.
@@ -43,8 +49,8 @@ func (s accountService) Keys() AccountKeyService {
 // The public key of the intermediate key is returned.
 // The intermediate key is returned in an CreateAccountKeyRequest ready to be sent to the API.
 // If an error has occurred, it will be returned and the other result should be considered invalid.
-func (c *client) createAccountKeyRequest(credential Credential, accountKey crypto.RSAPrivateKey) (*api.CreateAccountKeyRequest, error) {
-	publicAccountKey, err := accountKey.Public().Export()
+func (c *Client) createAccountKeyRequest(encrypter credentials.Encrypter, accountKey crypto.RSAPrivateKey) (*api.CreateAccountKeyRequest, error) {
+	publicAccountKey, err := accountKey.Public().Encode()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -54,7 +60,7 @@ func (c *client) createAccountKeyRequest(credential Credential, accountKey crypt
 		return nil, errio.Error(err)
 	}
 
-	wrappedAccountKey, err := credential.Wrap(privateAccountKey)
+	wrappedAccountKey, err := encrypter.Wrap(privateAccountKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -65,27 +71,28 @@ func (c *client) createAccountKeyRequest(credential Credential, accountKey crypt
 	}, nil
 }
 
-func (c *client) createCredentialRequest(credential Credential) (*api.CreateCredentialRequest, error) {
-	fingerprint, err := credential.Fingerprint()
+func (c *Client) createCredentialRequest(verifier credentials.Verifier, metadata map[string]string) (*api.CreateCredentialRequest, error) {
+	bytes, fingerprint, err := verifier.Export()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	verifier, err := credential.Verifier()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return &api.CreateCredentialRequest{
+	req := api.CreateCredentialRequest{
 		Fingerprint: fingerprint,
-		Verifier:    verifier,
-		Type:        credential.Type(),
-	}, nil
+		Verifier:    bytes,
+		Type:        verifier.Type(),
+		Metadata:    metadata,
+	}
+	err = verifier.AddProof(&req)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+	return &req, nil
 }
 
 // getAccountKey attempts to get the account key from the cache,
 // getting it from the API if not found in the cache.
-func (c *client) getAccountKey() (*crypto.RSAPrivateKey, error) {
+func (c *Client) getAccountKey() (*crypto.RSAPrivateKey, error) {
 	if c.accountKey == nil {
 		err := c.fetchAccountDetails()
 		if err != nil {
@@ -97,7 +104,7 @@ func (c *client) getAccountKey() (*crypto.RSAPrivateKey, error) {
 }
 
 // getMyAccount returns the account of the client itself.
-func (c *client) getMyAccount() (*api.Account, error) {
+func (c *Client) getMyAccount() (*api.Account, error) {
 	// retrieve the account from cache
 	if c.account != nil {
 		return c.account, nil
@@ -115,13 +122,17 @@ func (c *client) getMyAccount() (*api.Account, error) {
 // These are cached in the client.
 // This function should only be called from client.getAccountKey or client.getMyAccount
 // Don't use this unless you know what you're doing. Use client.getAccountKey instead.
-func (c *client) fetchAccountDetails() error {
+func (c *Client) fetchAccountDetails() error {
+	if c.decrypter == nil {
+		return ErrNoDecryptionKey
+	}
+
 	resp, err := c.httpClient.GetAccountKey()
 	if err != nil {
 		return errio.Error(err)
 	}
 
-	data, err := c.credential.Unwrap(resp.EncryptedPrivateKey)
+	data, err := c.decrypter.Unwrap(resp.EncryptedPrivateKey)
 	if err != nil {
 		return errio.Error(err)
 	}

@@ -4,20 +4,21 @@ package fakeclient
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
-	"github.com/secrethub/secrethub-go/pkg/secrethub"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 )
 
 // ServiceService is a mock of the ServiceService interface.
 type ServiceService struct {
-	Creater ServiceCreater
-	Deleter ServiceDeleter
-	Getter  ServiceGetter
-	Lister  RepoServiceLister
+	Creator    ServiceCreater
+	Deleter    ServiceDeleter
+	Getter     ServiceGetter
+	Lister     RepoServiceLister
+	AWSService *ServiceAWSService
 }
 
 // Create implements the ServiceService interface Create function.
-func (s *ServiceService) Create(path string, description string, credential secrethub.Credential) (*api.Service, error) {
-	return s.Creater.Create(path, description, credential)
+func (s *ServiceService) Create(path string, description string, credentialCreator credentials.Creator) (*api.Service, error) {
+	return s.Creator.Create(path, description, credentialCreator)
 }
 
 // Delete implements the ServiceService interface Delete function.
@@ -37,18 +38,18 @@ func (s *ServiceService) List(path string) ([]*api.Service, error) {
 
 // ServiceCreater mocks the Create function.
 type ServiceCreater struct {
-	ArgPath        string
-	ArgDescription string
-	ArgCredential  secrethub.Credential
-	ReturnsService *api.Service
-	Err            error
+	ArgPath              string
+	ArgDescription       string
+	ArgCredentialCreator credentials.Creator
+	ReturnsService       *api.Service
+	Err                  error
 }
 
 // Create saves the arguments it was called with and returns the mocked response.
-func (c *ServiceCreater) Create(path string, description string, credential secrethub.Credential) (*api.Service, error) {
+func (c *ServiceCreater) Create(path string, description string, credentialCreator credentials.Creator) (*api.Service, error) {
 	c.ArgPath = path
 	c.ArgDescription = description
-	c.ArgCredential = credential
+	c.ArgCredentialCreator = credentialCreator
 	return c.ReturnsService, c.Err
 }
 

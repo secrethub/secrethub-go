@@ -28,7 +28,7 @@ func TestSignup(t *testing.T) {
 	defer cleanup()
 
 	userService := userService{
-		client: newClient(cred1, opts),
+		client: Must(NewClient(opts...)),
 	}
 
 	expectedCreateUserRequest := api.CreateUserRequest{
@@ -36,9 +36,10 @@ func TestSignup(t *testing.T) {
 		FullName: fullName,
 		Email:    email,
 		Credential: &api.CreateCredentialRequest{
-			Type:        api.CredentialTypeRSA,
+			Type:        api.CredentialTypeKey,
 			Fingerprint: cred1Fingerprint,
 			Verifier:    cred1Verifier,
+			Proof:       &api.CredentialProofKey{},
 		},
 	}
 
@@ -70,7 +71,7 @@ func TestSignup(t *testing.T) {
 	accountKey, err := crypto.GenerateRSAPrivateKey(512)
 	assert.OK(t, err)
 
-	publicAccountKey, err := accountKey.Public().Export()
+	publicAccountKey, err := accountKey.Public().Encode()
 	assert.OK(t, err)
 
 	router.Post(fmt.Sprintf("/me/credentials/%s/key", cred1Fingerprint), func(w http.ResponseWriter, r *http.Request) {
@@ -91,7 +92,7 @@ func TestSignup(t *testing.T) {
 	})
 
 	// Act
-	actual, err := userService.create(username, email, fullName, accountKey)
+	actual, err := userService.create(username, email, fullName, accountKey, cred1, cred1, nil, cred1)
 
 	// Assert
 	assert.OK(t, err)
@@ -105,7 +106,7 @@ func TestSignup_AlreadyExists(t *testing.T) {
 	defer cleanup()
 
 	userService := userService{
-		client: newClient(cred1, opts),
+		client: Must(NewClient(opts...)),
 	}
 
 	expected := api.ErrUserEmailAlreadyExists
@@ -121,7 +122,7 @@ func TestSignup_AlreadyExists(t *testing.T) {
 	assert.OK(t, err)
 
 	// Act
-	_, err = userService.create("dev1", "dev1@testing.com", "Developer Uno", key)
+	_, err = userService.create("dev1", "dev1@testing.com", "Developer Uno", key, cred1, cred1, nil, cred1)
 
 	// Assert
 	assert.Equal(t, err, expected)
@@ -134,14 +135,14 @@ func TestSignup_InvalidArgument(t *testing.T) {
 	defer cleanup()
 
 	userService := userService{
-		client: newClient(cred1, opts),
+		client: Must(NewClient(opts...)),
 	}
 
 	key, err := crypto.GenerateRSAPrivateKey(512)
 	assert.OK(t, err)
 
 	// Act
-	_, err = userService.create("invalidname$#@%%", "dev1@testing.com", "Developer Uno", key)
+	_, err = userService.create("invalidname$#@%%", "dev1@testing.com", "Developer Uno", key, cred1, cred1, nil, cred1)
 
 	// Assert
 	assert.Equal(t, err, api.ErrInvalidUsername)
@@ -154,7 +155,7 @@ func TestGetUser(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		newClient(cred1, opts),
+		Must(NewClient(opts...)),
 	)
 
 	now := time.Now().UTC()
@@ -193,7 +194,7 @@ func TestGetUser_NotFound(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		newClient(cred1, opts),
+		Must(NewClient(opts...)),
 	)
 
 	expected := api.ErrUserNotFound
@@ -219,7 +220,7 @@ func TestGetUser_InvalidArgument(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		newClient(cred1, opts),
+		Must(NewClient(opts...)),
 	)
 
 	// Act
@@ -236,7 +237,7 @@ func TestGetMyUser(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		newClient(cred1, opts),
+		Must(NewClient(opts...)),
 	)
 
 	now := time.Now().UTC()
@@ -271,7 +272,7 @@ func TestGetMyUser_NotFound(t *testing.T) {
 	defer cleanup()
 
 	userService := newUserService(
-		newClient(cred1, opts),
+		Must(NewClient(opts...)),
 	)
 
 	expected := api.ErrRequestNotAuthenticated

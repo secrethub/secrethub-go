@@ -20,10 +20,10 @@ type AccessRuleService interface {
 	// ListLevels lists the access levels on the given directory.
 	ListLevels(path string) ([]*api.AccessLevel, error)
 	// Set sets an access rule with a certain permission level for an account to a path.
-	Set(path string, permission api.Permission, accountName string) (*api.AccessRule, error)
+	Set(path string, permission string, accountName string) (*api.AccessRule, error)
 }
 
-func newAccessRuleService(client client) AccessRuleService {
+func newAccessRuleService(client *Client) AccessRuleService {
 	return accessRuleService{
 		client:         client,
 		accountService: newAccountService(client),
@@ -32,7 +32,7 @@ func newAccessRuleService(client client) AccessRuleService {
 }
 
 type accessRuleService struct {
-	client         client
+	client         *Client
 	accountService AccountService
 	dirService     DirService
 }
@@ -163,7 +163,13 @@ func (s accessRuleService) ListLevels(path string) ([]*api.AccessLevel, error) {
 }
 
 // Set sets an access rule with a certain permission level for an account to a path.
-func (s accessRuleService) Set(path string, permission api.Permission, accountName string) (*api.AccessRule, error) {
+func (s accessRuleService) Set(path string, permission string, accountName string) (*api.AccessRule, error) {
+	var perm api.Permission
+	err := perm.Set(permission)
+	if err != nil {
+		return nil, err
+	}
+
 	p, err := api.NewDirPath(path)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -178,9 +184,9 @@ func (s accessRuleService) Set(path string, permission api.Permission, accountNa
 	if err != nil && err != api.ErrAccessRuleNotFound {
 		return nil, errio.Error(err)
 	} else if err == api.ErrAccessRuleNotFound {
-		return s.create(p, permission, an)
+		return s.create(p, perm, an)
 	}
-	return s.update(p, permission, an)
+	return s.update(p, perm, an)
 }
 
 // CreateAccessRule creates a new AccessRule for an account with a certain permission level.
@@ -267,7 +273,7 @@ func (s accessRuleService) update(path api.BlindNamePath, permission api.Permiss
 
 // GetAccessLevel retrieves the permissions of an account on a directory, defined by
 // one or more access rules on the directory itself or its parent(s).
-func (c *client) getAccessLevel(path api.BlindNamePath, accountName api.AccountName) (*api.AccessLevel, error) {
+func (c *Client) getAccessLevel(path api.BlindNamePath, accountName api.AccountName) (*api.AccessLevel, error) {
 	blindName, err := c.convertPathToBlindName(path)
 	if err != nil {
 		return nil, errio.Error(err)
