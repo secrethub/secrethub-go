@@ -10,6 +10,7 @@ import (
 	"github.com/op/go-logging"
 
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -52,7 +53,6 @@ const (
 	pathRepoKey        = "%s/namespaces/%s/repos/%s/keys"
 	pathRepoAccounts   = "%s/namespaces/%s/repos/%s/accounts"
 	pathRepoEvents     = "%s/namespaces/%s/repos/%s/events"
-	pathRepoDir        = "%s/namespaces/%s/repos/%s/dirs/%s"
 	pathRepoDirSecrets = "%s/namespaces/%s/repos/%s/dirs/%s/secrets"
 	pathRepoUsers      = "%s/namespaces/%s/repos/%s/users"
 	pathRepoUser       = "%s/namespaces/%s/repos/%s/users/%s"
@@ -337,8 +337,8 @@ func (c *Client) CreateDir(namespace, repoName string, in *api.CreateDirRequest)
 }
 
 // GetDir retrieves a directory encrypted for the authenticated user.
-func (c *Client) GetDir(namespace, repoName, dirBlindName string) (*api.EncryptedDir, error) {
-	rawURL := fmt.Sprintf(pathRepoDir, c.base, namespace, repoName, dirBlindName)
+func (c *Client) GetDir(id *uuid.UUID) (*api.EncryptedDir, error) {
+	rawURL := fmt.Sprintf(pathDir, c.base, id.String())
 	out := &api.EncryptedDir{}
 	err := c.get(rawURL, true, out)
 	return out, err

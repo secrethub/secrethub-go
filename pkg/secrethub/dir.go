@@ -2,6 +2,7 @@ package secrethub
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
@@ -10,7 +11,7 @@ type DirService interface {
 	// Create a directory at a given path.
 	Create(path string) (*api.Dir, error)
 	// Get returns the directory on the given path.
-	Get(path string) (*api.Dir, error)
+	Get(id *uuid.UUID) (*api.Dir, error)
 	// Delete removes the directory at the given path.
 	Delete(path string) error
 	// GetTree retrieves a directory at a given path and all of its descendants up to a given depth.
@@ -30,18 +31,8 @@ type dirService struct {
 }
 
 // Get returns the directory on the given path.
-func (s dirService) Get(path string) (*api.Dir, error) {
-	p, err := api.NewDirPath(path)
-	if err != nil {
-		return nil, err
-	}
-
-	blindName, err := s.client.convertPathToBlindName(p)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	encDir, err := s.client.httpClient.GetDir(p.GetNamespace(), p.GetRepo(), blindName)
+func (s dirService) Get(id *uuid.UUID) (*api.Dir, error) {
+	encDir, err := s.client.httpClient.GetDir(id)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
