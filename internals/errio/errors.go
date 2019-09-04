@@ -254,3 +254,12 @@ func Wrap(base PublicStatusError, errs ...error) PublicStatusError {
 
 	return base
 }
+
+// Equals returns whether the errors have matching namespace and code.
+func Equals(a PublicError, b error) bool {
+	publicError, ok := b.(PublicError)
+	if !ok {
+		return false
+	}
+	return a.Namespace == publicError.Namespace && a.Code == publicError.Code
+}
