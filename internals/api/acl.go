@@ -20,9 +20,9 @@ var (
 // a directory and its children.
 type AccessRule struct {
 	Account       *Account   `json:"account"`
-	AccountID     *uuid.UUID `json:"account_id"`
-	DirID         *uuid.UUID `json:"dir_id"`
-	RepoID        *uuid.UUID `json:"repo_id"`
+	AccountID     uuid.UUID  `json:"account_id"`
+	DirID         uuid.UUID  `json:"dir_id"`
+	RepoID        uuid.UUID  `json:"repo_id"`
 	Permission    Permission `json:"permission"`
 	CreatedAt     time.Time  `json:"created_at"`
 	LastChangedAt time.Time  `json:"last_changed_at"`
@@ -59,8 +59,8 @@ func (car *CreateAccessRuleRequest) Validate() error {
 // effect of one or more access rules on the directory itself or its parent(s).
 type AccessLevel struct {
 	Account    *Account   `json:"account"`
-	AccountID  *uuid.UUID `json:"account_id"`
-	DirID      *uuid.UUID `json:"dir_id"`
+	AccountID  uuid.UUID  `json:"account_id"`
+	DirID      uuid.UUID  `json:"dir_id"`
 	Permission Permission `json:"permission"`
 }
 

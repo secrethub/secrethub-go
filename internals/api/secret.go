@@ -40,9 +40,9 @@ var (
 // EncryptedSecret represents an encrypted Secret
 // It does not contain the encrypted data. Only the encrypted name.
 type EncryptedSecret struct {
-	SecretID      *uuid.UUID           `json:"secret_id"`
-	DirID         *uuid.UUID           `json:"dir_id"`
-	RepoID        *uuid.UUID           `json:"repo_id"`
+	SecretID      uuid.UUID            `json:"secret_id"`
+	DirID         uuid.UUID            `json:"dir_id"`
+	RepoID        uuid.UUID            `json:"repo_id"`
 	EncryptedName crypto.CiphertextRSA `json:"encrypted_name"`
 	BlindName     string               `json:"blind_name"`
 	VersionCount  int                  `json:"version_count"`
@@ -73,15 +73,15 @@ func (es *EncryptedSecret) Decrypt(accountKey *crypto.RSAPrivateKey) (*Secret, e
 
 // Secret represents a decrypted secret in SecretHub.
 type Secret struct {
-	SecretID      *uuid.UUID `json:"secret_id"`
-	DirID         *uuid.UUID `json:"dir_id"`
-	RepoID        *uuid.UUID `json:"repo_id"`
-	Name          string     `json:"name"`
-	BlindName     string     `json:"blind_name"`
-	VersionCount  int        `json:"version_count"`
-	LatestVersion int        `json:"latest_version"`
-	Status        string     `json:"status"`
-	CreatedAt     time.Time  `json:"created_at"`
+	SecretID      uuid.UUID `json:"secret_id"`
+	DirID         uuid.UUID `json:"dir_id"`
+	RepoID        uuid.UUID `json:"repo_id"`
+	Name          string    `json:"name"`
+	BlindName     string    `json:"blind_name"`
+	VersionCount  int       `json:"version_count"`
+	LatestVersion int       `json:"latest_version"`
+	Status        string    `json:"status"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 // HasName returns true when the secret version has the exact name.

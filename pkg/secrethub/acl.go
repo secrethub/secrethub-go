@@ -134,8 +134,8 @@ func (s accessRuleService) ListLevels(path string) ([]*api.AccessLevel, error) {
 
 	rights := make(map[uuid.UUID][]*api.AccessRule)
 	for _, rule := range rules {
-		list := rights[*rule.AccountID]
-		rights[*rule.AccountID] = append(list, rule)
+		list := rights[rule.AccountID]
+		rights[rule.AccountID] = append(list, rule)
 	}
 
 	result := make([]*api.AccessLevel, len(rights))

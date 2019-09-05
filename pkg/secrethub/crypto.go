@@ -8,7 +8,7 @@ import (
 )
 
 func (c *Client) encryptDirFor(dir *api.Dir, accounts ...*api.Account) ([]api.EncryptedNameForNodeRequest, error) {
-	currentDir, err := encryptNameForNodeAccounts(dir.DirID, dir.Name, accounts...)
+	currentDir, err := encryptNameForNodeAccounts(&dir.DirID, dir.Name, accounts...)
 	return currentDir, errio.Error(err)
 }
 
@@ -49,10 +49,10 @@ func (c *Client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 
 		encryptedName := api.EncryptedNameForNodeRequest{
 			EncryptedNameRequest: api.EncryptedNameRequest{
-				AccountID:     account.AccountID,
+				AccountID:     &account.AccountID,
 				EncryptedName: encryptedSecretName,
 			},
-			NodeID: secret.SecretID,
+			NodeID: &secret.SecretID,
 		}
 
 		encryptedKeys := make([]api.SecretKeyMemberRequest, len(decryptedKeys))
@@ -63,8 +63,8 @@ func (c *Client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 			}
 
 			encryptedKeys[keyIndex] = api.SecretKeyMemberRequest{
-				AccountID:    account.AccountID,
-				SecretKeyID:  decryptedKey.SecretKeyID,
+				AccountID:    &account.AccountID,
+				SecretKeyID:  &decryptedKey.SecretKeyID,
 				EncryptedKey: encryptedKey,
 			}
 		}
@@ -114,7 +114,7 @@ func encryptNameForAccounts(name string, accounts ...*api.Account) ([]api.Encryp
 		}
 
 		encryptedNames[i] = api.EncryptedNameRequest{
-			AccountID:     account.AccountID,
+			AccountID:     &account.AccountID,
 			EncryptedName: ciphertext,
 		}
 	}
@@ -137,7 +137,7 @@ func encryptKeyForAccounts(key *crypto.SymmetricKey, accounts ...*api.Account) (
 		}
 
 		encryptedKeys[i] = api.EncryptedKeyRequest{
-			AccountID:    account.AccountID,
+			AccountID:    &account.AccountID,
 			EncryptedKey: encryptedSecretKey,
 		}
 	}

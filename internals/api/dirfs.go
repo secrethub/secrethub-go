@@ -65,7 +65,7 @@ func (t EncryptedTree) Decrypt(accountKey *crypto.RSAPrivateKey) (*Tree, error) 
 	// This has to be prepopulated to be able to put childs under parents.
 	dirMap := make(map[uuid.UUID]*Dir)
 	for _, dir := range dirs {
-		dirMap[*dir.DirID] = dir
+		dirMap[dir.DirID] = dir
 	}
 
 	// All directories are looped and placed below the parent directory as a subdirectory.
@@ -89,13 +89,13 @@ func (t EncryptedTree) Decrypt(accountKey *crypto.RSAPrivateKey) (*Tree, error) 
 	secretMap := make(map[uuid.UUID]*Secret)
 	// All secrets are placed below every directory.
 	for _, secret := range secrets {
-		dir, ok := dirMap[*secret.DirID]
+		dir, ok := dirMap[secret.DirID]
 		if !ok {
 			return nil, ErrParentDirNotAvailable
 		}
 
 		dir.Secrets = append(dir.Secrets, secret)
-		secretMap[*secret.SecretID] = secret
+		secretMap[secret.SecretID] = secret
 	}
 
 	return &Tree{
@@ -130,8 +130,8 @@ func (t Tree) DirCount() int {
 // AbsSecretPath returns the full path of secret.
 // This function makes the assumption that every secret has a ParentDir.
 // If not, an error will occur.
-func (t Tree) AbsSecretPath(secretID *uuid.UUID) (*SecretPath, error) {
-	secret, ok := t.Secrets[*secretID]
+func (t Tree) AbsSecretPath(secretID uuid.UUID) (*SecretPath, error) {
+	secret, ok := t.Secrets[secretID]
 	if !ok {
 		return nil, ErrSecretNotFound
 	}
@@ -149,18 +149,18 @@ func (t Tree) AbsSecretPath(secretID *uuid.UUID) (*SecretPath, error) {
 // AbsDirPath returns the full path of dir
 // This function makes the assumption that only the root dir has no parentID.
 // If not, an error will occur.
-func (t Tree) AbsDirPath(dirID *uuid.UUID) (DirPath, error) {
-	if uuid.Equal(dirID, t.RootDir.DirID) {
+func (t Tree) AbsDirPath(dirID uuid.UUID) (DirPath, error) {
+	if uuid.Equal(&dirID, &t.RootDir.DirID) {
 		dirPath := t.ParentPath.JoinDir(t.RootDir.Name)
 		return dirPath, nil
 	}
 
-	dir, ok := t.Dirs[*dirID]
+	dir, ok := t.Dirs[dirID]
 	if !ok {
 		return "", ErrDirNotFound
 	}
 
-	parentPath, err := t.AbsDirPath(dir.ParentID)
+	parentPath, err := t.AbsDirPath(*dir.ParentID)
 	if err != nil {
 		return "", errio.Error(err)
 	}

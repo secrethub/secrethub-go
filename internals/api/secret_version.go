@@ -34,7 +34,7 @@ var (
 // EncryptedSecretVersion represents a version of an encrypted Secret.
 // It contains the encrypted data and the corresponding key.
 type EncryptedSecretVersion struct {
-	SecretVersionID *uuid.UUID            `json:"secret_version_id"`
+	SecretVersionID uuid.UUID             `json:"secret_version_id"`
 	Secret          *EncryptedSecret      `json:"secret"`
 	Version         int                   `json:"version"`
 	SecretKey       *EncryptedSecretKey   `json:"secret_key,omitempty"`
@@ -77,7 +77,7 @@ func (esv *EncryptedSecretVersion) Decrypt(accountKey *crypto.RSAPrivateKey) (*S
 
 // SecretVersion represents a version of a Secret without any encrypted data.
 type SecretVersion struct {
-	SecretVersionID *uuid.UUID `json:"secret_version_id"`
+	SecretVersionID uuid.UUID  `json:"secret_version_id"`
 	Secret          *Secret    `json:"secret"`
 	Version         int        `json:"version"`
 	SecretKey       *SecretKey `json:"secret_key,omitempty"`
