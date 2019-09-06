@@ -118,7 +118,7 @@ func NewClient(with ...ClientOption) (*Client, error) {
 		identityProvider := os.Getenv("SECRETHUB_IDENTITY_PROVIDER")
 
 		var provider credentials.Provider
-		switch identityProvider {
+		switch strings.ToLower(identityProvider) {
 		case "key", "":
 			provider = credentials.UseKey(client.DefaultCredential())
 		case "aws":
