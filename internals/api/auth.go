@@ -218,7 +218,7 @@ type validator interface {
 // Validate whether the Session is valid.
 func (s *Session) Validate() error {
 	if s.ExpiresAt.IsZero() {
-		return ErrMissingField("expiration")
+		return ErrMissingField("expires_at")
 	}
 	if s.Type == "" {
 		return ErrMissingField("type")

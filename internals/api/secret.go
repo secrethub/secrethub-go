@@ -40,9 +40,9 @@ var (
 // EncryptedSecret represents an encrypted Secret
 // It does not contain the encrypted data. Only the encrypted name.
 type EncryptedSecret struct {
-	SecretID      *uuid.UUID           `json:"secret_id"`
-	DirID         *uuid.UUID           `json:"dir_id"`
-	RepoID        *uuid.UUID           `json:"repo_id"`
+	SecretID      uuid.UUID            `json:"secret_id"`
+	DirID         uuid.UUID            `json:"dir_id"`
+	RepoID        uuid.UUID            `json:"repo_id"`
 	EncryptedName crypto.CiphertextRSA `json:"encrypted_name"`
 	BlindName     string               `json:"blind_name"`
 	VersionCount  int                  `json:"version_count"`
@@ -73,15 +73,15 @@ func (es *EncryptedSecret) Decrypt(accountKey *crypto.RSAPrivateKey) (*Secret, e
 
 // Secret represents a decrypted secret in SecretHub.
 type Secret struct {
-	SecretID      *uuid.UUID `json:"secret_id"`
-	DirID         *uuid.UUID `json:"dir_id"`
-	RepoID        *uuid.UUID `json:"repo_id"`
-	Name          string     `json:"name"`
-	BlindName     string     `json:"blind_name"`
-	VersionCount  int        `json:"version_count"`
-	LatestVersion int        `json:"latest_version"`
-	Status        string     `json:"status"`
-	CreatedAt     time.Time  `json:"created_at"`
+	SecretID      uuid.UUID `json:"secret_id"`
+	DirID         uuid.UUID `json:"dir_id"`
+	RepoID        uuid.UUID `json:"repo_id"`
+	Name          string    `json:"name"`
+	BlindName     string    `json:"blind_name"`
+	VersionCount  int       `json:"version_count"`
+	LatestVersion int       `json:"latest_version"`
+	Status        string    `json:"status"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 // HasName returns true when the secret version has the exact name.
@@ -119,8 +119,8 @@ func (csr *CreateSecretRequest) Validate() error {
 			return err
 		}
 
-		accounts[*encryptedName.AccountID]++
-		unique[*encryptedName.AccountID]++
+		accounts[encryptedName.AccountID]++
+		unique[encryptedName.AccountID]++
 	}
 
 	for _, count := range unique {
@@ -140,8 +140,8 @@ func (csr *CreateSecretRequest) Validate() error {
 			return err
 		}
 
-		accounts[*encryptedKey.AccountID]--
-		unique[*encryptedKey.AccountID]++
+		accounts[encryptedKey.AccountID]--
+		unique[encryptedKey.AccountID]++
 	}
 
 	for _, count := range unique {
@@ -204,18 +204,18 @@ func (r *SecretAccessRequest) Validate() error {
 
 // SecretKeyMemberRequest contains the request fields to grant access to a secret key.
 type SecretKeyMemberRequest struct {
-	AccountID    *uuid.UUID           `json:"account_id"`
-	SecretKeyID  *uuid.UUID           `json:"secret_key_id"`
+	AccountID    uuid.UUID            `json:"account_id"`
+	SecretKeyID  uuid.UUID            `json:"secret_key_id"`
 	EncryptedKey crypto.CiphertextRSA `json:"encrypted_key"`
 }
 
 // Validate validates the request fields.
 func (skmr *SecretKeyMemberRequest) Validate() error {
-	if skmr.AccountID == nil {
+	if skmr.AccountID.IsZero() {
 		return ErrInvalidAccountID
 	}
 
-	if skmr.SecretKeyID == nil {
+	if skmr.SecretKeyID.IsZero() {
 		return ErrInvalidKeyID
 	}
 

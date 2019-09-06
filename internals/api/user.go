@@ -40,7 +40,7 @@ var (
 
 // User represents a SecretHub user.
 type User struct {
-	AccountID     *uuid.UUID `json:"account_id"`
+	AccountID     uuid.UUID  `json:"account_id"`
 	PublicKey     []byte     `json:"public_key"`
 	Username      string     `json:"username"`
 	FullName      string     `json:"full_name"`
