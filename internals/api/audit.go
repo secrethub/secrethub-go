@@ -17,7 +17,7 @@ const (
 
 // Audit represents an AuditEvent in SecretHub.
 type Audit struct {
-	EventID   *uuid.UUID   `json:"event_id"`
+	EventID   uuid.UUID    `json:"event_id"`
 	Action    AuditAction  `json:"action"`
 	IPAddress string       `json:"ip_address"`
 	LoggedAt  time.Time    `json:"logged_at"`
@@ -31,8 +31,8 @@ type AuditAction string
 
 // AuditActor represents the Account of an AuditEvent
 type AuditActor struct {
-	ActorID *uuid.UUID `json:"id,omitempty"`
-	Deleted bool       `json:"deleted,omitempty"`
+	ActorID uuid.UUID `json:"id,omitempty"`
+	Deleted bool      `json:"deleted,omitempty"`
 	// Type is `user` or `service`. When actor is deleted, type is always `account`
 	Type    string   `json:"type"`
 	User    *User    `json:"user,omitempty"`
@@ -61,8 +61,8 @@ const (
 
 // AuditSubject represents the Subject of an AuditEvent
 type AuditSubject struct {
-	SubjectID *uuid.UUID `json:"id,omitempty"`
-	Deleted   bool       `json:"deleted,omitempty"`
+	SubjectID uuid.UUID `json:"id,omitempty"`
+	Deleted   bool      `json:"deleted,omitempty"`
 	// Type is `user`, `service`, `repo`, `secret`, `secret_version` or `secret_key`. When subject is deleted, user and service are indicated with type `account`
 	Type                   AuditSubjectType        `json:"type"`
 	User                   *User                   `json:"user,omitempty"`

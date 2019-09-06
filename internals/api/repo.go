@@ -28,7 +28,7 @@ var (
 
 // Repo represents a repo on SecretHub.
 type Repo struct {
-	RepoID         *uuid.UUID `json:"repo_id"`
+	RepoID         uuid.UUID  `json:"repo_id"`
 	Owner          string     `json:"owner"`
 	Name           string     `json:"name"`
 	CreatedAt      *time.Time `json:"created_at"`
@@ -112,9 +112,9 @@ func (crr CreateRepoRequest) Validate() error {
 
 // RepoMember represents a member of a SecretHub repo.
 type RepoMember struct {
-	RepoID    *uuid.UUID `json:"repo_id"`
-	AccountID *uuid.UUID `json:"account_id"`
-	CreatedAt time.Time  `json:"created_at"`
+	RepoID    uuid.UUID `json:"repo_id"`
+	AccountID uuid.UUID `json:"account_id"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // CreateRepoMemberRequest contains the required fields for adding a user to a repo.
@@ -138,13 +138,13 @@ func (req CreateRepoMemberRequest) Validate() error {
 
 // InviteUserRequest contains the required fields for inviting a user to a repo.
 type InviteUserRequest struct {
-	AccountID  *uuid.UUID               `json:"account_id"`
+	AccountID  uuid.UUID                `json:"account_id"`
 	RepoMember *CreateRepoMemberRequest `json:"repo_member"`
 }
 
 // Validate validates a InviteUserRequest
 func (req InviteUserRequest) Validate() error {
-	if req.AccountID == nil {
+	if req.AccountID.IsZero() {
 		return ErrInvalidAccountID
 	}
 

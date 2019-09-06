@@ -34,7 +34,7 @@ var (
 // EncryptedSecretVersion represents a version of an encrypted Secret.
 // It contains the encrypted data and the corresponding key.
 type EncryptedSecretVersion struct {
-	SecretVersionID *uuid.UUID            `json:"secret_version_id"`
+	SecretVersionID uuid.UUID             `json:"secret_version_id"`
 	Secret          *EncryptedSecret      `json:"secret"`
 	Version         int                   `json:"version"`
 	SecretKey       *EncryptedSecretKey   `json:"secret_key,omitempty"`
@@ -77,7 +77,7 @@ func (esv *EncryptedSecretVersion) Decrypt(accountKey *crypto.RSAPrivateKey) (*S
 
 // SecretVersion represents a version of a Secret without any encrypted data.
 type SecretVersion struct {
-	SecretVersionID *uuid.UUID `json:"secret_version_id"`
+	SecretVersionID uuid.UUID  `json:"secret_version_id"`
 	Secret          *Secret    `json:"secret"`
 	Version         int        `json:"version"`
 	SecretKey       *SecretKey `json:"secret_key,omitempty"`
@@ -125,12 +125,12 @@ func (esv *EncryptedSecretVersion) ToAuditSubject() *AuditSubject {
 // secret version with a secret key.
 type CreateSecretVersionRequest struct {
 	EncryptedData crypto.CiphertextAES `json:"encrypted_data"`
-	SecretKeyID   *uuid.UUID           `json:"secret_key_id"`
+	SecretKeyID   uuid.UUID            `json:"secret_key_id"`
 }
 
 // Validate validates the request fields.
 func (csvr *CreateSecretVersionRequest) Validate() error {
-	if csvr.SecretKeyID == nil {
+	if csvr.SecretKeyID.IsZero() {
 		return ErrInvalidSecretKeyID
 	}
 

@@ -23,13 +23,13 @@ func TestAbsDirPath(t *testing.T) {
 	dir := &Dir{
 		DirID:    uuid.New(),
 		Name:     "dir",
-		ParentID: repoDir.DirID,
+		ParentID: &repoDir.DirID,
 	}
 
 	subdir := &Dir{
 		DirID:    uuid.New(),
 		Name:     "subdir",
-		ParentID: dir.DirID,
+		ParentID: &dir.DirID,
 	}
 
 	repoPath := DirPath("namespace/repo")
@@ -37,7 +37,7 @@ func TestAbsDirPath(t *testing.T) {
 	subdirPath := DirPath("namespace/repo/dir/subdir")
 
 	cases := map[string]struct {
-		dirID    *uuid.UUID
+		dirID    uuid.UUID
 		tree     Tree
 		expected DirPath
 		err      error
@@ -48,7 +48,7 @@ func TestAbsDirPath(t *testing.T) {
 				ParentPath: "namespace",
 				RootDir:    repoDir,
 				Dirs: map[uuid.UUID]*Dir{
-					*repoDir.DirID: repoDir,
+					repoDir.DirID: repoDir,
 				},
 				Secrets: map[uuid.UUID]*Secret{},
 			},
@@ -61,7 +61,7 @@ func TestAbsDirPath(t *testing.T) {
 				ParentPath: "namespace",
 				RootDir:    repoDir,
 				Dirs: map[uuid.UUID]*Dir{
-					*dir.DirID: dir,
+					dir.DirID: dir,
 				},
 				Secrets: map[uuid.UUID]*Secret{},
 			},
@@ -74,8 +74,8 @@ func TestAbsDirPath(t *testing.T) {
 				ParentPath: "namespace/repo",
 				RootDir:    dir,
 				Dirs: map[uuid.UUID]*Dir{
-					*dir.DirID:    dir,
-					*subdir.DirID: subdir,
+					dir.DirID:    dir,
+					subdir.DirID: subdir,
 				},
 				Secrets: map[uuid.UUID]*Secret{},
 			},
@@ -88,8 +88,8 @@ func TestAbsDirPath(t *testing.T) {
 				ParentPath: "namespace/repo",
 				RootDir:    dir,
 				Dirs: map[uuid.UUID]*Dir{
-					*dir.DirID:    dir,
-					*subdir.DirID: subdir,
+					dir.DirID:    dir,
+					subdir.DirID: subdir,
 				},
 				Secrets: map[uuid.UUID]*Secret{},
 			},

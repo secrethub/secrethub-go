@@ -79,7 +79,7 @@ func (c *Client) encryptSecretFor(secret *api.Secret, accounts ...*api.Account) 
 }
 
 // encryptNameForNodeAccounts encrypts the name for every account and returns a list of ExistingNameMemberRequests.
-func encryptNameForNodeAccounts(nodeID *uuid.UUID, name string, accounts ...*api.Account) ([]api.EncryptedNameForNodeRequest, error) {
+func encryptNameForNodeAccounts(nodeID uuid.UUID, name string, accounts ...*api.Account) ([]api.EncryptedNameForNodeRequest, error) {
 	encryptedNames, err := encryptNameForAccounts(name, accounts...)
 	if err != nil {
 		return nil, err
