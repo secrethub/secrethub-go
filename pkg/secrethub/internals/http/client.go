@@ -337,7 +337,7 @@ func (c *Client) CreateDir(namespace, repoName string, in *api.CreateDirRequest)
 }
 
 // GetDir retrieves a directory encrypted for the authenticated user.
-func (c *Client) GetDir(id *uuid.UUID) (*api.EncryptedDir, error) {
+func (c *Client) GetDir(id uuid.UUID) (*api.EncryptedDir, error) {
 	rawURL := fmt.Sprintf(pathDir, c.base, id.String())
 	out := &api.EncryptedDir{}
 	err := c.get(rawURL, true, out)
