@@ -19,6 +19,11 @@ const (
 	userAgentPrefix = "SecretHub/v1 secrethub-go/" + ClientVersion
 )
 
+// Errors
+var (
+	ErrUnknownIdentityProvider = errClient.Code("unknown_identity_provider").ErrorPref("%s is not a supported identity provider. Valid options are `aws` and `key`.")
+)
+
 // ClientInterface is an interface that can be used to consume the SecretHub client and is implemented by secrethub.Client.
 type ClientInterface interface {
 	// AccessRules returns a service used to manage access rules.
@@ -110,7 +115,19 @@ func NewClient(with ...ClientOption) (*Client, error) {
 
 	// Try to use default key credentials if none provided explicitly
 	if client.decrypter == nil {
-		err := client.with(WithCredentials(credentials.UseKey(client.DefaultCredential())))
+		identityProvider := os.Getenv("SECRETHUB_IDENTITY_PROVIDER")
+
+		var provider credentials.Provider
+		switch identityProvider {
+		case "key", "":
+			provider = credentials.UseKey(client.DefaultCredential())
+		case "aws":
+			provider = credentials.UseAWS()
+		default:
+			return nil, ErrUnknownIdentityProvider(identityProvider)
+		}
+
+		err := client.with(WithCredentials(provider))
 		// nolint: staticcheck
 		if err != nil {
 			// TODO: log that default credential was not loaded.
