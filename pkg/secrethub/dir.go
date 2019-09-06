@@ -11,7 +11,7 @@ type DirService interface {
 	// Create a directory at a given path.
 	Create(path string) (*api.Dir, error)
 	// Get returns the directory with the given ID.
-	Get(id uuid.UUID) (*api.Dir, error)
+	GetByID(id uuid.UUID) (*api.Dir, error)
 	// Delete removes the directory at the given path.
 	Delete(path string) error
 	// GetTree retrieves a directory at a given path and all of its descendants up to a given depth.
@@ -31,8 +31,8 @@ type dirService struct {
 }
 
 // Get returns the directory with the given ID.
-func (s dirService) Get(id uuid.UUID) (*api.Dir, error) {
-	encDir, err := s.client.httpClient.GetDir(id)
+func (s dirService) GetByID(id uuid.UUID) (*api.Dir, error) {
+	encDir, err := s.client.httpClient.GetDirByID(id)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
