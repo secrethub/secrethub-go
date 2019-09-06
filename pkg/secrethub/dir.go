@@ -2,6 +2,7 @@ package secrethub
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
@@ -9,6 +10,8 @@ import (
 type DirService interface {
 	// Create a directory at a given path.
 	Create(path string) (*api.Dir, error)
+	// Get returns the directory with the given ID.
+	GetByID(id uuid.UUID) (*api.Dir, error)
 	// Delete removes the directory at the given path.
 	Delete(path string) error
 	// GetTree retrieves a directory at a given path and all of its descendants up to a given depth.
@@ -25,6 +28,26 @@ func newDirService(client *Client) DirService {
 
 type dirService struct {
 	client *Client
+}
+
+// Get returns the directory with the given ID.
+func (s dirService) GetByID(id uuid.UUID) (*api.Dir, error) {
+	encDir, err := s.client.httpClient.GetDirByID(id)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	accountKey, err := s.client.getAccountKey()
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	dir, err := encDir.Decrypt(accountKey)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return dir, nil
 }
 
 // GetTree retrieves a directory tree at a given path. The contents to the given depth

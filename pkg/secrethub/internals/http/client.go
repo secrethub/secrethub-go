@@ -10,6 +10,7 @@ import (
 	"github.com/op/go-logging"
 
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -333,6 +334,14 @@ func (c *Client) CreateDir(namespace, repoName string, in *api.CreateDirRequest)
 	out := &api.EncryptedDir{}
 	err := c.post(rawURL, true, http.StatusCreated, in, &out)
 	return out, errio.Error(err)
+}
+
+// GetDirByID retrieves a directory encrypted for the authenticated user.
+func (c *Client) GetDirByID(id uuid.UUID) (*api.EncryptedDir, error) {
+	rawURL := fmt.Sprintf(pathDir, c.base, id.String())
+	out := &api.EncryptedDir{}
+	err := c.get(rawURL, true, out)
+	return out, err
 }
 
 // GetTree gets a directory and all of it subdirs and secrets recursively by blind name.

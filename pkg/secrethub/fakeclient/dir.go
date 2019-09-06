@@ -4,6 +4,7 @@ package fakeclient
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/pkg/secrethub"
 )
 
 // DirService is a mock of the DirService interface.
@@ -11,6 +12,7 @@ type DirService struct {
 	Creater    DirCreater
 	Deleter    DirDeleter
 	TreeGetter TreeGetter
+	secrethub.DirService
 }
 
 // Create implements the DirService interface Create function.
