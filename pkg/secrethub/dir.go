@@ -10,7 +10,7 @@ import (
 type DirService interface {
 	// Create a directory at a given path.
 	Create(path string) (*api.Dir, error)
-	// Get returns the directory on the given path.
+	// Get returns the directory with the given ID.
 	Get(id uuid.UUID) (*api.Dir, error)
 	// Delete removes the directory at the given path.
 	Delete(path string) error
@@ -30,7 +30,7 @@ type dirService struct {
 	client *Client
 }
 
-// Get returns the directory on the given path.
+// Get returns the directory with the given ID.
 func (s dirService) Get(id uuid.UUID) (*api.Dir, error) {
 	encDir, err := s.client.httpClient.GetDir(id)
 	if err != nil {
