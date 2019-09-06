@@ -138,13 +138,13 @@ func (req CreateRepoMemberRequest) Validate() error {
 
 // InviteUserRequest contains the required fields for inviting a user to a repo.
 type InviteUserRequest struct {
-	AccountID  *uuid.UUID               `json:"account_id"`
+	AccountID  uuid.UUID                `json:"account_id"`
 	RepoMember *CreateRepoMemberRequest `json:"repo_member"`
 }
 
 // Validate validates a InviteUserRequest
 func (req InviteUserRequest) Validate() error {
-	if req.AccountID == nil {
+	if req.AccountID.IsZero() {
 		return ErrInvalidAccountID
 	}
 

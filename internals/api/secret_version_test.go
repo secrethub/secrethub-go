@@ -46,7 +46,7 @@ func TestCreateSecretVersionRequest_Validate_MaxSize(t *testing.T) {
 
 		id := uuid.New()
 		r := CreateSecretVersionRequest{
-			SecretKeyID:   &id,
+			SecretKeyID:   id,
 			EncryptedData: ciphertext,
 		}
 

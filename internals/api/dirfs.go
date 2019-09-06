@@ -150,7 +150,7 @@ func (t Tree) AbsSecretPath(secretID uuid.UUID) (*SecretPath, error) {
 // This function makes the assumption that only the root dir has no parentID.
 // If not, an error will occur.
 func (t Tree) AbsDirPath(dirID uuid.UUID) (DirPath, error) {
-	if uuid.Equal(&dirID, &t.RootDir.DirID) {
+	if uuid.Equal(dirID, t.RootDir.DirID) {
 		dirPath := t.ParentPath.JoinDir(t.RootDir.Name)
 		return dirPath, nil
 	}

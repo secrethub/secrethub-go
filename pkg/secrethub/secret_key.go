@@ -57,7 +57,7 @@ func (c *Client) createSecretKey(secretPath api.SecretPath) (*api.SecretKey, err
 		}
 
 		encryptedFor[i] = api.EncryptedKeyRequest{
-			AccountID:    &account.AccountID,
+			AccountID:    account.AccountID,
 			EncryptedKey: encryptedSecretKey,
 		}
 	}

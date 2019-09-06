@@ -119,8 +119,8 @@ func (csr *CreateSecretRequest) Validate() error {
 			return err
 		}
 
-		accounts[*encryptedName.AccountID]++
-		unique[*encryptedName.AccountID]++
+		accounts[encryptedName.AccountID]++
+		unique[encryptedName.AccountID]++
 	}
 
 	for _, count := range unique {
@@ -140,8 +140,8 @@ func (csr *CreateSecretRequest) Validate() error {
 			return err
 		}
 
-		accounts[*encryptedKey.AccountID]--
-		unique[*encryptedKey.AccountID]++
+		accounts[encryptedKey.AccountID]--
+		unique[encryptedKey.AccountID]++
 	}
 
 	for _, count := range unique {
@@ -204,18 +204,18 @@ func (r *SecretAccessRequest) Validate() error {
 
 // SecretKeyMemberRequest contains the request fields to grant access to a secret key.
 type SecretKeyMemberRequest struct {
-	AccountID    *uuid.UUID           `json:"account_id"`
-	SecretKeyID  *uuid.UUID           `json:"secret_key_id"`
+	AccountID    uuid.UUID            `json:"account_id"`
+	SecretKeyID  uuid.UUID            `json:"secret_key_id"`
 	EncryptedKey crypto.CiphertextRSA `json:"encrypted_key"`
 }
 
 // Validate validates the request fields.
 func (skmr *SecretKeyMemberRequest) Validate() error {
-	if skmr.AccountID == nil {
+	if skmr.AccountID.IsZero() {
 		return ErrInvalidAccountID
 	}
 
-	if skmr.SecretKeyID == nil {
+	if skmr.SecretKeyID.IsZero() {
 		return ErrInvalidKeyID
 	}
 

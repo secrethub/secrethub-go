@@ -34,7 +34,7 @@ func TestCreateDirRequest_Validate(t *testing.T) {
 				ParentBlindName: parentPathBlindName,
 
 				EncryptedNames: []api.EncryptedNameRequest{{
-					AccountID:     UUID(uuid.New()),
+					AccountID:     uuid.New(),
 					EncryptedName: testCiphertextRSA,
 				},
 				},
@@ -45,7 +45,7 @@ func TestCreateDirRequest_Validate(t *testing.T) {
 			createDirRequest: &api.CreateDirRequest{
 				BlindName: dirPathBlindName,
 				EncryptedNames: []api.EncryptedNameRequest{{
-					AccountID:     UUID(uuid.New()),
+					AccountID:     uuid.New(),
 					EncryptedName: testCiphertextRSA,
 				},
 				},
@@ -80,11 +80,11 @@ func TestCreateDirRequest_Validate_UniqueEncryptedFor(t *testing.T) {
 
 		EncryptedNames: []api.EncryptedNameRequest{
 			{
-				AccountID:     UUID(accountID),
+				AccountID:     accountID,
 				EncryptedName: testCiphertextRSA,
 			},
 			{
-				AccountID:     UUID(accountID),
+				AccountID:     accountID,
 				EncryptedName: testCiphertextRSA,
 			},
 		},
@@ -111,7 +111,7 @@ func getTestCreateDirRequest(t *testing.T) *api.CreateDirRequest {
 		ParentBlindName: parentPathBlindName,
 
 		EncryptedNames: []api.EncryptedNameRequest{{
-			AccountID:     UUID(uuid.New()),
+			AccountID:     uuid.New(),
 			EncryptedName: testCiphertextRSA,
 		},
 		},

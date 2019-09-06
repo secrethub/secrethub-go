@@ -35,11 +35,7 @@ func (u *UUID) IsZero() bool {
 	return u.UUID == gid.UUID([gid.Size]byte{0})
 }
 
-// Equal returns true if both argument UUIDs contain the same value or if both are nil.
-func Equal(a *UUID, b *UUID) bool {
-	if a == nil || b == nil {
-		return a == b
-	}
-
+// Equal returns true if both argument UUIDs contain the same value.
+func Equal(a UUID, b UUID) bool {
 	return gid.Equal(a.UUID, b.UUID)
 }

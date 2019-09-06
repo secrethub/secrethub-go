@@ -58,7 +58,7 @@ func (s repoUserService) Invite(path string, username string) (*api.RepoMember, 
 	}
 
 	in := &api.InviteUserRequest{
-		AccountID:  &account.AccountID,
+		AccountID:  account.AccountID,
 		RepoMember: createRepoMember,
 	}
 

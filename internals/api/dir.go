@@ -98,7 +98,7 @@ func (cdr *CreateDirRequest) Validate() error {
 			return err
 		}
 
-		unique[*encryptedName.AccountID]++
+		unique[encryptedName.AccountID]++
 	}
 
 	for _, count := range unique {

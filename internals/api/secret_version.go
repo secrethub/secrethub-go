@@ -125,12 +125,12 @@ func (esv *EncryptedSecretVersion) ToAuditSubject() *AuditSubject {
 // secret version with a secret key.
 type CreateSecretVersionRequest struct {
 	EncryptedData crypto.CiphertextAES `json:"encrypted_data"`
-	SecretKeyID   *uuid.UUID           `json:"secret_key_id"`
+	SecretKeyID   uuid.UUID            `json:"secret_key_id"`
 }
 
 // Validate validates the request fields.
 func (csvr *CreateSecretVersionRequest) Validate() error {
-	if csvr.SecretKeyID == nil {
+	if csvr.SecretKeyID.IsZero() {
 		return ErrInvalidSecretKeyID
 	}
 

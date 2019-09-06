@@ -51,7 +51,7 @@ func TestCreateRepoRequest_Validate(t *testing.T) {
 func TestInviteUserRequest_Validate_Success(t *testing.T) {
 
 	inviteRequest := &api.InviteUserRequest{
-		AccountID:  &accountIDUser1,
+		AccountID:  accountIDUser1,
 		RepoMember: repoMemberRequest1,
 	}
 
@@ -65,7 +65,7 @@ func TestInviteUserRequest_Validate_Success(t *testing.T) {
 func TestInviteUserRequest_Validate_InvalidRepoMember(t *testing.T) {
 
 	inviteRequest := &api.InviteUserRequest{
-		AccountID:  &accountIDUser1,
+		AccountID:  accountIDUser1,
 		RepoMember: &api.CreateRepoMemberRequest{},
 	}
 

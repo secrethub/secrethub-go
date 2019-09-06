@@ -167,7 +167,7 @@ func (c *Client) createSecretVersion(secretPath api.SecretPath, data []byte, sec
 
 	in := &api.CreateSecretVersionRequest{
 		EncryptedData: encryptedData,
-		SecretKeyID:   &secretKey.SecretKeyID,
+		SecretKeyID:   secretKey.SecretKeyID,
 	}
 
 	blindName, err := c.convertPathToBlindName(secretPath)
