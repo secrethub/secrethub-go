@@ -119,7 +119,7 @@ func NewClient(with ...ClientOption) (*Client, error) {
 
 		var provider credentials.Provider
 		switch strings.ToLower(identityProvider) {
-		case "key", "":
+		case "", "key":
 			provider = credentials.UseKey(client.DefaultCredential())
 		case "aws":
 			provider = credentials.UseAWS()
