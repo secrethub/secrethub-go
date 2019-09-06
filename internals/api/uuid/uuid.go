@@ -18,18 +18,18 @@ type UUID struct {
 }
 
 // New generates a new UUID.
-func New() *UUID {
+func New() UUID {
 	id := gid.NewV4()
-	return &UUID{id}
+	return UUID{id}
 }
 
 // FromString reads a UUID from a string
-func FromString(str string) (*UUID, error) {
+func FromString(str string) (UUID, error) {
 	id, err := gid.FromString(str)
 	if err != nil {
-		return nil, ErrInvalidUUID(err)
+		return UUID{}, ErrInvalidUUID(err)
 	}
-	return &UUID{id}, nil
+	return UUID{id}, nil
 }
 
 // ToString converts UUID into string
@@ -42,8 +42,8 @@ func (u *UUID) IsZero() bool {
 	return u.UUID == gid.UUID([gid.Size]byte{0})
 }
 
-// Equal returns true if both argument uuids contain the same value.
-func Equal(a *UUID, b *UUID) bool {
+// Equal returns true if both argument UUIDs contain the same value.
+func Equal(a UUID, b UUID) bool {
 	return gid.Equal(a.UUID, b.UUID)
 }
 

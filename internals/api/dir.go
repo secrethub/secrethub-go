@@ -24,7 +24,7 @@ var (
 // The names are encrypted and so are the names of SubDirs and Secrets.
 // The secrets contain no encrypted data, only the encrypted name.
 type EncryptedDir struct {
-	DirID          *uuid.UUID           `json:"dir_id"`
+	DirID          uuid.UUID            `json:"dir_id"`
 	BlindName      string               `json:"blind_name"`
 	EncryptedName  crypto.CiphertextRSA `json:"encrypted_name"`
 	ParentID       *uuid.UUID           `json:"parent_id"`
@@ -56,7 +56,7 @@ func (ed *EncryptedDir) Decrypt(accountKey *crypto.RSAPrivateKey) (*Dir, error) 
 // Dir represents an directory.
 // A dir belongs to a repo and contains other dirs and secrets.
 type Dir struct {
-	DirID          *uuid.UUID `json:"dir_id"`
+	DirID          uuid.UUID  `json:"dir_id"`
 	BlindName      string     `json:"blind_name"`
 	Name           string     `json:"name"`
 	ParentID       *uuid.UUID `json:"parent_id"`
@@ -98,7 +98,7 @@ func (cdr *CreateDirRequest) Validate() error {
 			return err
 		}
 
-		unique[*encryptedName.AccountID]++
+		unique[encryptedName.AccountID]++
 	}
 
 	for _, count := range unique {
