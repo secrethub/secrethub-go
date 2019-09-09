@@ -7,13 +7,13 @@ import (
 
 // EncryptedNameRequest contains an EncryptedName for an Account.
 type EncryptedNameRequest struct {
-	AccountID     *uuid.UUID           `json:"account_id"`
+	AccountID     uuid.UUID            `json:"account_id"`
 	EncryptedName crypto.CiphertextRSA `json:"encrypted_name"`
 }
 
 // Validate validates the EncryptedNameRequest to be valid.
 func (enr *EncryptedNameRequest) Validate() error {
-	if enr.AccountID == nil {
+	if enr.AccountID.IsZero() {
 		return ErrInvalidAccountID
 	}
 
@@ -23,12 +23,12 @@ func (enr *EncryptedNameRequest) Validate() error {
 // EncryptedNameForNodeRequest contains an EncryptedName for an Account and the corresponding NodeID.
 type EncryptedNameForNodeRequest struct {
 	EncryptedNameRequest
-	NodeID *uuid.UUID `json:"node_id"`
+	NodeID uuid.UUID `json:"node_id"`
 }
 
 // Validate validates the EncryptedNameForNodeRequest.
 func (nnr EncryptedNameForNodeRequest) Validate() error {
-	if nnr.NodeID == nil {
+	if nnr.NodeID.IsZero() {
 		return ErrInvalidNodeID
 	}
 

@@ -16,7 +16,7 @@ const (
 
 // Org represents an organization account on SecretHub
 type Org struct {
-	OrgID       *uuid.UUID   `json:"org_id"`
+	OrgID       uuid.UUID    `json:"org_id"`
 	Name        string       `json:"name"`
 	Description string       `json:"description"`
 	CreatedAt   time.Time    `json:"created_at"`
@@ -38,12 +38,12 @@ func (s SortOrgByName) Less(i, j int) bool {
 
 // OrgMember represents a user's membership of an organization.
 type OrgMember struct {
-	OrgID         *uuid.UUID `json:"org_id"`
-	AccountID     *uuid.UUID `json:"account_id"`
-	Role          string     `json:"role"`
-	CreatedAt     time.Time  `json:"created_at"`
-	LastChangedAt time.Time  `json:"last_changed_at"`
-	User          *User      `json:"user,omitempty"`
+	OrgID         uuid.UUID `json:"org_id"`
+	AccountID     uuid.UUID `json:"account_id"`
+	Role          string    `json:"role"`
+	CreatedAt     time.Time `json:"created_at"`
+	LastChangedAt time.Time `json:"last_changed_at"`
+	User          *User     `json:"user,omitempty"`
 }
 
 // SortOrgMemberByUsername makes a list of org members sortable.
