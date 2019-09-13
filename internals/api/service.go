@@ -30,7 +30,7 @@ type Service struct {
 	ServiceID   string      `json:"service_id"`
 	Repo        *Repo       `json:"repo"`
 	Description string      `json:"description"`
-	CreatedBy   *uuid.UUID  `json:"created_by,omitempty"`
+	CreatedBy   uuid.UUID   `json:"created_by"`
 	CreatedAt   time.Time   `json:"created_at"`
 	Credential  *Credential `json:"credential"`
 }
