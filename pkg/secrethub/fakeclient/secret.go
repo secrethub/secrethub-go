@@ -15,6 +15,8 @@ type SecretService struct {
 	Getter      SecretGetter
 	EventLister SecretEventLister
 	Writer      Writer
+
+	secrethub.SecretService
 }
 
 // Delete implements the SecretService interface Delete function.
