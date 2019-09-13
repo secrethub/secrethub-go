@@ -19,9 +19,11 @@ type SecretService interface {
 	// Versions returns a SecretVersionService.
 	Versions() SecretVersionService
 
-	// Read gets a secret version, with sensitive data decrypted.
+	// Read is an alias of `Versions().GetWithData` and gets a secret version, with sensitive data decrypted.
 	Read(path string) (*api.SecretVersion, error)
-	// ReadString gets the secret data as a string.
+	// ReadString is a convenience function to get the secret data as a string.
+	//
+	// See .Versions() for more elaborate use.
 	ReadString(path string) (string, error)
 
 	// Write encrypts and writes any secret data to SecretHub, always creating
