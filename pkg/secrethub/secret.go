@@ -19,6 +19,13 @@ type SecretService interface {
 	// Versions returns a SecretVersionService.
 	Versions() SecretVersionService
 
+	// Read is an alias of `Versions().GetWithData` and gets a secret version, with sensitive data decrypted.
+	Read(path string) (*api.SecretVersion, error)
+	// ReadString is a convenience function to get the secret data as a string.
+	//
+	// See .Versions() for more elaborate use.
+	ReadString(path string) (string, error)
+
 	// Write encrypts and writes any secret data to SecretHub, always creating
 	// a new secret version for the written data. This ensures secret data is
 	// never overwritten.
@@ -106,6 +113,20 @@ func (s secretService) Get(path string) (*api.Secret, error) {
 	}
 
 	return encSecret.Decrypt(accountKey)
+}
+
+// Read gets a secret version, with sensitive data decrypted.
+func (s secretService) Read(path string) (*api.SecretVersion, error) {
+	return s.Versions().GetWithData(path)
+}
+
+// ReadString gets the secret data as a string.
+func (s secretService) ReadString(path string) (string, error) {
+	secret, err := s.Read(path)
+	if err != nil {
+		return "", err
+	}
+	return string(secret.Data), nil
 }
 
 // Write encrypts and writes any secret data to SecretHub, always creating
