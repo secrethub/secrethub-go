@@ -28,14 +28,14 @@ var (
 
 // Repo represents a repo on SecretHub.
 type Repo struct {
-	RepoID         uuid.UUID  `json:"repo_id"`
-	Owner          string     `json:"owner"`
-	Name           string     `json:"name"`
-	CreatedAt      *time.Time `json:"created_at"`
-	LastModifiedAt *time.Time `json:"last_modified_at"`
-	Status         string     `json:"status"`
-	SecretCount    int        `json:"secret_count,omitempty"`
-	MemberCount    int        `json:"member_count,omitempty"`
+	RepoID         uuid.UUID `json:"repo_id"`
+	Owner          string    `json:"owner"`
+	Name           string    `json:"name"`
+	CreatedAt      time.Time `json:"created_at"`
+	LastModifiedAt time.Time `json:"last_modified_at"`
+	Status         string    `json:"status"`
+	SecretCount    int       `json:"secret_count,omitempty"`
+	MemberCount    int       `json:"member_count,omitempty"`
 }
 
 // Path returns the full repository path.
