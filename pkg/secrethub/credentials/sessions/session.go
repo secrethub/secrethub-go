@@ -1,3 +1,4 @@
+// Package sessions provides session authentication to the SecretHub API for the HTTP client.
 package sessions
 
 import (

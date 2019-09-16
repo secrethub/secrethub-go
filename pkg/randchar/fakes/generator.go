@@ -1,5 +1,6 @@
 // +build !production
 
+// Package fakes provides mock implementations to be used in testing.
 package fakes
 
 // FakeRandomGenerator can be used to mock a RandomGenerator.

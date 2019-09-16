@@ -1,6 +1,6 @@
 // Package secretpath implements utility functions for manipulating paths
-// compatible with SecretHub, e.g. namespaces, repositories, directories,
-// secrets and versions.
+// compatible with SecretHub (e.g. namespaces, repositories, directories,
+// secrets and versions).
 package secretpath
 
 import (
