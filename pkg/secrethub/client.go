@@ -1,3 +1,5 @@
+// Package secrethub provides the SecretHub API client,
+// look here to read, write and manage secrets.
 package secrethub
 
 import (
