@@ -1,3 +1,5 @@
+// Package assert is a utility package that provides simple
+// assertions to help with writing tests.
 package assert
 
 import "testing"

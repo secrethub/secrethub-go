@@ -1,3 +1,6 @@
+// Package http implements the RESTful HTTP client that talks directly to the API,
+// as opposed to the client package, which wraps the http client with additional
+// logic (e.g. for encryption).
 package http
 
 import (

@@ -2,4 +2,4 @@ package secrethub
 
 // ClientVersion is the current version of the client
 // Do not edit this unless you know what you're doing.
-const ClientVersion = "v0.21.0"
+const ClientVersion = "v0.23.0"

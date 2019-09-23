@@ -1,3 +1,7 @@
+// +build !production
+
+// Package fakeclient provides mock implementations of
+// the client to be used for testing.
 package fakeclient
 
 import "github.com/secrethub/secrethub-go/pkg/secrethub"

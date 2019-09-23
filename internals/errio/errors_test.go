@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
+
+	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
 var (
@@ -110,5 +112,42 @@ func TestUnexpectedStatusError(t *testing.T) {
 
 	if len(statusError.Message) == 0 {
 		t.Error("returned error does not contain a message")
+	}
+}
+
+func TestEquals(t *testing.T) {
+	cases := map[string]struct {
+		a        PublicError
+		b        error
+		expected bool
+	}{
+		"completely equal errors": {
+			a:        Namespace("app").Code("invalid foo").Error("invalid value for foo: value should be a string"),
+			b:        Namespace("app").Code("invalid foo").Error("invalid value for foo: value should be a string"),
+			expected: true,
+		},
+		"different error message": {
+			a:        Namespace("app").Code("invalid value").Error("invalid value for foo: value should be a string"),
+			b:        Namespace("app").Code("invalid value").Error("invalid value for foo: value cannot contain special characters"),
+			expected: true,
+		},
+		"different namespace": {
+			a:        Namespace("app").Code("invalid foo").Error("invalid value for foo: value should be a string"),
+			b:        Namespace("foo").Code("invalid foo").Error("invalid value for foo: value should be a string"),
+			expected: false,
+		},
+		"different code": {
+			a:        Namespace("app").Code("invalid foo").Error("invalid value for foo: value should be a string"),
+			b:        Namespace("app").Code("unauthenticated").Error("request is not authenticated"),
+			expected: false,
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			actual := Equals(tc.a, tc.b)
+
+			assert.Equal(t, actual, tc.expected)
+		})
 	}
 }
