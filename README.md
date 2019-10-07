@@ -16,7 +16,7 @@
 
 `secrethub-go` provides a client for various SecretHub APIs.
 
-> [SecretHub][secrethub] is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts.
+> [SecretHub][secrethub] is an end-to-end encrypted secret management service that helps developers keep database passwords, API keys, and other secrets out of source code.
 
 <img src="https://secrethub.io/img/secrethub-gopher.png" alt="Gopher" width="160px"/>
 
