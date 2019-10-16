@@ -104,7 +104,7 @@ pull request][pulls].
 
 ## Getting help
 
-Come chat with us on [Discord][discord] or email us at [support@secrethub.io](mailto:support@secrethub.io)
+If you get stuck or just want advice, come chat with the engineers on [Discord][discord] or send an email to [support@secrethub.io](mailto:support@secrethub.io)
 
 ## Attributions
 
