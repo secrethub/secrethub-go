@@ -53,26 +53,57 @@ For details on all functionality of this library, see the [GoDoc][godoc] documen
 
 Below are a few simple examples:
 
+### Read Secrets
 ```go
+package main
+
 import (
-	"github.com/secrethub/secrethub-go/pkg/randchar"
-	"github.com/secrethub/secrethub-go/pkg/secrethub"
+    "fmt"
+
+    "github.com/secrethub/secrethub-go/pkg/secrethub"
 )
 
-// Setup
-credential, err := secrethub.NewCredential("<your credential>", "<passphrase>")
-client := secrethub.NewClient(credential, nil)
+func main() {
+    client, _ := secrethub.NewClient()
+    secret, _ := client.Secrets().ReadString("path/to/db/pass")
+    fmt.Println(secret)
+    // Output: wFc16W#96N1$
+}
+```
 
-// Write
-secret, err := client.Secrets().Write("path/to/secret", []byte("password123"))
+### Write Secrets
+```go
+package main
 
-// Read
-secret, err = client.Secrets().Versions().GetWithData("path/to/secret:latest")
-fmt.Println(secret.Data) // prints password123
+import (
+    "fmt"
 
-// Generate a slice of 32 alphanumeric characters.
-data, err := randchar.NewGenerator(false).Generate(32)
-secret, err = client.Secrets().Write("path/to/secret", data)
+    "github.com/secrethub/secrethub-go/pkg/secrethub"
+)
+
+func main() {
+    client, _ := secrethub.NewClient()
+    _, _ = client.Secrets().Write("path/to/secret", []byte("password123"))
+}
+```
+
+### Generate Secrets
+```go
+package main
+
+import (
+    "fmt"
+
+    "github.com/secrethub/secrethub-go/pkg/randchar"
+    "github.com/secrethub/secrethub-go/pkg/secrethub"
+)
+
+func main() {
+    client, _ := secrethub.NewClient()
+    rand, _ := randchar.NewRand(randchar.Alphanumeric)
+    data, _ := rand.Generate(30)
+    _, _ = client.Secrets().Write("path/to/secret", data)
+}
 ```
 
 > **Note:** to use the SecretHub Go client, you need to provide a credential for your __SecretHub__ account. 
