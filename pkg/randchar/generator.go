@@ -45,6 +45,11 @@ type Generator interface {
 	Generate(n int) ([]byte, error)
 }
 
+// Generate generates a random slice of alphanumeric characters.
+func Generate(n int) ([]byte, error) {
+	return DefaultRand.Generate(n)
+}
+
 // NewGenerator is a shorthand function to create a new random alphanumeric
 // generator, optionally configured to use symbols too. For more flexibility
 // to configure the random generator, use NewRand instead.
