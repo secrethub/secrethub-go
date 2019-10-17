@@ -45,14 +45,6 @@ import (
 > **Note:** only packages inside the `/pkg` directory should be considered library code that you can use in your projects. 
 > All other code is not guaranteed to be backwards compatible and may change in the future.
 
-### Credential
-
-To use the SecretHub Go client, you need to provide a credential for your __SecretHub__ account.
-You can create a free developer account by [signing up through the CLI](https://secrethub.io/docs/getting-started/).
-
-After signup, the credential is located at `$HOME/.secrethub/credential` by default.
-`secrethub.NewClient()` automatically uses this credential.
-
 ### Examples
 
 For details on all functionality of this library, see the [GoDoc][godoc] documentation.
@@ -111,6 +103,14 @@ func main() {
     _, _ = client.Secrets().Write("path/to/secret", data)
 }
 ```
+
+### Credential
+
+To use the SecretHub Go client, you need to provide a credential for your __SecretHub__ account.
+You can create a free developer account by [signing up through the CLI](https://secrethub.io/docs/getting-started/).
+
+After signup, the credential is located at `$HOME/.secrethub/credential` by default.
+`secrethub.NewClient()` automatically uses this credential.
 
 ## Development
 
