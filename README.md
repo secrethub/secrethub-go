@@ -100,8 +100,7 @@ import (
 
 func main() {
     client, _ := secrethub.NewClient()
-    rand, _ := randchar.NewRand(randchar.Alphanumeric)
-    data, _ := rand.Generate(30)
+    data, _ := randchar.Generate(30)
     _, _ = client.Secrets().Write("path/to/secret", data)
 }
 ```
