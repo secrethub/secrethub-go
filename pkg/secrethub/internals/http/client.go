@@ -249,8 +249,8 @@ func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSub
 	out := []*api.Audit{}
 	rawURL := fmt.Sprintf(pathRepoEvents, c.base, namespace, repoName)
 	query := make(url.Values)
-	for _, subjectType := range subjectTypes {
-		query.Add("subject_types", string(subjectType))
+	if len(subjectTypes) > 0 {
+		query.Set("subject_types", subjectTypes.Join(","))
 	}
 	if len(query) > 0 {
 		rawURL += "?" + query.Encode()
