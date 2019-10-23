@@ -19,7 +19,7 @@ type RepoService interface {
 	// ListAccounts lists the accounts in the repository.
 	ListAccounts(path string) ([]*api.Account, error)
 	// ListEvents retrieves all audit events for a given repo.
-	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
+	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) (AuditEventIterator, error)
 	// ListMine retrieves all repositories of the current user.
 	ListMine() ([]*api.Repo, error)
 	// Users returns a RepoUserService that handles operations on users of a repository.
@@ -87,24 +87,24 @@ func (s repoService) ListAccounts(path string) ([]*api.Account, error) {
 
 // ListEvents retrieves all audit events for a given repo.
 // If subjectTypes is left empty, the server's default is used.
-func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) (AuditEventIterator, error) {
 	repoPath, err := api.NewRepoPath(path)
 	if err != nil {
-		return nil, errio.Error(err)
+		return AuditEventIterator{}, errio.Error(err)
 	}
 
 	namespace, repoName := repoPath.GetNamespaceAndRepoName()
 	events, err := s.client.httpClient.AuditRepo(namespace, repoName, subjectTypes)
 	if err != nil {
-		return nil, errio.Error(err)
+		return AuditEventIterator{}, errio.Error(err)
 	}
 
-	err = s.client.decryptAuditEvents(events...)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return events, nil
+	return AuditEventIterator{
+		iterator: &iterator{
+			pag: events,
+		},
+		c: s.client,
+	}, nil
 }
 
 // ListMine retrieves all repositories of the current user.

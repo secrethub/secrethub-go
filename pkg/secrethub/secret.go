@@ -14,7 +14,7 @@ type SecretService interface {
 	// Get retrieves a Secret.
 	Get(path string) (*api.Secret, error)
 	// ListEvents retrieves all audit events for a given secret.
-	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
+	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) (AuditEventIterator, error)
 
 	// Versions returns a SecretVersionService.
 	Versions() SecretVersionService
@@ -174,28 +174,28 @@ func (s secretService) Write(path string, data []byte) (*api.SecretVersion, erro
 
 // ListEvents retrieves all audit events for a given secret.
 // If subjectTypes is left empty, the server's default is used.
-func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) (AuditEventIterator, error) {
 	secretPath, err := api.NewSecretPath(path)
 	if err != nil {
-		return nil, errio.Error(err)
+		return AuditEventIterator{}, errio.Error(err)
 	}
 
 	blindName, err := s.client.convertPathToBlindName(secretPath)
 	if err != nil {
-		return nil, errio.Error(err)
+		return AuditEventIterator{}, errio.Error(err)
 	}
 
 	events, err := s.client.httpClient.AuditSecret(blindName, subjectTypes)
 	if err != nil {
-		return nil, errio.Error(err)
+		return AuditEventIterator{}, errio.Error(err)
 	}
 
-	err = s.client.decryptAuditEvents(events...)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return events, nil
+	return AuditEventIterator{
+		iterator: &iterator{
+			pag: events,
+		},
+		c: s.client,
+	}, nil
 }
 
 // Versions returns a SecretVersionService.

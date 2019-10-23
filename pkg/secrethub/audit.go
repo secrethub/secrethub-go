@@ -32,3 +32,21 @@ func (c *Client) decryptAuditEvents(events ...*api.Audit) error {
 
 	return nil
 }
+
+type AuditEventIterator struct {
+	*iterator
+	c *Client
+}
+
+func (it *AuditEventIterator) Next() (api.Audit, error) {
+	item, err := it.next()
+	if err != nil {
+		return api.Audit{}, err
+	}
+	audit := item.(api.Audit)
+	err = it.c.decryptAuditEvents(&audit)
+	if err != nil {
+		return api.Audit{}, err
+	}
+	return audit, nil
+}

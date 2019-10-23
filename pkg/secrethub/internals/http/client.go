@@ -245,18 +245,40 @@ func (c *Client) DeleteRepo(namespace, repoName string) error {
 }
 
 // AuditRepo gets the audit events for a given repo.
-func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
-	out := []*api.Audit{}
-	rawURL := fmt.Sprintf(pathRepoEvents, c.base, namespace, repoName)
-	query := make(url.Values)
+func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) (*Paginator, error) {
+	requestURL, err := url.Parse(fmt.Sprintf(pathRepoEvents, c.base, namespace, repoName))
+	if err != nil {
+		return nil, fmt.Errorf("invalid URL: %s", err)
+	}
+
 	if len(subjectTypes) > 0 {
-		query.Set("subject_types", subjectTypes.Join(","))
+		q := requestURL.Query()
+		q.Set("subject_types", subjectTypes.Join(","))
+		requestURL.RawQuery = q.Encode()
 	}
-	if len(query) > 0 {
-		rawURL += "?" + query.Encode()
-	}
-	err := c.get(rawURL, true, &out)
-	return out, errio.Error(err)
+
+	return c.auditPage(*requestURL), nil
+}
+
+func (c *Client) auditPage(url url.URL) *Paginator {
+	events := make([]api.Audit, 50)
+	return NewPaginator(
+		url,
+		&events,
+		func(vs interface{}) string {
+			events := *vs.(*[]api.Audit)
+			return events[len(events)-1].EventID.String()
+		},
+		func(vs interface{}) []interface{} {
+			events := *vs.(*[]api.Audit)
+			res := make([]interface{}, len(events))
+			for i, event := range events {
+				res[i] = event
+			}
+			return res
+		},
+		c,
+	)
 }
 
 // ListRepoAccounts lists the accounts of a repo.
@@ -498,11 +520,19 @@ func (c *Client) CreateSecretKey(secretBlindName string, in *api.CreateSecretKey
 }
 
 // AuditSecret gets the audit events for a given secret.
-func (c *Client) AuditSecret(secretBlindName string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
-	out := []*api.Audit{}
-	rawURL := fmt.Sprintf(pathSecretEvents+"?subject_types=%s", c.base, secretBlindName, subjectTypes.Join(","))
-	err := c.get(rawURL, true, &out)
-	return out, errio.Error(err)
+func (c *Client) AuditSecret(secretBlindName string, subjectTypes api.AuditSubjectTypeList) (*Paginator, error) {
+	requestURL, err := url.Parse(fmt.Sprintf(pathSecretEvents, c.base, secretBlindName))
+	if err != nil {
+		return nil, fmt.Errorf("invalid URL: %s", err)
+	}
+
+	if len(subjectTypes) > 0 {
+		q := requestURL.Query()
+		q.Set("subject_types", subjectTypes.Join(","))
+		requestURL.RawQuery = q.Encode()
+	}
+
+	return c.auditPage(*requestURL), nil
 }
 
 // DeleteSecret deletes a secret.
