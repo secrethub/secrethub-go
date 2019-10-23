@@ -31,7 +31,7 @@ func (s *RepoService) ListAccounts(path string) ([]*api.Account, error) {
 }
 
 // ListEvents implements the RepoService interface ListEvents function.
-func (s *RepoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+func (s *RepoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) (secrethub.AuditEventIterator, error) {
 	return s.EventLister.ListEvents(path, subjectTypes)
 }
 
@@ -105,17 +105,17 @@ func (g *RepoLister) List(namespace string) ([]*api.Repo, error) {
 
 // RepoEventLister mocks the ListEvents function.
 type RepoEventLister struct {
-	ArgPath            string
-	ArgSubjectTypes    api.AuditSubjectTypeList
-	ReturnsAuditEvents []*api.Audit
-	Err                error
+	ArgPath         string
+	ArgSubjectTypes api.AuditSubjectTypeList
+	Returns         secrethub.AuditEventIterator
+	Err             error
 }
 
 // ListEvents saves the arguments it was called with and returns the mocked response.
-func (el *RepoEventLister) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+func (el *RepoEventLister) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) (secrethub.AuditEventIterator, error) {
 	el.ArgPath = path
 	el.ArgSubjectTypes = subjectTypes
-	return el.ReturnsAuditEvents, el.Err
+	return el.Returns, el.Err
 }
 
 // RepoCreater mocks the Create function.
