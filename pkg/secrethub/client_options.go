@@ -35,7 +35,7 @@ func WithServerURL(serverURL string) ClientOption {
 			return ErrInvalidServerURL(err)
 		}
 
-		c.httpClient.Options(httpclient.WithServerURL(parsedURL.String()))
+		c.httpClient.Options(httpclient.WithServerURL(*parsedURL))
 		return nil
 	}
 }
