@@ -260,7 +260,7 @@ func newAuditPaginator(requestURL url.URL, client *Client) *AuditPaginator {
 	return &AuditPaginator{
 		fetchPage: func(target *[]api.Audit, query url.Values) error {
 			q := requestURL.Query()
-			for k, _ := range query {
+			for k := range query {
 				q.Set(k, query.Get(k))
 			}
 			requestURL.RawQuery = q.Encode()
