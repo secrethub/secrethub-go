@@ -247,7 +247,14 @@ func (c *Client) DeleteRepo(namespace, repoName string) error {
 // AuditRepo gets the audit events for a given repo.
 func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	out := []*api.Audit{}
-	rawURL := fmt.Sprintf(pathRepoEvents+"?subject_types=%s", c.base, namespace, repoName, subjectTypes.Join(","))
+	rawURL := fmt.Sprintf(pathRepoEvents, c.base, namespace, repoName)
+	query := make(url.Values)
+	if len(subjectTypes) > 0 {
+		query.Set("subject_types", subjectTypes.Join(","))
+	}
+	if len(query) > 0 {
+		rawURL += "?" + query.Encode()
+	}
 	err := c.get(rawURL, true, &out)
 	return out, errio.Error(err)
 }
