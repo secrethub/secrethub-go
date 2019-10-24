@@ -257,28 +257,37 @@ func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSub
 		requestURL.RawQuery = q.Encode()
 	}
 
+	return newAuditPaginator(*requestURL, c), nil
+}
+
+func newAuditPaginator(requestURL url.URL, client *Client) *AuditPaginator {
 	return &AuditPaginator{
-		client: c,
-		url:    *requestURL,
-	}, nil
+		fetchPage: func(target *[]api.Audit, query url.Values) error {
+			q := requestURL.Query()
+			for k, _ := range query {
+				q.Set(k, query.Get(k))
+			}
+			requestURL.RawQuery = q.Encode()
+			return client.get(requestURL.String(), true, &target)
+		},
+		query:     make(url.Values),
+	}
 }
 
 type AuditPaginator struct {
-	client *Client
-	url    url.URL
+	fetchPage func(target *[]api.Audit, query url.Values) error
+	query     url.Values
 }
 
 func (pag *AuditPaginator) Next() ([]interface{}, error) {
 	events := make([]api.Audit, 50)
-	err := pag.client.get(pag.url.String(), true, &events)
+	err := pag.fetchPage(&events, pag.query)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(events) > 0 {
-		q := pag.url.Query()
-		q.Set("starting_after", events[len(events)-1].EventID.String())
-		pag.url.RawQuery = q.Encode()
+		pag.query.Set("starting_after", events[len(events)-1].EventID.String())
 	}
 
 	res := make([]interface{}, len(events))
@@ -527,7 +536,7 @@ func (c *Client) CreateSecretKey(secretBlindName string, in *api.CreateSecretKey
 }
 
 // AuditSecret gets the audit events for a given secret.
-func (c *Client) AuditSecret(secretBlindName string, subjectTypes api.AuditSubjectTypeList) (*Paginator, error) {
+func (c *Client) AuditSecret(secretBlindName string, subjectTypes api.AuditSubjectTypeList) (*AuditPaginator, error) {
 	requestURL, err := url.Parse(fmt.Sprintf(pathSecretEvents, c.base, secretBlindName))
 	if err != nil {
 		return nil, fmt.Errorf("invalid URL: %s", err)
@@ -539,7 +548,7 @@ func (c *Client) AuditSecret(secretBlindName string, subjectTypes api.AuditSubje
 		requestURL.RawQuery = q.Encode()
 	}
 
-	return c.auditPage(*requestURL), nil
+	return newAuditPaginator(*requestURL, c), nil
 }
 
 // DeleteSecret deletes a secret.
