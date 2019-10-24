@@ -55,7 +55,6 @@ const (
 	pathRepoDirs       = "%s/namespaces/%s/repos/%s/dirs"
 	pathRepoKey        = "%s/namespaces/%s/repos/%s/keys"
 	pathRepoAccounts   = "%s/namespaces/%s/repos/%s/accounts"
-	pathRepoEvents     = "%s/namespaces/%s/repos/%s/events"
 	pathRepoDirSecrets = "%s/namespaces/%s/repos/%s/dirs/%s/secrets"
 	pathRepoUsers      = "%s/namespaces/%s/repos/%s/users"
 	pathRepoUser       = "%s/namespaces/%s/repos/%s/users/%s"
@@ -72,7 +71,6 @@ const (
 	pathSecretVersion  = "%s/secrets/%s/versions/%s"
 	pathSecretKey      = "%s/secrets/%s/key"
 	pathSecretKeys     = "%s/secrets/%s/keys"
-	pathSecretEvents   = "%s/secrets/%s/events"
 
 	// Dirs
 	pathDirPermission = "%s/dirs/%s/permissions/%s"
@@ -247,10 +245,7 @@ func (c *Client) DeleteRepo(namespace, repoName string) error {
 
 // AuditRepo gets the audit events for a given repo.
 func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) (*AuditPaginator, error) {
-	requestURL, err := url.Parse(fmt.Sprintf(pathRepoEvents, c.base.String(), namespace, repoName))
-	if err != nil {
-		return nil, fmt.Errorf("invalid URL: %s", err)
-	}
+	requestURL := joinURL(c.base, fmt.Sprintf("/namespaces/%s/repos/%s/events", namespace, repoName))
 
 	if len(subjectTypes) > 0 {
 		q := requestURL.Query()
@@ -258,7 +253,7 @@ func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSub
 		requestURL.RawQuery = q.Encode()
 	}
 
-	return newAuditPaginator(*requestURL, c), nil
+	return newAuditPaginator(requestURL, c), nil
 }
 
 func newAuditPaginator(requestURL url.URL, client *Client) *AuditPaginator {
@@ -538,10 +533,7 @@ func (c *Client) CreateSecretKey(secretBlindName string, in *api.CreateSecretKey
 
 // AuditSecret gets the audit events for a given secret.
 func (c *Client) AuditSecret(secretBlindName string, subjectTypes api.AuditSubjectTypeList) (*AuditPaginator, error) {
-	requestURL, err := url.Parse(fmt.Sprintf(pathSecretEvents, c.base.String(), secretBlindName))
-	if err != nil {
-		return nil, fmt.Errorf("invalid URL: %s", err)
-	}
+	requestURL := joinURL(c.base, fmt.Sprintf("/secrets/%s/events", secretBlindName))
 
 	if len(subjectTypes) > 0 {
 		q := requestURL.Query()
@@ -549,7 +541,7 @@ func (c *Client) AuditSecret(secretBlindName string, subjectTypes api.AuditSubje
 		requestURL.RawQuery = q.Encode()
 	}
 
-	return newAuditPaginator(*requestURL, c), nil
+	return newAuditPaginator(requestURL, c), nil
 }
 
 // DeleteSecret deletes a secret.
@@ -746,6 +738,13 @@ func (c *Client) do(rawURL string, method string, authenticate bool, expectedSta
 	}
 
 	return nil
+}
+
+func joinURL(base url.URL, paths ...string) url.URL {
+	for _, path := range paths {
+		base.Path += "/" + strings.Trim(path, "/")
+	}
+	return base
 }
 
 func getBaseURL(serverURL url.URL) url.URL {
