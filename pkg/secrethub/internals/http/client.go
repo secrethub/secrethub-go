@@ -265,12 +265,12 @@ func (c *Client) auditPage(url url.URL) *Paginator {
 	return NewPaginator(
 		url,
 		&events,
-		func(vs interface{}) string {
-			events := *vs.(*[]api.Audit)
+		func(values interface{}) string {
+			events := *values.(*[]api.Audit)
 			return events[len(events)-1].EventID.String()
 		},
-		func(vs interface{}) []interface{} {
-			events := *vs.(*[]api.Audit)
+		func(values interface{}) []interface{} {
+			events := *values.(*[]api.Audit)
 			res := make([]interface{}, len(events))
 			for i, event := range events {
 				res[i] = event
