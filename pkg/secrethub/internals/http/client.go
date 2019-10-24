@@ -245,7 +245,7 @@ func (c *Client) DeleteRepo(namespace, repoName string) error {
 }
 
 // AuditRepo gets the audit events for a given repo.
-func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) (*Paginator, error) {
+func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) (*AuditPaginator, error) {
 	requestURL, err := url.Parse(fmt.Sprintf(pathRepoEvents, c.base, namespace, repoName))
 	if err != nil {
 		return nil, fmt.Errorf("invalid URL: %s", err)
@@ -257,28 +257,35 @@ func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSub
 		requestURL.RawQuery = q.Encode()
 	}
 
-	return c.auditPage(*requestURL), nil
+	return &AuditPaginator{
+		client: c,
+		url:    *requestURL,
+	}, nil
 }
 
-func (c *Client) auditPage(url url.URL) *Paginator {
+type AuditPaginator struct {
+	client *Client
+	url    url.URL
+}
+
+func (pag *AuditPaginator) Next() ([]interface{}, error) {
 	events := make([]api.Audit, 50)
-	return NewPaginator(
-		url,
-		&events,
-		func(values interface{}) string {
-			events := *values.(*[]api.Audit)
-			return events[len(events)-1].EventID.String()
-		},
-		func(values interface{}) []interface{} {
-			events := *values.(*[]api.Audit)
-			res := make([]interface{}, len(events))
-			for i, event := range events {
-				res[i] = event
-			}
-			return res
-		},
-		c,
-	)
+	err := pag.client.get(pag.url.String(), true, &events)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(events) > 0 {
+		q := pag.url.Query()
+		q.Set("starting_after", events[len(events)-1].EventID.String())
+		pag.url.RawQuery = q.Encode()
+	}
+
+	res := make([]interface{}, len(events))
+	for i, event := range events {
+		res[i] = event
+	}
+	return res, nil
 }
 
 // ListRepoAccounts lists the accounts of a repo.

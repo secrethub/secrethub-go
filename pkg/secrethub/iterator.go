@@ -2,7 +2,6 @@ package secrethub
 
 import (
 	"github.com/secrethub/secrethub-go/internals/errio"
-	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
 // Errors
@@ -10,8 +9,12 @@ var (
 	IteratorDone = errio.Namespace("iterator").Code("done").Error("there are no more items left")
 )
 
+type paginator interface {
+	Next() ([]interface{}, error)
+}
+
 type iterator struct {
-	paginator    *http.Paginator
+	paginator    paginator
 	currentIndex int
 	items        []interface{}
 }
