@@ -11,19 +11,19 @@ var (
 )
 
 type iterator struct {
-	pag   *http.Paginator
-	i     int
-	items []interface{}
+	pag          *http.Paginator
+	currentIndex int
+	items        []interface{}
 }
 
 func (it *iterator) next() (interface{}, error) {
-	if it.items == nil || (len(it.items) > 0 && len(it.items) <= it.i) {
+	if it.items == nil || (len(it.items) > 0 && len(it.items) <= it.currentIndex) {
 		var err error
 		it.items, err = it.pag.Next()
 		if err != nil {
 			return nil, err
 		}
-		it.i = 0
+		it.currentIndex = 0
 		return it.next()
 	}
 
@@ -31,7 +31,7 @@ func (it *iterator) next() (interface{}, error) {
 		return nil, IteratorDone
 	}
 
-	res := it.items[it.i]
-	it.i++
+	res := it.items[it.currentIndex]
+	it.currentIndex++
 	return res, nil
 }
