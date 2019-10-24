@@ -34,7 +34,7 @@ func (c *Client) decryptAuditEvents(events ...*api.Audit) error {
 }
 
 type AuditEventIterator struct {
-	*iterator
+	iterator
 	c *Client
 }
 

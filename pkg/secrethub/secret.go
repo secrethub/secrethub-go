@@ -191,7 +191,7 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 	}
 
 	return AuditEventIterator{
-		iterator: &iterator{
+		iterator: iterator{
 			pag: events,
 		},
 		c: s.client,
