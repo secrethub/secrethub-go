@@ -94,10 +94,7 @@ func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeLi
 	}
 
 	namespace, repoName := repoPath.GetNamespaceAndRepoName()
-	events, err := s.client.httpClient.AuditRepo(namespace, repoName, subjectTypes)
-	if err != nil {
-		return AuditEventIterator{}, errio.Error(err)
-	}
+	events := s.client.httpClient.AuditRepo(namespace, repoName, subjectTypes)
 
 	return AuditEventIterator{
 		iterator: iterator{

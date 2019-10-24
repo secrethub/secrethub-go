@@ -185,10 +185,7 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 		return AuditEventIterator{}, errio.Error(err)
 	}
 
-	events, err := s.client.httpClient.AuditSecret(blindName, subjectTypes)
-	if err != nil {
-		return AuditEventIterator{}, errio.Error(err)
-	}
+	events := s.client.httpClient.AuditSecret(blindName, subjectTypes)
 
 	return AuditEventIterator{
 		iterator: iterator{
