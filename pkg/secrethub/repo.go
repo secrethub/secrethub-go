@@ -101,7 +101,7 @@ func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeLi
 
 	return AuditEventIterator{
 		iterator: iterator{
-			pag: events,
+			paginator: events,
 		},
 		c: s.client,
 	}, nil

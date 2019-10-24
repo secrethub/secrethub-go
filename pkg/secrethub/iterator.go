@@ -11,7 +11,7 @@ var (
 )
 
 type iterator struct {
-	pag          *http.Paginator
+	paginator    *http.Paginator
 	currentIndex int
 	items        []interface{}
 }
@@ -19,7 +19,7 @@ type iterator struct {
 func (it *iterator) next() (interface{}, error) {
 	if it.items == nil || (len(it.items) > 0 && len(it.items) <= it.currentIndex) {
 		var err error
-		it.items, err = it.pag.Next()
+		it.items, err = it.paginator.Next()
 		if err != nil {
 			return nil, err
 		}
