@@ -244,7 +244,18 @@ func (c *Client) DeleteRepo(namespace, repoName string) error {
 }
 
 // AuditRepo gets the audit events for a given repo.
-func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) *AuditPaginator {
+func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+	out := []*api.Audit{}
+	err := c.get(c.auditRepoURL(namespace, repoName, subjectTypes).String(), true, &out)
+	return out, err
+}
+
+// AuditRepoPaginator returns a paginator to fetch the audit events for a given repo.
+func (c *Client) AuditRepoPaginator(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) *AuditPaginator {
+	return newAuditPaginator(c.auditRepoURL(namespace, repoName, subjectTypes), c)
+}
+
+func (c *Client) auditRepoURL(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) url.URL {
 	requestURL := joinURL(c.base, fmt.Sprintf("/namespaces/%s/repos/%s/events", namespace, repoName))
 
 	if len(subjectTypes) > 0 {
@@ -253,7 +264,7 @@ func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSub
 		requestURL.RawQuery = q.Encode()
 	}
 
-	return newAuditPaginator(requestURL, c)
+	return requestURL
 }
 
 func newAuditPaginator(requestURL url.URL, client *Client) *AuditPaginator {
@@ -532,7 +543,18 @@ func (c *Client) CreateSecretKey(secretBlindName string, in *api.CreateSecretKey
 }
 
 // AuditSecret gets the audit events for a given secret.
-func (c *Client) AuditSecret(secretBlindName string, subjectTypes api.AuditSubjectTypeList) *AuditPaginator {
+func (c *Client) AuditSecret(secretBlindName string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+	out := []*api.Audit{}
+	err := c.get(c.auditSecretURL(secretBlindName, subjectTypes).String(), true, &out)
+	return out, err
+}
+
+// AuditSecretPaginator returns a paginator to fetch the audit events for a given secret.
+func (c *Client) AuditSecretPaginator(secretBlindName string, subjectTypes api.AuditSubjectTypeList) *AuditPaginator {
+	return newAuditPaginator(c.auditSecretURL(secretBlindName, subjectTypes), c)
+}
+
+func (c *Client) auditSecretURL(secretBlindName string, subjectTypes api.AuditSubjectTypeList) url.URL {
 	requestURL := joinURL(c.base, fmt.Sprintf("/secrets/%s/events", secretBlindName))
 
 	if len(subjectTypes) > 0 {
@@ -541,7 +563,7 @@ func (c *Client) AuditSecret(secretBlindName string, subjectTypes api.AuditSubje
 		requestURL.RawQuery = q.Encode()
 	}
 
-	return newAuditPaginator(requestURL, c)
+	return requestURL
 }
 
 // DeleteSecret deletes a secret.

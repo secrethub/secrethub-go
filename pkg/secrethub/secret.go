@@ -14,7 +14,7 @@ type SecretService interface {
 	// Get retrieves a Secret.
 	Get(path string) (*api.Secret, error)
 	// ListEvents retrieves all audit events for a given secret.
-	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) (AuditEventIterator, error)
+	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 
 	// Versions returns a SecretVersionService.
 	Versions() SecretVersionService
@@ -174,7 +174,33 @@ func (s secretService) Write(path string, data []byte) (*api.SecretVersion, erro
 
 // ListEvents retrieves all audit events for a given secret.
 // If subjectTypes is left empty, the server's default is used.
-func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) (AuditEventIterator, error) {
+func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+	secretPath, err := api.NewSecretPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	blindName, err := s.client.convertPathToBlindName(secretPath)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	events, err := s.client.httpClient.AuditSecret(blindName, subjectTypes)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = s.client.decryptAuditEvents(events...)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return events, nil
+}
+
+// EventIterator returns an iterator that retrieves all audit events for a given secret.
+// If subjectTypes is left empty, the server's default is used.
+func (s secretService) EventIterator(path string, subjectTypes api.AuditSubjectTypeList) (AuditEventIterator, error) {
 	secretPath, err := api.NewSecretPath(path)
 	if err != nil {
 		return AuditEventIterator{}, errio.Error(err)
@@ -185,11 +211,11 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 		return AuditEventIterator{}, errio.Error(err)
 	}
 
-	events := s.client.httpClient.AuditSecret(blindName, subjectTypes)
+	paginator := s.client.httpClient.AuditSecretPaginator(blindName, subjectTypes)
 
 	return AuditEventIterator{
 		iterator: iterator{
-			paginator: events,
+			paginator: paginator,
 		},
 		decryptAuditEvents: s.client.decryptAuditEvents,
 	}, nil

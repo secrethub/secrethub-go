@@ -40,7 +40,7 @@ func (s *SecretService) Write(path string, data []byte) (*api.SecretVersion, err
 }
 
 // ListEvents implements the SecretService interface ListEvents function.
-func (s *SecretService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) (secrethub.AuditEventIterator, error) {
+func (s *SecretService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	return s.EventLister.ListEvents(path, subjectTypes)
 }
 
@@ -76,17 +76,17 @@ func (g *SecretGetter) Get(path string) (*api.Secret, error) {
 
 // SecretEventLister mocks the ListEvents function.
 type SecretEventLister struct {
-	ArgPath         string
-	ArgSubjectTypes api.AuditSubjectTypeList
-	Returns         secrethub.AuditEventIterator
-	Err             error
+	ArgPath            string
+	ArgSubjectTypes    api.AuditSubjectTypeList
+	ReturnsAuditEvents []*api.Audit
+	Err                error
 }
 
 // ListEvents saves the arguments it was called with and returns the mocked response.
-func (s *SecretEventLister) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) (secrethub.AuditEventIterator, error) {
+func (s *SecretEventLister) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	s.ArgPath = path
 	s.ArgSubjectTypes = subjectTypes
-	return s.Returns, s.Err
+	return s.ReturnsAuditEvents, s.Err
 }
 
 // Writer is a wrapper for the arguments and return values of the mocked Writer method.

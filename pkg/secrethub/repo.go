@@ -19,7 +19,7 @@ type RepoService interface {
 	// ListAccounts lists the accounts in the repository.
 	ListAccounts(path string) ([]*api.Account, error)
 	// ListEvents retrieves all audit events for a given repo.
-	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) (AuditEventIterator, error)
+	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 	// ListMine retrieves all repositories of the current user.
 	ListMine() ([]*api.Repo, error)
 	// Users returns a RepoUserService that handles operations on users of a repository.
@@ -87,18 +87,40 @@ func (s repoService) ListAccounts(path string) ([]*api.Account, error) {
 
 // ListEvents retrieves all audit events for a given repo.
 // If subjectTypes is left empty, the server's default is used.
-func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) (AuditEventIterator, error) {
+func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
+	repoPath, err := api.NewRepoPath(path)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	namespace, repoName := repoPath.GetNamespaceAndRepoName()
+	events, err := s.client.httpClient.AuditRepo(namespace, repoName, subjectTypes)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	err = s.client.decryptAuditEvents(events...)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	return events, nil
+}
+
+// EventIterator returns an iterator that retrieves all audit events for a given repo.
+// If subjectTypes is left empty, the server's default is used.
+func (s repoService) EventIterator(path string, subjectTypes api.AuditSubjectTypeList) (AuditEventIterator, error) {
 	repoPath, err := api.NewRepoPath(path)
 	if err != nil {
 		return AuditEventIterator{}, errio.Error(err)
 	}
 
 	namespace, repoName := repoPath.GetNamespaceAndRepoName()
-	events := s.client.httpClient.AuditRepo(namespace, repoName, subjectTypes)
+	paginator := s.client.httpClient.AuditRepoPaginator(namespace, repoName, subjectTypes)
 
 	return AuditEventIterator{
 		iterator: iterator{
-			paginator: events,
+			paginator: paginator,
 		},
 		decryptAuditEvents: s.client.decryptAuditEvents,
 	}, nil
