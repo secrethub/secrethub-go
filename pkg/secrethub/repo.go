@@ -16,6 +16,23 @@ type RepoService interface {
 	// Get retrieves the repo with the given path.
 	Get(path string) (*api.Repo, error)
 	// EventIterator returns an iterator that retrieves all audit events for a given repo.
+	//
+	// Usage:
+	// it, err := client.Repos().EventIterator(path)
+	// if err != nil {
+	// 	   // Handle error
+	// }
+	// for {
+	// 	   event, err := events.Next()
+	//	   if err == secrethub.IteratorDone {
+	//	       break
+	//	   }
+	//	   if err != nil {
+	//	       // Handle error
+	//	   }
+	//
+	//     // Use event
+	// }
 	EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error)
 	// List retrieves all repositories in the given namespace.
 	List(namespace string) ([]*api.Repo, error)
@@ -119,6 +136,23 @@ func OnlySubjectTypes(subjectTypes api.AuditSubjectTypeList) AuditEventIteration
 }
 
 // EventIterator returns an iterator that retrieves all audit events for a given repo.
+//
+// Usage:
+// it, err := client.Repos().EventIterator(path)
+// if err != nil {
+// 	   // Handle error
+// }
+// for {
+// 	   event, err := events.Next()
+//	   if err == secrethub.IteratorDone {
+//	       break
+//	   }
+//	   if err != nil {
+//	       // Handle error
+//	   }
+//
+//     // Use event
+// }
 func (s repoService) EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error) {
 	repoPath, err := api.NewRepoPath(path)
 	if err != nil {
