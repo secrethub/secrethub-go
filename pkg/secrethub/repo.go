@@ -131,14 +131,6 @@ func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeLi
 	return events, nil
 }
 
-type AuditEventIterationOption func(*AuditEventIterator) error
-
-func OnlySubjectTypes(subjectTypes api.AuditSubjectTypeList) AuditEventIterationOption {
-	return func(it *AuditEventIterator) error {
-		return http.OnlySubjectTypes(subjectTypes)(it.paginator)
-	}
-}
-
 // EventIterator returns an iterator that retrieves all audit events for a given repo.
 //
 // Usage:

@@ -62,3 +62,11 @@ func (it *AuditEventIterator) Next() (api.Audit, error) {
 	}
 	return audit, nil
 }
+
+type AuditEventIterationOption func(*AuditEventIterator) error
+
+func OnlySubjectTypes(subjectTypes api.AuditSubjectTypeList) AuditEventIterationOption {
+	return func(it *AuditEventIterator) error {
+		return http.OnlySubjectTypes(subjectTypes)(it.paginator)
+	}
+}
