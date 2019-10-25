@@ -15,6 +15,8 @@ type RepoService interface {
 	Delete(path string) error
 	// Get retrieves the repo with the given path.
 	Get(path string) (*api.Repo, error)
+	// EventIterator returns an iterator that retrieves all audit events for a given repo.
+	EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error)
 	// List retrieves all repositories in the given namespace.
 	List(namespace string) ([]*api.Repo, error)
 	// ListAccounts lists the accounts in the repository.

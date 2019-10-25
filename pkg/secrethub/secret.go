@@ -13,6 +13,8 @@ type SecretService interface {
 	Exists(path string) (bool, error)
 	// Get retrieves a Secret.
 	Get(path string) (*api.Secret, error)
+	// EventIterator returns an iterator that retrieves all audit events for a given secret.
+	EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error)
 	// ListEvents retrieves all audit events for a given secret.
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 
@@ -199,7 +201,6 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 }
 
 // EventIterator returns an iterator that retrieves all audit events for a given secret.
-// If subjectTypes is left empty, the server's default is used.
 func (s secretService) EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error) {
 	secretPath, err := api.NewSecretPath(path)
 	if err != nil {

@@ -18,6 +18,8 @@ type RepoService struct {
 	UserService    *RepoUserService
 	ServiceService *RepoServiceService
 	MineLister     RepoMineLister
+
+	secrethub.RepoService
 }
 
 // List implements the RepoService interface List function.
