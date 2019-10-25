@@ -39,6 +39,8 @@ type RepoService interface {
 	// ListAccounts lists the accounts in the repository.
 	ListAccounts(path string) ([]*api.Account, error)
 	// ListEvents retrieves all audit events for a given repo.
+	//
+	// Deprecated: Use `EventIterator` instead.
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 	// ListMine retrieves all repositories of the current user.
 	ListMine() ([]*api.Repo, error)
@@ -107,6 +109,8 @@ func (s repoService) ListAccounts(path string) ([]*api.Account, error) {
 
 // ListEvents retrieves all audit events for a given repo.
 // If subjectTypes is left empty, the server's default is used.
+//
+// Deprecated: Use `EventIterator` instead.
 func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	repoPath, err := api.NewRepoPath(path)
 	if err != nil {

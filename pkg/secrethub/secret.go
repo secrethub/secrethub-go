@@ -33,6 +33,8 @@ type SecretService interface {
 	//  }
 	EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error)
 	// ListEvents retrieves all audit events for a given secret.
+	//
+	// Deprecated: Use `EventIterator` instead.
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 
 	// Versions returns a SecretVersionService.
@@ -193,6 +195,8 @@ func (s secretService) Write(path string, data []byte) (*api.SecretVersion, erro
 
 // ListEvents retrieves all audit events for a given secret.
 // If subjectTypes is left empty, the server's default is used.
+//
+// Deprecated: Use `EventIterator` instead.
 func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	secretPath, err := api.NewSecretPath(path)
 	if err != nil {
