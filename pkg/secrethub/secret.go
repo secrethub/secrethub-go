@@ -16,21 +16,21 @@ type SecretService interface {
 	// EventIterator returns an iterator that retrieves all audit events for a given secret.
 	//
 	// Usage:
-	// it, err := client.Secrets().EventIterator(path)
-	// if err != nil {
-	// 	   // Handle error
-	// }
-	// for {
-	// 	   event, err := events.Next()
-	//	   if err == secrethub.IteratorDone {
-	//	       break
-	//	   }
-	//	   if err != nil {
-	//	       // Handle error
-	//	   }
+	//  it, err := client.Secrets().EventIterator(path)
+	//  if err != nil {
+	// 	    // Handle error
+	//  }
+	//  for {
+	// 	    event, err := events.Next()
+	//	    if err == secrethub.IteratorDone {
+	//	        break
+	//	    }
+	//	    if err != nil {
+	//	        // Handle error
+	//	    }
 	//
-	//     // Use event
-	// }
+	//      // Use event
+	//  }
 	EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error)
 	// ListEvents retrieves all audit events for a given secret.
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
@@ -220,21 +220,21 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 // EventIterator returns an iterator that retrieves all audit events for a given secret.
 //
 // Usage:
-// it, err := client.Secrets().EventIterator(path)
-// if err != nil {
-// 	   // Handle error
-// }
-// for {
-// 	   event, err := events.Next()
-//	   if err == secrethub.IteratorDone {
-//	       break
-//	   }
-//	   if err != nil {
-//	       // Handle error
-//	   }
+//  it, err := client.Secrets().EventIterator(path)
+//  if err != nil {
+// 	    // Handle error
+//  }
+//  for {
+// 	    event, err := events.Next()
+//	    if err == secrethub.IteratorDone {
+//	        break
+//	    }
+//	    if err != nil {
+//	        // Handle error
+//	    }
 //
-//     // Use event
-// }
+//      // Use event
+//  }
 func (s secretService) EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error) {
 	secretPath, err := api.NewSecretPath(path)
 	if err != nil {
