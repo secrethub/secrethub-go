@@ -213,13 +213,7 @@ func (s secretService) EventIterator(path string, options ...AuditEventIteration
 
 	paginator := s.client.httpClient.AuditSecretPaginator(blindName)
 
-	res := AuditEventIterator{
-		iterator: iterator{
-			paginator: paginator,
-		},
-		paginator:          paginator,
-		decryptAuditEvents: s.client.decryptAuditEvents,
-	}
+	res := newAuditEventIterator(paginator, s.client)
 
 	for _, option := range options {
 		err := option(&res)

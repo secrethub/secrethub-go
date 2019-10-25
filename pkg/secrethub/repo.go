@@ -126,13 +126,7 @@ func (s repoService) EventIterator(path string, options ...AuditEventIterationOp
 	namespace, repoName := repoPath.GetNamespaceAndRepoName()
 	paginator := s.client.httpClient.AuditRepoPaginator(namespace, repoName)
 
-	res := AuditEventIterator{
-		iterator: iterator{
-			paginator: paginator,
-		},
-		paginator:          paginator,
-		decryptAuditEvents: s.client.decryptAuditEvents,
-	}
+	res := newAuditEventIterator(paginator, s.client)
 
 	for _, option := range options {
 		err := option(&res)
