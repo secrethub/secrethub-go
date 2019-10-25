@@ -47,7 +47,7 @@ func newAuditEventIterator(paginator *http.AuditPaginator, client *Client) Audit
 type AuditEventIterator struct {
 	iterator
 	decryptAuditEvents func(...*api.Audit) error
-	paginator *http.AuditPaginator
+	paginator          *http.AuditPaginator
 }
 
 func (it *AuditEventIterator) Next() (api.Audit, error) {
