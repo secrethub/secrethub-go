@@ -4,6 +4,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
 // RepoService handles operations on repositories from SecretHub.
@@ -107,23 +108,40 @@ func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeLi
 	return events, nil
 }
 
+type AuditEventIterationOption func(*AuditEventIterator) error
+
+func OnlySubjectTypes(subjectTypes api.AuditSubjectTypeList) AuditEventIterationOption {
+	return func(it *AuditEventIterator) error {
+		return http.OnlySubjectTypes(subjectTypes)(it.paginator)
+	}
+}
+
 // EventIterator returns an iterator that retrieves all audit events for a given repo.
-// If subjectTypes is left empty, the server's default is used.
-func (s repoService) EventIterator(path string, subjectTypes api.AuditSubjectTypeList) (AuditEventIterator, error) {
+func (s repoService) EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error) {
 	repoPath, err := api.NewRepoPath(path)
 	if err != nil {
 		return AuditEventIterator{}, errio.Error(err)
 	}
 
 	namespace, repoName := repoPath.GetNamespaceAndRepoName()
-	paginator := s.client.httpClient.AuditRepoPaginator(namespace, repoName, subjectTypes)
+	paginator := s.client.httpClient.AuditRepoPaginator(namespace, repoName)
 
-	return AuditEventIterator{
+	res := AuditEventIterator{
 		iterator: iterator{
 			paginator: paginator,
 		},
+		paginator:          paginator,
 		decryptAuditEvents: s.client.decryptAuditEvents,
-	}, nil
+	}
+
+	for _, option := range options {
+		err := option(&res)
+		if err != nil {
+			return AuditEventIterator{}, err
+		}
+	}
+
+	return res, nil
 }
 
 // ListMine retrieves all repositories of the current user.

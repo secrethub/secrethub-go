@@ -246,17 +246,8 @@ func (c *Client) DeleteRepo(namespace, repoName string) error {
 // AuditRepo gets the audit events for a given repo.
 func (c *Client) AuditRepo(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	out := []*api.Audit{}
-	err := c.get(c.auditRepoURL(namespace, repoName, subjectTypes).String(), true, &out)
-	return out, err
-}
 
-// AuditRepoPaginator returns a paginator to fetch the audit events for a given repo.
-func (c *Client) AuditRepoPaginator(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) *AuditPaginator {
-	return newAuditPaginator(c.auditRepoURL(namespace, repoName, subjectTypes), c)
-}
-
-func (c *Client) auditRepoURL(namespace, repoName string, subjectTypes api.AuditSubjectTypeList) url.URL {
-	requestURL := joinURL(c.base, fmt.Sprintf("/namespaces/%s/repos/%s/events", namespace, repoName))
+	requestURL := c.auditRepoURL(namespace, repoName)
 
 	if len(subjectTypes) > 0 {
 		q := requestURL.Query()
@@ -264,37 +255,45 @@ func (c *Client) auditRepoURL(namespace, repoName string, subjectTypes api.Audit
 		requestURL.RawQuery = q.Encode()
 	}
 
-	return requestURL
+	err := c.get(requestURL.String(), true, &out)
+	return out, err
+}
+
+// AuditRepoPaginator returns a paginator to fetch the audit events for a given repo.
+func (c *Client) AuditRepoPaginator(namespace, repoName string) *AuditPaginator {
+	return newAuditPaginator(c.auditRepoURL(namespace, repoName), c)
+}
+
+func (c *Client) auditRepoURL(namespace, repoName string) url.URL {
+	return joinURL(c.base, fmt.Sprintf("/namespaces/%s/repos/%s/events", namespace, repoName))
 }
 
 func newAuditPaginator(requestURL url.URL, client *Client) *AuditPaginator {
 	return &AuditPaginator{
-		fetchPage: func(target *[]api.Audit, query url.Values) error {
-			q := requestURL.Query()
-			for k := range query {
-				q.Set(k, query.Get(k))
-			}
-			requestURL.RawQuery = q.Encode()
+		fetchPage: func(target *[]api.Audit, requestURL url.URL) error {
 			return client.get(requestURL.String(), true, &target)
 		},
-		query: make(url.Values),
+		requestURL: requestURL,
 	}
 }
 
 type AuditPaginator struct {
-	fetchPage func(target *[]api.Audit, query url.Values) error
-	query     url.Values
+	fetchPage  func(target *[]api.Audit, requestURL url.URL) error
+	requestURL url.URL
 }
 
 func (pag *AuditPaginator) Next() ([]interface{}, error) {
 	events := make([]api.Audit, 50)
-	err := pag.fetchPage(&events, pag.query)
+
+	err := pag.fetchPage(&events, pag.requestURL)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(events) > 0 {
-		pag.query.Set("starting_after", events[len(events)-1].EventID.String())
+		q := pag.requestURL.Query()
+		q.Set("starting_after", events[len(events)-1].EventID.String())
+		pag.requestURL.RawQuery = q.Encode()
 	}
 
 	res := make([]interface{}, len(events))
@@ -302,6 +301,22 @@ func (pag *AuditPaginator) Next() ([]interface{}, error) {
 		res[i] = event
 	}
 	return res, nil
+}
+
+// AuditPaginatorOption adjusts the behavior of an AuditPaginator.
+type AuditPaginatorOption func(*AuditPaginator) error
+
+// OnlySubjectTypes filters the audit event results to only the events with a subject
+// of one of the given types.
+func OnlySubjectTypes(subjectTypes api.AuditSubjectTypeList) AuditPaginatorOption {
+	return func(pag *AuditPaginator) error {
+		if len(subjectTypes) > 0 {
+			q := pag.requestURL.Query()
+			q.Set("subject_types", subjectTypes.Join(","))
+			pag.requestURL.RawQuery = q.Encode()
+		}
+		return nil
+	}
 }
 
 // ListRepoAccounts lists the accounts of a repo.
@@ -545,17 +560,8 @@ func (c *Client) CreateSecretKey(secretBlindName string, in *api.CreateSecretKey
 // AuditSecret gets the audit events for a given secret.
 func (c *Client) AuditSecret(secretBlindName string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	out := []*api.Audit{}
-	err := c.get(c.auditSecretURL(secretBlindName, subjectTypes).String(), true, &out)
-	return out, err
-}
 
-// AuditSecretPaginator returns a paginator to fetch the audit events for a given secret.
-func (c *Client) AuditSecretPaginator(secretBlindName string, subjectTypes api.AuditSubjectTypeList) *AuditPaginator {
-	return newAuditPaginator(c.auditSecretURL(secretBlindName, subjectTypes), c)
-}
-
-func (c *Client) auditSecretURL(secretBlindName string, subjectTypes api.AuditSubjectTypeList) url.URL {
-	requestURL := joinURL(c.base, fmt.Sprintf("/secrets/%s/events", secretBlindName))
+	requestURL := c.auditSecretURL(secretBlindName)
 
 	if len(subjectTypes) > 0 {
 		q := requestURL.Query()
@@ -563,7 +569,17 @@ func (c *Client) auditSecretURL(secretBlindName string, subjectTypes api.AuditSu
 		requestURL.RawQuery = q.Encode()
 	}
 
-	return requestURL
+	err := c.get(requestURL.String(), true, &out)
+	return out, err
+}
+
+// AuditSecretPaginator returns a paginator to fetch the audit events for a given secret.
+func (c *Client) AuditSecretPaginator(secretBlindName string) *AuditPaginator {
+	return newAuditPaginator(c.auditSecretURL(secretBlindName), c)
+}
+
+func (c *Client) auditSecretURL(secretBlindName string) url.URL {
+	return joinURL(c.base, fmt.Sprintf("/secrets/%s/events", secretBlindName))
 }
 
 // DeleteSecret deletes a secret.

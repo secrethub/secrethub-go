@@ -3,6 +3,7 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
 func (c *Client) decryptAuditEvents(events ...*api.Audit) error {
@@ -36,6 +37,7 @@ func (c *Client) decryptAuditEvents(events ...*api.Audit) error {
 type AuditEventIterator struct {
 	iterator
 	decryptAuditEvents func(...*api.Audit) error
+	paginator *http.AuditPaginator
 }
 
 func (it *AuditEventIterator) Next() (api.Audit, error) {

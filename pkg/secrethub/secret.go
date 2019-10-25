@@ -200,7 +200,7 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 
 // EventIterator returns an iterator that retrieves all audit events for a given secret.
 // If subjectTypes is left empty, the server's default is used.
-func (s secretService) EventIterator(path string, subjectTypes api.AuditSubjectTypeList) (AuditEventIterator, error) {
+func (s secretService) EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error) {
 	secretPath, err := api.NewSecretPath(path)
 	if err != nil {
 		return AuditEventIterator{}, errio.Error(err)
@@ -211,14 +211,24 @@ func (s secretService) EventIterator(path string, subjectTypes api.AuditSubjectT
 		return AuditEventIterator{}, errio.Error(err)
 	}
 
-	paginator := s.client.httpClient.AuditSecretPaginator(blindName, subjectTypes)
+	paginator := s.client.httpClient.AuditSecretPaginator(blindName)
 
-	return AuditEventIterator{
+	res := AuditEventIterator{
 		iterator: iterator{
 			paginator: paginator,
 		},
+		paginator:          paginator,
 		decryptAuditEvents: s.client.decryptAuditEvents,
-	}, nil
+	}
+
+	for _, option := range options {
+		err := option(&res)
+		if err != nil {
+			return AuditEventIterator{}, err
+		}
+	}
+
+	return res, nil
 }
 
 // Versions returns a SecretVersionService.
