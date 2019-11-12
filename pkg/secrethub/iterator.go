@@ -19,6 +19,14 @@ type iterator struct {
 	items        []interface{}
 }
 
+func newIterator(paginator paginator) iterator {
+	return iterator{
+		paginator:    paginator,
+		currentIndex: 0,
+		items:        nil,
+	}
+}
+
 func (it *iterator) next() (interface{}, error) {
 	if it.items == nil || (len(it.items) > 0 && len(it.items) <= it.currentIndex) {
 		var err error
