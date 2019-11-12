@@ -19,7 +19,7 @@ type iterator struct {
 	paginator    paginator
 	currentIndex int
 	items        []interface{}
-	mutex        sync.Mutex
+	mutex        *sync.Mutex
 }
 
 func newIterator(paginator paginator) iterator {
@@ -27,7 +27,7 @@ func newIterator(paginator paginator) iterator {
 		paginator:    paginator,
 		currentIndex: 0,
 		items:        nil,
-		mutex:        sync.Mutex{},
+		mutex:        &sync.Mutex{},
 	}
 }
 
