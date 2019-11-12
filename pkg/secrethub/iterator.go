@@ -33,22 +33,25 @@ func newIterator(paginator paginator) iterator {
 
 func (it *iterator) next() (interface{}, error) {
 	it.mutex.Lock()
-	defer it.mutex.Unlock()
 	if it.items == nil || (len(it.items) > 0 && len(it.items) <= it.currentIndex) {
 		var err error
 		it.items, err = it.paginator.Next()
 		if err != nil {
+			it.mutex.Unlock()
 			return nil, err
 		}
 		it.currentIndex = 0
+		it.mutex.Unlock()
 		return it.next()
 	}
 
 	if len(it.items) == 0 {
+		it.mutex.Unlock()
 		return nil, IteratorDone
 	}
 
 	res := it.items[it.currentIndex]
 	it.currentIndex++
+	it.mutex.Unlock()
 	return res, nil
 }
