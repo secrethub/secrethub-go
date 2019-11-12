@@ -1,6 +1,8 @@
 package secrethub
 
 import (
+	"sync"
+
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
@@ -17,6 +19,7 @@ type iterator struct {
 	paginator    paginator
 	currentIndex int
 	items        []interface{}
+	mutex        sync.Mutex
 }
 
 func newIterator(paginator paginator) iterator {
@@ -24,10 +27,13 @@ func newIterator(paginator paginator) iterator {
 		paginator:    paginator,
 		currentIndex: 0,
 		items:        nil,
+		mutex:        sync.Mutex{},
 	}
 }
 
 func (it *iterator) next() (interface{}, error) {
+	it.mutex.Lock()
+	defer it.mutex.Unlock()
 	if it.items == nil || (len(it.items) > 0 && len(it.items) <= it.currentIndex) {
 		var err error
 		it.items, err = it.paginator.Next()
