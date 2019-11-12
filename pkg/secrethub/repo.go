@@ -17,12 +17,12 @@ type RepoService interface {
 	// EventIterator returns an iterator that retrieves all audit events for a given repo.
 	//
 	// Usage:
-	//  it, err := client.Repos().EventIterator(path)
+	//  iter, err := client.Repos().EventIterator(path)
 	//  if err != nil {
 	//  	   // Handle error
 	//  }
 	//  for {
-	//      event, err := events.Next()
+	//      event, err := iter.Next()
 	//	    if err == secrethub.IteratorDone {
 	//	        break
 	//	    }
@@ -133,12 +133,12 @@ func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeLi
 // EventIterator returns an iterator that retrieves all audit events for a given repo.
 //
 // Usage:
-//  it, err := client.Repos().EventIterator(path)
+//  iter, err := client.Repos().EventIterator(path)
 //  if err != nil {
 //  	   // Handle error
 //  }
 //  for {
-//      event, err := events.Next()
+//      event, err := iter.Next()
 //	    if err == secrethub.IteratorDone {
 //	        break
 //	    }
