@@ -9,7 +9,7 @@ import (
 )
 
 type fakeAuditPaginator struct {
-	events []api.Audit
+	events   []api.Audit
 	returned bool
 }
 
@@ -30,7 +30,7 @@ func TestAuditEventIterator_Next(t *testing.T) {
 	events := []api.Audit{
 		{
 			EventID: uuid.New(),
-			Action: api.AuditActionRead,
+			Action:  api.AuditActionRead,
 		},
 	}
 
