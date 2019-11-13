@@ -33,25 +33,29 @@ func newIterator(paginator paginator) iterator {
 
 func (it *iterator) next() (interface{}, error) {
 	it.mutex.Lock()
+	defer it.mutex.Unlock()
+	return it.nextUnsafe()
+}
+
+// nextUnsafe should only be called from one goroutine at a time,
+// with the exception of nextUnsafe calling itself.
+// Use next to enforce this.
+func (it *iterator) nextUnsafe() (interface{}, error) {
 	if it.items == nil || (len(it.items) > 0 && len(it.items) <= it.currentIndex) {
 		var err error
 		it.items, err = it.paginator.Next()
 		if err != nil {
-			it.mutex.Unlock()
 			return nil, err
 		}
 		it.currentIndex = 0
-		it.mutex.Unlock()
-		return it.next()
+		return it.nextUnsafe()
 	}
 
 	if len(it.items) == 0 {
-		it.mutex.Unlock()
 		return nil, IteratorDone
 	}
 
 	res := it.items[it.currentIndex]
 	it.currentIndex++
-	it.mutex.Unlock()
 	return res, nil
 }
