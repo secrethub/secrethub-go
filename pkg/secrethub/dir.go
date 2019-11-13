@@ -1,15 +1,20 @@
 package secrethub
 
 import (
+	"strings"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secretpath"
 )
 
 // DirService handles operations on directories from SecretHub.
 type DirService interface {
 	// Create a directory at a given path.
 	Create(path string) (*api.Dir, error)
+	// CreateAll creates all directories in the given path that do not exist yet.
+	CreateAll(path string) error
 	// Get returns the directory with the given ID.
 	GetByID(id uuid.UUID) (*api.Dir, error)
 	// Delete removes the directory at the given path.
@@ -167,6 +172,35 @@ func (s dirService) Delete(path string) error {
 	}
 
 	return nil
+}
+
+// CreateAll creates all directories in the given path that do not exist yet.
+func (s dirService) CreateAll(path string) error {
+	err := api.ValidateDirPath(path)
+	if err != nil {
+		return err
+	}
+	return s.createAll(path)
+}
+
+func (s dirService) createAll(path string) error {
+	if len(strings.Split(path, "/")) < 3 {
+		return nil
+	}
+
+	_, err := s.GetTree(path, 0, false)
+	if err != api.ErrDirNotFound {
+		return err
+	}
+
+	_, err = s.Create(path)
+	if err == api.ErrDirAlreadyExists {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return s.createAll(secretpath.Parent(path))
 }
 
 // listDirAccounts list the accounts with read permission.
