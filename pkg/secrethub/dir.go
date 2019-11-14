@@ -190,6 +190,7 @@ func (s dirService) createAll(path string) error {
 
 	_, err := s.GetTree(path, 0, false)
 	if err != api.ErrDirNotFound {
+		// err might be nil
 		return err
 	}
 
@@ -202,6 +203,7 @@ func (s dirService) createAll(path string) error {
 	if err == api.ErrDirAlreadyExists {
 		return nil
 	}
+	// err might be nil
 	return err
 }
 
