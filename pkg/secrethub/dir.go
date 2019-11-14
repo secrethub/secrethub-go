@@ -193,14 +193,16 @@ func (s dirService) createAll(path string) error {
 		return err
 	}
 
+	err = s.createAll(secretpath.Parent(path))
+	if err != nil {
+		return err
+	}
+
 	_, err = s.Create(path)
 	if err == api.ErrDirAlreadyExists {
 		return nil
 	}
-	if err != nil {
-		return err
-	}
-	return s.createAll(secretpath.Parent(path))
+	return err
 }
 
 // listDirAccounts list the accounts with read permission.
