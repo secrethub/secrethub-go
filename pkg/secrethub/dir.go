@@ -14,6 +14,8 @@ type DirService interface {
 	// Create a directory at a given path.
 	Create(path string) (*api.Dir, error)
 	// CreateAll creates all directories in the given path that do not exist yet.
+	//
+	// Contrary to Create, it doesn't return an error when the directories already exist.
 	CreateAll(path string) error
 	// Get returns the directory with the given ID.
 	GetByID(id uuid.UUID) (*api.Dir, error)
@@ -175,6 +177,8 @@ func (s dirService) Delete(path string) error {
 }
 
 // CreateAll creates all directories in the given path that do not exist yet.
+//
+// Contrary to Create, it doesn't return an error when the directories already exist.
 func (s dirService) CreateAll(path string) error {
 	err := api.ValidateDirPath(path)
 	if err != nil {
