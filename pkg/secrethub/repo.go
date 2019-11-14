@@ -19,18 +19,17 @@ type RepoService interface {
 	// Usage:
 	//  iter, err := client.Repos().EventIterator(path)
 	//  if err != nil {
-	//  	   // Handle error
+	//  	// Handle error
 	//  }
 	//  for {
-	//      event, err := iter.Next()
-	//	    if err == secrethub.IteratorDone {
-	//	        break
-	//	    }
-	//	    if err != nil {
-	//	        // Handle error
-	//	    }
+	//  	event, err := iter.Next()
+	//  	if err == secrethub.IteratorDone {
+	//  		break
+	//  	} else if err != nil {
+	//  		// Handle error
+	//  	}
 	//
-	//      // Use event
+	//  	// Use event
 	//  }
 	EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error)
 	// List retrieves all repositories in the given namespace.
@@ -135,18 +134,17 @@ func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeLi
 // Usage:
 //  iter, err := client.Repos().EventIterator(path)
 //  if err != nil {
-//  	   // Handle error
+//  	// Handle error
 //  }
 //  for {
-//      event, err := iter.Next()
-//	    if err == secrethub.IteratorDone {
-//	        break
-//	    }
-//	    if err != nil {
-//	        // Handle error
-//	    }
+//  	event, err := iter.Next()
+//  	if err == secrethub.IteratorDone {
+//  		break
+//  	} else if err != nil {
+//  		// Handle error
+//  	}
 //
-//      // Use event
+//  	// Use event
 //  }
 func (s repoService) EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error) {
 	repoPath, err := api.NewRepoPath(path)

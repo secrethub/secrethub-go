@@ -16,20 +16,19 @@ type SecretService interface {
 	// EventIterator returns an iterator that retrieves all audit events for a given secret.
 	//
 	// Usage:
-	//  iter, err := client.Secrets().EventIterator(path)
+	//  iter, err := client.Repos().EventIterator(path)
 	//  if err != nil {
-	// 	    // Handle error
+	//  	// Handle error
 	//  }
 	//  for {
-	// 	    event, err := iter.Next()
-	//	    if err == secrethub.IteratorDone {
-	//	        break
-	//	    }
-	//	    if err != nil {
-	//	        // Handle error
-	//	    }
+	//  	event, err := iter.Next()
+	//  	if err == secrethub.IteratorDone {
+	//  		break
+	//  	} else if err != nil {
+	//  		// Handle error
+	//  	}
 	//
-	//      // Use event
+	//  	// Use event
 	//  }
 	EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error)
 	// ListEvents retrieves all audit events for a given secret.
@@ -224,20 +223,19 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 // EventIterator returns an iterator that retrieves all audit events for a given secret.
 //
 // Usage:
-//  iter, err := client.Secrets().EventIterator(path)
+//  iter, err := client.Repos().EventIterator(path)
 //  if err != nil {
-// 	    // Handle error
+//  	// Handle error
 //  }
 //  for {
-// 	    event, err := iter.Next()
-//	    if err == secrethub.IteratorDone {
-//	        break
-//	    }
-//	    if err != nil {
-//	        // Handle error
-//	    }
+//  	event, err := iter.Next()
+//  	if err == secrethub.IteratorDone {
+//  		break
+//  	} else if err != nil {
+//  		// Handle error
+//  	}
 //
-//      // Use event
+//  	// Use event
 //  }
 func (s secretService) EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error) {
 	secretPath, err := api.NewSecretPath(path)
