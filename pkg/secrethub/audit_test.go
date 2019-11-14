@@ -6,6 +6,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/assert"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 type fakeAuditPaginator struct {
@@ -34,19 +35,19 @@ func TestAuditEventIterator_Next(t *testing.T) {
 		},
 	}
 
-	iterator := AuditEventIterator{
-		iterator: newIterator(&fakeAuditPaginator{events: events}),
+	iter := AuditEventIterator{
+		iterator: iterator.New(&fakeAuditPaginator{events: events}),
 		decryptAuditEvents: func(audit ...*api.Audit) error {
 			return nil
 		},
 	}
 
 	for _, event := range events {
-		actual, err := iterator.Next()
+		actual, err := iter.Next()
 
 		assert.Equal(t, err, nil)
 		assert.Equal(t, actual, event)
 	}
-	_, err := iterator.Next()
-	assert.Equal(t, err, IteratorDone)
+	_, err := iter.Next()
+	assert.Equal(t, err, iterator.Done)
 }

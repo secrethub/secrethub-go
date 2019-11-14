@@ -22,7 +22,7 @@ type SecretService interface {
 	//  }
 	//  for {
 	//  	event, err := iter.Next()
-	//  	if err == secrethub.IteratorDone {
+	//  	if err == iterator.Done {
 	//  		break
 	//  	} else if err != nil {
 	//  		// Handle error
@@ -229,7 +229,7 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 //  }
 //  for {
 //  	event, err := iter.Next()
-//  	if err == secrethub.IteratorDone {
+//  	if err == iterator.Done {
 //  		break
 //  	} else if err != nil {
 //  		// Handle error

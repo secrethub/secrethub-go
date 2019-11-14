@@ -23,7 +23,7 @@ type RepoService interface {
 	//  }
 	//  for {
 	//  	event, err := iter.Next()
-	//  	if err == secrethub.IteratorDone {
+	//  	if err == iterator.Done {
 	//  		break
 	//  	} else if err != nil {
 	//  		// Handle error
@@ -138,7 +138,7 @@ func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeLi
 //  }
 //  for {
 //  	event, err := iter.Next()
-//  	if err == secrethub.IteratorDone {
+//  	if err == iterator.Done {
 //  		break
 //  	} else if err != nil {
 //  		// Handle error

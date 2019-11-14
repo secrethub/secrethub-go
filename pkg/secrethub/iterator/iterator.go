@@ -1,4 +1,6 @@
-package secrethub
+// Package iterator provides a generic iterator to be used as a building block for typed iterators.
+// In your applications, use the typed iterators returned by the secrethub package.
+package iterator
 
 import (
 	"sync"
@@ -8,22 +10,22 @@ import (
 
 // Errors
 var (
-	IteratorDone = errio.Namespace("iterator").Code("done").Error("there are no more items left")
+	Done = errio.Namespace("iterator").Code("done").Error("there are no more items left")
 )
 
-type paginator interface {
+type Paginator interface {
 	Next() ([]interface{}, error)
 }
 
-type iterator struct {
-	paginator    paginator
+type Iterator struct {
+	paginator    Paginator
 	currentIndex int
 	items        []interface{}
 	mutex        *sync.Mutex
 }
 
-func newIterator(paginator paginator) iterator {
-	return iterator{
+func New(paginator Paginator) Iterator {
+	return Iterator{
 		paginator:    paginator,
 		currentIndex: 0,
 		items:        nil,
@@ -31,7 +33,7 @@ func newIterator(paginator paginator) iterator {
 	}
 }
 
-func (it *iterator) next() (interface{}, error) {
+func (it *Iterator) Next() (interface{}, error) {
 	it.mutex.Lock()
 	defer it.mutex.Unlock()
 	return it.nextUnsafe()
@@ -39,8 +41,8 @@ func (it *iterator) next() (interface{}, error) {
 
 // nextUnsafe should only be called from one goroutine at a time,
 // with the exception of nextUnsafe calling itself.
-// Use next to enforce this.
-func (it *iterator) nextUnsafe() (interface{}, error) {
+// Use Next to enforce this.
+func (it *Iterator) nextUnsafe() (interface{}, error) {
 	if it.items == nil || (len(it.items) > 0 && len(it.items) <= it.currentIndex) {
 		var err error
 		it.items, err = it.paginator.Next()
@@ -52,7 +54,7 @@ func (it *iterator) nextUnsafe() (interface{}, error) {
 	}
 
 	if len(it.items) == 0 {
-		return nil, IteratorDone
+		return nil, Done
 	}
 
 	res := it.items[it.currentIndex]
