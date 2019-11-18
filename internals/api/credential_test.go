@@ -134,6 +134,48 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 			},
 			err: ErrUnknownMetadataKey("foo"),
 		},
+		"backup code success": {
+			req: CreateCredentialRequest{
+				Type:        CredentialTypeBackupCode,
+				Fingerprint: "69cf01c1e969b4430ca1b08ede7dab5f91a64a306e321f0348667446e1b3597e",
+				Verifier:    []byte("DdAaVTKxoYgxzWY2UWrdl1xHOOv4ZUozra4Vm8WGxmU="),
+				Proof:       &CredentialProofBackupCode{},
+				Metadata:    map[string]string{},
+			},
+			err: nil,
+		},
+		"backup code too short verifier": {
+			req: CreateCredentialRequest{
+				Type:        CredentialTypeBackupCode,
+				Fingerprint: "69cf01c1e969b4430ca1b08ede7dab5f91a64a306e321f0348667446e1b3597e",
+				Verifier:    []byte("DdAaVTKxoYgxzWY2UWrdl1OOv4ZUozra4Vm8WGxmU="),
+				Proof:       &CredentialProofBackupCode{},
+				Metadata:    map[string]string{},
+			},
+			err: ErrInvalidVerifier,
+		},
+		"backup code non base64 verifier": {
+			req: CreateCredentialRequest{
+				Type:        CredentialTypeBackupCode,
+				Fingerprint: "69cf01c1e969b4430ca1b08ede7dab5f91a64a306e321f0348667446e1b3597e",
+				Verifier:    []byte("DdAaVTKxoYgxzWY2UWrdl1OOv4ZUozra4Vm8WGxm&="),
+				Proof:       &CredentialProofBackupCode{},
+				Metadata:    map[string]string{},
+			},
+			err: ErrInvalidVerifier,
+		},
+		"backup code with metadata": {
+			req: CreateCredentialRequest{
+				Type:        CredentialTypeBackupCode,
+				Fingerprint: "69cf01c1e969b4430ca1b08ede7dab5f91a64a306e321f0348667446e1b3597e",
+				Verifier:    []byte("DdAaVTKxoYgxzWY2UWrdl1xHOOv4ZUozra4Vm8WGxmU="),
+				Proof:       &CredentialProofBackupCode{},
+				Metadata: map[string]string{
+					CredentialMetadataAWSKMSKey: "test",
+				},
+			},
+			err: ErrInvalidMetadataKey(CredentialMetadataAWSKMSKey, CredentialTypeBackupCode),
+		},
 	}
 
 	for name, tc := range cases {

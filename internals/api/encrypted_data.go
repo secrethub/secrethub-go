@@ -133,6 +133,8 @@ func (ed *EncryptedData) UnmarshalJSON(b []byte) error {
 		dec.Key = &EncryptionKeyEncrypted{}
 	case KeyTypeLocal:
 		dec.Key = &EncryptionKeyLocal{}
+	case KeyTypeBootstrapCode:
+		dec.Key = &EncryptionKeyBootstrapCode{}
 	case KeyTypeAccountKey:
 		dec.Key = &EncryptionKeyAccountKey{}
 	case KeyTypeSecretKey:

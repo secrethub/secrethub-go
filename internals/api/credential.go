@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -52,8 +53,9 @@ type CredentialType string
 
 // Credential types
 const (
-	CredentialTypeKey CredentialType = "key"
-	CredentialTypeAWS CredentialType = "aws"
+	CredentialTypeKey        CredentialType = "key"
+	CredentialTypeAWS        CredentialType = "aws"
+	CredentialTypeBackupCode CredentialType = "backup-code"
 )
 
 const (
@@ -63,10 +65,15 @@ const (
 
 // Validate validates whether the algorithm type is valid.
 func (a CredentialType) Validate() error {
-	if a == CredentialTypeKey || a == CredentialTypeAWS {
-		return nil
+	var credentialTypeList = map[CredentialType]struct{}{
+		CredentialTypeKey:        {},
+		CredentialTypeAWS:        {},
+		CredentialTypeBackupCode: {},
 	}
-	return ErrInvalidCredentialType
+	if _, ok := credentialTypeList[a]; !ok {
+		return ErrInvalidCredentialType
+	}
+	return nil
 }
 
 // CreateCredentialRequest contains the fields to add a credential to an account.
@@ -102,6 +109,8 @@ func (req *CreateCredentialRequest) UnmarshalJSON(b []byte) error {
 		dec.Proof = &CredentialProofAWS{}
 	case CredentialTypeKey:
 		dec.Proof = &CredentialProofKey{}
+	case CredentialTypeBackupCode:
+		dec.Proof = &CredentialProofBackupCode{}
 	default:
 		return ErrInvalidCredentialType
 	}
@@ -132,6 +141,16 @@ func (req *CreateCredentialRequest) Validate() error {
 	err := req.Type.Validate()
 	if err != nil {
 		return err
+	}
+
+	if req.Type == CredentialTypeBackupCode {
+		decoded, err := base64.StdEncoding.DecodeString(string(req.Verifier))
+		if err != nil {
+			return ErrInvalidVerifier
+		}
+		if len(decoded) != sha256.Size {
+			return ErrInvalidVerifier
+		}
 	}
 
 	if req.Type == CredentialTypeAWS && req.Proof == nil {
@@ -188,6 +207,9 @@ func (p CredentialProofAWS) Validate() error {
 
 // CredentialProofKey is proof for when the credential type is RSA.
 type CredentialProofKey struct{}
+
+// CredentialProofBackupCode is proof for when the credential type is backup key.
+type CredentialProofBackupCode struct{}
 
 // GetFingerprint returns the fingerprint of a credential.
 func GetFingerprint(t CredentialType, verifier []byte) string {
