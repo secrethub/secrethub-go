@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/secrethub/secrethub-go/internals/crypto"
 )
 
 // Errors
@@ -138,10 +138,7 @@ func (req *CreateCredentialRequest) Validate() error {
 		return ErrMissingField("proof")
 	}
 
-	fingerprint, err := GetFingerprint(req.Type, req.Verifier)
-	if err != nil {
-		return err
-	}
+	fingerprint := GetFingerprint(req.Type, req.Verifier)
 	if req.Fingerprint != fingerprint {
 		return ErrInvalidFingerprint
 	}
@@ -193,7 +190,7 @@ func (p CredentialProofAWS) Validate() error {
 type CredentialProofKey struct{}
 
 // GetFingerprint returns the fingerprint of a credential.
-func GetFingerprint(t CredentialType, verifier []byte) (string, error) {
+func GetFingerprint(t CredentialType, verifier []byte) string {
 	var toHash []byte
 	if t == CredentialTypeKey {
 		// Provide compatibility with traditional RSA credentials.
@@ -203,10 +200,5 @@ func GetFingerprint(t CredentialType, verifier []byte) (string, error) {
 		toHash = []byte(fmt.Sprintf("credential_type=%s;verifier=%s", t, encodedVerifier))
 
 	}
-	h := sha256.New()
-	_, err := h.Write(toHash)
-	if err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(h.Sum(nil)), nil
+	return hex.EncodeToString(crypto.SHA256(toHash))
 }
