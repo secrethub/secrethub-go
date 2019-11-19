@@ -43,7 +43,7 @@ func (it *Iterator) Next() (interface{}, error) {
 	var err error
 	if it.paginator == nil {
 		it.paginator, err = it.newPaginator()
-		if err == nil {
+		if err != nil {
 			return nil, err
 		}
 	}
