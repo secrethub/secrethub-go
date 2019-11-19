@@ -17,10 +17,7 @@ type SecretService interface {
 	// EventIterator returns an iterator that retrieves all audit events for a given secret.
 	//
 	// Usage:
-	//  iter, err := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
-	//  if err != nil {
-	//  	// Handle error
-	//  }
+	//  iter := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
 	//  for {
 	//  	event, err := iter.Next()
 	//  	if err == iterator.Done {
@@ -31,7 +28,7 @@ type SecretService interface {
 	//
 	//  	// Use event
 	//  }
-	EventIterator(path string, _ *AuditEventIteratorParams) (AuditEventIterator, error)
+	EventIterator(path string, _ *AuditEventIteratorParams) AuditEventIterator
 	// ListEvents retrieves all audit events for a given secret.
 	//
 	// Deprecated: Use `EventIterator` instead.
@@ -224,10 +221,7 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 // EventIterator returns an iterator that retrieves all audit events for a given secret.
 //
 // Usage:
-//  iter, err := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
-//  if err != nil {
-//  	// Handle error
-//  }
+//  iter := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
 //  for {
 //  	event, err := iter.Next()
 //  	if err == iterator.Done {
@@ -238,8 +232,8 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 //
 //  	// Use event
 //  }
-func (s secretService) EventIterator(path string, _ *AuditEventIteratorParams) (AuditEventIterator, error) {
-	res := newAuditEventIterator(
+func (s secretService) EventIterator(path string, _ *AuditEventIteratorParams) AuditEventIterator {
+	return newAuditEventIterator(
 		func() (*http.AuditPaginator, error) {
 			secretPath, err := api.NewSecretPath(path)
 			if err != nil {
@@ -255,8 +249,6 @@ func (s secretService) EventIterator(path string, _ *AuditEventIteratorParams) (
 		},
 		s.client,
 	)
-
-	return res, nil
 }
 
 // Versions returns a SecretVersionService.

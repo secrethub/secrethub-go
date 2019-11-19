@@ -18,10 +18,7 @@ type RepoService interface {
 	// EventIterator returns an iterator that retrieves all audit events for a given repo.
 	//
 	// Usage:
-	//  iter, err := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
-	//  if err != nil {
-	//  	// Handle error
-	//  }
+	//  iter := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
 	//  for {
 	//  	event, err := iter.Next()
 	//  	if err == iterator.Done {
@@ -32,7 +29,7 @@ type RepoService interface {
 	//
 	//  	// Use event
 	//  }
-	EventIterator(path string, _ *AuditEventIteratorParams) (AuditEventIterator, error)
+	EventIterator(path string, _ *AuditEventIteratorParams) AuditEventIterator
 	// List retrieves all repositories in the given namespace.
 	List(namespace string) ([]*api.Repo, error)
 	// ListAccounts lists the accounts in the repository.
@@ -147,8 +144,8 @@ func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeLi
 //
 //  	// Use event
 //  }
-func (s repoService) EventIterator(path string, _ *AuditEventIteratorParams) (AuditEventIterator, error) {
-	res := newAuditEventIterator(
+func (s repoService) EventIterator(path string, _ *AuditEventIteratorParams) AuditEventIterator {
+	return newAuditEventIterator(
 		func() (*http.AuditPaginator, error) {
 			repoPath, err := api.NewRepoPath(path)
 			if err != nil {
@@ -160,7 +157,6 @@ func (s repoService) EventIterator(path string, _ *AuditEventIteratorParams) (Au
 		},
 		s.client,
 	)
-	return res, nil
 }
 
 // ListMine retrieves all repositories of the current user.
