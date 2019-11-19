@@ -35,9 +35,11 @@ func (c *Client) decryptAuditEvents(events ...*api.Audit) error {
 	return nil
 }
 
-func newAuditEventIterator(paginator *http.AuditPaginator, client *Client) AuditEventIterator {
+func newAuditEventIterator(newPaginator func() (*http.AuditPaginator, error), client *Client) AuditEventIterator {
 	return AuditEventIterator{
-		iterator:           iterator.New(paginator),
+		iterator: iterator.New(func() (iterator.Paginator, error) {
+			return newPaginator()
+		}),
 		decryptAuditEvents: client.decryptAuditEvents,
 	}
 }

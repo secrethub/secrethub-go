@@ -17,16 +17,19 @@ type Paginator interface {
 	Next() ([]interface{}, error)
 }
 
+type PaginatorConstructor func() (Paginator, error)
+
 type Iterator struct {
+	newPaginator PaginatorConstructor
 	paginator    Paginator
 	currentIndex int
 	items        []interface{}
 	mutex        *sync.Mutex
 }
 
-func New(paginator Paginator) Iterator {
+func New(newPaginator PaginatorConstructor) Iterator {
 	return Iterator{
-		paginator:    paginator,
+		newPaginator: newPaginator,
 		currentIndex: 0,
 		items:        nil,
 		mutex:        &sync.Mutex{},
@@ -36,6 +39,15 @@ func New(paginator Paginator) Iterator {
 func (it *Iterator) Next() (interface{}, error) {
 	it.mutex.Lock()
 	defer it.mutex.Unlock()
+
+	var err error
+	if it.paginator == nil {
+		it.paginator, err = it.newPaginator()
+		if err == nil {
+			return nil, err
+		}
+	}
+
 	return it.nextUnsafe()
 }
 

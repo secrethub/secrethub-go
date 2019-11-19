@@ -3,6 +3,7 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
 // SecretService handles operations on secrets from SecretHub.
@@ -238,19 +239,22 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 //  	// Use event
 //  }
 func (s secretService) EventIterator(path string, _ *AuditEventIteratorParams) (AuditEventIterator, error) {
-	secretPath, err := api.NewSecretPath(path)
-	if err != nil {
-		return AuditEventIterator{}, errio.Error(err)
-	}
+	res := newAuditEventIterator(
+		func() (*http.AuditPaginator, error) {
+			secretPath, err := api.NewSecretPath(path)
+			if err != nil {
+				return nil, err
+			}
 
-	blindName, err := s.client.convertPathToBlindName(secretPath)
-	if err != nil {
-		return AuditEventIterator{}, errio.Error(err)
-	}
+			blindName, err := s.client.convertPathToBlindName(secretPath)
+			if err != nil {
+				return nil, err
+			}
 
-	paginator := s.client.httpClient.AuditSecretPaginator(blindName)
-
-	res := newAuditEventIterator(paginator, s.client)
+			return s.client.httpClient.AuditSecretPaginator(blindName), nil
+		},
+		s.client,
+	)
 
 	return res, nil
 }
