@@ -303,22 +303,6 @@ func (pag *AuditPaginator) Next() ([]interface{}, error) {
 	return res, nil
 }
 
-// AuditPaginatorOption adjusts the behavior of an AuditPaginator.
-type AuditPaginatorOption func(*AuditPaginator) error
-
-// OnlySubjectTypes filters the audit event results to only the events with a subject
-// of one of the given types.
-func OnlySubjectTypes(subjectTypes api.AuditSubjectTypeList) AuditPaginatorOption {
-	return func(pag *AuditPaginator) error {
-		if len(subjectTypes) > 0 {
-			q := pag.requestURL.Query()
-			q.Set("subject_types", subjectTypes.Join(","))
-			pag.requestURL.RawQuery = q.Encode()
-		}
-		return nil
-	}
-}
-
 // ListRepoAccounts lists the accounts of a repo.
 func (c *Client) ListRepoAccounts(namespace, repoName string) ([]*api.Account, error) {
 	out := []*api.Account{}

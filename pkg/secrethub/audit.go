@@ -62,10 +62,8 @@ func (it *AuditEventIterator) Next() (api.Audit, error) {
 	return audit, nil
 }
 
-type AuditEventIterationOption func(*AuditEventIterator) error
-
-func OnlySubjectTypes(subjectTypes api.AuditSubjectTypeList) AuditEventIterationOption {
-	return func(it *AuditEventIterator) error {
-		return http.OnlySubjectTypes(subjectTypes)(it.paginator)
-	}
-}
+// AuditEventIteratorParams can be used to configure iteration of audit events.
+//
+// For now, there's nothing to configure. We'll add filter options soon.
+// The struct is already added, so that adding parameters is backwards compatible.
+type AuditEventIteratorParams struct{}

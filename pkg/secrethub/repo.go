@@ -17,7 +17,7 @@ type RepoService interface {
 	// EventIterator returns an iterator that retrieves all audit events for a given repo.
 	//
 	// Usage:
-	//  iter, err := client.Repos().EventIterator(path)
+	//  iter, err := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
 	//  if err != nil {
 	//  	// Handle error
 	//  }
@@ -31,7 +31,7 @@ type RepoService interface {
 	//
 	//  	// Use event
 	//  }
-	EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error)
+	EventIterator(path string, _ *AuditEventIteratorParams) (AuditEventIterator, error)
 	// List retrieves all repositories in the given namespace.
 	List(namespace string) ([]*api.Repo, error)
 	// ListAccounts lists the accounts in the repository.
@@ -132,7 +132,7 @@ func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeLi
 // EventIterator returns an iterator that retrieves all audit events for a given repo.
 //
 // Usage:
-//  iter, err := client.Repos().EventIterator(path)
+//  iter, err := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
 //  if err != nil {
 //  	// Handle error
 //  }
@@ -146,7 +146,7 @@ func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeLi
 //
 //  	// Use event
 //  }
-func (s repoService) EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error) {
+func (s repoService) EventIterator(path string, _ *AuditEventIteratorParams) (AuditEventIterator, error) {
 	repoPath, err := api.NewRepoPath(path)
 	if err != nil {
 		return AuditEventIterator{}, errio.Error(err)
@@ -156,14 +156,6 @@ func (s repoService) EventIterator(path string, options ...AuditEventIterationOp
 	paginator := s.client.httpClient.AuditRepoPaginator(namespace, repoName)
 
 	res := newAuditEventIterator(paginator, s.client)
-
-	for _, option := range options {
-		err := option(&res)
-		if err != nil {
-			return AuditEventIterator{}, err
-		}
-	}
-
 	return res, nil
 }
 

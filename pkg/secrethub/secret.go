@@ -16,7 +16,7 @@ type SecretService interface {
 	// EventIterator returns an iterator that retrieves all audit events for a given secret.
 	//
 	// Usage:
-	//  iter, err := client.Repos().EventIterator(path)
+	//  iter, err := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
 	//  if err != nil {
 	//  	// Handle error
 	//  }
@@ -30,7 +30,7 @@ type SecretService interface {
 	//
 	//  	// Use event
 	//  }
-	EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error)
+	EventIterator(path string, _ *AuditEventIteratorParams) (AuditEventIterator, error)
 	// ListEvents retrieves all audit events for a given secret.
 	//
 	// Deprecated: Use `EventIterator` instead.
@@ -223,7 +223,7 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 // EventIterator returns an iterator that retrieves all audit events for a given secret.
 //
 // Usage:
-//  iter, err := client.Repos().EventIterator(path)
+//  iter, err := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
 //  if err != nil {
 //  	// Handle error
 //  }
@@ -237,7 +237,7 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 //
 //  	// Use event
 //  }
-func (s secretService) EventIterator(path string, options ...AuditEventIterationOption) (AuditEventIterator, error) {
+func (s secretService) EventIterator(path string, _ *AuditEventIteratorParams) (AuditEventIterator, error) {
 	secretPath, err := api.NewSecretPath(path)
 	if err != nil {
 		return AuditEventIterator{}, errio.Error(err)
@@ -251,13 +251,6 @@ func (s secretService) EventIterator(path string, options ...AuditEventIteration
 	paginator := s.client.httpClient.AuditSecretPaginator(blindName)
 
 	res := newAuditEventIterator(paginator, s.client)
-
-	for _, option := range options {
-		err := option(&res)
-		if err != nil {
-			return AuditEventIterator{}, err
-		}
-	}
 
 	return res, nil
 }
