@@ -36,7 +36,9 @@ func TestAuditEventIterator_Next(t *testing.T) {
 	}
 
 	iter := AuditEventIterator{
-		iterator: iterator.New(&fakeAuditPaginator{events: events}),
+		iterator: iterator.New(func() (iterator.Paginator, error) {
+			return &fakeAuditPaginator{events: events}, nil
+		}),
 		decryptAuditEvents: func(audit ...*api.Audit) error {
 			return nil
 		},
