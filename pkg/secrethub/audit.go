@@ -38,7 +38,6 @@ func (c *Client) decryptAuditEvents(events ...*api.Audit) error {
 func newAuditEventIterator(paginator *http.AuditPaginator, client *Client) AuditEventIterator {
 	return AuditEventIterator{
 		iterator:           iterator.New(paginator),
-		paginator:          paginator,
 		decryptAuditEvents: client.decryptAuditEvents,
 	}
 }
@@ -46,7 +45,6 @@ func newAuditEventIterator(paginator *http.AuditPaginator, client *Client) Audit
 type AuditEventIterator struct {
 	iterator           iterator.Iterator
 	decryptAuditEvents func(...*api.Audit) error
-	paginator          *http.AuditPaginator
 }
 
 func (it *AuditEventIterator) Next() (api.Audit, error) {
