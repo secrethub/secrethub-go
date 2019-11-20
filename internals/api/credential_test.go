@@ -20,6 +20,29 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 			},
 			err: nil,
 		},
+		"success including account key": {
+			req: CreateCredentialRequest{
+				Name:        "Personal laptop credential",
+				Type:        CredentialTypeKey,
+				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
+				Verifier:    []byte("verifier"),
+				AccountKey: &CreateAccountKeyRequest{
+					EncryptedPrivateKey: NewEncryptedDataAESGCM([]byte("encrypted"), []byte("nonce"), 96, NewEncryptionKeyLocal(256)),
+					PublicKey:           []byte("public-key"),
+				},
+			},
+			err: nil,
+		},
+		"including invalid account key": {
+			req: CreateCredentialRequest{
+				Name:        "Personal laptop credential",
+				Type:        CredentialTypeKey,
+				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
+				Verifier:    []byte("verifier"),
+				AccountKey:  &CreateAccountKeyRequest{},
+			},
+			err: ErrInvalidPublicKey,
+		},
 		"success without name": {
 			req: CreateCredentialRequest{
 				Type:        CredentialTypeKey,
