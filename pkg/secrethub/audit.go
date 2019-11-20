@@ -35,8 +35,8 @@ func (c *Client) decryptAuditEvents(events ...*api.Audit) error {
 	return nil
 }
 
-func newAuditEventIterator(newPaginator func() (*http.AuditPaginator, error), client *Client) AuditEventIterator {
-	return AuditEventIterator{
+func newAuditEventIterator(newPaginator func() (*http.AuditPaginator, error), client *Client) *auditEventIterator {
+	return &auditEventIterator{
 		iterator: iterator.New(func() (iterator.Paginator, error) {
 			return newPaginator()
 		}),
@@ -44,12 +44,16 @@ func newAuditEventIterator(newPaginator func() (*http.AuditPaginator, error), cl
 	}
 }
 
-type AuditEventIterator struct {
+type AuditEventIterator interface {
+	Next() (api.Audit, error)
+}
+
+type auditEventIterator struct {
 	iterator           iterator.Iterator
 	decryptAuditEvents func(...*api.Audit) error
 }
 
-func (it *AuditEventIterator) Next() (api.Audit, error) {
+func (it *auditEventIterator) Next() (api.Audit, error) {
 	item, err := it.iterator.Next()
 	if err != nil {
 		return api.Audit{}, err

@@ -9,15 +9,16 @@ import (
 
 // RepoService is a mock of the RepoService interface.
 type RepoService struct {
-	AccountLister  RepoAccountLister
-	Creater        RepoCreater
-	Deleter        RepoDeleter
-	Getter         RepoGetter
-	EventLister    RepoEventLister
-	Lister         RepoLister
-	UserService    *RepoUserService
-	ServiceService *RepoServiceService
-	MineLister     RepoMineLister
+	AccountLister      RepoAccountLister
+	Creater            RepoCreater
+	Deleter            RepoDeleter
+	Getter             RepoGetter
+	EventLister        RepoEventLister
+	Lister             RepoLister
+	UserService        *RepoUserService
+	ServiceService     *RepoServiceService
+	MineLister         RepoMineLister
+	AuditEventIterator *AuditEventIterator
 
 	secrethub.RepoService
 }
@@ -35,6 +36,11 @@ func (s *RepoService) ListAccounts(path string) ([]*api.Account, error) {
 // ListEvents implements the RepoService interface ListEvents function.
 func (s *RepoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	return s.EventLister.ListEvents(path, subjectTypes)
+}
+
+// EventIterator implements the RepoService interface EventIterator function.
+func (s *RepoService) EventIterator(path string, config *secrethub.AuditEventIteratorParams) secrethub.AuditEventIterator {
+	return s.AuditEventIterator
 }
 
 // ListMine implements the RepoService interface ListMine function.
