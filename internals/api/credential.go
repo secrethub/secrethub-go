@@ -144,6 +144,12 @@ func (req *CreateCredentialRequest) Validate() error {
 		return err
 	}
 
+	if req.AccountKey != nil {
+		if err := req.AccountKey.Validate(); err != nil {
+			return err
+		}
+	}
+
 	if req.Type == CredentialTypeBackupCode {
 		decoded, err := base64.StdEncoding.DecodeString(string(req.Verifier))
 		if err != nil {
