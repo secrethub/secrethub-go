@@ -9,15 +9,16 @@ import (
 
 // RepoService is a mock of the RepoService interface.
 type RepoService struct {
-	AccountLister      RepoAccountLister
-	Creater            RepoCreater
-	Deleter            RepoDeleter
-	Getter             RepoGetter
-	EventLister        RepoEventLister
-	Lister             RepoLister
-	UserService        *RepoUserService
-	ServiceService     *RepoServiceService
-	MineLister         RepoMineLister
+	AccountLister  RepoAccountLister
+	Creater        RepoCreater
+	Deleter        RepoDeleter
+	Getter         RepoGetter
+	EventLister    RepoEventLister
+	Lister         RepoLister
+	UserService    *RepoUserService
+	ServiceService *RepoServiceService
+	MineLister     RepoMineLister
+
 	AuditEventIterator *AuditEventIterator
 
 	secrethub.RepoService

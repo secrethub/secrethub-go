@@ -11,10 +11,11 @@ import (
 type SecretService struct {
 	VersionService secrethub.SecretVersionService
 
-	Deleter            SecretDeleter
-	Getter             SecretGetter
-	EventLister        SecretEventLister
-	Writer             Writer
+	Deleter     SecretDeleter
+	Getter      SecretGetter
+	EventLister SecretEventLister
+	Writer      Writer
+
 	AuditEventIterator *AuditEventIterator
 
 	secrethub.SecretService
