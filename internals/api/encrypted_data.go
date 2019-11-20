@@ -222,3 +222,33 @@ func (ed *EncryptedData) Validate() error {
 	}
 	return nil
 }
+
+// EncryptedDataAESGCM is a typed EncryptedData for the AESGCM algorithm.
+type EncryptedDataAESGCM struct {
+	Key        interface{}
+	Parameters EncryptionParametersAESGCM
+	Metadata   EncryptionMetadataAESGCM
+	Ciphertext []byte
+}
+
+// AESGCM casts the EncryptedData to EncryptedDataAESGCM.
+// Returns an error if the EncryptedData does not have AESGCM as its algorithm.
+func (ed *EncryptedData) AESGCM() (*EncryptedDataAESGCM, error) {
+	if ed.Algorithm != EncryptionAlgorithmAESGCM {
+		return nil, ErrInvalidEncryptionAlgorithm
+	}
+	parameters, ok := ed.Parameters.(*EncryptionParametersAESGCM)
+	if !ok {
+		return nil, ErrInvalidEncryptionAlgorithm
+	}
+	metadata, ok := ed.Metadata.(*EncryptionMetadataAESGCM)
+	if !ok {
+		return nil, ErrInvalidEncryptionAlgorithm
+	}
+	return &EncryptedDataAESGCM{
+		Key:        ed.Key,
+		Parameters: *parameters,
+		Metadata:   *metadata,
+		Ciphertext: ed.Ciphertext,
+	}, nil
+}
