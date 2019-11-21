@@ -19,6 +19,7 @@ var (
 	ErrInvalidFingerprint    = errAPI.Code("invalid_fingerprint").StatusError("fingerprint is invalid", http.StatusBadRequest)
 	ErrInvalidVerifier       = errAPI.Code("invalid_verifier").StatusError("verifier is invalid", http.StatusBadRequest)
 	ErrInvalidCredentialType = errAPI.Code("invalid_credential_type").StatusError("credential type is invalid", http.StatusBadRequest)
+	ErrInvalidCredentialName = errAPI.Code("invalid_credential_name").StatusError("credential name must be between 1 and 20 characters long", http.StatusBadRequest)
 	ErrInvalidAWSEndpoint    = errAPI.Code("invalid_aws_endpoint").StatusError("invalid AWS endpoint provided", http.StatusBadRequest)
 	ErrInvalidProof          = errAPI.Code("invalid_proof").StatusError("invalid proof provided for credential", http.StatusUnauthorized)
 	ErrAWSAccountMismatch    = errAPI.Code("aws_account_mismatch").StatusError("the AWS Account ID in the role ARN does not match the AWS Account ID of the AWS credentials used for authentication. Make sure you are using AWS credentials that correspond to the role you are trying to add.", http.StatusUnauthorized)
@@ -137,6 +138,12 @@ func (req *CreateCredentialRequest) Validate() error {
 
 	if req.Type == "" {
 		return ErrMissingField("type")
+	}
+
+	if req.Name != "" {
+		if err := ValidateCredentialName(req.Name); err != nil {
+			return err
+		}
 	}
 
 	err := req.Type.Validate()
