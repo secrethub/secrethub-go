@@ -177,6 +177,14 @@ func (c *Client) CreateCredential(in *api.CreateCredentialRequest) (*api.Credent
 	return out, errio.Error(err)
 }
 
+// ListMyCredentials list all the currently authenticated account's credentials.
+func (c *Client) ListMyCredentials() ([]*api.Credential, error) {
+	var out []*api.Credential
+	rawURL := fmt.Sprintf(pathCredentials, c.base)
+	err := c.get(rawURL, true, &out)
+	return out, errio.Error(err)
+}
+
 // SendVerificationEmail sends an email to the users registered email address for them to prove they
 // own that email address.
 func (c *Client) SendVerificationEmail() error {

@@ -9,6 +9,8 @@ import (
 type CredentialService interface {
 	// Create a new credential from the credentials.Creator for an existing account.
 	Create(credentials.Creator) error
+	// ListMine lists all credentials of the currently authenticated account.
+	ListMine() ([]*api.Credential, error)
 }
 
 func newCredentialService(client *Client) CredentialService {
@@ -67,4 +69,9 @@ func (s credentialService) Create(creator credentials.Creator) error {
 		return err
 	}
 	return nil
+}
+
+// ListMine lists all credentials of the currently authenticated account.
+func (s credentialService) ListMine() ([]*api.Credential, error) {
+	return s.client.httpClient.ListMyCredentials()
 }
