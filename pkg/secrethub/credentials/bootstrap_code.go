@@ -11,6 +11,7 @@ import (
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
+// Enforce implementation of interfaces by structs.
 var _ Creator = (*BackupCodeCreator)(nil)
 var _ Provider = (*bootstrapCodeProvider)(nil)
 var _ auth.Signer = (*bootstrapCode)(nil)
@@ -25,7 +26,7 @@ func CreateBackupCode() *BackupCodeCreator {
 	return &BackupCodeCreator{}
 }
 
-// Create generates a new code and stores it in the BackupCodeGenerator.
+// Create generates a new code and stores it in the BackupCodeCreator.
 func (b *BackupCodeCreator) Create() error {
 	key, err := crypto.GenerateSymmetricKey()
 	if err != nil {
