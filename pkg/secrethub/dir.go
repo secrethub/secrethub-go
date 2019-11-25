@@ -205,10 +205,12 @@ func (s dirService) createAll(path string) error {
 		return nil
 	}
 
-	_, err := s.GetTree(path, 0, false)
-	if err != api.ErrDirNotFound {
-		// err might be nil
+	exists, err := s.Exists(path)
+	if err != nil {
 		return err
+	}
+	if exists {
+		return nil
 	}
 
 	err = s.createAll(secretpath.Parent(path))
