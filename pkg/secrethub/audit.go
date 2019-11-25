@@ -3,6 +3,8 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 func (c *Client) decryptAuditEvents(events ...*api.Audit) error {
@@ -32,3 +34,40 @@ func (c *Client) decryptAuditEvents(events ...*api.Audit) error {
 
 	return nil
 }
+
+func newAuditEventIterator(newPaginator func() (*http.AuditPaginator, error), client *Client) *auditEventIterator {
+	return &auditEventIterator{
+		iterator: iterator.New(func() (iterator.Paginator, error) {
+			return newPaginator()
+		}),
+		decryptAuditEvents: client.decryptAuditEvents,
+	}
+}
+
+type AuditEventIterator interface {
+	Next() (api.Audit, error)
+}
+
+type auditEventIterator struct {
+	iterator           iterator.Iterator
+	decryptAuditEvents func(...*api.Audit) error
+}
+
+func (it *auditEventIterator) Next() (api.Audit, error) {
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.Audit{}, err
+	}
+	audit := item.(api.Audit)
+	err = it.decryptAuditEvents(&audit)
+	if err != nil {
+		return api.Audit{}, err
+	}
+	return audit, nil
+}
+
+// AuditEventIteratorParams can be used to configure iteration of audit events.
+//
+// For now, there's nothing to configure. We'll add filter options soon.
+// The struct is already added, so that adding parameters is backwards compatible.
+type AuditEventIteratorParams struct{}
