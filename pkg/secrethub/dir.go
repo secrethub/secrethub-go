@@ -17,6 +17,8 @@ type DirService interface {
 	//
 	// Contrary to Create, it doesn't return an error when the directories already exist.
 	CreateAll(path string) error
+	// Exists returns whether a directory where you have access to exists at a given path.
+	Exists(path string) (bool, error)
 	// Get returns the directory with the given ID.
 	GetByID(id uuid.UUID) (*api.Dir, error)
 	// Delete removes the directory at the given path.
@@ -154,6 +156,17 @@ func (s dirService) Create(path string) (*api.Dir, error) {
 
 	dir, err := encryptedDir.Decrypt(accountKey)
 	return dir, errio.Error(err)
+}
+
+// Exists returns whether a directory where you have access to exists at a given path.
+func (s dirService) Exists(path string) (bool, error) {
+	_, err := s.GetTree(path, 0, false)
+	if err == api.ErrDirNotFound {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Delete removes the directory at the given path.
