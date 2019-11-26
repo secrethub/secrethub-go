@@ -260,7 +260,7 @@ func ValidateDirPath(path string) error {
 
 // ValidateCredentialName validates the name for a credential.
 func ValidateCredentialName(name string) error {
-	if len(name) > 20 {
+	if len(name) > 32 {
 		return ErrInvalidCredentialName
 	}
 	if !whitelistDescription.MatchString(name) {
