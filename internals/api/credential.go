@@ -226,6 +226,16 @@ type CredentialProofKey struct{}
 // CredentialProofBackupCode is proof for when the credential type is backup key.
 type CredentialProofBackupCode struct{}
 
+// UpdateCredentialRequest contains the fields of a credential that can be updated.
+type UpdateCredentialRequest struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// Validate whether the UpdateCredentialRequest is a valid request.
+func (req *UpdateCredentialRequest) Validate() error {
+	return nil
+}
+
 // GetFingerprint returns the fingerprint of a credential.
 func GetFingerprint(t CredentialType, verifier []byte) string {
 	var toHash []byte
