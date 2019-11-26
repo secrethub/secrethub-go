@@ -47,6 +47,7 @@ type Credential struct {
 	Name        string            `json:"name"`
 	Verifier    []byte            `json:"verifier"`
 	Metadata    map[string]string `json:"metadata,omitempty"`
+	Enabled     bool              `json:"enabled"`
 }
 
 // CredentialType is used to identify the type of algorithm that is used for a credential.
