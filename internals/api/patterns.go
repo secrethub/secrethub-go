@@ -47,6 +47,8 @@ var (
 	whitelistSecretPathInDirPath                 = regexp.MustCompile(fmt.Sprintf(`((?i)^(%s\/%s\/%s(\/%s)*(?:\:.+)?)$)`, patternUniformName, patternUniformName, patternUniformName, patternUniformName))
 	whitelistSecretVersionIdentifierInSecretPath = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s)\/(%s)\/(%s\/)*(%s)(:(.+)?)$`, patternUniformName, patternUniformName, patternUniformName, patternUniformName))
 	whitelistSecretVersionInSecretPath           = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s)\/(%s)\/(%s\/)*(%s)(:([0-9]{1,9}|latest))$`, patternUniformName, patternUniformName, patternUniformName, patternUniformName))
+
+	whitelistCredentialFingerprint = regexp.MustCompile("^[0-9a-fA-F]{1,64}$")
 )
 
 // Errors
@@ -72,6 +74,10 @@ var (
 	)
 	ErrInvalidDirRole = errAPI.Code("invalid_dir_role").StatusError(
 		"directory roles must be either read, write, or admin",
+		http.StatusBadRequest,
+	)
+	ErrInvalidCredentialFingerprint = errAPI.Code("invalid_credential_fingerprint").StatusError(
+		"credential fingerprint must consist of 64 hexadecimal characters",
 		http.StatusBadRequest,
 	)
 )
@@ -249,5 +255,39 @@ func ValidateDirPath(path string) error {
 		return ErrInvalidDirPath(path)
 	}
 
+	return nil
+}
+
+// ValidateCredentialName validates the name for a credential.
+func ValidateCredentialName(name string) error {
+	if len(name) > 32 {
+		return ErrInvalidCredentialName
+	}
+	if !whitelistDescription.MatchString(name) {
+		return ErrInvalidCredentialName
+	}
+	return nil
+}
+
+// ValidateCredentialFingerprint validates whether the given string is a valid credential fingerprint.
+func ValidateCredentialFingerprint(fingerprint string) error {
+	if !whitelistCredentialFingerprint.MatchString(fingerprint) {
+		return ErrInvalidFingerprint
+	}
+	if len(fingerprint) != 64 {
+		return ErrInvalidFingerprint
+	}
+	return nil
+}
+
+// ValidateShortCredentialFingerprint validates whether the given string can be used as a short version of a credential
+// fingerprint.
+func ValidateShortCredentialFingerprint(fingerprint string) error {
+	if !whitelistCredentialFingerprint.MatchString(fingerprint) {
+		return ErrInvalidFingerprint
+	}
+	if len(fingerprint) < ShortCredentialFingerprintMinimumLength {
+		return ErrTooShortFingerprint
+	}
 	return nil
 }

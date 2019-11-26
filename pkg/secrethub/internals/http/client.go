@@ -44,6 +44,7 @@ const (
 	// Account
 	pathAccount          = "%s/account/%s"
 	pathCredentials      = "%s/me/credentials"
+	pathCredential       = "%s/me/credentials/%s"
 	pathCreateAccountKey = "%s/me/credentials/%s/key"
 
 	// Users
@@ -175,6 +176,13 @@ func (c *Client) CreateCredential(in *api.CreateCredentialRequest) (*api.Credent
 	rawURL := fmt.Sprintf(pathCredentials, c.base)
 	err := c.post(rawURL, true, http.StatusCreated, in, out)
 	return out, errio.Error(err)
+}
+
+// UpdateCredential updates an existing credential.
+func (c *Client) UpdateCredential(fingerprint string, in *api.UpdateCredentialRequest) error {
+	rawURL := fmt.Sprintf(pathCredential, c.base, fingerprint)
+	err := c.patch(rawURL, true, http.StatusNoContent, in, nil)
+	return err
 }
 
 // SendVerificationEmail sends an email to the users registered email address for them to prove they

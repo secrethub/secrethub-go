@@ -9,6 +9,8 @@ import (
 type CredentialService interface {
 	// Create a new credential from the credentials.Creator for an existing account.
 	Create(credentials.Creator) error
+	// Disable an existing credential.
+	Disable(fingerprint string) error
 }
 
 func newCredentialService(client *Client) CredentialService {
@@ -67,4 +69,23 @@ func (s credentialService) Create(creator credentials.Creator) error {
 		return err
 	}
 	return nil
+}
+
+// Disable an existing credential.
+func (s credentialService) Disable(fingerprint string) error {
+	err := api.ValidateShortCredentialFingerprint(fingerprint)
+	if err != nil {
+		return err
+	}
+
+	f := false
+	req := &api.UpdateCredentialRequest{
+		Enabled: &f,
+	}
+	err = req.Validate()
+	if err != nil {
+		return err
+	}
+
+	return s.client.httpClient.UpdateCredential(fingerprint, req)
 }
