@@ -32,6 +32,7 @@ var (
 	ErrInvalidMetadataKey             = errAPI.Code("invalid_metadata_key").StatusErrorPref("invalid metadata key %s for credential type %s", http.StatusBadRequest)
 	ErrUnknownMetadataKey             = errAPI.Code("unknown_metadata_key").StatusErrorPref("unknown metadata key: %s", http.StatusBadRequest)
 	ErrRoleDoesNotMatch               = errAPI.Code("role_does_not_match").StatusError("role in metadata does not match the verifier", http.StatusBadRequest)
+	ErrCannotDisableCurrentCredential = errAPI.Code("cannot_disable_current_credential").StatusError("cannot disable the credential that is currently used on this device", http.StatusConflict)
 )
 
 // Credential metadata keys
