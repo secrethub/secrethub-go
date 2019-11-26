@@ -48,7 +48,7 @@ var (
 	whitelistSecretVersionIdentifierInSecretPath = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s)\/(%s)\/(%s\/)*(%s)(:(.+)?)$`, patternUniformName, patternUniformName, patternUniformName, patternUniformName))
 	whitelistSecretVersionInSecretPath           = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s)\/(%s)\/(%s\/)*(%s)(:([0-9]{1,9}|latest))$`, patternUniformName, patternUniformName, patternUniformName, patternUniformName))
 
-	whitelistCredentialFingerprint = regexp.MustCompile("^[0-9a-fA-F]{64}$")
+	whitelistCredentialFingerprint = regexp.MustCompile("^[0-9a-fA-F]{1,64}$")
 )
 
 // Errors
@@ -273,6 +273,21 @@ func ValidateCredentialName(name string) error {
 func ValidateCredentialFingerprint(fingerprint string) error {
 	if !whitelistCredentialFingerprint.MatchString(fingerprint) {
 		return ErrInvalidFingerprint
+	}
+	if len(fingerprint) != 64 {
+		return ErrInvalidFingerprint
+	}
+	return nil
+}
+
+// ValidateShortCredentialFingerprint validates whether the given string can be used as a short version of a credential
+// fingerprint.
+func ValidateShortCredentialFingerprint(fingerprint string) error {
+	if !whitelistCredentialFingerprint.MatchString(fingerprint) {
+		return ErrInvalidFingerprint
+	}
+	if len(fingerprint) < ShortCredentialFingerprintMinimumLength {
+		return ErrTooShortFingerprint
 	}
 	return nil
 }
