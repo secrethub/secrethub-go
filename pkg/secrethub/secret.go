@@ -3,6 +3,7 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
 // SecretService handles operations on secrets from SecretHub.
@@ -13,6 +14,21 @@ type SecretService interface {
 	Exists(path string) (bool, error)
 	// Get retrieves a Secret.
 	Get(path string) (*api.Secret, error)
+	// EventIterator returns an iterator that retrieves all audit events for a given secret.
+	//
+	// Usage:
+	//  iter := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
+	//  for {
+	//  	event, err := iter.Next()
+	//  	if err == iterator.Done {
+	//  		break
+	//  	} else if err != nil {
+	//  		// Handle error
+	//  	}
+	//
+	//  	// Use event
+	//  }
+	EventIterator(path string, _ *AuditEventIteratorParams) AuditEventIterator
 	// ListEvents retrieves all audit events for a given secret.
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 
@@ -196,6 +212,39 @@ func (s secretService) ListEvents(path string, subjectTypes api.AuditSubjectType
 	}
 
 	return events, nil
+}
+
+// EventIterator returns an iterator that retrieves all audit events for a given secret.
+//
+// Usage:
+//  iter := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
+//  for {
+//  	event, err := iter.Next()
+//  	if err == iterator.Done {
+//  		break
+//  	} else if err != nil {
+//  		// Handle error
+//  	}
+//
+//  	// Use event
+//  }
+func (s secretService) EventIterator(path string, _ *AuditEventIteratorParams) AuditEventIterator {
+	return newAuditEventIterator(
+		func() (*http.AuditPaginator, error) {
+			secretPath, err := api.NewSecretPath(path)
+			if err != nil {
+				return nil, err
+			}
+
+			blindName, err := s.client.convertPathToBlindName(secretPath)
+			if err != nil {
+				return nil, err
+			}
+
+			return s.client.httpClient.AuditSecretPaginator(blindName), nil
+		},
+		s.client,
+	)
 }
 
 // Versions returns a SecretVersionService.

@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/secrethub/secrethub-go/internals/auth"
@@ -11,7 +12,7 @@ import (
 type ClientOption func(*Client)
 
 // WithServerURL overrides the default server endpoint URL used by the HTTP client.
-func WithServerURL(url string) ClientOption {
+func WithServerURL(url url.URL) ClientOption {
 	return func(client *Client) {
 		client.base = getBaseURL(url)
 	}
