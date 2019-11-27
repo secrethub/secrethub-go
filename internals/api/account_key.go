@@ -30,6 +30,9 @@ func (req CreateAccountKeyRequest) Validate() error {
 	if len(req.PublicKey) == 0 {
 		return ErrInvalidPublicKey
 	}
+	if req.EncryptedPrivateKey == nil {
+		return ErrMissingField("encrypted_private_key")
+	}
 	if err := req.EncryptedPrivateKey.Validate(); err != nil {
 		return err
 	}

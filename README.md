@@ -16,24 +16,22 @@
 
 `secrethub-go` provides a client for various SecretHub APIs.
 
-> [SecretHub][secrethub] is a developer tool to help you keep database passwords, API tokens, and other secrets out of IT automation scripts.
+> [SecretHub][secrethub] is an end-to-end encrypted secret management service that helps developers keep database passwords, API keys, and other secrets out of source code.
 
 <img src="https://secrethub.io/img/secrethub-gopher.png" alt="Gopher" width="160px"/>
 
-## Getting started
+## Usage
 
-### Installation
-
-Install secrethub-go with:
+You can install secrethub-go with:
 
 ```sh
-go get -u github.com/secrethub/secrethub-go
+go get github.com/secrethub/secrethub-go
 ```
 
 Or install a specific version with:
 
 ```sh
-go get -u github.com/secrethub/secrethub-go@vX.Y.Z
+go get github.com/secrethub/secrethub-go@vX.Y.Z
 ```
 
 Then, import it using:
@@ -47,13 +45,13 @@ import (
 > **Note:** only packages inside the `/pkg` directory should be considered library code that you can use in your projects. 
 > All other code is not guaranteed to be backwards compatible and may change in the future.
 
-## Examples
+### Examples
 
 For details on all functionality of this library, see the [GoDoc][godoc] documentation.
 
 Below are a few simple examples:
 
-### Read Secrets
+#### Read Secrets
 ```go
 package main
 
@@ -71,7 +69,7 @@ func main() {
 }
 ```
 
-### Write Secrets
+#### Write Secrets
 ```go
 package main
 
@@ -87,7 +85,7 @@ func main() {
 }
 ```
 
-### Generate Secrets
+#### Generate Secrets
 ```go
 package main
 
@@ -100,16 +98,18 @@ import (
 
 func main() {
     client, _ := secrethub.NewClient()
-    rand, _ := randchar.NewRand(randchar.Alphanumeric)
-    data, _ := rand.Generate(30)
+    data, _ := randchar.Generate(30)
     _, _ = client.Secrets().Write("path/to/secret", data)
 }
 ```
 
-> **Note:** to use the SecretHub Go client, you need to provide a credential for your __SecretHub__ account. 
-> You can create a free developer account by [signing up through the CLI](https://secrethub.io/docs/getting-started/). 
-> 
-> After signup, the credential is located at `$HOME/.secrethub/credential` by default.
+### Credential
+
+To use the SecretHub Go client, you need to provide a credential for your __SecretHub__ account.
+You can create a free developer account by [signing up through the CLI](https://secrethub.io/docs/getting-started/).
+
+After signup, the credential is located at `$HOME/.secrethub/credential` by default.
+`secrethub.NewClient()` automatically uses this credential.
 
 ## Development
 
@@ -135,7 +135,7 @@ pull request][pulls].
 
 ## Getting help
 
-Come chat with us on [Discord][discord] or email us at [support@secrethub.io](mailto:support@secrethub.io)
+If you get stuck or just want advice, come chat with the engineers on [Discord][discord] or send an email to [support@secrethub.io](mailto:support@secrethub.io)
 
 ## Attributions
 
