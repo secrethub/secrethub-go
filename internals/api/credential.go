@@ -21,7 +21,7 @@ var (
 	ErrCredentialFingerprintNotUnique = errAPI.Code("fingerprint_not_unique").StatusErrorf("there are multiple credentials that start with the given fingerprint. Please use the full fingerprint", http.StatusConflict)
 	ErrInvalidVerifier                = errAPI.Code("invalid_verifier").StatusError("verifier is invalid", http.StatusBadRequest)
 	ErrInvalidCredentialType          = errAPI.Code("invalid_credential_type").StatusError("credential type is invalid", http.StatusBadRequest)
-	ErrInvalidCredentialName          = errAPI.Code("invalid_credential_name").StatusError("credential name must be between 1 and 20 characters long", http.StatusBadRequest)
+	ErrInvalidCredentialDescription   = errAPI.Code("invalid_credential_description").StatusError("credential description must be between 1 and 20 characters long", http.StatusBadRequest)
 	ErrInvalidAWSEndpoint             = errAPI.Code("invalid_aws_endpoint").StatusError("invalid AWS endpoint provided", http.StatusBadRequest)
 	ErrInvalidProof                   = errAPI.Code("invalid_proof").StatusError("invalid proof provided for credential", http.StatusUnauthorized)
 	ErrAWSAccountMismatch             = errAPI.Code("aws_account_mismatch").StatusError("the AWS Account ID in the role ARN does not match the AWS Account ID of the AWS credentials used for authentication. Make sure you are using AWS credentials that correspond to the role you are trying to add.", http.StatusUnauthorized)
@@ -51,7 +51,7 @@ type Credential struct {
 	Type        CredentialType    `json:"type"`
 	CreatedAt   time.Time         `json:"created_at"`
 	Fingerprint string            `json:"fingerprint"`
-	Name        string            `json:"name"`
+	Description string            `json:"description"`
 	Verifier    []byte            `json:"verifier"`
 	Metadata    map[string]string `json:"metadata,omitempty"`
 	Enabled     bool              `json:"enabled"`
@@ -89,7 +89,7 @@ func (a CredentialType) Validate() error {
 type CreateCredentialRequest struct {
 	Type        CredentialType           `json:"type"`
 	Fingerprint string                   `json:"fingerprint"`
-	Name        string                   `json:"name,omitempty"`
+	Description *string                  `json:"name,omitempty"`
 	Verifier    []byte                   `json:"verifier"`
 	Proof       interface{}              `json:"proof"`
 	Metadata    map[string]string        `json:"metadata"`
@@ -148,8 +148,8 @@ func (req *CreateCredentialRequest) Validate() error {
 		return ErrMissingField("type")
 	}
 
-	if req.Name != "" {
-		if err := ValidateCredentialName(req.Name); err != nil {
+	if req.Description != nil {
+		if err := ValidateCredentialDescription(*req.Description); err != nil {
 			return err
 		}
 	}

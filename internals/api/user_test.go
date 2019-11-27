@@ -189,7 +189,6 @@ func TestCreateUserRequest_Validate(t *testing.T) {
 				Email:    "test-account.dev1@secrethub.io",
 				FullName: "Test Tester",
 				Credential: &CreateCredentialRequest{
-					Name:        "Personal laptop credential",
 					Type:        CredentialTypeKey,
 					Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 					Verifier:    []byte("verifier"),
