@@ -179,10 +179,11 @@ func (c *Client) CreateCredential(in *api.CreateCredentialRequest) (*api.Credent
 }
 
 // UpdateCredential updates an existing credential.
-func (c *Client) UpdateCredential(fingerprint string, in *api.UpdateCredentialRequest) error {
+func (c *Client) UpdateCredential(fingerprint string, in *api.UpdateCredentialRequest) (*api.Credential, error) {
+	var out api.Credential
 	rawURL := fmt.Sprintf(pathCredential, c.base, fingerprint)
-	err := c.patch(rawURL, true, http.StatusNoContent, in, nil)
-	return err
+	err := c.patch(rawURL, true, http.StatusOK, in, &out)
+	return &out, err
 }
 
 // SendVerificationEmail sends an email to the users registered email address for them to prove they
