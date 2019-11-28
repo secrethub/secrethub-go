@@ -10,7 +10,7 @@ import (
 // CredentialService handles operations on credentials on SecretHub.
 type CredentialService interface {
 	// Create a new credential from the credentials.Creator for an existing account.
-	Create(credentials.Creator, string) error
+	Create(credentials.Creator, string) (*api.Credential, error)
 	// List lists all credentials of the currently authenticated account.
 	List(_ *CredentialListParams) CredentialIterator
 	// Disable an existing credential.
@@ -30,26 +30,26 @@ type credentialService struct {
 // Create a new credential from the credentials.Creator for an existing account.
 // This includes a re-encrypted copy the the account key.
 // Description is optional and can be left empty.
-func (s credentialService) Create(creator credentials.Creator, description string) error {
+func (s credentialService) Create(creator credentials.Creator, description string) (*api.Credential, error) {
 	accountKey, err := s.client.getAccountKey()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = creator.Create()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	verifier := creator.Verifier()
 	bytes, fingerprint, err := verifier.Export()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	accountKeyRequest, err := s.client.createAccountKeyRequest(creator.Encrypter(), *accountKey)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var reqDescription *string
@@ -67,19 +67,15 @@ func (s credentialService) Create(creator credentials.Creator, description strin
 	}
 	err = verifier.AddProof(&req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = req.Validate()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = s.client.httpClient.CreateCredential(&req)
-	if err != nil {
-		return err
-	}
-	return nil
+	return s.client.httpClient.CreateCredential(&req)
 }
 
 // CredentialListParams are the parameters that configure credential listing.
