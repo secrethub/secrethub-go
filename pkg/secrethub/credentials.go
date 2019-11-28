@@ -12,7 +12,7 @@ type CredentialService interface {
 	// Create a new credential from the credentials.Creator for an existing account.
 	Create(credentials.Creator) error
 	// List lists all credentials of the currently authenticated account.
-	List(_ *CredentialListParams) (CredentialIterator, error)
+	List(_ *CredentialListParams) CredentialIterator
 	// Disable an existing credential.
 	Disable(fingerprint string) error
 }
@@ -86,9 +86,14 @@ type CredentialIterator interface {
 type credentialIterator struct {
 	credentials  []*api.Credential
 	currentIndex int
+	err          error
 }
 
 func (c *credentialIterator) Next() (api.Credential, error) {
+	if c.err != nil {
+		return api.Credential{}, c.err
+	}
+
 	currentIndex := c.currentIndex
 	if currentIndex >= len(c.credentials) {
 		return api.Credential{}, iterator.Done
@@ -98,16 +103,14 @@ func (c *credentialIterator) Next() (api.Credential, error) {
 }
 
 // List returns an iterator that lists all credentials of the currently authenticated account.
-func (s credentialService) List(_ *CredentialListParams) (CredentialIterator, error) {
+func (s credentialService) List(_ *CredentialListParams) CredentialIterator {
 	creds, err := s.client.httpClient.ListMyCredentials()
-	if err != nil {
-		return nil, err
-	}
 	return &credentialIterator{
 		credentials: creds,
-	}, nil
+		err:         err,
+	}
 }
-  
+
 // Disable an existing credential.
 func (s credentialService) Disable(fingerprint string) error {
 	err := api.ValidateShortCredentialFingerprint(fingerprint)
