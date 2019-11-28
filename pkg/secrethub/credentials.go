@@ -12,7 +12,7 @@ type CredentialService interface {
 	// Create a new credential from the credentials.Creator for an existing account.
 	Create(credentials.Creator) error
 	// List lists all credentials of the currently authenticated account.
-	List() (CredentialIterator, error)
+	List(_ *CredentialListParams) (CredentialIterator, error)
 }
 
 func newCredentialService(client *Client) CredentialService {
@@ -73,6 +73,10 @@ func (s credentialService) Create(creator credentials.Creator) error {
 	return nil
 }
 
+// CredentialListParams are the parameters than configure credential listing.
+type CredentialListParams struct{}
+
+// CredentialIterator can be used to iterate over a list of credentials.
 type CredentialIterator interface {
 	Next() (api.Credential, error)
 }
@@ -91,8 +95,8 @@ func (c *credentialIterator) Next() (api.Credential, error) {
 	return *c.credentials[currentIndex], nil
 }
 
-// List lists all credentials of the currently authenticated account.
-func (s credentialService) List() (CredentialIterator, error) {
+// List returns an iterator that lists all credentials of the currently authenticated account.
+func (s credentialService) List(_ *CredentialListParams) (CredentialIterator, error) {
 	creds, err := s.client.httpClient.ListMyCredentials()
 	if err != nil {
 		return nil, err
