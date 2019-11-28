@@ -187,7 +187,7 @@ func (c *Client) ListMyCredentials() ([]*api.Credential, error) {
 
 // UpdateCredential updates an existing credential.
 func (c *Client) UpdateCredential(fingerprint string, in *api.UpdateCredentialRequest) error {
-	rawURL := fmt.Sprintf(pathCredential, c.base, fingerprint)
+	rawURL := fmt.Sprintf(pathCredential, c.base.String(), fingerprint)
 	err := c.patch(rawURL, true, http.StatusNoContent, in, nil)
 	return err
 }
