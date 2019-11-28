@@ -1,6 +1,8 @@
 package secrethub
 
 import (
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 )
@@ -9,6 +11,8 @@ import (
 type CredentialService interface {
 	// Create a new credential from the credentials.Creator for an existing account.
 	Create(credentials.Creator, string) error
+	// List lists all credentials of the currently authenticated account.
+	List(_ *CredentialListParams) CredentialIterator
 	// Disable an existing credential.
 	Disable(fingerprint string) error
 }
@@ -76,6 +80,42 @@ func (s credentialService) Create(creator credentials.Creator, description strin
 		return err
 	}
 	return nil
+}
+
+// CredentialListParams are the parameters that configure credential listing.
+type CredentialListParams struct{}
+
+// CredentialIterator can be used to iterate over a list of credentials.
+type CredentialIterator interface {
+	Next() (api.Credential, error)
+}
+
+type credentialIterator struct {
+	credentials  []*api.Credential
+	currentIndex int
+	err          error
+}
+
+func (c *credentialIterator) Next() (api.Credential, error) {
+	if c.err != nil {
+		return api.Credential{}, c.err
+	}
+
+	currentIndex := c.currentIndex
+	if currentIndex >= len(c.credentials) {
+		return api.Credential{}, iterator.Done
+	}
+	c.currentIndex++
+	return *c.credentials[currentIndex], nil
+}
+
+// List returns an iterator that lists all credentials of the currently authenticated account.
+func (s credentialService) List(_ *CredentialListParams) CredentialIterator {
+	creds, err := s.client.httpClient.ListMyCredentials()
+	return &credentialIterator{
+		credentials: creds,
+		err:         err,
+	}
 }
 
 // Disable an existing credential.

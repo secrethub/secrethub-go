@@ -2,8 +2,11 @@
 // assertions to help with writing tests.
 package assert
 
-import "testing"
-import "github.com/kylelemons/godebug/pretty"
+import (
+	"testing"
+
+	"github.com/kylelemons/godebug/pretty"
+)
 
 // Equal errors when actual and expected are not the same, printing out the diff.
 func Equal(tb testing.TB, actual, expected interface{}) {

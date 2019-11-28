@@ -3,11 +3,17 @@ package secrethub
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/secrethub/secrethub-go/pkg/secrethub/configdir"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 	httpclient "github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
+)
+
+// Errors
+var (
+	ErrInvalidServerURL = errClient.Code("invalid_server_url").ErrorPref("%s")
 )
 
 // ClientOption is an option that can be set on a secrethub.Client.
@@ -22,9 +28,14 @@ func WithTimeout(timeout time.Duration) ClientOption {
 }
 
 // WithServerURL overrides the default server endpoint URL used by the HTTP client.
-func WithServerURL(url string) ClientOption {
+func WithServerURL(serverURL string) ClientOption {
 	return func(c *Client) error {
-		c.httpClient.Options(httpclient.WithServerURL(url))
+		parsedURL, err := url.Parse(serverURL)
+		if err != nil {
+			return ErrInvalidServerURL(err)
+		}
+
+		c.httpClient.Options(httpclient.WithServerURL(*parsedURL))
 		return nil
 	}
 }

@@ -16,6 +16,8 @@ type SecretService struct {
 	EventLister SecretEventLister
 	Writer      Writer
 
+	AuditEventIterator *AuditEventIterator
+
 	secrethub.SecretService
 }
 
@@ -42,6 +44,11 @@ func (s *SecretService) Write(path string, data []byte) (*api.SecretVersion, err
 // ListEvents implements the SecretService interface ListEvents function.
 func (s *SecretService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
 	return s.EventLister.ListEvents(path, subjectTypes)
+}
+
+// EventIterator implements the SecretService interface EventIterator function.
+func (s *SecretService) EventIterator(path string, config *secrethub.AuditEventIteratorParams) secrethub.AuditEventIterator {
+	return s.AuditEventIterator
 }
 
 // Versions returns a mock of the VersionService interface.
