@@ -21,7 +21,7 @@ var (
 	ErrCredentialFingerprintNotUnique = errAPI.Code("fingerprint_not_unique").StatusErrorf("there are multiple credentials that start with the given fingerprint. Please use the full fingerprint", http.StatusConflict)
 	ErrInvalidVerifier                = errAPI.Code("invalid_verifier").StatusError("verifier is invalid", http.StatusBadRequest)
 	ErrInvalidCredentialType          = errAPI.Code("invalid_credential_type").StatusError("credential type is invalid", http.StatusBadRequest)
-	ErrInvalidCredentialDescription   = errAPI.Code("invalid_credential_description").StatusError("credential description must be between 1 and 20 characters long", http.StatusBadRequest)
+	ErrInvalidCredentialDescription   = errAPI.Code("invalid_credential_description").StatusError("credential description can be at most 32 characters long", http.StatusBadRequest)
 	ErrInvalidAWSEndpoint             = errAPI.Code("invalid_aws_endpoint").StatusError("invalid AWS endpoint provided", http.StatusBadRequest)
 	ErrInvalidProof                   = errAPI.Code("invalid_proof").StatusError("invalid proof provided for credential", http.StatusUnauthorized)
 	ErrAWSAccountMismatch             = errAPI.Code("aws_account_mismatch").StatusError("the AWS Account ID in the role ARN does not match the AWS Account ID of the AWS credentials used for authentication. Make sure you are using AWS credentials that correspond to the role you are trying to add.", http.StatusUnauthorized)
