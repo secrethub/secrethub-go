@@ -87,5 +87,6 @@ func (s credentialService) Disable(fingerprint string) error {
 		return err
 	}
 
-	return s.client.httpClient.UpdateCredential(fingerprint, req)
+	_, err = s.client.httpClient.UpdateCredential(fingerprint, req)
+	return err
 }
