@@ -75,7 +75,7 @@ func (s credentialService) Create(creator credentials.Creator) error {
 	return nil
 }
 
-// CredentialListParams are the parameters than configure credential listing.
+// CredentialListParams are the parameters that configure credential listing.
 type CredentialListParams struct{}
 
 // CredentialIterator can be used to iterate over a list of credentials.
