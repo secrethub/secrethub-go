@@ -258,13 +258,13 @@ func ValidateDirPath(path string) error {
 	return nil
 }
 
-// ValidateCredentialName validates the name for a credential.
-func ValidateCredentialName(name string) error {
-	if len(name) > 32 {
-		return ErrInvalidCredentialName
+// ValidateCredentialDescription validates the description for a credential.
+func ValidateCredentialDescription(description string) error {
+	if len(description) < 1 || len(description) > 32 {
+		return ErrInvalidCredentialDescription
 	}
-	if !whitelistDescription.MatchString(name) {
-		return ErrInvalidCredentialName
+	if !whitelistDescription.MatchString(description) {
+		return ErrInvalidCredentialDescription
 	}
 	return nil
 }

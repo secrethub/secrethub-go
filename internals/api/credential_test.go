@@ -7,13 +7,23 @@ import (
 )
 
 func TestCreateCredentialRequest_Validate(t *testing.T) {
+	description := "Personal laptop credential"
+
 	cases := map[string]struct {
 		req CreateCredentialRequest
 		err error
 	}{
 		"success": {
 			req: CreateCredentialRequest{
-				Name:        "Personal laptop credential",
+				Description: &description,
+				Type:        CredentialTypeKey,
+				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
+				Verifier:    []byte("verifier"),
+			},
+			err: nil,
+		},
+		"success without description": {
+			req: CreateCredentialRequest{
 				Type:        CredentialTypeKey,
 				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 				Verifier:    []byte("verifier"),
@@ -22,7 +32,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"success including account key": {
 			req: CreateCredentialRequest{
-				Name:        "Personal laptop credential",
+				Description: &description,
 				Type:        CredentialTypeKey,
 				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 				Verifier:    []byte("verifier"),
@@ -35,7 +45,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"including invalid account key": {
 			req: CreateCredentialRequest{
-				Name:        "Personal laptop credential",
+				Description: &description,
 				Type:        CredentialTypeKey,
 				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 				Verifier:    []byte("verifier"),
@@ -43,7 +53,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 			},
 			err: ErrInvalidPublicKey,
 		},
-		"success without name": {
+		"success without Description": {
 			req: CreateCredentialRequest{
 				Type:        CredentialTypeKey,
 				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
@@ -53,16 +63,16 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"no fingerprint": {
 			req: CreateCredentialRequest{
-				Type:     CredentialTypeKey,
-				Name:     "Personal laptop credential",
-				Verifier: []byte("verifier"),
+				Type:        CredentialTypeKey,
+				Description: &description,
+				Verifier:    []byte("verifier"),
 			},
 			err: ErrMissingField("fingerprint"),
 		},
 		"invalid fingerprint": {
 			req: CreateCredentialRequest{
 				Type:        CredentialTypeKey,
-				Name:        "Personal laptop credential",
+				Description: &description,
 				Fingerprint: "not-valid",
 				Verifier:    []byte("verifier"),
 			},
@@ -71,7 +81,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		"empty verifier": {
 			req: CreateCredentialRequest{
 				Type:        CredentialTypeKey,
-				Name:        "Personal laptop credential",
+				Description: &description,
 				Fingerprint: "fingerprint",
 				Verifier:    nil,
 			},
@@ -79,7 +89,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"empty type": {
 			req: CreateCredentialRequest{
-				Name:        "Personal laptop credential",
+				Description: &description,
 				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 				Verifier:    []byte("verifier"),
 			},
@@ -87,7 +97,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"invalid type": {
 			req: CreateCredentialRequest{
-				Name:        "Personal laptop credential",
+				Description: &description,
 				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 				Verifier:    []byte("verifier"),
 				Type:        CredentialType("invalid"),
@@ -133,7 +143,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 		"extra metadata": {
 			req: CreateCredentialRequest{
-				Name:        "Personal laptop credential",
+				Description: &description,
 				Type:        CredentialTypeKey,
 				Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 				Verifier:    []byte("verifier"),
@@ -201,8 +211,8 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 		},
 	}
 
-	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
+	for Description, tc := range cases {
+		t.Run(Description, func(t *testing.T) {
 			// Do
 			err := tc.req.Validate()
 
