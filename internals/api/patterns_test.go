@@ -427,3 +427,40 @@ func TestValidateSecretPath(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateCredentialFingerprint(t *testing.T) {
+	cases := map[string]struct {
+		in       string
+		expected error
+	}{
+		"valid lowercase": {
+			in: "d9db31d1bfd9a8a55a4dd715501017fd8d2c33025cb05049664eaf195dafb801",
+		},
+		"valid uppercase": {
+			in: "D9DB31D1BFD9A8A55A4DD715501017FD8D2C33025CB05049664EAF195DAFB801",
+		},
+		"valid mixed case": {
+			in: "d9db31d1bfd9a8a55a4dd715501017FD8D2C33025CB05049664EAF195DAFB801",
+		},
+		"too short": {
+			in:       "d9db31d1bfd9a8a55a4dd715501017fd8d2c33025cb05049664eaf195dafb80",
+			expected: api.ErrInvalidFingerprint,
+		},
+		"too long": {
+			in:       "d9db31d1bfd9a8a55a4dd715501017fd8d2c33025cb05049664eaf195dafb801b",
+			expected: api.ErrInvalidFingerprint,
+		},
+		"illegal character": {
+			in:       "Q9db31d1bfd9a8a55a4dd715501017fd8d2c33025cb05049664eaf195dafb801",
+			expected: api.ErrInvalidFingerprint,
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			err := api.ValidateCredentialFingerprint(tc.in)
+
+			assert.Equal(t, err, tc.expected)
+		})
+	}
+}

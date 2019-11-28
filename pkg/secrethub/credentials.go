@@ -13,6 +13,8 @@ type CredentialService interface {
 	Create(credentials.Creator) error
 	// List lists all credentials of the currently authenticated account.
 	List(_ *CredentialListParams) (CredentialIterator, error)
+	// Disable an existing credential.
+	Disable(fingerprint string) error
 }
 
 func newCredentialService(client *Client) CredentialService {
@@ -104,4 +106,23 @@ func (s credentialService) List(_ *CredentialListParams) (CredentialIterator, er
 	return &credentialIterator{
 		credentials: creds,
 	}, nil
+}
+  
+// Disable an existing credential.
+func (s credentialService) Disable(fingerprint string) error {
+	err := api.ValidateShortCredentialFingerprint(fingerprint)
+	if err != nil {
+		return err
+	}
+
+	f := false
+	req := &api.UpdateCredentialRequest{
+		Enabled: &f,
+	}
+	err = req.Validate()
+	if err != nil {
+		return err
+	}
+
+	return s.client.httpClient.UpdateCredential(fingerprint, req)
 }
