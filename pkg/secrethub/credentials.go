@@ -8,7 +8,7 @@ import (
 // CredentialService handles operations on credentials on SecretHub.
 type CredentialService interface {
 	// Create a new credential from the credentials.Creator for an existing account.
-	Create(credentials.Creator) error
+	Create(credentials.Creator, string) error
 	// Disable an existing credential.
 	Disable(fingerprint string) error
 }
@@ -25,7 +25,8 @@ type credentialService struct {
 
 // Create a new credential from the credentials.Creator for an existing account.
 // This includes a re-encrypted copy the the account key.
-func (s credentialService) Create(creator credentials.Creator) error {
+// Description is optional and can be left empty.
+func (s credentialService) Create(creator credentials.Creator, description string) error {
 	accountKey, err := s.client.getAccountKey()
 	if err != nil {
 		return err
@@ -47,9 +48,15 @@ func (s credentialService) Create(creator credentials.Creator) error {
 		return err
 	}
 
+	var reqDescription *string
+	if description != "" {
+		reqDescription = &description
+	}
+
 	req := api.CreateCredentialRequest{
 		Fingerprint: fingerprint,
 		Verifier:    bytes,
+		Description: reqDescription,
 		Type:        verifier.Type(),
 		Metadata:    creator.Metadata(),
 		AccountKey:  accountKeyRequest,
