@@ -171,7 +171,7 @@ func (c *Client) GetMyUser() (*api.User, error) {
 // CreateCredential creates a new credential for the account.
 func (c *Client) CreateCredential(in *api.CreateCredentialRequest) (*api.Credential, error) {
 	out := &api.Credential{}
-	rawURL := fmt.Sprintf(pathCredentials, c.base)
+	rawURL := fmt.Sprintf(pathCredentials, c.base.String())
 	err := c.post(rawURL, true, http.StatusCreated, in, out)
 	return out, errio.Error(err)
 }
@@ -179,7 +179,7 @@ func (c *Client) CreateCredential(in *api.CreateCredentialRequest) (*api.Credent
 // ListMyCredentials list all the currently authenticated account's credentials.
 func (c *Client) ListMyCredentials() ([]*api.Credential, error) {
 	var out []*api.Credential
-	rawURL := fmt.Sprintf(pathCredentials, c.base)
+	rawURL := fmt.Sprintf(pathCredentials, c.base.String())
 	err := c.get(rawURL, true, &out)
 	return out, errio.Error(err)
 }
