@@ -12,12 +12,18 @@ type DirService struct {
 	Creater    DirCreater
 	Deleter    DirDeleter
 	TreeGetter TreeGetter
+	ExistsFunc func(path string) (bool, error)
 	secrethub.DirService
 }
 
 // Create implements the DirService interface Create function.
 func (s *DirService) Create(path string) (*api.Dir, error) {
 	return s.Creater.Create(path)
+}
+
+// Exists implements the DirService interface Exists function.
+func (s *DirService) Exists(path string) (bool, error) {
+	return s.ExistsFunc(path)
 }
 
 // Delete implements the DirService interface Delete function.

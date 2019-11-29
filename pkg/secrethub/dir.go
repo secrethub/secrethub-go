@@ -17,6 +17,8 @@ type DirService interface {
 	//
 	// Contrary to Create, it doesn't return an error when the directories already exist.
 	CreateAll(path string) error
+	// Exists returns whether a directory where you have access to exists at a given path.
+	Exists(path string) (bool, error)
 	// Get returns the directory with the given ID.
 	GetByID(id uuid.UUID) (*api.Dir, error)
 	// Delete removes the directory at the given path.
@@ -156,6 +158,17 @@ func (s dirService) Create(path string) (*api.Dir, error) {
 	return dir, errio.Error(err)
 }
 
+// Exists returns whether a directory where you have access to exists at a given path.
+func (s dirService) Exists(path string) (bool, error) {
+	_, err := s.GetTree(path, 0, false)
+	if err == api.ErrDirNotFound || err == api.ErrRepoNotFound {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // Delete removes the directory at the given path.
 func (s dirService) Delete(path string) error {
 	p, err := api.NewDirPath(path)
@@ -192,10 +205,12 @@ func (s dirService) createAll(path string) error {
 		return nil
 	}
 
-	_, err := s.GetTree(path, 0, false)
-	if err != api.ErrDirNotFound {
-		// err might be nil
+	exists, err := s.Exists(path)
+	if err != nil {
 		return err
+	}
+	if exists {
+		return nil
 	}
 
 	err = s.createAll(secretpath.Parent(path))
