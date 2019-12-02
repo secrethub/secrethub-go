@@ -71,11 +71,7 @@ func (c CredentialCreator) Type() api.CredentialType {
 // Verifier returns the verifier of an AWS service.
 func (c CredentialCreator) Export() ([]byte, string, error) {
 	verifier := []byte(c.role)
-
-	fingerprint, err := api.GetFingerprint(c.Type(), verifier)
-	if err != nil {
-		return nil, "", err
-	}
+	fingerprint := api.GetFingerprint(c.Type(), verifier)
 	return verifier, fingerprint, nil
 }
 

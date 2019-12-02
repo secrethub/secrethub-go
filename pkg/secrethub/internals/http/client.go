@@ -43,6 +43,8 @@ const (
 
 	// Account
 	pathAccount          = "%s/account/%s"
+	pathCredentials      = "%s/me/credentials"
+	pathCredential       = "%s/me/credentials/%s"
 	pathCreateAccountKey = "%s/me/credentials/%s/key"
 
 	// Users
@@ -165,6 +167,30 @@ func (c *Client) GetMyUser() (*api.User, error) {
 	rawURL := fmt.Sprintf(pathMeUser, c.base.String())
 	err := c.get(rawURL, true, out)
 	return out, errio.Error(err)
+}
+
+// CreateCredential creates a new credential for the account.
+func (c *Client) CreateCredential(in *api.CreateCredentialRequest) (*api.Credential, error) {
+	out := &api.Credential{}
+	rawURL := fmt.Sprintf(pathCredentials, c.base.String())
+	err := c.post(rawURL, true, http.StatusCreated, in, out)
+	return out, errio.Error(err)
+}
+
+// ListMyCredentials list all the currently authenticated account's credentials.
+func (c *Client) ListMyCredentials() ([]*api.Credential, error) {
+	var out []*api.Credential
+	rawURL := fmt.Sprintf(pathCredentials, c.base.String())
+	err := c.get(rawURL, true, &out)
+	return out, errio.Error(err)
+}
+
+// UpdateCredential updates an existing credential.
+func (c *Client) UpdateCredential(fingerprint string, in *api.UpdateCredentialRequest) (*api.Credential, error) {
+	var out api.Credential
+	rawURL := fmt.Sprintf(pathCredential, c.base.String(), fingerprint)
+	err := c.patch(rawURL, true, http.StatusOK, in, &out)
+	return &out, err
 }
 
 // SendVerificationEmail sends an email to the users registered email address for them to prove they

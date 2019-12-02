@@ -34,10 +34,7 @@ func (c RSACredential) Export() ([]byte, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	fingerprint, err := api.GetFingerprint(c.Type(), verifier)
-	if err != nil {
-		return nil, "", err
-	}
+	fingerprint := api.GetFingerprint(c.Type(), verifier)
 	return verifier, fingerprint, nil
 }
 

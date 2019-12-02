@@ -35,6 +35,9 @@ func TestEncryptedData_MarshalUnmarshalValidate(t *testing.T) {
 		"aes with scrypt": {
 			in: NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, NewEncryptionKeyDerivedScrypt(256, 1, 2, 3, []byte("just-a-salt"))),
 		},
+		"aes with bootstrap code": {
+			in: NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, NewEncryptionKeyBootstrapCode(256)),
+		},
 		"rsa with missing key": {
 			in:          NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, nil),
 			expectedErr: ErrInvalidKeyType,

@@ -37,12 +37,13 @@ func (ed *KeyDerivationAlgorithm) UnmarshalJSON(b []byte) error {
 
 // Options for KeyType
 const (
-	KeyTypeDerived    KeyType = "derived"
-	KeyTypeEncrypted  KeyType = "encrypted"
-	KeyTypeLocal      KeyType = "local"
-	KeyTypeAccountKey KeyType = "account-key"
-	KeyTypeSecretKey  KeyType = "secret-key"
-	KeyTypeAWS        KeyType = "aws"
+	KeyTypeDerived       KeyType = "derived"
+	KeyTypeEncrypted     KeyType = "encrypted"
+	KeyTypeLocal         KeyType = "local"
+	KeyTypeAccountKey    KeyType = "account-key"
+	KeyTypeSecretKey     KeyType = "secret-key"
+	KeyTypeAWS           KeyType = "aws"
+	KeyTypeBootstrapCode KeyType = "bootstrap-code"
 )
 
 // Options for KeyDerivationAlgorithm
@@ -234,6 +235,38 @@ func (EncryptionKeyLocal) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 
 // Validate whether the EncryptionKeyLocal is valid.
 func (k EncryptionKeyLocal) Validate() error {
+	if k.Length == 0 {
+		return ErrMissingField("length")
+	}
+	if k.Length <= 0 {
+		return ErrInvalidKeyLength
+	}
+	return nil
+}
+
+// NewEncryptionKeyLocal creates a EncryptionKeyBootstrapCode.
+func NewEncryptionKeyBootstrapCode(length int) *EncryptionKeyBootstrapCode {
+	return &EncryptionKeyBootstrapCode{
+		EncryptionKey: EncryptionKey{
+			Type: KeyTypeBootstrapCode,
+		},
+		Length: length,
+	}
+}
+
+// EncryptionKeyBootstrapCode is an encryption key that is stored as a code memorized by the user.
+type EncryptionKeyBootstrapCode struct {
+	EncryptionKey
+	Length int `json:"length"`
+}
+
+// SupportsAlgorithm returns true when the encryption key supports the given algorithm.
+func (EncryptionKeyBootstrapCode) SupportsAlgorithm(a EncryptionAlgorithm) bool {
+	return a == EncryptionAlgorithmAESGCM
+}
+
+// Validate whether the EncryptionKeyBootstrapCode is valid.
+func (k EncryptionKeyBootstrapCode) Validate() error {
 	if k.Length == 0 {
 		return ErrMissingField("length")
 	}

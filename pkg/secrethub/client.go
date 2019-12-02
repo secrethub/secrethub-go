@@ -32,6 +32,8 @@ type ClientInterface interface {
 	AccessRules() AccessRuleService
 	// Accounts returns a service used to manage SecretHub accounts.
 	Accounts() AccountService
+	// Credentials returns a service used to manage credentials.
+	Credentials() CredentialService
 	// Dirs returns a service used to manage directories.
 	Dirs() DirService
 	// Me returns a service used to manage the current authenticated account.
@@ -166,6 +168,11 @@ func (c *Client) AccessRules() AccessRuleService {
 // Accounts returns a service used to manage SecretHub accounts.
 func (c *Client) Accounts() AccountService {
 	return newAccountService(c)
+}
+
+// Credentials returns a service used to manage credentials.
+func (c *Client) Credentials() CredentialService {
+	return newCredentialService(c)
 }
 
 // Dirs returns a service used to manage directories.
