@@ -96,11 +96,11 @@ func UseBackupCode(code string) Provider {
 func (b *bootstrapCodeProvider) Provide(_ *http.Client) (auth.Authenticator, Decrypter, error) {
 	err := ValidateBootstrapCode(b.code)
 	if err != nil {
-		return nil, nil, fmt.Errorf("malformed code: %w", err)
+		return nil, nil, fmt.Errorf("malformed code: %v", err)
 	}
 	bytes, err := hex.DecodeString(filterBootstrapCode(b.code))
 	if err != nil {
-		return nil, nil, fmt.Errorf("malformed code: %w", err)
+		return nil, nil, fmt.Errorf("malformed code: %v", err)
 	}
 	bootstrapCode := newBootstrapCode(bytes, b.t)
 	return auth.NewHTTPSigner(bootstrapCode), bootstrapCode, nil
