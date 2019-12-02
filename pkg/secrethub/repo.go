@@ -126,10 +126,7 @@ func (s repoService) ListEvents(path string, subjectTypes api.AuditSubjectTypeLi
 // EventIterator returns an iterator that retrieves all audit events for a given repo.
 //
 // Usage:
-//  iter, err := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
-//  if err != nil {
-//  	// Handle error
-//  }
+//  iter := client.Repos().EventIterator(path, &secrethub.AuditEventIteratorParams{})
 //  for {
 //  	event, err := iter.Next()
 //  	if err == iterator.Done {
