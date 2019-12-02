@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"strings"
 
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/auth"
@@ -42,7 +43,9 @@ func (b *BackupCodeCreator) Code() (string, error) {
 	if b.bootstrapCode == nil {
 		return "", errors.New("backup code has not yet been generated")
 	}
-	return hex.EncodeToString(b.bootstrapCode.encryptionKey.Export()), nil
+	code := strings.ToUpper(hex.EncodeToString(b.bootstrapCode.encryptionKey.Export()))
+	delimitedCode := strings.Join(splitStringByWidth(code, 8), "-")
+	return delimitedCode, nil
 }
 
 // Verifier returns a Verifier that can be used for creating a new credential from this backup code.
@@ -153,4 +156,18 @@ func (b *bootstrapCode) Unwrap(ciphertext *api.EncryptedData) ([]byte, error) {
 		return nil, err
 	}
 	return decrypted, nil
+}
+
+func splitStringByWidth(in string, width int) []string {
+	var out []string
+	tmp := ""
+	for i, r := range in {
+		tmp += string(r)
+
+		if (i+1)%width == 0 {
+			out = append(out, tmp)
+			tmp = ""
+		}
+	}
+	return out
 }
