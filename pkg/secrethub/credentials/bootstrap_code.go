@@ -33,18 +33,13 @@ func CreateBackupCode() *BackupCodeCreator {
 	return &BackupCodeCreator{}
 }
 
-// ParseBootstrapCode parses a string and checks whether it is a valid bootstrap code.
-// If it is valid, the bytes of the code are returned.
-func ParseBootstrapCode(code string) ([]byte, error) {
-	code = filterBootstrapCode(code)
-	decoded, err := hex.DecodeString(code)
-	if err != nil {
-		return nil, errors.New("illegal characters in code")
+// ValidateBootstrapCode validates a string and checks whether it is a valid bootstrap code.
+func ValidateBootstrapCode(code string) error {
+	filtered := filterBootstrapCode(code)
+	if len(filtered) != crypto.SymmetricKeyLength*2 {
+		return errors.New("code does not consist of 64 hexadecimal characters")
 	}
-	if len(decoded) != crypto.SymmetricKeyLength {
-		return nil, errors.New("wrong length")
-	}
-	return decoded, nil
+	return nil
 }
 
 // Create generates a new code and stores it in the BackupCodeCreator.
@@ -99,7 +94,11 @@ func UseBackupCode(code string) Provider {
 
 // Provide returns the auth.Authenticator and Decrypter corresponding to a bootstrap code.
 func (b *bootstrapCodeProvider) Provide(_ *http.Client) (auth.Authenticator, Decrypter, error) {
-	bytes, err := ParseBootstrapCode(b.code)
+	err := ValidateBootstrapCode(b.code)
+	if err != nil {
+		return nil, nil, fmt.Errorf("malformed code: %w", err)
+	}
+	bytes, err := hex.DecodeString(filterBootstrapCode(b.code))
 	if err != nil {
 		return nil, nil, fmt.Errorf("malformed code: %w", err)
 	}
