@@ -4,12 +4,18 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
+)
+
+var (
+	bootstrapCodeRegexp = regexp.MustCompile("[^a-zA-Z0-9]+")
 )
 
 // Enforce implementation of interfaces by structs.
@@ -25,6 +31,15 @@ type BackupCodeCreator struct {
 // CreateBackupCode returns a Creator that creates a backup code credential.
 func CreateBackupCode() *BackupCodeCreator {
 	return &BackupCodeCreator{}
+}
+
+// ValidateBootstrapCode validates a string and checks whether it is a valid bootstrap code.
+func ValidateBootstrapCode(code string) error {
+	filtered := filterBootstrapCode(code)
+	if len(filtered) != crypto.SymmetricKeyLength*2 {
+		return errors.New("code does not consist of 64 hexadecimal characters")
+	}
+	return nil
 }
 
 // Create generates a new code and stores it in the BackupCodeCreator.
@@ -79,9 +94,13 @@ func UseBackupCode(code string) Provider {
 
 // Provide returns the auth.Authenticator and Decrypter corresponding to a bootstrap code.
 func (b *bootstrapCodeProvider) Provide(_ *http.Client) (auth.Authenticator, Decrypter, error) {
-	bytes, err := hex.DecodeString(b.code)
-	if err != nil || len(bytes) != 32 {
-		return nil, nil, errors.New("malformed code")
+	err := ValidateBootstrapCode(b.code)
+	if err != nil {
+		return nil, nil, fmt.Errorf("malformed code: %v", err)
+	}
+	bytes, err := hex.DecodeString(filterBootstrapCode(b.code))
+	if err != nil {
+		return nil, nil, fmt.Errorf("malformed code: %v", err)
 	}
 	bootstrapCode := newBootstrapCode(bytes, b.t)
 	return auth.NewHTTPSigner(bootstrapCode), bootstrapCode, nil
@@ -156,6 +175,10 @@ func (b *bootstrapCode) Unwrap(ciphertext *api.EncryptedData) ([]byte, error) {
 		return nil, err
 	}
 	return decrypted, nil
+}
+
+func filterBootstrapCode(code string) string {
+	return bootstrapCodeRegexp.ReplaceAllString(code, "")
 }
 
 func splitStringByWidth(in string, width int) []string {
