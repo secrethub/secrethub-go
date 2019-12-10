@@ -3,7 +3,7 @@ module github.com/secrethub/secrethub-go
 require (
 	bitbucket.org/zombiezen/cardcpx v0.0.0-20150417151802-902f68ff43ef
 	github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf
-	github.com/aws/aws-sdk-go v1.19.38
+	github.com/aws/aws-sdk-go v1.25.49
 	github.com/docker/docker v1.13.1
 	github.com/docker/go-units v0.3.3
 	github.com/go-chi/chi v4.0.1+incompatible
@@ -19,3 +19,5 @@ require (
 	golang.org/x/net v0.0.0-20190522155817-f3200d17e092 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 )
+
+go 1.13
