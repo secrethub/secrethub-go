@@ -7,16 +7,16 @@ import (
 
 // OrgMemberService handles operations on organization members.
 type OrgMemberService interface {
-	// Get retrieves a users organization membership details.
-	Get(org string, username string) (*api.OrgMember, error)
 	// Invite invites a user to an organization.
 	Invite(org string, username string, role string) (*api.OrgMember, error)
-	// List retrieves all members of the given organization.
-	List(org string) ([]*api.OrgMember, error)
-	// Revoke removes the given user from the organization.
-	Revoke(org string, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error)
+	// Get retrieves a users organization membership details.
+	Get(org string, username string) (*api.OrgMember, error)
 	// Update updates the role of a member of the organization.
 	Update(org string, username string, role string) (*api.OrgMember, error)
+	// Revoke removes the given user from the organization.
+	Revoke(org string, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error)
+	// List retrieves all members of the given organization.
+	List(org string) ([]*api.OrgMember, error)
 }
 
 func newOrgMemberService(client *Client) OrgMemberService {

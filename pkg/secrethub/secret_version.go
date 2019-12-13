@@ -23,12 +23,12 @@ var (
 
 // SecretVersionService handles operations on secret versions from SecretHub.
 type SecretVersionService interface {
-	// Delete removes a secret version.
-	Delete(path string) error
 	// GetWithData gets a secret version, with the sensitive data.
 	GetWithData(path string) (*api.SecretVersion, error)
 	// GetWithoutData gets a secret version, without the sensitive data.
 	GetWithoutData(path string) (*api.SecretVersion, error)
+	// Delete removes a secret version.
+	Delete(path string) error
 	// ListWithData lists secret versions, with the sensitive data.
 	ListWithData(path string) ([]*api.SecretVersion, error)
 	// ListWithoutData lists secret versions, without the sensitive data.
