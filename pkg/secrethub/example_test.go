@@ -11,6 +11,26 @@ import (
 
 var client ClientInterface
 
+// Create a new Client.
+func ExampleNewClient() {
+	client, err := NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Client with ID: %s", client.account.AccountID.String())
+}
+
+// Create a new aws Client.
+func ExampleNewClient_aws() {
+	client, err := NewClient(WithCredentials(credentials.UseAWS()))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Client with ID: %s", client.account.AccountID.String())
+}
+
 // Create a new repository.
 func ExampleClient_Repos_create() {
 	_, err := client.Repos().Create("workspace/repo")
