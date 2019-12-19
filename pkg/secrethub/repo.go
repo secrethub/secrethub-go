@@ -5,6 +5,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 // RepoService handles operations on repositories from SecretHub.
@@ -17,6 +18,8 @@ type RepoService interface {
 	Delete(path string) error
 	// List retrieves all repositories in the given namespace.
 	List(namespace string) ([]*api.Repo, error)
+	// Iterator returns a new Iterator that retrieves all repos in the given namespace.
+	Iterator(namespace string, _ *RepoIteratorParams) RepoIterator
 	// ListAccounts lists the accounts in the repository.
 	ListAccounts(path string) ([]*api.Account, error)
 	// EventIterator returns an iterator that retrieves all audit events for a given repo.
@@ -308,4 +311,46 @@ func (c *Client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.SymmetricKey, e
 	c.repoIndexKeys[repoPath] = repoIndexKey
 
 	return repoIndexKey, nil
+}
+
+func (s repoService) Iterator(namespace string, params *RepoIteratorParams) RepoIterator {
+	var data []*api.Repo
+	var err error
+
+	if namespace != "" {
+		data, err = s.List(namespace)
+	} else {
+		data, err = s.ListMine()
+	}
+
+	return &repoIterator{
+		index: 0,
+		data:  data,
+		err:   err,
+	}
+}
+
+type RepoIteratorParams struct{}
+
+type RepoIterator interface {
+	Next() (api.Repo, error)
+}
+
+type repoIterator struct {
+	index int
+	data  []*api.Repo
+	err   error
+}
+
+func (it *repoIterator) Next() (api.Repo, error) {
+	if it.err != nil {
+		return api.Repo{}, it.err
+	}
+	if it.index >= len(it.data) {
+		return api.Repo{}, iterator.Done
+	}
+
+	element := *it.data[it.index]
+	it.index++
+	return element, nil
 }

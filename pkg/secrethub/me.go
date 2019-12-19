@@ -1,6 +1,8 @@
 package secrethub
 
-import "github.com/secrethub/secrethub-go/internals/api"
+import (
+	"github.com/secrethub/secrethub-go/internals/api"
+)
 
 // MeService handles operations on the authenticated account.
 type MeService interface {
@@ -11,6 +13,8 @@ type MeService interface {
 	SendVerificationEmail() error
 	// ListRepos retrieves all repositories of the current user.
 	ListRepos() ([]*api.Repo, error)
+	// Repo iterator returns a RepoIterator that retrieves all repos of the current user.
+	RepoIterator(_ *RepoIteratorParams) RepoIterator
 }
 
 type meService struct {
@@ -41,4 +45,14 @@ func (ms meService) GetUser() (*api.User, error) {
 // for them to prove they own that email address.
 func (ms meService) SendVerificationEmail() error {
 	return ms.client.httpClient.SendVerificationEmail()
+}
+
+func (ms meService) RepoIterator(params *RepoIteratorParams) RepoIterator {
+	data, err := ms.ListRepos()
+
+	return &repoIterator{
+		index: 0,
+		data:  data,
+		err:   err,
+	}
 }
