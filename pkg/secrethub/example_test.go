@@ -39,6 +39,14 @@ func ExampleClient_Repos_create() {
 	}
 }
 
+// Create a new directory.
+func ExampleClient_Dirs_create() {
+	_, err := client.Dirs().Create("workspace/repo/dir")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 // List all audit events for a given repository.
 func ExampleClient_Repos_eventIterator() {
 	iter := client.Repos().EventIterator("workspace/repo", &AuditEventIteratorParams{})
