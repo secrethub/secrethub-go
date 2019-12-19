@@ -27,6 +27,7 @@ type AccessRuleService interface {
 	Iterator(path string, depth int, ancestors bool) AccessRuleIterator
 	// ListLevels lists the access levels on the given directory.
 	ListLevels(path string) ([]*api.AccessLevel, error)
+	LevelIterator(path string) AccessLevelIterator
 }
 
 func newAccessRuleService(client *Client) AccessRuleService {
@@ -323,4 +324,36 @@ func (it *accessRuleIterator) Next() (api.AccessRule, error) {
 	element := *it.data[it.index]
 	it.index++
 	return element, nil
+}
+
+type AccessLevelIterator interface {
+	Next() (api.AccessLevel, error)
+}
+
+type accessLevelIterator struct {
+	index int
+	data  []*api.AccessLevel
+	err   error
+}
+
+func (it *accessLevelIterator) Next() (api.AccessLevel, error) {
+	if it.err != nil {
+		return api.AccessLevel{}, it.err
+	}
+	if it.index >= len(it.data) {
+		return api.AccessLevel{}, iterator.Done
+	}
+
+	element := *it.data[it.index]
+	it.index++
+	return element, nil
+}
+
+func (s accessRuleService) LevelIterator(path string) AccessLevelIterator {
+	data, err := s.ListLevels(path)
+	return &accessLevelIterator{
+		index: 0,
+		data:  data,
+		err:   err,
+	}
 }
