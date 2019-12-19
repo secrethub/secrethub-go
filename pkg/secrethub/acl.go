@@ -4,6 +4,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 // AccessRuleService handles operations on access rules from SecretHub.
@@ -19,6 +20,11 @@ type AccessRuleService interface {
 	// to true, it also includes rules for any parent directories. When the depth is
 	// set to -1, all children are retrieved without limit.
 	List(path string, depth int, ancestors bool) ([]*api.AccessRule, error)
+	// Iterator returns an iterator that retrieves all access rules that apply to a
+	// directory, including rules that apply to its children up to a specified depth.
+	// When ancestors is set to true, it also includes rules for any parent directories.
+	// When the depth is set to -1, all children are retrieved without limit.
+	Iterator(path string, depth int, ancestors bool) AccessRuleIterator
 	// ListLevels lists the access levels on the given directory.
 	ListLevels(path string) ([]*api.AccessLevel, error)
 }
@@ -285,4 +291,36 @@ func (c *Client) getAccessLevel(path api.BlindNamePath, accountName api.AccountN
 	}
 
 	return accessLevel, nil
+}
+
+func (s accessRuleService) Iterator(path string, depth int, ancestors bool) AccessRuleIterator {
+	data, err := s.List(path, depth, ancestors)
+	return &accessRuleIterator{
+		index: 0,
+		data:  data,
+		err:   err,
+	}
+}
+
+type AccessRuleIterator interface {
+	Next() (api.AccessRule, error)
+}
+
+type accessRuleIterator struct {
+	index int
+	data  []*api.AccessRule
+	err   error
+}
+
+func (it *accessRuleIterator) Next() (api.AccessRule, error) {
+	if it.err != nil {
+		return api.AccessRule{}, it.err
+	}
+	if it.index >= len(it.data) {
+		return api.AccessRule{}, iterator.Done
+	}
+
+	element := *it.data[it.index]
+	it.index++
+	return element, nil
 }
