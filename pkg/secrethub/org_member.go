@@ -3,6 +3,7 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 // OrgMemberService handles operations on organization members.
@@ -17,6 +18,8 @@ type OrgMemberService interface {
 	Revoke(org string, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error)
 	// List retrieves all members of the given organization.
 	List(org string) ([]*api.OrgMember, error)
+	// Iterator returns an iterator that lists all members of a given organization.
+	Iterator(org string, _ *OrgMemberIteratorParams) OrgMemberIterator
 }
 
 func newOrgMemberService(client *Client) OrgMemberService {
@@ -111,4 +114,42 @@ func (s orgMemberService) Update(org string, username string, role string) (*api
 	}
 
 	return s.client.httpClient.UpdateOrgMember(org, username, in)
+}
+
+// Iterator returns an iterator that lists all members of a given organization.
+func (s orgMemberService) Iterator(org string, _ *OrgMemberIteratorParams) OrgMemberIterator {
+	data, err := s.List(org)
+	return &orgMemberIterator{
+		index: 0,
+		data:  data,
+		err:   err,
+	}
+}
+
+// OrgMemberIteratorParams defines parameters used when listing OrgMembers.
+type OrgMemberIteratorParams struct{}
+
+// OrgMemberIterator iterates over OrgMembers.
+type OrgMemberIterator interface {
+	Next() (api.OrgMember, error)
+}
+
+type orgMemberIterator struct {
+	index int
+	data  []*api.OrgMember
+	err   error
+}
+
+// Next returns the next OrgMember or iterator.Done as an error if there are no more OrgMembers.
+func (it *orgMemberIterator) Next() (api.OrgMember, error) {
+	if it.err != nil {
+		return api.OrgMember{}, it.err
+	}
+	if it.index >= len(it.data) {
+		return api.OrgMember{}, iterator.Done
+	}
+
+	element := *it.data[it.index]
+	it.index++
+	return element, nil
 }
