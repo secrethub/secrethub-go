@@ -3,6 +3,8 @@ package secrethub
 import (
 	"fmt"
 
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
+
 	units "github.com/docker/go-units"
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
@@ -33,6 +35,8 @@ type SecretVersionService interface {
 	ListWithData(path string) ([]*api.SecretVersion, error)
 	// ListWithoutData lists secret versions, without the sensitive data.
 	ListWithoutData(path string) ([]*api.SecretVersion, error)
+	// Iterator returns a new iterator that retrieves all accounts in the given namespace.
+	Iterator(path string, params *SecretVersionIteratorParams) SecretVersionIterator
 }
 
 func newSecretVersionService(client *Client) SecretVersionService {
@@ -271,4 +275,51 @@ func (c *Client) decryptSecretVersions(encVersions ...*api.EncryptedSecretVersio
 	}
 
 	return versions, nil
+}
+
+// Iterator returns a new iterator that retrieves all accounts in the given namespace.
+func (s secretVersionService) Iterator(path string, params *SecretVersionIteratorParams) SecretVersionIterator {
+	var data []*api.SecretVersion
+	var err error
+	if params.includeSensitiveData {
+		data, err = s.ListWithData(path)
+	} else {
+		data, err = s.ListWithoutData(path)
+	}
+
+	return &secretVersionIterator{
+		index: 0,
+		data:  data,
+		err:   err,
+	}
+}
+
+// SecretVersionIteratorParams defines parameters used when listing SecretVersions.
+type SecretVersionIteratorParams struct {
+	includeSensitiveData bool
+}
+
+// SecretVersionIterator iterates over SecretVersions.
+type SecretVersionIterator interface {
+	Next() (api.SecretVersion, error)
+}
+
+type secretVersionIterator struct {
+	index int
+	data  []*api.SecretVersion
+	err   error
+}
+
+// Next returns the next SecretVersion or iterator.Done as an error if there are no more SecretVersions.
+func (it *secretVersionIterator) Next() (api.SecretVersion, error) {
+	if it.err != nil {
+		return api.SecretVersion{}, it.err
+	}
+	if it.index >= len(it.data) {
+		return api.SecretVersion{}, iterator.Done
+	}
+
+	element := *it.data[it.index]
+	it.index++
+	return element, nil
 }
