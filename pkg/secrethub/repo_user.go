@@ -3,6 +3,7 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 // RepoUserService handles operations on users of a repository.
@@ -13,6 +14,8 @@ type RepoUserService interface {
 	Revoke(path string, username string) (*api.RevokeRepoResponse, error)
 	// List lists the users of the given repository.
 	List(path string) ([]*api.User, error)
+	// Iterator returns an iterator that lists the users of a given repository.
+	Iterator(path string, params *UserIteratorParams) UserIterator
 }
 
 func newRepoUserService(client *Client) RepoUserService {
@@ -103,4 +106,42 @@ func (s repoUserService) Revoke(path string, username string) (*api.RevokeRepoRe
 	}
 
 	return resp, nil
+}
+
+// Iterator returns an iterator that lists the users of a given repository.
+func (s repoUserService) Iterator(path string, params *UserIteratorParams) UserIterator {
+	data, err := s.List(path)
+	return &userIterator{
+		index: 0,
+		data:  data,
+		err:   err,
+	}
+}
+
+// UserIteratorParams defines parameters used when listing Users.
+type UserIteratorParams struct{}
+
+// UserIterator iterates over Users.
+type UserIterator interface {
+	Next() (api.User, error)
+}
+
+type userIterator struct {
+	index int
+	data  []*api.User
+	err   error
+}
+
+// Next returns the next User or iterator.Done as an error if there are no more Users.
+func (it *userIterator) Next() (api.User, error) {
+	if it.err != nil {
+		return api.User{}, it.err
+	}
+	if it.index >= len(it.data) {
+		return api.User{}, iterator.Done
+	}
+
+	element := *it.data[it.index]
+	it.index++
+	return element, nil
 }
