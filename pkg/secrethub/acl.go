@@ -21,13 +21,12 @@ type AccessRuleService interface {
 	// set to -1, all children are retrieved without limit.
 	List(path string, depth int, ancestors bool) ([]*api.AccessRule, error)
 	// Iterator returns an iterator that retrieves all access rules that apply to a
-	// directory, including rules that apply to its children up to a specified depth.
-	// When ancestors is set to true, it also includes rules for any parent directories.
-	// When the depth is set to -1, all children are retrieved without limit.
-	Iterator(path string, depth int, ancestors bool) AccessRuleIterator
+	// directory.
+	Iterator(path string, _ *AccessRuleIteratorParams) AccessRuleIterator
 	// ListLevels lists the access levels on the given directory.
 	ListLevels(path string) ([]*api.AccessLevel, error)
-	LevelIterator(path string) AccessLevelIterator
+	// LevelIterator returns an iterator that retrieves all access levels on the given directory.
+	LevelIterator(path string, _ *AccessLevelIteratorParams) AccessLevelIterator
 }
 
 func newAccessRuleService(client *Client) AccessRuleService {
@@ -294,7 +293,19 @@ func (c *Client) getAccessLevel(path api.BlindNamePath, accountName api.AccountN
 	return accessLevel, nil
 }
 
-func (s accessRuleService) Iterator(path string, depth int, ancestors bool) AccessRuleIterator {
+// Iterator returns an iterator that retrieves all access rules that apply to a
+// directory.
+func (s accessRuleService) Iterator(path string, params *AccessRuleIteratorParams) AccessRuleIterator {
+	var depth int
+	var ancestors bool
+	if params == nil {
+		depth = -1
+		ancestors = false
+	} else {
+		depth = params.depth
+		ancestors = params.ancestors
+	}
+
 	data, err := s.List(path, depth, ancestors)
 	return &accessRuleIterator{
 		index: 0,
@@ -303,6 +314,13 @@ func (s accessRuleService) Iterator(path string, depth int, ancestors bool) Acce
 	}
 }
 
+// AccessRuleIteratorParams specify parameters used when listing access rules.
+type AccessRuleIteratorParams struct {
+	depth     int  // depth defines the depth of traversal for the iterator, -1 means listing all subdirectories.
+	ancestors bool // ancestors defines whether the iterator should also list access rules of parent directories.
+}
+
+// AccessLevelIterator iterates over access rules.
 type AccessRuleIterator interface {
 	Next() (api.AccessRule, error)
 }
@@ -313,6 +331,7 @@ type accessRuleIterator struct {
 	err   error
 }
 
+// Next returns the next access rule or iterator.Done if the all of them have been returned.
 func (it *accessRuleIterator) Next() (api.AccessRule, error) {
 	if it.err != nil {
 		return api.AccessRule{}, it.err
@@ -326,6 +345,10 @@ func (it *accessRuleIterator) Next() (api.AccessRule, error) {
 	return element, nil
 }
 
+// AccessLevelIteratorParams defines the parameters used when listing access levels.
+type AccessLevelIteratorParams struct{}
+
+// AccessLevelIterator iterates over access levels.
 type AccessLevelIterator interface {
 	Next() (api.AccessLevel, error)
 }
@@ -336,6 +359,7 @@ type accessLevelIterator struct {
 	err   error
 }
 
+// Next returns the next access level or iterator.Done if the all of them have been returned.
 func (it *accessLevelIterator) Next() (api.AccessLevel, error) {
 	if it.err != nil {
 		return api.AccessLevel{}, it.err
@@ -349,7 +373,8 @@ func (it *accessLevelIterator) Next() (api.AccessLevel, error) {
 	return element, nil
 }
 
-func (s accessRuleService) LevelIterator(path string) AccessLevelIterator {
+// LevelIterator returns an iterator that retrieves all access levels on the given directory.
+func (s accessRuleService) LevelIterator(path string, params *AccessLevelIteratorParams) AccessLevelIterator {
 	data, err := s.ListLevels(path)
 	return &accessLevelIterator{
 		index: 0,
