@@ -13,7 +13,7 @@ type MeService interface {
 	SendVerificationEmail() error
 	// ListRepos retrieves all repositories of the current user.
 	ListRepos() ([]*api.Repo, error)
-	// Repo iterator returns a RepoIterator that retrieves all repos of the current user.
+	// RepoIterator returns a RepoIterator that retrieves all repos of the current user.
 	RepoIterator(_ *RepoIteratorParams) RepoIterator
 }
 
@@ -47,6 +47,7 @@ func (ms meService) SendVerificationEmail() error {
 	return ms.client.httpClient.SendVerificationEmail()
 }
 
+// RepoIterator returns a RepoIterator that retrieves all repos of the current user.
 func (ms meService) RepoIterator(params *RepoIteratorParams) RepoIterator {
 	data, err := ms.ListRepos()
 

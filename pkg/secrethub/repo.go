@@ -41,6 +41,8 @@ type RepoService interface {
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 	// ListMine retrieves all repositories of the current user.
 	ListMine() ([]*api.Repo, error)
+	// IteratorMine returns an iterator that retrieves all repos of the current user.
+	IteratorMine(_ *RepoIteratorParams) RepoIterator
 	// Users returns a RepoUserService that handles operations on users of a repository.
 	Users() RepoUserService
 	// Services returns a RepoServiceService that handles operations on services of a repository.
@@ -313,16 +315,9 @@ func (c *Client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.SymmetricKey, e
 	return repoIndexKey, nil
 }
 
+// Iterator returns a new Iterator that retrieves all repos in the given namespace.
 func (s repoService) Iterator(namespace string, params *RepoIteratorParams) RepoIterator {
-	var data []*api.Repo
-	var err error
-
-	if namespace != "" {
-		data, err = s.List(namespace)
-	} else {
-		data, err = s.ListMine()
-	}
-
+	data, err := s.List(namespace)
 	return &repoIterator{
 		index: 0,
 		data:  data,
@@ -330,8 +325,20 @@ func (s repoService) Iterator(namespace string, params *RepoIteratorParams) Repo
 	}
 }
 
+// IteratorMine returns an iterator that retrieves all repos of the current user.
+func (s repoService) IteratorMine(_ *RepoIteratorParams) RepoIterator {
+	data, err := s.ListMine()
+	return &repoIterator{
+		index: 0,
+		data:  data,
+		err:   err,
+	}
+}
+
+// RepoIteratorParams defines parameters used when listing repos.
 type RepoIteratorParams struct{}
 
+// RepoIterator iterates over repositories.
 type RepoIterator interface {
 	Next() (api.Repo, error)
 }
@@ -342,6 +349,7 @@ type repoIterator struct {
 	err   error
 }
 
+// Next returns the next repo or iterator.Done as an error if there are no more repos.
 func (it *repoIterator) Next() (api.Repo, error) {
 	if it.err != nil {
 		return api.Repo{}, it.err
