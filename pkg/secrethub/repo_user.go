@@ -9,10 +9,10 @@ import (
 type RepoUserService interface {
 	// Invite invites the user with given username to the repository at the given path.
 	Invite(path string, username string) (*api.RepoMember, error)
-	// List lists the users of the given repository.
-	List(path string) ([]*api.User, error)
 	// Revoke revokes the user with given username from the repository with the given path.
 	Revoke(path string, username string) (*api.RevokeRepoResponse, error)
+	// List lists the users of the given repository.
+	List(path string) ([]*api.User, error)
 }
 
 func newRepoUserService(client *Client) RepoUserService {

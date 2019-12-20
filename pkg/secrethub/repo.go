@@ -11,10 +11,14 @@ import (
 type RepoService interface {
 	// Create creates a new repo for the given owner and name.
 	Create(path string) (*api.Repo, error)
-	// Delete removes the repo with the given path.
-	Delete(path string) error
 	// Get retrieves the repo with the given path.
 	Get(path string) (*api.Repo, error)
+	// Delete removes the repo with the given path.
+	Delete(path string) error
+	// List retrieves all repositories in the given namespace.
+	List(namespace string) ([]*api.Repo, error)
+	// ListAccounts lists the accounts in the repository.
+	ListAccounts(path string) ([]*api.Account, error)
 	// EventIterator returns an iterator that retrieves all audit events for a given repo.
 	//
 	// Usage:
@@ -30,10 +34,6 @@ type RepoService interface {
 	//  	// Use event
 	//  }
 	EventIterator(path string, _ *AuditEventIteratorParams) AuditEventIterator
-	// List retrieves all repositories in the given namespace.
-	List(namespace string) ([]*api.Repo, error)
-	// ListAccounts lists the accounts in the repository.
-	ListAccounts(path string) ([]*api.Account, error)
 	// ListEvents retrieves all audit events for a given repo.
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 	// ListMine retrieves all repositories of the current user.
