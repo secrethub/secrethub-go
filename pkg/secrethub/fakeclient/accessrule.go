@@ -2,7 +2,10 @@
 
 package fakeclient
 
-import "github.com/secrethub/secrethub-go/internals/api"
+import (
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/pkg/secrethub"
+)
 
 // AccessRuleService is a mock of the AccessRuleService interface.
 type AccessRuleService struct {
@@ -11,6 +14,17 @@ type AccessRuleService struct {
 	Lister      *AccessRuleLister
 	LevelLister *AccessLevelLister
 	Setter      AccessRuleSetter
+
+	IteratorFunc      func() secrethub.AccessRuleIterator
+	LevelIteratorFunc func() secrethub.AccessLevelIterator
+}
+
+func (s *AccessRuleService) Iterator(path string, _ *secrethub.AccessRuleIteratorParams) secrethub.AccessRuleIterator {
+	return s.IteratorFunc()
+}
+
+func (s *AccessRuleService) LevelIterator(path string, _ *secrethub.AccessLevelIteratorParams) secrethub.AccessLevelIterator {
+	return s.LevelIteratorFunc()
 }
 
 // Delete implements the AccessRuleService interface Delete function.

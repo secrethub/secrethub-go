@@ -2,7 +2,10 @@
 
 package fakeclient
 
-import "github.com/secrethub/secrethub-go/internals/api"
+import (
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/pkg/secrethub"
+)
 
 // OrgMemberService is a mock of the OrgMemberService interface.
 type OrgMemberService struct {
@@ -10,6 +13,12 @@ type OrgMemberService struct {
 	Lister  OrgMemberLister
 	Revoker OrgMemberRevoker
 	Updater OrgMemberUpdater
+
+	IteratorFunc func() secrethub.OrgMemberIterator
+}
+
+func (s *OrgMemberService) Iterator(org string, _ *secrethub.OrgMemberIteratorParams) secrethub.OrgMemberIterator {
+	return s.IteratorFunc()
 }
 
 // Get implements the OrgMemberService interface Get function.
