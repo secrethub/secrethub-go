@@ -4,6 +4,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 // ServiceService handles operations on service accounts from SecretHub.
@@ -16,6 +17,8 @@ type ServiceService interface {
 	Delete(name string) (*api.RevokeRepoResponse, error)
 	// List lists all service accounts in a given repository.
 	List(path string) ([]*api.Service, error)
+	// Iterator returns an iterator that lists all service accounts in a given repository.
+	Iterator(path string, _ *ServiceIteratorParams) ServiceIterator
 }
 
 func newServiceService(client *Client) ServiceService {
@@ -114,4 +117,42 @@ func (s serviceService) Get(name string) (*api.Service, error) {
 func (s serviceService) List(path string) ([]*api.Service, error) {
 	repoServiceService := newRepoServiceService(s.client)
 	return repoServiceService.List(path)
+}
+
+// Iterator returns an iterator that lists all service accounts in a given repository.
+func (s serviceService) Iterator(path string, params *ServiceIteratorParams) ServiceIterator {
+	data, err := s.List(path)
+	return &serviceIterator{
+		index: 0,
+		data:  data,
+		err:   err,
+	}
+}
+
+// ServiceIteratorParams defines parameters used when listing Services.
+type ServiceIteratorParams struct{}
+
+// ServiceIterator iterates over Services.
+type ServiceIterator interface {
+	Next() (api.Service, error)
+}
+
+type serviceIterator struct {
+	index int
+	data  []*api.Service
+	err   error
+}
+
+// Next returns the next Service or iterator.Done as an error if there are no more Services.
+func (it *serviceIterator) Next() (api.Service, error) {
+	if it.err != nil {
+		return api.Service{}, it.err
+	}
+	if it.index >= len(it.data) {
+		return api.Service{}, iterator.Done
+	}
+
+	element := *it.data[it.index]
+	it.index++
+	return element, nil
 }

@@ -9,6 +9,8 @@ import (
 type RepoServiceService interface {
 	// List lists the services of the given repository.
 	List(path string) ([]*api.Service, error)
+	// Iterator returns an iterator that lists all services of the given repository.
+	Iterator(path string, _ *RepoServiceIteratorParams) ServiceIterator
 }
 
 func newRepoServiceService(client *Client) RepoServiceService {
@@ -35,3 +37,16 @@ func (s repoServiceService) List(path string) ([]*api.Service, error) {
 
 	return services, nil
 }
+
+// Iterator returns an iterator that lists all services of the given repository.
+func (s repoServiceService) Iterator(path string, _ *RepoServiceIteratorParams) ServiceIterator {
+	data, err := s.List(path)
+	return &serviceIterator{
+		index: 0,
+		data:  data,
+		err:   err,
+	}
+}
+
+// RepoServiceIteratorParams defines parameters used when listing Services of a given repo.
+type RepoServiceIteratorParams struct{}
