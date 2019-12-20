@@ -29,8 +29,6 @@ type SecretService interface {
 	Exists(path string) (bool, error)
 	// Get retrieves a Secret.
 	Get(path string) (*api.Secret, error)
-	// Versions returns a SecretVersionService.
-	Versions() SecretVersionService
 	// Delete removes the secret at the given path.
 	Delete(path string) error
 	// EventIterator returns an iterator that retrieves all audit events for a given secret.
@@ -50,6 +48,8 @@ type SecretService interface {
 	EventIterator(path string, _ *AuditEventIteratorParams) AuditEventIterator
 	// ListEvents retrieves all audit events for a given secret.
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
+	// Versions returns a SecretVersionService.
+	Versions() SecretVersionService
 }
 
 func newSecretService(client *Client) SecretService {
