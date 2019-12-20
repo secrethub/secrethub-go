@@ -22,6 +22,8 @@ type RepoService interface {
 	Iterator(namespace string, _ *RepoIteratorParams) RepoIterator
 	// ListAccounts lists the accounts in the repository.
 	ListAccounts(path string) ([]*api.Account, error)
+	// AccountIterator returns a new iterator that retrieves all accounts in the given namespace.
+	AccountIterator(namespace string, params *RepoIteratorParams) AccountIterator
 	// EventIterator returns an iterator that retrieves all audit events for a given repo.
 	//
 	// Usage:
@@ -335,6 +337,16 @@ func (s repoService) IteratorMine(_ *RepoIteratorParams) RepoIterator {
 	}
 }
 
+// AccountIterator returns a new iterator that retrieves all accounts in the given namespace.
+func (s repoService) AccountIterator(namespace string, params *RepoIteratorParams) AccountIterator {
+	data, err := s.ListAccounts(namespace)
+	return &accountIterator{
+		index: 0,
+		data:  data,
+		err:   err,
+	}
+}
+
 // RepoIteratorParams defines parameters used when listing repos.
 type RepoIteratorParams struct{}
 
@@ -356,6 +368,34 @@ func (it *repoIterator) Next() (api.Repo, error) {
 	}
 	if it.index >= len(it.data) {
 		return api.Repo{}, iterator.Done
+	}
+
+	element := *it.data[it.index]
+	it.index++
+	return element, nil
+}
+
+// AccountIteratorParams defines parameters used when listing Accounts.
+type AccountIteratorParams struct{}
+
+// AccountIterator iterates over Accounts.
+type AccountIterator interface {
+	Next() (api.Account, error)
+}
+
+type accountIterator struct {
+	index int
+	data  []*api.Account
+	err   error
+}
+
+// Next returns the next Account or iterator.Done as an error if there are no more Accounts.
+func (it *accountIterator) Next() (api.Account, error) {
+	if it.err != nil {
+		return api.Account{}, it.err
+	}
+	if it.index >= len(it.data) {
+		return api.Account{}, iterator.Done
 	}
 
 	element := *it.data[it.index]
