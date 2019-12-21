@@ -18,7 +18,7 @@ type OrgService interface {
 	Delete(name string) error
 	// ListMine returns the organizations of the current user.
 	ListMine() ([]*api.Org, error)
-	// Iterator returns an iterator that lists all organizations of the current users.
+	// Iterator returns an iterator that lists all organizations of the current user.
 	Iterator() OrgIterator
 }
 
@@ -77,7 +77,7 @@ func (s orgService) ListMine() ([]*api.Org, error) {
 	return s.client.httpClient.ListMyOrgs()
 }
 
-// Iterator returns an iterator that lists all organizations of the current users.
+// Iterator returns an iterator that lists all organizations of the current user.
 func (s orgService) Iterator() OrgIterator {
 	data, err := s.ListMine()
 	return &orgIterator{
