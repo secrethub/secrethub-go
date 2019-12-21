@@ -21,7 +21,7 @@ func ExampleNewClient() {
 	fmt.Printf("Client with ID: %s", client.account.AccountID.String())
 }
 
-// Create a new aws Client.
+// Create a new client that uses native AWS services to handle encryption and authentication.
 func ExampleNewClient_aws() {
 	client, err := NewClient(WithCredentials(credentials.UseAWS()))
 	if err != nil {
