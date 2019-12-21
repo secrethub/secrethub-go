@@ -1,12 +1,13 @@
-package randchar
+package randchar_test
 
 import (
+	"github.com/secrethub/secrethub-go/pkg/randchar"
 	"log"
 )
 
 // Generate a random slice of 30 alphanumeric characters.
 func ExampleRand_Generate() {
-	val, err := Generate(30)
+	val, err := randchar.Generate(30)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -16,12 +17,12 @@ func ExampleRand_Generate() {
 // Generate a 15 character alphanumeric string with at least 3 symbols, 1 uppercase letter,
 // 1 lowercase letter and 1 digit.
 func ExampleRand_Generate_withRules() {
-	symbolsRule := Min(3, Symbols)
-	uppercaseRule := Min(1, Uppercase)
-	lowercaseRule := Min(1, Lowercase)
-	numberRule := Min(1, Numeric)
+	symbolsRule := randchar.Min(3, randchar.Symbols)
+	uppercaseRule := randchar.Min(1, randchar.Uppercase)
+	lowercaseRule := randchar.Min(1, randchar.Lowercase)
+	numberRule := randchar.Min(1, randchar.Numeric)
 
-	rand, err := NewRand(All, symbolsRule, uppercaseRule, lowercaseRule, numberRule)
+	rand, err := randchar.NewRand(randchar.All, symbolsRule, uppercaseRule, lowercaseRule, numberRule)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,8 +36,8 @@ func ExampleRand_Generate_withRules() {
 
 // Generate a 10 character alphanumeric string containing lowercase letters and digits.
 func ExampleRand_Generate_combineCharsets() {
-	customCharset := Lowercase.Add(Numeric)
-	rand, err := NewRand(customCharset)
+	customCharset := randchar.Lowercase.Add(randchar.Numeric)
+	rand, err := randchar.NewRand(customCharset)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,8 +51,8 @@ func ExampleRand_Generate_combineCharsets() {
 
 // Generate an 8 character long hexadecimal string.
 func ExampleRand_Generate_customCharset() {
-	hexCharset := NewCharset("0123456789ABCDEF")
-	rand, err := NewRand(hexCharset)
+	hexCharset := randchar.NewCharset("0123456789ABCDEF")
+	rand, err := randchar.NewRand(hexCharset)
 	if err != nil {
 		log.Fatal(err)
 	}
