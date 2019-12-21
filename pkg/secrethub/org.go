@@ -9,12 +9,12 @@ import (
 type OrgService interface {
 	// Create creates an organization.
 	Create(name string, description string) (*api.Org, error)
-	// Delete removes an organization.
-	Delete(name string) error
 	// Get retrieves an organization.
 	Get(name string) (*api.Org, error)
 	// Members returns an OrgMemberService.
 	Members() OrgMemberService
+	// Delete removes an organization.
+	Delete(name string) error
 	// ListMine returns the organizations of the current user.
 	ListMine() ([]*api.Org, error)
 }

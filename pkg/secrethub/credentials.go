@@ -11,10 +11,10 @@ import (
 type CredentialService interface {
 	// Create a new credential from the credentials.Creator for an existing account.
 	Create(credentials.Creator, string) (*api.Credential, error)
-	// List lists all credentials of the currently authenticated account.
-	List(_ *CredentialListParams) CredentialIterator
 	// Disable an existing credential.
 	Disable(fingerprint string) error
+	// List lists all credentials of the currently authenticated account.
+	List(_ *CredentialListParams) CredentialIterator
 }
 
 func newCredentialService(client *Client) CredentialService {

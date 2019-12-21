@@ -4,13 +4,13 @@ import "github.com/secrethub/secrethub-go/internals/api"
 
 // MeService handles operations on the authenticated account.
 type MeService interface {
-	// ListRepos retrieves all repositories of the current user.
-	ListRepos() ([]*api.Repo, error)
 	// GetUser retrieves the current users details.
 	GetUser() (*api.User, error)
 	// SendVerificationEmail sends an email to the authenticated user's registered email address
 	// for them to prove they own that email address.
 	SendVerificationEmail() error
+	// ListRepos retrieves all repositories of the current user.
+	ListRepos() ([]*api.Repo, error)
 }
 
 type meService struct {

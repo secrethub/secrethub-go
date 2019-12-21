@@ -16,3 +16,6 @@ format-tools:
 
 lint-tools:
 	@curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.15.0
+
+check-version:
+	./scripts/check-version/check-version.sh

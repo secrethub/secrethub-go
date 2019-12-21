@@ -10,10 +10,10 @@ import (
 type ServiceService interface {
 	// Create creates a new service account for the given repo.
 	Create(path string, description string, credential credentials.Creator) (*api.Service, error)
-	// Delete removes a service account by name.
-	Delete(name string) (*api.RevokeRepoResponse, error)
 	// Get retrieves a service account by name.
 	Get(name string) (*api.Service, error)
+	// Delete removes a service account by name.
+	Delete(name string) (*api.RevokeRepoResponse, error)
 	// List lists all service accounts in a given repository.
 	List(path string) ([]*api.Service, error)
 }

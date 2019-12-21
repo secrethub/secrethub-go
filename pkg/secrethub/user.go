@@ -9,10 +9,10 @@ import (
 
 // UserService handles operations on users from SecretHub.
 type UserService interface {
-	// Me gets the account's user if it exists.
-	Me() (*api.User, error)
 	// Create creates a new user at SecretHub.
 	Create(username, email, fullName string, credential credentials.CreatorProvider) (*api.User, error)
+	// Me gets the account's user if it exists.
+	Me() (*api.User, error)
 	// Get a user by their username.
 	Get(username string) (*api.User, error)
 }

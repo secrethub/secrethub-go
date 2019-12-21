@@ -8,10 +8,12 @@ import (
 
 // AccessRuleService handles operations on access rules from SecretHub.
 type AccessRuleService interface {
-	// Delete removes the accessrule for the given directory and account.
-	Delete(path string, accountName string) error
 	// Get retrieves the access rule for the given account on the given directory.
 	Get(path string, accountName string) (*api.AccessRule, error)
+	// Set sets an access rule with a certain permission level for an account to a path.
+	Set(path string, permission string, accountName string) (*api.AccessRule, error)
+	// Delete removes the accessrule for the given directory and account.
+	Delete(path string, accountName string) error
 	// List etrieves all access rules that apply to a directory, including
 	// rules that apply to its children up to a specified depth. When ancestors is set
 	// to true, it also includes rules for any parent directories. When the depth is
@@ -19,8 +21,6 @@ type AccessRuleService interface {
 	List(path string, depth int, ancestors bool) ([]*api.AccessRule, error)
 	// ListLevels lists the access levels on the given directory.
 	ListLevels(path string) ([]*api.AccessLevel, error)
-	// Set sets an access rule with a certain permission level for an account to a path.
-	Set(path string, permission string, accountName string) (*api.AccessRule, error)
 }
 
 func newAccessRuleService(client *Client) AccessRuleService {
