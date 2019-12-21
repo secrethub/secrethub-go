@@ -126,10 +126,10 @@ func (s orgMemberService) Iterator(org string, _ *OrgMemberIteratorParams) OrgMe
 	}
 }
 
-// OrgMemberIteratorParams defines parameters used when listing OrgMembers.
+// OrgMemberIteratorParams defines parameters used when listing members of the organization.
 type OrgMemberIteratorParams struct{}
 
-// OrgMemberIterator iterates over OrgMembers.
+// OrgMemberIterator iterates over members of the organization.
 type OrgMemberIterator interface {
 	Next() (api.OrgMember, error)
 }
