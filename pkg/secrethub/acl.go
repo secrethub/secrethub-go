@@ -93,7 +93,7 @@ func (s accessRuleService) Get(path string, accountName string) (*api.AccessRule
 	return accessRule, nil
 }
 
-// List etrieves all access rules that apply to a directory, including
+// List retrieves all access rules that apply to a directory, including
 // rules that apply to its children up to a specified depth. When ancestors is set
 // to true, it also includes rules for any parent directories. When the depth is
 // set to -1, all children are retrieved without limit.
@@ -301,8 +301,11 @@ func (s accessRuleService) Iterator(path string, params *AccessRuleIteratorParam
 	if params == nil {
 		depth = -1
 		ancestors = false
+	} else if params.depth == nil {
+		depth = -1
+		ancestors = params.ancestors
 	} else {
-		depth = params.depth
+		depth = int(*params.depth)
 		ancestors = params.ancestors
 	}
 
@@ -316,8 +319,8 @@ func (s accessRuleService) Iterator(path string, params *AccessRuleIteratorParam
 
 // AccessRuleIteratorParams specify parameters used when listing access rules.
 type AccessRuleIteratorParams struct {
-	depth     int  // depth defines the depth of traversal for the iterator, -1 means listing all subdirectories.
-	ancestors bool // ancestors defines whether the iterator should also list access rules of parent directories.
+	depth     *uint  	// depth defines the depth of traversal for the iterator, nil means listing all subdirectories.
+	ancestors bool 		// ancestors defines whether the iterator should also list access rules of parent directories.
 }
 
 // AccessLevelIterator iterates over access rules.
