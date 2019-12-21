@@ -18,7 +18,7 @@ type RepoService interface {
 	Delete(path string) error
 	// List retrieves all repositories in the given namespace.
 	List(namespace string) ([]*api.Repo, error)
-	// Iterator returns a new Iterator that retrieves all repos in the given namespace.
+	// Iterator returns a new iterator that retrieves all repos in the given namespace.
 	Iterator(namespace string, _ *RepoIteratorParams) RepoIterator
 	// ListAccounts lists the accounts in the repository.
 	ListAccounts(path string) ([]*api.Account, error)
@@ -317,7 +317,7 @@ func (c *Client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.SymmetricKey, e
 	return repoIndexKey, nil
 }
 
-// Iterator returns a new Iterator that retrieves all repos in the given namespace.
+// Iterator returns a new iterator that retrieves all repos in the given namespace.
 func (s repoService) Iterator(namespace string, params *RepoIteratorParams) RepoIterator {
 	data, err := s.List(namespace)
 	return &repoIterator{
