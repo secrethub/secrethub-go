@@ -1,7 +1,8 @@
-package secrethub
+package secrethub_test
 
 import (
 	"fmt"
+	"github.com/secrethub/secrethub-go/pkg/secrethub"
 	"log"
 
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
@@ -9,26 +10,34 @@ import (
 	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
-var client ClientInterface
+var client secrethub.ClientInterface
 
 // Create a new Client.
 func ExampleNewClient() {
-	client, err := NewClient()
+	client, err := secrethub.NewClient()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Client with ID: %s", client.account.AccountID.String())
+	// use the client
+	_, err = client.Repos().Create("workspace/repo")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // Create a new client that uses native AWS services to handle encryption and authentication.
 func ExampleNewClient_aws() {
-	client, err := NewClient(WithCredentials(credentials.UseAWS()))
+	client, err := secrethub.NewClient(secrethub.WithCredentials(credentials.UseAWS()))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Client with ID: %s", client.account.AccountID.String())
+	// use the client
+	_, err = client.Repos().Create("workspace/repo")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // Create a new repository.
@@ -49,7 +58,7 @@ func ExampleClient_Dirs_create() {
 
 // List all audit events for a given repository.
 func ExampleClient_Repos_eventIterator() {
-	iter := client.Repos().EventIterator("workspace/repo", &AuditEventIteratorParams{})
+	iter := client.Repos().EventIterator("workspace/repo", &secrethub.AuditEventIteratorParams{})
 	for {
 		event, err := iter.Next()
 		if err == iterator.Done {
@@ -82,7 +91,7 @@ func ExampleClient_Secrets_read() {
 
 // List all audit events for a given secret.
 func ExampleClient_Secrets_eventIterator() {
-	iter := client.Secrets().EventIterator("workspace/repo/secret", &AuditEventIteratorParams{})
+	iter := client.Secrets().EventIterator("workspace/repo/secret", &secrethub.AuditEventIteratorParams{})
 	for {
 		event, err := iter.Next()
 		if err == iterator.Done {
