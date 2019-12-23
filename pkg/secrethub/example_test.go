@@ -20,7 +20,7 @@ func ExampleNewClient() {
 	}
 
 	// use the client
-	_, err = client.Repos().Create("workspace/repo")
+	_, err = client.Secrets().ReadString("workspace/repo/secret")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,7 +34,7 @@ func ExampleNewClient_aws() {
 	}
 
 	// use the client
-	_, err = client.Repos().Create("workspace/repo")
+	_, err = client.Secrets().ReadString("workspace/repo/secret")
 	if err != nil {
 		log.Fatal(err)
 	}
