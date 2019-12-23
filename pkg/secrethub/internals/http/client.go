@@ -26,7 +26,7 @@ var (
 var (
 	errHTTP = errio.Namespace("http")
 
-	ErrClientTimeout = errHTTP.Code("timeout").Error("client timed out during request. Please try again.")
+	ErrClientTimeout = errHTTP.Code("timeout").Error("client timed out during request. Please try again. See https://status.secrethub.io for system status.")
 	ErrRequestFailed = errHTTP.Code("request_failed").ErrorPref("request to API server failed: %v")
 )
 
