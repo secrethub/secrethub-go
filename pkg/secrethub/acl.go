@@ -309,18 +309,24 @@ func (s accessRuleService) Iterator(path string, params *AccessRuleIteratorParam
 		ancestors = params.ancestors
 	}
 
-	data, err := s.List(path, depth, ancestors)
 	return &accessRuleIterator{
-		index: 0,
-		data:  data,
-		err:   err,
-	}
-}
+		iterator: iterator.New(
+			iterator.PaginatorConstructorWithFetch(
+				func() ([]interface{}, error) {
+					accessRules, err := s.client.httpClient.ListAccessRules(path, depth, ancestors)
+					if err != nil {
+						return nil, err
+					}
 
-// AccessRuleIteratorParams specify parameters used when listing access rules.
-type AccessRuleIteratorParams struct {
-	depth     *uint  	// depth defines the depth of traversal for the iterator, nil means listing all subdirectories.
-	ancestors bool 		// ancestors defines whether the iterator should also list access rules of parent directories.
+					res := make([]interface{}, len(accessRules))
+					for i, element := range accessRules {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
+	}
 }
 
 // AccessLevelIterator iterates over access rules.
@@ -329,23 +335,23 @@ type AccessRuleIterator interface {
 }
 
 type accessRuleIterator struct {
-	index int
-	data  []*api.AccessRule
-	err   error
+	iterator iterator.Iterator
 }
 
 // Next returns the next access rule or iterator.Done if the all of them have been returned.
 func (it *accessRuleIterator) Next() (api.AccessRule, error) {
-	if it.err != nil {
-		return api.AccessRule{}, it.err
-	}
-	if it.index >= len(it.data) {
-		return api.AccessRule{}, iterator.Done
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.AccessRule{}, err
 	}
 
-	element := *it.data[it.index]
-	it.index++
-	return element, nil
+	return item.(api.AccessRule), nil
+}
+
+// AccessRuleIteratorParams specify parameters used when listing access rules.
+type AccessRuleIteratorParams struct {
+	depth     *uint // depth defines the depth of traversal for the iterator, nil means listing all subdirectories.
+	ancestors bool  // ancestors defines whether the iterator should also list access rules of parent directories.
 }
 
 // AccessLevelIteratorParams defines the parameters used when listing access levels.
