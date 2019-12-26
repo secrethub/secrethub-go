@@ -1,8 +1,9 @@
 package api_test
 
 import (
-	"github.com/gofrs/uuid"
 	"testing"
+
+	"github.com/gofrs/uuid"
 
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/assert"
