@@ -161,7 +161,7 @@ func (s dirService) Create(path string) (*api.Dir, error) {
 // Exists returns whether a directory where you have access to exists at a given path.
 func (s dirService) Exists(path string) (bool, error) {
 	_, err := s.GetTree(path, 0, false)
-	if err == api.ErrDirNotFound || err == api.ErrRepoNotFound {
+	if api.IsErrNotFound(err) {
 		return false, nil
 	} else if err != nil {
 		return false, err

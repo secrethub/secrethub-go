@@ -95,7 +95,7 @@ func (s secretService) Exists(path string) (bool, error) {
 	}
 
 	_, err = s.client.httpClient.GetSecret(blindName)
-	if err == api.ErrSecretNotFound {
+	if api.IsErrNotFound(err) {
 		return false, nil
 	} else if err != nil {
 		return false, err
@@ -171,7 +171,7 @@ func (s secretService) Write(path string, data []byte) (*api.SecretVersion, erro
 	}
 
 	key, err := s.client.getSecretKey(secretPath)
-	if err == api.ErrSecretNotFound {
+	if api.IsErrNotFound(err) {
 		return s.client.createSecret(secretPath, data)
 	} else if err == api.ErrNoOKSecretKey {
 		key, err = s.client.createSecretKey(secretPath)

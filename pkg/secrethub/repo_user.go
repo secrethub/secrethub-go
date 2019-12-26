@@ -41,7 +41,7 @@ func (s repoUserService) Invite(path string, username string) (*api.RepoMember, 
 	}
 
 	account, err := s.client.httpClient.GetAccount(accountName)
-	if err == api.ErrAccountNotFound {
+	if api.IsErrNotFound(err) {
 		// return a more context specific error
 		return nil, api.ErrUserNotFound
 	} else if err != nil {
