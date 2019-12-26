@@ -1,8 +1,9 @@
 package api
 
 import (
-	"github.com/gofrs/uuid"
 	"time"
+
+	"github.com/gofrs/uuid"
 )
 
 // AuditAction values.
