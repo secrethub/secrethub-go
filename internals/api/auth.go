@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/gofrs/uuid"
 )
 
 // AuthMethod options

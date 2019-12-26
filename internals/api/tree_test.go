@@ -3,7 +3,7 @@ package api
 import (
 	"testing"
 
-	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
@@ -16,18 +16,18 @@ func TestAbsDirPath(t *testing.T) {
 	//			- subdir/
 
 	repoDir := &Dir{
-		DirID: uuid.New(),
+		DirID: uuid.Must(uuid.NewV4()),
 		Name:  "repo",
 	}
 
 	dir := &Dir{
-		DirID:    uuid.New(),
+		DirID:    uuid.Must(uuid.NewV4()),
 		Name:     "dir",
 		ParentID: &repoDir.DirID,
 	}
 
 	subdir := &Dir{
-		DirID:    uuid.New(),
+		DirID:    uuid.Must(uuid.NewV4()),
 		Name:     "subdir",
 		ParentID: &dir.DirID,
 	}

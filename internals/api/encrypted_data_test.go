@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/gofrs/uuid"
 
 	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
 func TestEncryptedData_MarshalUnmarshalValidate(t *testing.T) {
-	encryptedDataRSAAccountKey := NewEncryptedDataRSAOAEP([]byte("rsa-ciphertext"), HashingAlgorithmSHA256, NewEncryptionKeyAccountKey(4096, uuid.New()))
+	encryptedDataRSAAccountKey := NewEncryptedDataRSAOAEP([]byte("rsa-ciphertext"), HashingAlgorithmSHA256, NewEncryptionKeyAccountKey(4096, uuid.Must(uuid.NewV4())))
 
 	cases := map[string]struct {
 		in          *EncryptedData
@@ -24,7 +24,7 @@ func TestEncryptedData_MarshalUnmarshalValidate(t *testing.T) {
 			in: NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, NewEncryptionKeyLocal(256)),
 		},
 		"aes with secret key": {
-			in: NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, NewEncryptionKeySecretKey(256, uuid.New())),
+			in: NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, NewEncryptionKeySecretKey(256, uuid.Must(uuid.NewV4()))),
 		},
 		"rsa account key": {
 			in: encryptedDataRSAAccountKey,

@@ -6,7 +6,7 @@ import (
 
 	"net/http"
 
-	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 

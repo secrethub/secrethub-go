@@ -1,9 +1,10 @@
 package api
 
 import (
+	"bytes"
 	"net/http"
 
-	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -150,7 +151,7 @@ func (t Tree) AbsSecretPath(secretID uuid.UUID) (*SecretPath, error) {
 // This function makes the assumption that only the root dir has no parentID.
 // If not, an error will occur.
 func (t Tree) AbsDirPath(dirID uuid.UUID) (DirPath, error) {
-	if uuid.Equal(dirID, t.RootDir.DirID) {
+	if bytes.Equal(dirID.Bytes(), t.RootDir.DirID.Bytes()) {
 		dirPath := t.ParentPath.JoinDir(t.RootDir.Name)
 		return dirPath, nil
 	}

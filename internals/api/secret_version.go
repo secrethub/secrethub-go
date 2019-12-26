@@ -6,7 +6,7 @@ import (
 	"time"
 
 	units "github.com/docker/go-units"
-	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -130,7 +130,7 @@ type CreateSecretVersionRequest struct {
 
 // Validate validates the request fields.
 func (csvr *CreateSecretVersionRequest) Validate() error {
-	if csvr.SecretKeyID.IsZero() {
+	if csvr.SecretKeyID == uuid.UUID([uuid.Size]byte{0}) {
 		return ErrInvalidSecretKeyID
 	}
 

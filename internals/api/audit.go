@@ -1,9 +1,8 @@
 package api
 
 import (
+	"github.com/gofrs/uuid"
 	"time"
-
-	"github.com/secrethub/secrethub-go/internals/api/uuid"
 )
 
 // AuditAction values.

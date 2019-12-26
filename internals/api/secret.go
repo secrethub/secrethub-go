@@ -1,12 +1,13 @@
 package api
 
 import (
+	"bytes"
 	"net/http"
 	"strings"
 	"time"
 
 	"bitbucket.org/zombiezen/cardcpx/natsort"
-	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -194,7 +195,7 @@ func (r *SecretAccessRequest) Validate() error {
 
 	accountID := r.Name.AccountID
 	for _, key := range r.Keys {
-		if !uuid.Equal(key.AccountID, accountID) {
+		if !bytes.Equal(key.AccountID.Bytes(), accountID.Bytes()) {
 			return ErrInvalidAccountID
 		}
 	}
@@ -211,11 +212,11 @@ type SecretKeyMemberRequest struct {
 
 // Validate validates the request fields.
 func (skmr *SecretKeyMemberRequest) Validate() error {
-	if skmr.AccountID.IsZero() {
+	if skmr.AccountID == uuid.UUID([uuid.Size]byte{0}) {
 		return ErrInvalidAccountID
 	}
 
-	if skmr.SecretKeyID.IsZero() {
+	if skmr.SecretKeyID == uuid.UUID([uuid.Size]byte{0}) {
 		return ErrInvalidKeyID
 	}
 

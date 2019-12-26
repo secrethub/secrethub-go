@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/secrethub/secrethub-go/internals/api/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -63,7 +63,7 @@ type EncryptedKeyRequest struct {
 
 // Validate validates the request fields.
 func (r *EncryptedKeyRequest) Validate() error {
-	if r.AccountID.IsZero() {
+	if r.AccountID == uuid.UUID([uuid.Size]byte{0}) {
 		return ErrInvalidAccountID
 	}
 

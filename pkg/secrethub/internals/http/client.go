@@ -12,8 +12,8 @@ import (
 
 	"github.com/op/go-logging"
 
+	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/api"
-	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
