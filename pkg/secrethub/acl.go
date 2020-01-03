@@ -181,9 +181,9 @@ func (s accessRuleService) Set(path string, permission string, accountName strin
 	}
 
 	_, err = s.Get(path, accountName)
-	if err != nil && err != api.ErrAccessRuleNotFound {
+	if err != nil && !api.IsErrNotFound(err) {
 		return nil, errio.Error(err)
-	} else if err == api.ErrAccessRuleNotFound {
+	} else if api.IsErrNotFound(err) {
 		return s.create(p, perm, an)
 	}
 	return s.update(p, perm, an)

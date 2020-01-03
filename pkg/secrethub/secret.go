@@ -95,7 +95,7 @@ func (s secretService) Exists(path string) (bool, error) {
 	}
 
 	_, err = s.client.httpClient.GetSecret(blindName)
-	if err == api.ErrSecretNotFound {
+	if api.IsErrNotFound(err) {
 		return false, nil
 	} else if err != nil {
 		return false, err

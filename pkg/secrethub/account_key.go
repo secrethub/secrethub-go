@@ -49,7 +49,7 @@ func (s accountKeyService) Create(verifier credentials.Verifier, encrypter crede
 // Exists returns whether an account key exists for the client's credential.
 func (s accountKeyService) Exists() (bool, error) {
 	_, err := s.client.getAccountKey()
-	if err == api.ErrAccountKeyNotFound || err == api.ErrCredentialNotKeyed {
+	if api.IsErrNotFound(err) {
 		return false, nil
 	}
 	if err != nil {
