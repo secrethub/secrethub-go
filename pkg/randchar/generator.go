@@ -245,26 +245,26 @@ func NewCharset(characters string) Charset {
 }
 
 // GetCharset returns the charset with the specified name.
-func CharsetByName(charsetName string) Charset {
+func CharsetByName(charsetName string) (Charset, bool) {
 	switch charsetName {
 	case "numeric":
-		return Numeric
+		return Numeric, true
 	case "lowercase":
-		return Lowercase
+		return Lowercase, true
 	case "uppercase":
-		return Uppercase
+		return Uppercase, true
 	case "letters":
-		return Letters
+		return Letters, true
 	case "symbols":
-		return Symbols
+		return Symbols, true
 	case "alphanumeric":
-		return Alphanumeric
+		return Alphanumeric, true
 	case "all":
-		return All
+		return All, true
 	case "similar":
-		return Similar
+		return Similar, true
 	default:
-		return Alphanumeric
+		return Charset{}, false
 	}
 }
 
