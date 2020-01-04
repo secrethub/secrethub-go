@@ -144,7 +144,7 @@ type InviteUserRequest struct {
 
 // Validate validates a InviteUserRequest
 func (req InviteUserRequest) Validate() error {
-	if req.AccountID == uuid.UUID([uuid.Size]byte{0}) {
+	if req.AccountID == uuid.Nil {
 		return ErrInvalidAccountID
 	}
 

@@ -63,7 +63,7 @@ type EncryptedKeyRequest struct {
 
 // Validate validates the request fields.
 func (r *EncryptedKeyRequest) Validate() error {
-	if r.AccountID == uuid.UUID([uuid.Size]byte{0}) {
+	if r.AccountID == uuid.Nil {
 		return ErrInvalidAccountID
 	}
 

@@ -212,11 +212,11 @@ type SecretKeyMemberRequest struct {
 
 // Validate validates the request fields.
 func (skmr *SecretKeyMemberRequest) Validate() error {
-	if skmr.AccountID == uuid.UUID([uuid.Size]byte{0}) {
+	if skmr.AccountID == uuid.Nil {
 		return ErrInvalidAccountID
 	}
 
-	if skmr.SecretKeyID == uuid.UUID([uuid.Size]byte{0}) {
+	if skmr.SecretKeyID == uuid.Nil {
 		return ErrInvalidKeyID
 	}
 

@@ -13,7 +13,7 @@ type EncryptedNameRequest struct {
 
 // Validate validates the EncryptedNameRequest to be valid.
 func (enr *EncryptedNameRequest) Validate() error {
-	if enr.AccountID == uuid.UUID([uuid.Size]byte{0}) {
+	if enr.AccountID == uuid.Nil {
 		return ErrInvalidAccountID
 	}
 
@@ -28,7 +28,7 @@ type EncryptedNameForNodeRequest struct {
 
 // Validate validates the EncryptedNameForNodeRequest.
 func (nnr EncryptedNameForNodeRequest) Validate() error {
-	if nnr.NodeID == uuid.UUID([uuid.Size]byte{0}) {
+	if nnr.NodeID == uuid.Nil {
 		return ErrInvalidNodeID
 	}
 

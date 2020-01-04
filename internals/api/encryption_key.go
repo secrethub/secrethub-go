@@ -307,7 +307,7 @@ func (k EncryptionKeyAccountKey) Validate() error {
 	if k.Length <= 0 {
 		return ErrInvalidKeyLength
 	}
-	if k.ID == uuid.UUID([uuid.Size]byte{0}) {
+	if k.ID == uuid.Nil {
 		return ErrMissingField("id")
 	}
 	return nil
@@ -344,7 +344,7 @@ func (k EncryptionKeySecretKey) Validate() error {
 	if k.Length <= 0 {
 		return ErrInvalidKeyLength
 	}
-	if k.ID == uuid.UUID([uuid.Size]byte{0}) {
+	if k.ID == uuid.Nil {
 		return ErrMissingField("id")
 	}
 	return nil

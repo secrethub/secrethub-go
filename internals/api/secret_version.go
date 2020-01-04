@@ -130,7 +130,7 @@ type CreateSecretVersionRequest struct {
 
 // Validate validates the request fields.
 func (csvr *CreateSecretVersionRequest) Validate() error {
-	if csvr.SecretKeyID == uuid.UUID([uuid.Size]byte{0}) {
+	if csvr.SecretKeyID == uuid.Nil {
 		return ErrInvalidSecretKeyID
 	}
 
