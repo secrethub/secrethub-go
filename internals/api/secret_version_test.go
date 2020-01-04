@@ -3,8 +3,6 @@ package api
 import (
 	"testing"
 
-	"github.com/secrethub/secrethub-go/internals/assert"
-
 	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 )
@@ -46,10 +44,8 @@ func TestCreateSecretVersionRequest_Validate_MaxSize(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		id, err := uuid.NewV4()
-		assert.OK(t, err)
 		r := CreateSecretVersionRequest{
-			SecretKeyID:   id,
+			SecretKeyID:   uuid.Must(uuid.NewV4()),
 			EncryptedData: ciphertext,
 		}
 
