@@ -319,21 +319,45 @@ func (c *Client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.SymmetricKey, e
 
 // Iterator returns a new iterator that retrieves all repos in the given namespace.
 func (s repoService) Iterator(namespace string, params *RepoIteratorParams) RepoIterator {
-	data, err := s.List(namespace)
 	return &repoIterator{
-		index: 0,
-		data:  data,
-		err:   err,
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					repos, err := s.List(namespace)
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(repos))
+					for i, element := range repos {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
 	}
 }
 
 // IteratorMine returns an iterator that retrieves all repos of the current user.
 func (s repoService) IteratorMine(_ *RepoIteratorParams) RepoIterator {
-	data, err := s.ListMine()
 	return &repoIterator{
-		index: 0,
-		data:  data,
-		err:   err,
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					repos, err := s.ListMine()
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(repos))
+					for i, element := range repos {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
 	}
 }
 
@@ -356,23 +380,17 @@ type RepoIterator interface {
 }
 
 type repoIterator struct {
-	index int
-	data  []*api.Repo
-	err   error
+	iterator iterator.Iterator
 }
 
-// Next returns the next repo or iterator.Done as an error if there are no more repos.
+// Next returns the next repo or iterator.Done as an error if the all of them have been returned.
 func (it *repoIterator) Next() (api.Repo, error) {
-	if it.err != nil {
-		return api.Repo{}, it.err
-	}
-	if it.index >= len(it.data) {
-		return api.Repo{}, iterator.Done
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.Repo{}, err
 	}
 
-	element := *it.data[it.index]
-	it.index++
-	return element, nil
+	return item.(api.Repo), nil
 }
 
 // AccountIteratorParams defines parameters used when listing Accounts.

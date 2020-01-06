@@ -2,6 +2,7 @@ package secrethub
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 // MeService handles operations on the authenticated account.
@@ -49,11 +50,22 @@ func (ms meService) SendVerificationEmail() error {
 
 // RepoIterator returns a RepoIterator that retrieves all repos of the current user.
 func (ms meService) RepoIterator(params *RepoIteratorParams) RepoIterator {
-	data, err := ms.ListRepos()
-
 	return &repoIterator{
-		index: 0,
-		data:  data,
-		err:   err,
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					repos, err := ms.ListRepos()
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(repos))
+					for i, element := range repos {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
 	}
 }
