@@ -79,38 +79,41 @@ func (s orgService) ListMine() ([]*api.Org, error) {
 
 // Iterator returns an iterator that lists all organizations of the current user.
 func (s orgService) Iterator() OrgIterator {
-	data, err := s.ListMine()
 	return &orgIterator{
-		index: 0,
-		data:  data,
-		err:   err,
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					orgs, err := s.ListMine()
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(orgs))
+					for i, element := range orgs {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
 	}
 }
 
-// RepoIteratorParams defines parameters used when listing repos.
-type OrgIteratorParams struct{}
-
-// RepoIterator iterates over repositories.
+// OrgIterator iterates over organizations.
 type OrgIterator interface {
 	Next() (api.Org, error)
 }
 
 type orgIterator struct {
-	index int
-	data  []*api.Org
-	err   error
+	iterator iterator.Iterator
 }
 
-// Next returns the next repo or iterator.Done as an error if there are no more repos.
+// Next returns the next organization or iterator.Done as an error if the all of them have been returned.
 func (it *orgIterator) Next() (api.Org, error) {
-	if it.err != nil {
-		return api.Org{}, it.err
-	}
-	if it.index >= len(it.data) {
-		return api.Org{}, iterator.Done
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.Org{}, err
 	}
 
-	element := *it.data[it.index]
-	it.index++
-	return element, nil
+	return item.(api.Org), nil
 }
