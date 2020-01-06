@@ -301,12 +301,12 @@ func (s accessRuleService) Iterator(path string, params *AccessRuleIteratorParam
 	if params == nil {
 		depth = -1
 		ancestors = false
-	} else if params.depth == nil {
+	} else if params.Depth == nil {
 		depth = -1
-		ancestors = params.ancestors
+		ancestors = params.Ancestors
 	} else {
-		depth = int(*params.depth)
-		ancestors = params.ancestors
+		depth = int(*params.Depth)
+		ancestors = params.Ancestors
 	}
 
 	return &accessRuleIterator{
@@ -350,8 +350,8 @@ func (it *accessRuleIterator) Next() (api.AccessRule, error) {
 
 // AccessRuleIteratorParams specify parameters used when listing access rules.
 type AccessRuleIteratorParams struct {
-	depth     *uint // depth defines the depth of traversal for the iterator, nil means listing all subdirectories.
-	ancestors bool  // ancestors defines whether the iterator should also list access rules of parent directories.
+	Depth     *uint // Depth defines the depth of traversal for the iterator, nil means listing all subdirectories.
+	Ancestors bool  // Ancestors defines whether the iterator should also list access rules of parent directories.
 }
 
 // AccessLevelIteratorParams defines the parameters used when listing access levels.
