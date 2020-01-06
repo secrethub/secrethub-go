@@ -363,11 +363,23 @@ func (s repoService) IteratorMine(_ *RepoIteratorParams) RepoIterator {
 
 // AccountIterator returns a new iterator that retrieves all accounts in the given namespace.
 func (s repoService) AccountIterator(namespace string, params *RepoIteratorParams) AccountIterator {
-	data, err := s.ListAccounts(namespace)
 	return &accountIterator{
-		index: 0,
-		data:  data,
-		err:   err,
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					accounts, err := s.ListAccounts(namespace)
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(accounts))
+					for i, element := range accounts {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
 	}
 }
 
@@ -396,27 +408,21 @@ func (it *repoIterator) Next() (api.Repo, error) {
 // AccountIteratorParams defines parameters used when listing Accounts.
 type AccountIteratorParams struct{}
 
-// AccountIterator iterates over Accounts.
+// AccountIterator iterates over accounts.
 type AccountIterator interface {
 	Next() (api.Account, error)
 }
 
 type accountIterator struct {
-	index int
-	data  []*api.Account
-	err   error
+	iterator iterator.Iterator
 }
 
-// Next returns the next Account or iterator.Done as an error if there are no more Accounts.
+// Next returns the next account or iterator.Done as an error if the all of them have been returned.
 func (it *accountIterator) Next() (api.Account, error) {
-	if it.err != nil {
-		return api.Account{}, it.err
-	}
-	if it.index >= len(it.data) {
-		return api.Account{}, iterator.Done
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.Account{}, err
 	}
 
-	element := *it.data[it.index]
-	it.index++
-	return element, nil
+	return item.(api.Account), nil
 }
