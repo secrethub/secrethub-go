@@ -10,8 +10,8 @@ type paginator struct {
 func PaginatorFactory(fetch func() ([]interface{}, error)) PaginatorConstructor {
 	return func() (Paginator, error) {
 		return &paginator{
-			fetched:false,
-			fetch:fetch,
+			fetched: false,
+			fetch:   fetch,
 		}, nil
 	}
 }

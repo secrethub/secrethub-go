@@ -1,13 +1,14 @@
 package iterator
 
 import (
-	"github.com/secrethub/secrethub-go/internals/assert"
 	"testing"
+
+	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
 func TestPaginatorConstructorWithFetch(t *testing.T) {
 	it := New(PaginatorFactory(func() ([]interface{}, error) {
-		return []interface{}{"this","is","a", "test"}, nil
+		return []interface{}{"this", "is", "a", "test"}, nil
 	}))
 
 	expected := []string{"this", "is", "a", "test"}
