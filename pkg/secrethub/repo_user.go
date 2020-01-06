@@ -110,38 +110,44 @@ func (s repoUserService) Revoke(path string, username string) (*api.RevokeRepoRe
 
 // Iterator returns an iterator that lists the users of a given repository.
 func (s repoUserService) Iterator(path string, params *UserIteratorParams) UserIterator {
-	data, err := s.List(path)
 	return &userIterator{
-		index: 0,
-		data:  data,
-		err:   err,
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					users, err := s.List(path)
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(users))
+					for i, element := range users {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
 	}
 }
 
 // UserIteratorParams defines parameters used when listing Users.
 type UserIteratorParams struct{}
 
-// UserIterator iterates over Users.
+// UserIterator iterates over users.
 type UserIterator interface {
 	Next() (api.User, error)
 }
 
 type userIterator struct {
-	index int
-	data  []*api.User
-	err   error
+	iterator iterator.Iterator
 }
 
-// Next returns the next User or iterator.Done as an error if there are no more Users.
+// Next returns the next user or iterator.Done as an error if the all of them have been returned.
 func (it *userIterator) Next() (api.User, error) {
-	if it.err != nil {
-		return api.User{}, it.err
-	}
-	if it.index >= len(it.data) {
-		return api.User{}, iterator.Done
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.User{}, err
 	}
 
-	element := *it.data[it.index]
-	it.index++
-	return element, nil
+	return item.(api.User), nil
 }
