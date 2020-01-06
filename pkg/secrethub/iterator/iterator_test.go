@@ -6,7 +6,7 @@ import (
 )
 
 func TestPaginatorConstructorWithFetch(t *testing.T) {
-	it := New(PaginatorConstructorWithFetch(func() ([]interface{}, error) {
+	it := New(PaginatorFactory(func() ([]interface{}, error) {
 		return []interface{}{"this","is","a", "test"}, nil
 	}))
 

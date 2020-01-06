@@ -311,7 +311,7 @@ func (s accessRuleService) Iterator(path string, params *AccessRuleIteratorParam
 
 	return &accessRuleIterator{
 		iterator: iterator.New(
-			iterator.PaginatorConstructorWithFetch(
+			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
 					accessRules, err := s.client.httpClient.ListAccessRules(path, depth, ancestors)
 					if err != nil {

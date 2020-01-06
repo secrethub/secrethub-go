@@ -5,9 +5,9 @@ type paginator struct {
 	fetch   func() ([]interface{}, error)
 }
 
-// PaginatorConstructorWithFetch returns a new paginator constructor that constructs a paginator
+// PaginatorFactory returns a paginator constructor that constructs a paginator
 // with the provided fetch function.
-func PaginatorConstructorWithFetch(fetch func() ([]interface{}, error)) PaginatorConstructor {
+func PaginatorFactory(fetch func() ([]interface{}, error)) PaginatorConstructor {
 	return func() (Paginator, error) {
 		return &paginator{
 			fetched:false,
