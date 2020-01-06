@@ -329,6 +329,28 @@ func (s accessRuleService) Iterator(path string, params *AccessRuleIteratorParam
 	}
 }
 
+// LevelIterator returns an iterator that retrieves all access levels on the given directory.
+func (s accessRuleService) LevelIterator(path string, _ *AccessLevelIteratorParams) AccessLevelIterator {
+	return &accessLevelIterator{
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					accessLevels, err := s.ListLevels(path)
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(accessLevels))
+					for i, element := range accessLevels {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
+	}
+}
+
 // AccessLevelIterator iterates over access rules.
 type AccessRuleIterator interface {
 	Next() (api.AccessRule, error)
@@ -363,31 +385,15 @@ type AccessLevelIterator interface {
 }
 
 type accessLevelIterator struct {
-	index int
-	data  []*api.AccessLevel
-	err   error
+	iterator iterator.Iterator
 }
 
-// Next returns the next access level or iterator.Done if the all of them have been returned.
+// Next returns the next access rule or iterator.Done if the all of them have been returned.
 func (it *accessLevelIterator) Next() (api.AccessLevel, error) {
-	if it.err != nil {
-		return api.AccessLevel{}, it.err
-	}
-	if it.index >= len(it.data) {
-		return api.AccessLevel{}, iterator.Done
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.AccessLevel{}, err
 	}
 
-	element := *it.data[it.index]
-	it.index++
-	return element, nil
-}
-
-// LevelIterator returns an iterator that retrieves all access levels on the given directory.
-func (s accessRuleService) LevelIterator(path string, params *AccessLevelIteratorParams) AccessLevelIterator {
-	data, err := s.ListLevels(path)
-	return &accessLevelIterator{
-		index: 0,
-		data:  data,
-		err:   err,
-	}
+	return item.(api.AccessLevel), nil
 }
