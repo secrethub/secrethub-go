@@ -118,38 +118,44 @@ func (s orgMemberService) Update(org string, username string, role string) (*api
 
 // Iterator returns an iterator that lists all members of a given organization.
 func (s orgMemberService) Iterator(org string, _ *OrgMemberIteratorParams) OrgMemberIterator {
-	data, err := s.List(org)
 	return &orgMemberIterator{
-		index: 0,
-		data:  data,
-		err:   err,
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					orgMembers, err := s.List(org)
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(orgMembers))
+					for i, element := range orgMembers {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
 	}
 }
 
 // OrgMemberIteratorParams defines parameters used when listing members of the organization.
 type OrgMemberIteratorParams struct{}
 
-// OrgMemberIterator iterates over members of the organization.
+// OrgMemberIterator iterates over organization members.
 type OrgMemberIterator interface {
 	Next() (api.OrgMember, error)
 }
 
 type orgMemberIterator struct {
-	index int
-	data  []*api.OrgMember
-	err   error
+	iterator iterator.Iterator
 }
 
-// Next returns the next OrgMember or iterator.Done as an error if there are no more OrgMembers.
+// Next returns the next organization member or iterator.Done as an error if the all of them have been returned.
 func (it *orgMemberIterator) Next() (api.OrgMember, error) {
-	if it.err != nil {
-		return api.OrgMember{}, it.err
-	}
-	if it.index >= len(it.data) {
-		return api.OrgMember{}, iterator.Done
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.OrgMember{}, err
 	}
 
-	element := *it.data[it.index]
-	it.index++
-	return element, nil
+	return item.(api.OrgMember), nil
 }
