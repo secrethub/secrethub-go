@@ -279,18 +279,29 @@ func (c *Client) decryptSecretVersions(encVersions ...*api.EncryptedSecretVersio
 
 // Iterator returns a new iterator that retrieves all accounts in the given namespace.
 func (s secretVersionService) Iterator(path string, params *SecretVersionIteratorParams) SecretVersionIterator {
-	var data []*api.SecretVersion
-	var err error
-	if params.includeSensitiveData {
-		data, err = s.ListWithData(path)
-	} else {
-		data, err = s.ListWithoutData(path)
-	}
-
 	return &secretVersionIterator{
-		index: 0,
-		data:  data,
-		err:   err,
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					var err error
+					var secretVersions []*api.SecretVersion
+					if params.includeSensitiveData {
+						secretVersions, err = s.ListWithData(path)
+					} else {
+						secretVersions, err = s.ListWithoutData(path)
+					}
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(secretVersions))
+					for i, element := range secretVersions {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
 	}
 }
 
@@ -299,27 +310,21 @@ type SecretVersionIteratorParams struct {
 	includeSensitiveData bool
 }
 
-// SecretVersionIterator iterates over SecretVersions.
+// SecretVersionIterator iterates over secret versions.
 type SecretVersionIterator interface {
 	Next() (api.SecretVersion, error)
 }
 
 type secretVersionIterator struct {
-	index int
-	data  []*api.SecretVersion
-	err   error
+	iterator iterator.Iterator
 }
 
-// Next returns the next SecretVersion or iterator.Done as an error if there are no more SecretVersions.
+// Next returns the next secret version or iterator.Done as an error if the all of them have been returned.
 func (it *secretVersionIterator) Next() (api.SecretVersion, error) {
-	if it.err != nil {
-		return api.SecretVersion{}, it.err
-	}
-	if it.index >= len(it.data) {
-		return api.SecretVersion{}, iterator.Done
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.SecretVersion{}, err
 	}
 
-	element := *it.data[it.index]
-	it.index++
-	return element, nil
+	return item.(api.SecretVersion), nil
 }
