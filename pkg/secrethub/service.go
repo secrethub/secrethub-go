@@ -121,38 +121,44 @@ func (s serviceService) List(path string) ([]*api.Service, error) {
 
 // Iterator returns an iterator that lists all service accounts in a given repository.
 func (s serviceService) Iterator(path string, params *ServiceIteratorParams) ServiceIterator {
-	data, err := s.List(path)
 	return &serviceIterator{
-		index: 0,
-		data:  data,
-		err:   err,
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					services, err := s.List(path)
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(services))
+					for i, element := range services {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
 	}
 }
 
 // ServiceIteratorParams defines parameters used when listing Services.
 type ServiceIteratorParams struct{}
 
-// ServiceIterator iterates over Services.
+// ServiceIterator iterates over services.
 type ServiceIterator interface {
 	Next() (api.Service, error)
 }
 
 type serviceIterator struct {
-	index int
-	data  []*api.Service
-	err   error
+	iterator iterator.Iterator
 }
 
-// Next returns the next Service or iterator.Done as an error if there are no more Services.
+// Next returns the next service or iterator.Done as an error if the all of them have been returned.
 func (it *serviceIterator) Next() (api.Service, error) {
-	if it.err != nil {
-		return api.Service{}, it.err
-	}
-	if it.index >= len(it.data) {
-		return api.Service{}, iterator.Done
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.Service{}, err
 	}
 
-	element := *it.data[it.index]
-	it.index++
-	return element, nil
+	return item.(api.Service), nil
 }
