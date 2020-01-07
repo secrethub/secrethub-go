@@ -19,7 +19,7 @@ type OrgService interface {
 	// ListMine returns the organizations of the current user.
 	ListMine() ([]*api.Org, error)
 	// Iterator returns an iterator that lists all organizations of the current user.
-	Iterator() OrgIterator
+	Iterator(params *OrgIteratorParams) OrgIterator
 }
 
 func newOrgService(client *Client) OrgService {
@@ -78,7 +78,7 @@ func (s orgService) ListMine() ([]*api.Org, error) {
 }
 
 // Iterator returns an iterator that lists all organizations of the current user.
-func (s orgService) Iterator() OrgIterator {
+func (s orgService) Iterator(params *OrgIteratorParams) OrgIterator {
 	return &orgIterator{
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
@@ -98,6 +98,8 @@ func (s orgService) Iterator() OrgIterator {
 		),
 	}
 }
+
+type OrgIteratorParams struct{}
 
 // OrgIterator iterates over organizations.
 type OrgIterator interface {
