@@ -244,7 +244,7 @@ func NewCharset(characters string) Charset {
 	}
 }
 
-// GetCharset returns the charset with the specified name.
+// CharsetByName returns the charset with the specified name.
 func CharsetByName(charsetName string) (Charset, bool) {
 	switch charsetName {
 	case "numeric", "numbers", "digits":
