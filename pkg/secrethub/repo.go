@@ -23,7 +23,7 @@ type RepoService interface {
 	// ListAccounts lists the accounts in the repository.
 	ListAccounts(path string) ([]*api.Account, error)
 	// AccountIterator returns a new iterator that retrieves all accounts in the given repository.
-	AccountIterator(path string, params *RepoIteratorParams) AccountIterator
+	AccountIterator(path string, params *AccountIteratorParams) AccountIterator
 	// EventIterator returns an iterator that retrieves all audit events for a given repo.
 	//
 	// Usage:
@@ -362,7 +362,7 @@ func (s repoService) IteratorMine(_ *RepoIteratorParams) RepoIterator {
 }
 
 // AccountIterator returns a new iterator that retrieves all accounts in the given repository.
-func (s repoService) AccountIterator(path string, params *RepoIteratorParams) AccountIterator {
+func (s repoService) AccountIterator(path string, params *AccountIteratorParams) AccountIterator {
 	return &accountIterator{
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
