@@ -117,5 +117,5 @@ func (it *orgIterator) Next() (api.Org, error) {
 		return api.Org{}, err
 	}
 
-	return item.(api.Org), nil
+	return *item.(*api.Org), nil
 }

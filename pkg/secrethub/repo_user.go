@@ -154,5 +154,5 @@ func (it *userIterator) Next() (api.User, error) {
 		return api.User{}, err
 	}
 
-	return item.(api.User), nil
+	return *item.(*api.User), nil
 }

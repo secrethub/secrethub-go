@@ -325,5 +325,5 @@ func (it *secretVersionIterator) Next() (api.SecretVersion, error) {
 		return api.SecretVersion{}, err
 	}
 
-	return item.(api.SecretVersion), nil
+	return *item.(*api.SecretVersion), nil
 }

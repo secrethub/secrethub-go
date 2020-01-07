@@ -412,7 +412,7 @@ func (it *repoIterator) Next() (api.Repo, error) {
 		return api.Repo{}, err
 	}
 
-	return item.(api.Repo), nil
+	return *item.(*api.Repo), nil
 }
 
 // AccountIteratorParams defines parameters used when listing Accounts.
@@ -434,5 +434,5 @@ func (it *accountIterator) Next() (api.Account, error) {
 		return api.Account{}, err
 	}
 
-	return item.(api.Account), nil
+	return *item.(*api.Account), nil
 }

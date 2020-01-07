@@ -162,5 +162,5 @@ func (it *orgMemberIterator) Next() (api.OrgMember, error) {
 		return api.OrgMember{}, err
 	}
 
-	return item.(api.OrgMember), nil
+	return *item.(*api.OrgMember), nil
 }

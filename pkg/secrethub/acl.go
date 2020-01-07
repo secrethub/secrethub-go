@@ -312,9 +312,19 @@ func (s accessRuleService) Iterator(path string, params *AccessRuleIteratorParam
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					accessRules, err := s.client.httpClient.ListAccessRules(path, depth, ancestors)
+					p, err := api.NewDirPath(path)
 					if err != nil {
-						return nil, err
+						return nil, errio.Error(err)
+					}
+
+					blindName, err := s.client.convertPathToBlindName(p)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					accessRules, err := s.client.httpClient.ListAccessRules(blindName, depth, ancestors)
+					if err != nil {
+						return nil, errio.Error(err)
 					}
 
 					res := make([]interface{}, len(accessRules))
@@ -408,7 +418,7 @@ func (it *accessRuleIterator) Next() (api.AccessRule, error) {
 		return api.AccessRule{}, err
 	}
 
-	return item.(api.AccessRule), nil
+	return *item.(*api.AccessRule), nil
 }
 
 // AccessRuleIteratorParams specify parameters used when listing access rules.
@@ -436,5 +446,5 @@ func (it *accessLevelIterator) Next() (api.AccessLevel, error) {
 		return api.AccessLevel{}, err
 	}
 
-	return item.(api.AccessLevel), nil
+	return *item.(*api.AccessLevel), nil
 }

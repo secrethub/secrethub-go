@@ -165,5 +165,5 @@ func (it *serviceIterator) Next() (api.Service, error) {
 		return api.Service{}, err
 	}
 
-	return item.(api.Service), nil
+	return *item.(*api.Service), nil
 }
