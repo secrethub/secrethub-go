@@ -15,11 +15,11 @@ type OrgService struct {
 	MemberService *OrgMemberService
 	MineLister    OrgMineLister
 
-	IteratorFunc func() secrethub.OrgIterator
+	IteratorFunc func(_ *secrethub.OrgIteratorParams) secrethub.OrgIterator
 }
 
-func (s *OrgService) Iterator() secrethub.OrgIterator {
-	return s.IteratorFunc()
+func (s *OrgService) Iterator(params *secrethub.OrgIteratorParams) secrethub.OrgIterator {
+	return s.IteratorFunc(params)
 }
 
 // Create implements the RepoService interface Create function.
