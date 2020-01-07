@@ -296,18 +296,17 @@ func (c *Client) getAccessLevel(path api.BlindNamePath, accountName api.AccountN
 // Iterator returns an iterator that retrieves all access rules that apply to a
 // directory.
 func (s accessRuleService) Iterator(path string, params *AccessRuleIteratorParams) AccessRuleIterator {
-	var depth int
-	var ancestors bool
 	if params == nil {
-		depth = -1
-		ancestors = false
-	} else if params.Depth == nil {
-		depth = -1
-		ancestors = params.Ancestors
-	} else {
-		depth = int(*params.Depth)
-		ancestors = params.Ancestors
+		params = &AccessRuleIteratorParams{}
 	}
+
+	var depth int
+	if params.Depth != nil {
+		depth = int(*params.Depth)
+	} else {
+		depth = -1
+	}
+	ancestors := params.Ancestors
 
 	return &accessRuleIterator{
 		iterator: iterator.New(
