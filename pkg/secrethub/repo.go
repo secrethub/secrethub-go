@@ -22,8 +22,8 @@ type RepoService interface {
 	Iterator(namespace string, _ *RepoIteratorParams) RepoIterator
 	// ListAccounts lists the accounts in the repository.
 	ListAccounts(path string) ([]*api.Account, error)
-	// AccountIterator returns a new iterator that retrieves all accounts in the given namespace.
-	AccountIterator(namespace string, params *RepoIteratorParams) AccountIterator
+	// AccountIterator returns a new iterator that retrieves all accounts in the given repository.
+	AccountIterator(path string, params *RepoIteratorParams) AccountIterator
 	// EventIterator returns an iterator that retrieves all audit events for a given repo.
 	//
 	// Usage:
@@ -361,13 +361,13 @@ func (s repoService) IteratorMine(_ *RepoIteratorParams) RepoIterator {
 	}
 }
 
-// AccountIterator returns a new iterator that retrieves all accounts in the given namespace.
-func (s repoService) AccountIterator(namespace string, params *RepoIteratorParams) AccountIterator {
+// AccountIterator returns a new iterator that retrieves all accounts in the given repository.
+func (s repoService) AccountIterator(path string, params *RepoIteratorParams) AccountIterator {
 	return &accountIterator{
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					accounts, err := s.ListAccounts(namespace)
+					accounts, err := s.ListAccounts(path)
 					if err != nil {
 						return nil, err
 					}
