@@ -114,9 +114,14 @@ func (s repoUserService) Iterator(path string, params *UserIteratorParams) UserI
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					users, err := s.List(path)
+					repoPath, err := api.NewRepoPath(path)
 					if err != nil {
-						return nil, err
+						return nil, errio.Error(err)
+					}
+
+					users, err := s.client.httpClient.ListRepoUsers(repoPath.GetNamespaceAndRepoName())
+					if err != nil {
+						return nil, errio.Error(err)
 					}
 
 					res := make([]interface{}, len(users))

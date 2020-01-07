@@ -125,9 +125,14 @@ func (s serviceService) Iterator(path string, params *ServiceIteratorParams) Ser
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					services, err := s.List(path)
+					repoPath, err := api.NewRepoPath(path)
 					if err != nil {
-						return nil, err
+						return nil, errio.Error(err)
+					}
+
+					services, err := s.client.httpClient.ListServices(repoPath.GetNamespaceAndRepoName())
+					if err != nil {
+						return nil, errio.Error(err)
 					}
 
 					res := make([]interface{}, len(services))

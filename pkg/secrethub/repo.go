@@ -323,7 +323,12 @@ func (s repoService) Iterator(namespace string, params *RepoIteratorParams) Repo
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					repos, err := s.List(namespace)
+					err := api.ValidateNamespace(namespace)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					repos, err := s.client.httpClient.ListRepos(namespace)
 					if err != nil {
 						return nil, err
 					}
@@ -345,7 +350,7 @@ func (s repoService) IteratorMine(_ *RepoIteratorParams) RepoIterator {
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					repos, err := s.ListMine()
+					repos, err := s.client.httpClient.ListMyRepos()
 					if err != nil {
 						return nil, err
 					}
@@ -367,7 +372,12 @@ func (s repoService) AccountIterator(path string, params *AccountIteratorParams)
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					accounts, err := s.ListAccounts(path)
+					repoPath, err := api.NewRepoPath(path)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					accounts, err := s.client.httpClient.ListRepoAccounts(repoPath.GetNamespaceAndRepoName())
 					if err != nil {
 						return nil, err
 					}

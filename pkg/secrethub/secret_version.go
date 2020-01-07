@@ -283,13 +283,12 @@ func (s secretVersionService) Iterator(path string, params *SecretVersionIterato
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					var err error
-					var secretVersions []*api.SecretVersion
-					if params.includeSensitiveData {
-						secretVersions, err = s.ListWithData(path)
-					} else {
-						secretVersions, err = s.ListWithoutData(path)
+					secretPath, err := api.NewSecretPath(path)
+					if err != nil {
+						return nil, errio.Error(err)
 					}
+
+					secretVersions, err := s.list(secretPath, params.includeSensitiveData)
 					if err != nil {
 						return nil, err
 					}

@@ -83,7 +83,7 @@ func (s orgService) Iterator(params *OrgIteratorParams) OrgIterator {
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					orgs, err := s.ListMine()
+					orgs, err := s.client.httpClient.ListMyOrgs()
 					if err != nil {
 						return nil, err
 					}

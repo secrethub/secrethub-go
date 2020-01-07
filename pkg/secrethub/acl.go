@@ -334,9 +334,51 @@ func (s accessRuleService) LevelIterator(path string, _ *AccessLevelIteratorPara
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					accessLevels, err := s.ListLevels(path)
+					p, err := api.NewDirPath(path)
 					if err != nil {
-						return nil, err
+						return nil, errio.Error(err)
+					}
+
+					blindName, err := s.client.convertPathToBlindName(p)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					rules, err := s.client.httpClient.ListAccessRules(blindName, 0, true)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					dir, err := s.dirService.GetTree(path, 0, false)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					rights := make(map[uuid.UUID][]*api.AccessRule)
+					for _, rule := range rules {
+						list := rights[rule.AccountID]
+						rights[rule.AccountID] = append(list, rule)
+					}
+
+					accessLevels := make([]*api.AccessLevel, len(rights))
+					i := 0
+					for _, list := range rights {
+						first := list[0]
+						maxPerm := first.Permission
+						for _, rule := range list {
+							if maxPerm < rule.Permission {
+								maxPerm = rule.Permission
+							}
+						}
+
+						accessLevels[i] = &api.AccessLevel{
+							Account:    first.Account,
+							AccountID:  first.AccountID,
+							DirID:      dir.RootDir.DirID, // add this for completeness
+							Permission: maxPerm,
+						}
+
+						i++
 					}
 
 					res := make([]interface{}, len(accessLevels))

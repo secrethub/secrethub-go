@@ -54,7 +54,7 @@ func (ms meService) RepoIterator(params *RepoIteratorParams) RepoIterator {
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					repos, err := ms.ListRepos()
+					repos, err := ms.client.httpClient.ListMyRepos()
 					if err != nil {
 						return nil, err
 					}

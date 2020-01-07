@@ -122,7 +122,12 @@ func (s orgMemberService) Iterator(org string, _ *OrgMemberIteratorParams) OrgMe
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					orgMembers, err := s.List(org)
+					err := api.ValidateOrgName(org)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					orgMembers, err := s.client.httpClient.ListOrgMembers(org)
 					if err != nil {
 						return nil, err
 					}
