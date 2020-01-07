@@ -244,6 +244,30 @@ func NewCharset(characters string) Charset {
 	}
 }
 
+// CharsetByName returns the charset with the specified name.
+func CharsetByName(charsetName string) (Charset, bool) {
+	switch charsetName {
+	case "numeric", "numbers", "digits":
+		return Numeric, true
+	case "lowercase":
+		return Lowercase, true
+	case "uppercase":
+		return Uppercase, true
+	case "letters":
+		return Letters, true
+	case "symbols":
+		return Symbols, true
+	case "alphanumeric":
+		return Alphanumeric, true
+	case "all":
+		return All, true
+	case "similar":
+		return Similar, true
+	default:
+		return Charset{}, false
+	}
+}
+
 // Add merges two character sets into one, removing duplicates.
 func (c Charset) Add(set Charset) Charset {
 	uniques := make(map[byte]struct{})
