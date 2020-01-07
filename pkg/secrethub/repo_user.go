@@ -142,7 +142,7 @@ type userIterator struct {
 	iterator iterator.Iterator
 }
 
-// Next returns the next user or iterator.Done as an error if the all of them have been returned.
+// Next returns the next user or iterator.Done as an error if all of them have been returned.
 func (it *userIterator) Next() (api.User, error) {
 	item, err := it.iterator.Next()
 	if err != nil {

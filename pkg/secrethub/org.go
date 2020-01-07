@@ -108,7 +108,7 @@ type orgIterator struct {
 	iterator iterator.Iterator
 }
 
-// Next returns the next organization or iterator.Done as an error if the all of them have been returned.
+// Next returns the next organization or iterator.Done as an error if all of them have been returned.
 func (it *orgIterator) Next() (api.Org, error) {
 	item, err := it.iterator.Next()
 	if err != nil {

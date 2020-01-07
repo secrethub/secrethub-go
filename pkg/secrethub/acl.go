@@ -360,7 +360,7 @@ type accessRuleIterator struct {
 	iterator iterator.Iterator
 }
 
-// Next returns the next access rule or iterator.Done if the all of them have been returned.
+// Next returns the next access rule or iterator.Done if all of them have been returned.
 func (it *accessRuleIterator) Next() (api.AccessRule, error) {
 	item, err := it.iterator.Next()
 	if err != nil {
@@ -388,7 +388,7 @@ type accessLevelIterator struct {
 	iterator iterator.Iterator
 }
 
-// Next returns the next access rule or iterator.Done if the all of them have been returned.
+// Next returns the next access level or iterator.Done if all of them have been returned.
 func (it *accessLevelIterator) Next() (api.AccessLevel, error) {
 	item, err := it.iterator.Next()
 	if err != nil {

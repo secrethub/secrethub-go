@@ -395,7 +395,7 @@ type repoIterator struct {
 	iterator iterator.Iterator
 }
 
-// Next returns the next repo or iterator.Done as an error if the all of them have been returned.
+// Next returns the next repo or iterator.Done as an error if all of them have been returned.
 func (it *repoIterator) Next() (api.Repo, error) {
 	item, err := it.iterator.Next()
 	if err != nil {
@@ -417,7 +417,7 @@ type accountIterator struct {
 	iterator iterator.Iterator
 }
 
-// Next returns the next account or iterator.Done as an error if the all of them have been returned.
+// Next returns the next account or iterator.Done as an error if all of them have been returned.
 func (it *accountIterator) Next() (api.Account, error) {
 	item, err := it.iterator.Next()
 	if err != nil {
