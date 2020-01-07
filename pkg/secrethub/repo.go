@@ -18,8 +18,8 @@ type RepoService interface {
 	Delete(path string) error
 	// List retrieves all repositories in the given namespace.
 	List(namespace string) ([]*api.Repo, error)
-	// Iterator returns a new iterator that retrieves all repos in the given namespace.
-	Iterator(namespace string, _ *RepoIteratorParams) RepoIterator
+	// Iterator returns a new iterator that retrieves all repos according to the specified parameters.
+	Iterator(_ *RepoIteratorParams) RepoIterator
 	// ListAccounts lists the accounts in the repository.
 	ListAccounts(path string) ([]*api.Account, error)
 	// AccountIterator returns a new iterator that retrieves all accounts in the given repository.
@@ -43,8 +43,6 @@ type RepoService interface {
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 	// ListMine retrieves all repositories of the current user.
 	ListMine() ([]*api.Repo, error)
-	// IteratorMine returns an iterator that retrieves all repos of the current user.
-	IteratorMine(_ *RepoIteratorParams) RepoIterator
 	// Users returns a RepoUserService that handles operations on users of a repository.
 	Users() RepoUserService
 	// Services returns a RepoServiceService that handles operations on services of a repository.
@@ -317,42 +315,29 @@ func (c *Client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.SymmetricKey, e
 	return repoIndexKey, nil
 }
 
-// Iterator returns a new iterator that retrieves all repos in the given namespace.
-func (s repoService) Iterator(namespace string, params *RepoIteratorParams) RepoIterator {
-	return &repoIterator{
-		iterator: iterator.New(
-			iterator.PaginatorFactory(
-				func() ([]interface{}, error) {
-					err := api.ValidateNamespace(namespace)
-					if err != nil {
-						return nil, errio.Error(err)
-					}
-
-					repos, err := s.client.httpClient.ListRepos(namespace)
-					if err != nil {
-						return nil, err
-					}
-
-					res := make([]interface{}, len(repos))
-					for i, element := range repos {
-						res[i] = element
-					}
-					return res, nil
-				},
-			),
-		),
+// Iterator returns a new iterator that retrieves all repos according to the specified parameters.
+func (s repoService) Iterator(params *RepoIteratorParams) RepoIterator {
+	if params == nil {
+		params = &RepoIteratorParams{}
 	}
-}
 
-// IteratorMine returns an iterator that retrieves all repos of the current user.
-func (s repoService) IteratorMine(_ *RepoIteratorParams) RepoIterator {
 	return &repoIterator{
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
 				func() ([]interface{}, error) {
-					repos, err := s.client.httpClient.ListMyRepos()
-					if err != nil {
-						return nil, err
+					var err error
+					var repos []*api.Repo
+					if params.Namespace == nil {
+						repos, err = s.client.httpClient.ListMyRepos()
+					} else {
+						err = api.ValidateNamespace(*params.Namespace)
+						if err != nil {
+							return nil, errio.Error(err)
+						}
+						repos, err = s.client.httpClient.ListRepos(*params.Namespace)
+						if err != nil {
+							return nil, err
+						}
 					}
 
 					res := make([]interface{}, len(repos))
@@ -394,7 +379,9 @@ func (s repoService) AccountIterator(path string, params *AccountIteratorParams)
 }
 
 // RepoIteratorParams defines parameters used when listing repos.
-type RepoIteratorParams struct{}
+type RepoIteratorParams struct{
+	Namespace *string
+}
 
 // RepoIterator iterates over repositories.
 type RepoIterator interface {
