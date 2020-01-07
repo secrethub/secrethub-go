@@ -16,7 +16,7 @@ type fakeAuditPaginator struct {
 
 func (pag *fakeAuditPaginator) Next() ([]interface{}, error) {
 	if pag.returned {
-		return make([]interface{}, 0), nil
+		return []interface{}{}, nil
 	}
 
 	res := make([]interface{}, len(pag.events))
