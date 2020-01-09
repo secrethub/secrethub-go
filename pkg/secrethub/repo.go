@@ -329,6 +329,9 @@ func (s repoService) Iterator(params *RepoIteratorParams) RepoIterator {
 					var repos []*api.Repo
 					if params.Namespace == nil {
 						repos, err = s.client.httpClient.ListMyRepos()
+						if err != nil {
+							return nil, errio.Error(err)
+						}
 					} else {
 						err = api.ValidateNamespace(*params.Namespace)
 						if err != nil {
@@ -336,7 +339,7 @@ func (s repoService) Iterator(params *RepoIteratorParams) RepoIterator {
 						}
 						repos, err = s.client.httpClient.ListRepos(*params.Namespace)
 						if err != nil {
-							return nil, err
+							return nil, errio.Error(err)
 						}
 					}
 
@@ -379,7 +382,7 @@ func (s repoService) AccountIterator(path string, params *AccountIteratorParams)
 }
 
 // RepoIteratorParams defines parameters used when listing repos.
-type RepoIteratorParams struct{
+type RepoIteratorParams struct {
 	Namespace *string
 }
 
