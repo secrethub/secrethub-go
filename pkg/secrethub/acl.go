@@ -300,11 +300,9 @@ func (s accessRuleService) Iterator(path string, params *AccessRuleIteratorParam
 		params = &AccessRuleIteratorParams{}
 	}
 
-	var depth int
+	depth := -1
 	if params.Depth != nil {
 		depth = int(*params.Depth)
-	} else {
-		depth = -1
 	}
 	ancestors := params.Ancestors
 
