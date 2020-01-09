@@ -329,18 +329,15 @@ func (s repoService) Iterator(params *RepoIteratorParams) RepoIterator {
 					var repos []*api.Repo
 					if params.Namespace == nil {
 						repos, err = s.client.httpClient.ListMyRepos()
-						if err != nil {
-							return nil, errio.Error(err)
-						}
 					} else {
 						err = api.ValidateNamespace(*params.Namespace)
 						if err != nil {
 							return nil, errio.Error(err)
 						}
 						repos, err = s.client.httpClient.ListRepos(*params.Namespace)
-						if err != nil {
-							return nil, errio.Error(err)
-						}
+					}
+					if err != nil {
+						return nil, errio.Error(err)
 					}
 
 					res := make([]interface{}, len(repos))
