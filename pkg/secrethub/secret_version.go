@@ -35,7 +35,7 @@ type SecretVersionService interface {
 	ListWithData(path string) ([]*api.SecretVersion, error)
 	// ListWithoutData lists secret versions, without the sensitive data.
 	ListWithoutData(path string) ([]*api.SecretVersion, error)
-	// Iterator returns a new iterator that retrieves all accounts in the given namespace.
+	// Iterator returns a new iterator that retrieves all secret versions in the given namespace.
 	Iterator(path string, params *SecretVersionIteratorParams) SecretVersionIterator
 }
 
@@ -277,7 +277,7 @@ func (c *Client) decryptSecretVersions(encVersions ...*api.EncryptedSecretVersio
 	return versions, nil
 }
 
-// Iterator returns a new iterator that retrieves all accounts in the given namespace.
+// Iterator returns a new iterator that retrieves all secret versions in the given namespace.
 // If the IncludeSensitiveData parameter is set to true, the secret data will also be retrieved.
 func (s secretVersionService) Iterator(path string, params *SecretVersionIteratorParams) SecretVersionIterator {
 	if params == nil {
