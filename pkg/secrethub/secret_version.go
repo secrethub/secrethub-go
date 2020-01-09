@@ -278,6 +278,7 @@ func (c *Client) decryptSecretVersions(encVersions ...*api.EncryptedSecretVersio
 }
 
 // Iterator returns a new iterator that retrieves all accounts in the given namespace.
+// If the IncludeSensitiveData parameter is set to true, the secret data will also be retrieved.
 func (s secretVersionService) Iterator(path string, params *SecretVersionIteratorParams) SecretVersionIterator {
 	if params == nil {
 		params = &SecretVersionIteratorParams{}
@@ -309,6 +310,7 @@ func (s secretVersionService) Iterator(path string, params *SecretVersionIterato
 }
 
 // SecretVersionIteratorParams defines parameters used when listing SecretVersions.
+// If IncludeSensitiveData is set to true, secret data will also be retrieved.
 type SecretVersionIteratorParams struct {
 	IncludeSensitiveData bool
 }
