@@ -279,6 +279,10 @@ func (c *Client) decryptSecretVersions(encVersions ...*api.EncryptedSecretVersio
 
 // Iterator returns a new iterator that retrieves all accounts in the given namespace.
 func (s secretVersionService) Iterator(path string, params *SecretVersionIteratorParams) SecretVersionIterator {
+	if params == nil {
+		params = &SecretVersionIteratorParams{}
+	}
+
 	return &secretVersionIterator{
 		iterator: iterator.New(
 			iterator.PaginatorFactory(
@@ -288,7 +292,7 @@ func (s secretVersionService) Iterator(path string, params *SecretVersionIterato
 						return nil, errio.Error(err)
 					}
 
-					secretVersions, err := s.list(secretPath, params.includeSensitiveData)
+					secretVersions, err := s.list(secretPath, params.IncludeSensitiveData)
 					if err != nil {
 						return nil, err
 					}
@@ -306,7 +310,7 @@ func (s secretVersionService) Iterator(path string, params *SecretVersionIterato
 
 // SecretVersionIteratorParams defines parameters used when listing SecretVersions.
 type SecretVersionIteratorParams struct {
-	includeSensitiveData bool
+	IncludeSensitiveData bool
 }
 
 // SecretVersionIterator iterates over secret versions.
