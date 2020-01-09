@@ -36,6 +36,7 @@ type SecretVersionService interface {
 	// ListWithoutData lists secret versions, without the sensitive data.
 	ListWithoutData(path string) ([]*api.SecretVersion, error)
 	// Iterator returns a new iterator that retrieves all secret versions in the given namespace.
+	// If the IncludeSensitiveData parameter is set to true, the secret data will also be retrieved.
 	Iterator(path string, params *SecretVersionIteratorParams) SecretVersionIterator
 }
 
