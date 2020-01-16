@@ -3,7 +3,7 @@ package api
 import (
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 )
 
 // AuditAction values.

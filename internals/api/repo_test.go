@@ -5,13 +5,13 @@ import (
 
 	"sort"
 
-	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
 var (
-	accountIDUser1 = uuid.Must(uuid.NewV4())
+	accountIDUser1 = uuid.New()
 
 	repoMemberRequest1 = &api.CreateRepoMemberRequest{
 		RepoEncryptionKey: []byte{1, 2, 3},

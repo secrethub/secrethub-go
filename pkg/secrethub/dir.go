@@ -3,8 +3,8 @@ package secrethub
 import (
 	"strings"
 
-	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/errio"
 	"github.com/secrethub/secrethub-go/pkg/secretpath"
 )

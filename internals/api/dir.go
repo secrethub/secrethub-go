@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"bitbucket.org/zombiezen/cardcpx/natsort"
-	"github.com/gofrs/uuid"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 )
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/gofrs/uuid"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 )
 
 // KeyType specifies the type of key used for EncryptedData.
@@ -307,7 +307,7 @@ func (k EncryptionKeyAccountKey) Validate() error {
 	if k.Length <= 0 {
 		return ErrInvalidKeyLength
 	}
-	if k.ID == uuid.Nil {
+	if k.ID.IsZero() {
 		return ErrMissingField("id")
 	}
 	return nil
@@ -344,7 +344,7 @@ func (k EncryptionKeySecretKey) Validate() error {
 	if k.Length <= 0 {
 		return ErrInvalidKeyLength
 	}
-	if k.ID == uuid.Nil {
+	if k.ID.IsZero() {
 		return ErrMissingField("id")
 	}
 	return nil

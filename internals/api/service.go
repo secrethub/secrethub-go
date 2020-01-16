@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 )
 
 // Errors

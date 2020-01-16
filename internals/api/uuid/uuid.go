@@ -3,7 +3,6 @@ package uuid
 
 import (
 	"bytes"
-
 	gid "github.com/gofrs/uuid"
 
 	"github.com/secrethub/secrethub-go/internals/errio"

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
@@ -28,12 +28,12 @@ func TestCreateOrg(t *testing.T) {
 		Description: descr,
 	}
 
-	orgID := uuid.Must(uuid.NewV4())
-	accountID := uuid.Must(uuid.NewV4())
+	orgID := uuid.New()
+	accountID := uuid.New()
 
 	now := time.Now().UTC()
 	expectedResponse := &api.Org{
-		OrgID:       uuid.Must(uuid.NewV4()),
+		OrgID:       uuid.New(),
 		Name:        name,
 		Description: descr,
 		CreatedAt:   now,
@@ -107,7 +107,7 @@ func TestCreateOrg_InvalidArgs(t *testing.T) {
 
 func TestGetOrg(t *testing.T) {
 	org := &api.Org{
-		OrgID:       uuid.Must(uuid.NewV4()),
+		OrgID:       uuid.New(),
 		Name:        "myorg",
 		Description: "My very own organization",
 		CreatedAt:   time.Now().UTC(),
@@ -176,14 +176,14 @@ func TestGetOrg(t *testing.T) {
 func TestListMyOrgs(t *testing.T) {
 	orgs := []*api.Org{
 		{
-			OrgID:       uuid.Must(uuid.NewV4()),
+			OrgID:       uuid.New(),
 			Name:        "myorg1",
 			Description: "My first organization",
 			CreatedAt:   time.Now().UTC(),
 			Members:     []*api.OrgMember{},
 		},
 		{
-			OrgID:       uuid.Must(uuid.NewV4()),
+			OrgID:       uuid.New(),
 			Name:        "myorg2",
 			Description: "My second organization",
 			CreatedAt:   time.Now().UTC(),

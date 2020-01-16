@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"bitbucket.org/zombiezen/cardcpx/natsort"
-	"github.com/gofrs/uuid"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 )
 
 // Errors
@@ -144,7 +144,7 @@ type InviteUserRequest struct {
 
 // Validate validates a InviteUserRequest
 func (req InviteUserRequest) Validate() error {
-	if req.AccountID == uuid.Nil {
+	if req.AccountID.IsZero() {
 		return ErrInvalidAccountID
 	}
 

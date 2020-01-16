@@ -4,8 +4,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/assert"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 )
@@ -63,7 +63,7 @@ func TestCreateSecretRequest_Validate_Unique(t *testing.T) {
 	blindname, err := secretPath.BlindName(blindKey)
 	assert.OK(t, err)
 
-	accountID := uuid.Must(uuid.NewV4())
+	accountID := uuid.New()
 	tests := []struct {
 		CreateSecretRequest api.CreateSecretRequest
 		expected            error
@@ -136,12 +136,12 @@ func TestCreateSecretRequest_Validate_EncryptedNameAndKeyForEachAccount(t *testi
 		EncryptedData: testCiphertextAES,
 
 		EncryptedNames: []api.EncryptedNameRequest{{
-			AccountID:     uuid.Must(uuid.NewV4()),
+			AccountID:     uuid.New(),
 			EncryptedName: testCiphertextRSA,
 		},
 		},
 		EncryptedKeys: []api.EncryptedKeyRequest{{
-			AccountID:    uuid.Must(uuid.NewV4()),
+			AccountID:    uuid.New(),
 			EncryptedKey: testCiphertextRSA,
 		},
 		},
@@ -160,17 +160,17 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 		"success": {
 			EncryptedNameRequest: api.EncryptedNameForNodeRequest{
 				EncryptedNameRequest: api.EncryptedNameRequest{
-					AccountID:     uuid.Must(uuid.NewV4()),
+					AccountID:     uuid.New(),
 					EncryptedName: testCiphertextRSA,
 				},
-				NodeID: uuid.Must(uuid.NewV4()),
+				NodeID: uuid.New(),
 			},
 			expected: nil,
 		},
 		"invalid node id": {
 			EncryptedNameRequest: api.EncryptedNameForNodeRequest{
 				EncryptedNameRequest: api.EncryptedNameRequest{
-					AccountID:     uuid.Must(uuid.NewV4()),
+					AccountID:     uuid.New(),
 					EncryptedName: testCiphertextRSA,
 				},
 			},
@@ -178,7 +178,7 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 		},
 		"invalid account id": {
 			EncryptedNameRequest: api.EncryptedNameForNodeRequest{
-				NodeID: uuid.Must(uuid.NewV4()),
+				NodeID: uuid.New(),
 				EncryptedNameRequest: api.EncryptedNameRequest{
 					EncryptedName: testCiphertextRSA,
 				},
@@ -200,7 +200,7 @@ func TestExistingNameMemberRequest_Validate(t *testing.T) {
 }
 
 func TestSecretAccessRequest_Validate_AccountIDs(t *testing.T) {
-	testAccountID := uuid.Must(uuid.NewV4())
+	testAccountID := uuid.New()
 
 	tests := map[string]struct {
 		Description string
@@ -211,14 +211,14 @@ func TestSecretAccessRequest_Validate_AccountIDs(t *testing.T) {
 			Request: api.SecretAccessRequest{
 				Name: api.EncryptedNameForNodeRequest{
 					EncryptedNameRequest: api.EncryptedNameRequest{
-						AccountID:     uuid.Must(uuid.NewV4()),
+						AccountID:     uuid.New(),
 						EncryptedName: testCiphertextRSA,
 					},
-					NodeID: uuid.Must(uuid.NewV4()),
+					NodeID: uuid.New(),
 				},
 				Keys: []api.SecretKeyMemberRequest{{
-					AccountID:    uuid.Must(uuid.NewV4()),
-					SecretKeyID:  uuid.Must(uuid.NewV4()),
+					AccountID:    uuid.New(),
+					SecretKeyID:  uuid.New(),
 					EncryptedKey: testCiphertextRSA,
 				},
 				},
@@ -232,11 +232,11 @@ func TestSecretAccessRequest_Validate_AccountIDs(t *testing.T) {
 						AccountID:     testAccountID,
 						EncryptedName: testCiphertextRSA,
 					},
-					NodeID: uuid.Must(uuid.NewV4()),
+					NodeID: uuid.New(),
 				},
 				Keys: []api.SecretKeyMemberRequest{{
 					AccountID:    testAccountID,
-					SecretKeyID:  uuid.Must(uuid.NewV4()),
+					SecretKeyID:  uuid.New(),
 					EncryptedKey: testCiphertextRSA,
 				},
 				},

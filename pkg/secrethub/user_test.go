@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 
 	"github.com/secrethub/secrethub-go/internals/assert"
 	"github.com/secrethub/secrethub-go/internals/crypto"
@@ -45,7 +45,7 @@ func TestSignup(t *testing.T) {
 
 	now := time.Now().UTC()
 	expectedResponse := &api.User{
-		AccountID:   uuid.Must(uuid.NewV4()),
+		AccountID:   uuid.New(),
 		Username:    username,
 		FullName:    fullName,
 		Email:       email,
@@ -160,7 +160,7 @@ func TestGetUser(t *testing.T) {
 
 	now := time.Now().UTC()
 	expectedResponse := &api.User{
-		AccountID:   uuid.Must(uuid.NewV4()),
+		AccountID:   uuid.New(),
 		Username:    username,
 		FullName:    fullName,
 		Email:       email,
@@ -242,7 +242,7 @@ func TestGetMyUser(t *testing.T) {
 
 	now := time.Now().UTC()
 	expected := &api.User{
-		AccountID:   uuid.Must(uuid.NewV4()),
+		AccountID:   uuid.New(),
 		Username:    username,
 		FullName:    fullName,
 		Email:       email,

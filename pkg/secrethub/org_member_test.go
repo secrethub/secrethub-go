@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
 func TestGetOrgMember(t *testing.T) {
-	accountID := uuid.Must(uuid.NewV4())
+	accountID := uuid.New()
 	member := &api.OrgMember{
-		OrgID:         uuid.Must(uuid.NewV4()),
+		OrgID:         uuid.New(),
 		AccountID:     accountID,
 		Role:          "admin",
 		CreatedAt:     time.Now().UTC(),
@@ -109,9 +109,9 @@ func TestGetOrgMember(t *testing.T) {
 }
 
 func TestListOrgMembers(t *testing.T) {
-	accountID1 := uuid.Must(uuid.NewV4())
-	accountID2 := uuid.Must(uuid.NewV4())
-	orgID := uuid.Must(uuid.NewV4())
+	accountID1 := uuid.New()
+	accountID2 := uuid.New()
+	orgID := uuid.New()
 
 	members := []*api.OrgMember{
 		{
@@ -218,9 +218,9 @@ func TestInviteOrg(t *testing.T) {
 		Role:     "admin",
 	}
 
-	accountID := uuid.Must(uuid.NewV4())
+	accountID := uuid.New()
 	member := &api.OrgMember{
-		OrgID:         uuid.Must(uuid.NewV4()),
+		OrgID:         uuid.New(),
 		AccountID:     accountID,
 		Role:          "admin",
 		CreatedAt:     time.Now().UTC(),
@@ -355,9 +355,9 @@ func TestUpdateOrgMember(t *testing.T) {
 		Role: "admin",
 	}
 
-	accountID := uuid.Must(uuid.NewV4())
+	accountID := uuid.New()
 	member := &api.OrgMember{
-		OrgID:         uuid.Must(uuid.NewV4()),
+		OrgID:         uuid.New(),
 		AccountID:     accountID,
 		Role:          "admin",
 		CreatedAt:     time.Now().UTC(),

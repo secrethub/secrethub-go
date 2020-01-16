@@ -3,9 +3,8 @@ package api_test
 import (
 	"testing"
 
-	"github.com/gofrs/uuid"
-
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/assert"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 )
@@ -35,7 +34,7 @@ func TestCreateDirRequest_Validate(t *testing.T) {
 				ParentBlindName: parentPathBlindName,
 
 				EncryptedNames: []api.EncryptedNameRequest{{
-					AccountID:     uuid.Must(uuid.NewV4()),
+					AccountID:     uuid.New(),
 					EncryptedName: testCiphertextRSA,
 				},
 				},
@@ -46,7 +45,7 @@ func TestCreateDirRequest_Validate(t *testing.T) {
 			createDirRequest: &api.CreateDirRequest{
 				BlindName: dirPathBlindName,
 				EncryptedNames: []api.EncryptedNameRequest{{
-					AccountID:     uuid.Must(uuid.NewV4()),
+					AccountID:     uuid.New(),
 					EncryptedName: testCiphertextRSA,
 				},
 				},
@@ -63,7 +62,7 @@ func TestCreateDirRequest_Validate(t *testing.T) {
 }
 
 func TestCreateDirRequest_Validate_UniqueEncryptedFor(t *testing.T) {
-	accountID := uuid.Must(uuid.NewV4())
+	accountID := uuid.New()
 	blindKey, err := crypto.GenerateSymmetricKey()
 	assert.OK(t, err)
 
@@ -112,7 +111,7 @@ func getTestCreateDirRequest(t *testing.T) *api.CreateDirRequest {
 		ParentBlindName: parentPathBlindName,
 
 		EncryptedNames: []api.EncryptedNameRequest{{
-			AccountID:     uuid.Must(uuid.NewV4()),
+			AccountID:     uuid.New(),
 			EncryptedName: testCiphertextRSA,
 		},
 		},

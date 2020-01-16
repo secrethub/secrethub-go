@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/gofrs/uuid"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 )
 
@@ -13,7 +13,7 @@ type EncryptedNameRequest struct {
 
 // Validate validates the EncryptedNameRequest to be valid.
 func (enr *EncryptedNameRequest) Validate() error {
-	if enr.AccountID == uuid.Nil {
+	if enr.AccountID.IsZero() {
 		return ErrInvalidAccountID
 	}
 
@@ -28,7 +28,7 @@ type EncryptedNameForNodeRequest struct {
 
 // Validate validates the EncryptedNameForNodeRequest.
 func (nnr EncryptedNameForNodeRequest) Validate() error {
-	if nnr.NodeID == uuid.Nil {
+	if nnr.NodeID.IsZero() {
 		return ErrInvalidNodeID
 	}
 

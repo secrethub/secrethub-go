@@ -3,8 +3,8 @@ package secrethub
 import (
 	"testing"
 
-	"github.com/gofrs/uuid"
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/assert"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
@@ -30,7 +30,7 @@ func (pag *fakeAuditPaginator) Next() ([]interface{}, error) {
 func TestAuditEventIterator_Next(t *testing.T) {
 	events := []api.Audit{
 		{
-			EventID: uuid.Must(uuid.NewV4()),
+			EventID: uuid.New(),
 			Action:  api.AuditActionRead,
 		},
 	}
