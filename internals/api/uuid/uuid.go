@@ -2,7 +2,9 @@
 package uuid
 
 import (
-	gid "github.com/satori/go.uuid"
+	"bytes"
+
+	gid "github.com/gofrs/uuid"
 
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -12,14 +14,17 @@ var (
 	ErrInvalidUUID = errio.Namespace("uuid").Code("invalid").ErrorPref("invalid uuid: %s")
 )
 
-// UUID is a wrapper around go.uuid.UUID
+// UUID is a wrapper around github.com/gofrs/uuid.UUID.
 type UUID struct {
 	gid.UUID
 }
 
 // New generates a new UUID.
 func New() UUID {
-	id := gid.NewV4()
+	id, err := gid.NewV4()
+	if err != nil {
+		panic(err)
+	}
 	return UUID{id}
 }
 
@@ -44,7 +49,7 @@ func (u *UUID) IsZero() bool {
 
 // Equal returns true if both argument UUIDs contain the same value.
 func Equal(a UUID, b UUID) bool {
-	return gid.Equal(a.UUID, b.UUID)
+	return bytes.Equal(a.UUID[:], b.UUID[:])
 }
 
 // Validate validates a uuid string is a valid UUID.
