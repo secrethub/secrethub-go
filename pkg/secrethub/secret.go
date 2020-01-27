@@ -8,12 +8,29 @@ import (
 
 // SecretService handles operations on secrets from SecretHub.
 type SecretService interface {
-	// Delete removes the secret at the given path.
-	Delete(path string) error
+	// Write encrypts and writes any secret data to SecretHub, always creating
+	// a new secret version for the written data. This ensures secret data is
+	// never overwritten.
+	//
+	// To ensure forward secrecy, a new secret key is used whenever the previously
+	// used key has been flagged.
+	//
+	// Write accepts any non-empty byte data that is within the size limit of MaxSecretSize.
+	// Note that data is encrypted as is. Sanitizing data is the responsibility of the
+	// function caller.
+	Write(path string, data []byte) (*api.SecretVersion, error)
+	// Read is an alias of `Versions().GetWithData` and gets a secret version, with sensitive data decrypted.
+	Read(path string) (*api.SecretVersion, error)
+	// ReadString is a convenience function to get the secret data as a string.
+	//
+	// See .Versions() for more elaborate use.
+	ReadString(path string) (string, error)
 	// Exists returns whether a secret exists on the given path.
 	Exists(path string) (bool, error)
 	// Get retrieves a Secret.
 	Get(path string) (*api.Secret, error)
+	// Delete removes the secret at the given path.
+	Delete(path string) error
 	// EventIterator returns an iterator that retrieves all audit events for a given secret.
 	//
 	// Usage:
@@ -31,28 +48,8 @@ type SecretService interface {
 	EventIterator(path string, _ *AuditEventIteratorParams) AuditEventIterator
 	// ListEvents retrieves all audit events for a given secret.
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
-
 	// Versions returns a SecretVersionService.
 	Versions() SecretVersionService
-
-	// Read is an alias of `Versions().GetWithData` and gets a secret version, with sensitive data decrypted.
-	Read(path string) (*api.SecretVersion, error)
-	// ReadString is a convenience function to get the secret data as a string.
-	//
-	// See .Versions() for more elaborate use.
-	ReadString(path string) (string, error)
-
-	// Write encrypts and writes any secret data to SecretHub, always creating
-	// a new secret version for the written data. This ensures secret data is
-	// never overwritten.
-	//
-	// To ensure forward secrecy, a new secret key is used whenever the previously
-	// used key has been flagged.
-	//
-	// Write accepts any non-empty byte data that is within the size limit of MaxSecretSize.
-	// Note that data is encrypted as is. Sanitizing data is the responsibility of the
-	// function caller.
-	Write(path string, data []byte) (*api.SecretVersion, error)
 }
 
 func newSecretService(client *Client) SecretService {
@@ -98,7 +95,7 @@ func (s secretService) Exists(path string) (bool, error) {
 	}
 
 	_, err = s.client.httpClient.GetSecret(blindName)
-	if err == api.ErrSecretNotFound {
+	if api.IsErrNotFound(err) {
 		return false, nil
 	} else if err != nil {
 		return false, err

@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  test:
     docker:
       - image: circleci/golang:1.12
     steps:
@@ -14,3 +14,27 @@ jobs:
           paths:
             - /go/pkg/mod
       - run: make test
+  verify-version:
+    docker:
+      - image: circleci/golang:1.12
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-modules-{{ checksum "go.mod" }}
+      - run: go mod download
+      - save_cache:
+          key: go-modules-{{ checksum "go.mod" }}
+          paths:
+            - /go/pkg/mod
+      - run: make check-version
+workflows:
+  version: 2
+  pipeline:
+    jobs:
+      - test
+      - verify-version:
+          filters:
+            branches:
+              only:
+                - /release/v[0-9]*\.[0-9]*\.[0-9]*/
