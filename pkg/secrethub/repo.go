@@ -17,10 +17,12 @@ type RepoService interface {
 	// Delete removes the repo with the given path.
 	Delete(path string) error
 	// List retrieves all repositories in the given namespace.
+	// Deprecated: Use iterator function instead.
 	List(namespace string) ([]*api.Repo, error)
 	// Iterator returns a new iterator that retrieves all repos according to the specified parameters.
 	Iterator(_ *RepoIteratorParams) RepoIterator
 	// ListAccounts lists the accounts in the repository.
+	// Deprecated: Use iterator function instead.
 	ListAccounts(path string) ([]*api.Account, error)
 	// AccountIterator returns a new iterator that retrieves all accounts in the given repository.
 	AccountIterator(path string, params *AccountIteratorParams) AccountIterator
@@ -40,8 +42,10 @@ type RepoService interface {
 	//  }
 	EventIterator(path string, _ *AuditEventIteratorParams) AuditEventIterator
 	// ListEvents retrieves all audit events for a given repo.
+	// Deprecated: Use iterator function instead.
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 	// ListMine retrieves all repositories of the current user.
+	// Deprecated: Use iterator function instead.
 	ListMine() ([]*api.Repo, error)
 	// Users returns a RepoUserService that handles operations on users of a repository.
 	Users() RepoUserService

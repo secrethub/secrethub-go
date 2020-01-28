@@ -19,11 +19,13 @@ type AccessRuleService interface {
 	// rules that apply to its children up to a specified depth. When ancestors is set
 	// to true, it also includes rules for any parent directories. When the depth is
 	// set to -1, all children are retrieved without limit.
+	// Deprecated: Use iterator function instead.
 	List(path string, depth int, ancestors bool) ([]*api.AccessRule, error)
 	// Iterator returns an iterator that retrieves all access rules that apply to a
 	// directory.
 	Iterator(path string, _ *AccessRuleIteratorParams) AccessRuleIterator
 	// ListLevels lists the access levels on the given directory.
+	// Deprecated: Use iterator function instead.
 	ListLevels(path string) ([]*api.AccessLevel, error)
 	// LevelIterator returns an iterator that retrieves all access levels on the given directory.
 	LevelIterator(path string, _ *AccessLevelIteratorParams) AccessLevelIterator

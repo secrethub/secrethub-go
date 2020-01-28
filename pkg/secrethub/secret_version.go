@@ -32,8 +32,10 @@ type SecretVersionService interface {
 	// Delete removes a secret version.
 	Delete(path string) error
 	// ListWithData lists secret versions, with the sensitive data.
+	// Deprecated: Use iterator function instead.
 	ListWithData(path string) ([]*api.SecretVersion, error)
 	// ListWithoutData lists secret versions, without the sensitive data.
+	// Deprecated: Use iterator function instead.
 	ListWithoutData(path string) ([]*api.SecretVersion, error)
 	// Iterator returns a new iterator that retrieves all secret versions in the given namespace.
 	// If the IncludeSensitiveData parameter is set to true, the secret data will also be retrieved.

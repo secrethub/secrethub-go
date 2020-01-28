@@ -13,6 +13,7 @@ type RepoUserService interface {
 	// Revoke revokes the user with given username from the repository with the given path.
 	Revoke(path string, username string) (*api.RevokeRepoResponse, error)
 	// List lists the users of the given repository.
+	// Deprecated: Use iterator function instead.
 	List(path string) ([]*api.User, error)
 	// Iterator returns an iterator that lists the users of a given repository.
 	Iterator(path string, params *UserIteratorParams) UserIterator

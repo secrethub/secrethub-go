@@ -16,6 +16,7 @@ type ServiceService interface {
 	// Delete removes a service account by name.
 	Delete(name string) (*api.RevokeRepoResponse, error)
 	// List lists all service accounts in a given repository.
+	// Deprecated: Use iterator function instead.
 	List(path string) ([]*api.Service, error)
 	// Iterator returns an iterator that lists all service accounts in a given repository.
 	Iterator(path string, _ *ServiceIteratorParams) ServiceIterator

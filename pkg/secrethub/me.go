@@ -13,6 +13,7 @@ type MeService interface {
 	// for them to prove they own that email address.
 	SendVerificationEmail() error
 	// ListRepos retrieves all repositories of the current user.
+	// Deprecated: Use iterator function instead.
 	ListRepos() ([]*api.Repo, error)
 	// RepoIterator returns an iterator that retrieves all repos of the current user.
 	RepoIterator(_ *RepoIteratorParams) RepoIterator

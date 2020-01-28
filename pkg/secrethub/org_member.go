@@ -17,6 +17,7 @@ type OrgMemberService interface {
 	// Revoke removes the given user from the organization.
 	Revoke(org string, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error)
 	// List retrieves all members of the given organization.
+	// Deprecated: Use iterator function instead.
 	List(org string) ([]*api.OrgMember, error)
 	// Iterator returns an iterator that lists all members of a given organization.
 	Iterator(org string, _ *OrgMemberIteratorParams) OrgMemberIterator

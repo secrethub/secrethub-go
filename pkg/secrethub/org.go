@@ -17,6 +17,7 @@ type OrgService interface {
 	// Delete removes an organization.
 	Delete(name string) error
 	// ListMine returns the organizations of the current user.
+	// Deprecated: Use iterator function instead.
 	ListMine() ([]*api.Org, error)
 	// Iterator returns an iterator that lists all organizations of the current user.
 	Iterator(params *OrgIteratorParams) OrgIterator

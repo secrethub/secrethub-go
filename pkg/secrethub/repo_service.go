@@ -9,6 +9,7 @@ import (
 // RepoServiceService handles operations on services of repositories.
 type RepoServiceService interface {
 	// List lists the services of the given repository.
+	// Deprecated: Use iterator function instead.
 	List(path string) ([]*api.Service, error)
 	// Iterator returns an iterator that lists all services of the given repository.
 	Iterator(path string, _ *RepoServiceIteratorParams) ServiceIterator
