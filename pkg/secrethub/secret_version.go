@@ -19,6 +19,7 @@ var (
 	ErrSecretTooBig         = errClient.Code("secret_too_big").Error(fmt.Sprintf("maximum size of a secret is %s", units.BytesSize(MaxSecretSize)))
 	ErrEmptySecret          = errClient.Code("empty_secret").Error("secret is empty")
 	ErrCannotWriteToVersion = errClient.Code("cannot_write_version").Error("cannot (over)write a specific secret version, they are append only")
+	ErrSecretNotFound       = errClient.Code("secret_not_found").ErrorPref("the secret %s does not exist")
 )
 
 // SecretVersionService handles operations on secret versions from SecretHub.
@@ -88,7 +89,9 @@ func (s secretVersionService) get(path api.SecretPath, withData bool) (*api.Secr
 	}
 
 	encVersion, err := s.client.httpClient.GetSecretVersion(blindName, versionParam, withData)
-	if err != nil {
+	if api.IsErrNotFound(err) {
+		return nil, ErrSecretNotFound(path.String())
+	} else if err != nil {
 		return nil, errio.Error(err)
 	}
 
