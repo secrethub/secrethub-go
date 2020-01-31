@@ -47,7 +47,6 @@ type SecretService interface {
 	//  }
 	EventIterator(path string, _ *AuditEventIteratorParams) AuditEventIterator
 	// ListEvents retrieves all audit events for a given secret.
-	// Deprecated: Use iterator function instead.
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 	// Versions returns a SecretVersionService.
 	Versions() SecretVersionService
