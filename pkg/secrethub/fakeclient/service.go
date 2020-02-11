@@ -4,6 +4,7 @@ package fakeclient
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/pkg/secrethub"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 )
 
@@ -14,6 +15,12 @@ type ServiceService struct {
 	Getter     ServiceGetter
 	Lister     RepoServiceLister
 	AWSService *ServiceAWSService
+
+	IteratorFunc func() secrethub.ServiceIterator
+}
+
+func (s *ServiceService) Iterator(path string, _ *secrethub.ServiceIteratorParams) secrethub.ServiceIterator {
+	return s.IteratorFunc()
 }
 
 // Create implements the ServiceService interface Create function.

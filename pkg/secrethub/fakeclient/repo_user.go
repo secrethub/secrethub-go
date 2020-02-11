@@ -2,13 +2,22 @@
 
 package fakeclient
 
-import "github.com/secrethub/secrethub-go/internals/api"
+import (
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/pkg/secrethub"
+)
 
 // RepoUserService is a mock of the RepoUserService interface.
 type RepoUserService struct {
 	RepoInviter RepoInviter
 	Lister      RepoUserLister
 	Revoker     RepoRevoker
+
+	IteratorFunc func() secrethub.UserIterator
+}
+
+func (s *RepoUserService) Iterator(path string, params *secrethub.UserIteratorParams) secrethub.UserIterator {
+	return s.IteratorFunc()
 }
 
 // Invite implements the RepoUserService interface Invite function.

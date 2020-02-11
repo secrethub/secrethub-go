@@ -3,6 +3,7 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 // OrgService handles operations on organisations on SecretHub.
@@ -16,7 +17,10 @@ type OrgService interface {
 	// Delete removes an organization.
 	Delete(name string) error
 	// ListMine returns the organizations of the current user.
+	// Deprecated: Use iterator function instead.
 	ListMine() ([]*api.Org, error)
+	// Iterator returns an iterator that lists all organizations of the current user.
+	Iterator(params *OrgIteratorParams) OrgIterator
 }
 
 func newOrgService(client *Client) OrgService {
@@ -72,4 +76,47 @@ func (s orgService) Members() OrgMemberService {
 // ListMine returns the organizations of the current user.
 func (s orgService) ListMine() ([]*api.Org, error) {
 	return s.client.httpClient.ListMyOrgs()
+}
+
+// Iterator returns an iterator that lists all organizations of the current user.
+func (s orgService) Iterator(params *OrgIteratorParams) OrgIterator {
+	return &orgIterator{
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					orgs, err := s.client.httpClient.ListMyOrgs()
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(orgs))
+					for i, element := range orgs {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
+	}
+}
+
+type OrgIteratorParams struct{}
+
+// OrgIterator iterates over organizations.
+type OrgIterator interface {
+	Next() (api.Org, error)
+}
+
+type orgIterator struct {
+	iterator iterator.Iterator
+}
+
+// Next returns the next organization or iterator.Done as an error if all of them have been returned.
+func (it *orgIterator) Next() (api.Org, error) {
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.Org{}, err
+	}
+
+	return *item.(*api.Org), nil
 }

@@ -3,6 +3,8 @@ package secrethub
 import (
 	"fmt"
 
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
+
 	units "github.com/docker/go-units"
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/crypto"
@@ -30,9 +32,14 @@ type SecretVersionService interface {
 	// Delete removes a secret version.
 	Delete(path string) error
 	// ListWithData lists secret versions, with the sensitive data.
+	// Deprecated: Use iterator function instead.
 	ListWithData(path string) ([]*api.SecretVersion, error)
 	// ListWithoutData lists secret versions, without the sensitive data.
+	// Deprecated: Use iterator function instead.
 	ListWithoutData(path string) ([]*api.SecretVersion, error)
+	// Iterator returns a new iterator that retrieves all secret versions in the given namespace.
+	// If the IncludeSensitiveData parameter is set to true, the secret data will also be retrieved.
+	Iterator(path string, params *SecretVersionIteratorParams) SecretVersionIterator
 }
 
 func newSecretVersionService(client *Client) SecretVersionService {
@@ -271,4 +278,61 @@ func (c *Client) decryptSecretVersions(encVersions ...*api.EncryptedSecretVersio
 	}
 
 	return versions, nil
+}
+
+// Iterator returns a new iterator that retrieves all secret versions in the given namespace.
+// If the IncludeSensitiveData parameter is set to true, the secret data will also be retrieved.
+func (s secretVersionService) Iterator(path string, params *SecretVersionIteratorParams) SecretVersionIterator {
+	if params == nil {
+		params = &SecretVersionIteratorParams{}
+	}
+
+	return &secretVersionIterator{
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					secretPath, err := api.NewSecretPath(path)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					secretVersions, err := s.list(secretPath, params.IncludeSensitiveData)
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(secretVersions))
+					for i, element := range secretVersions {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
+	}
+}
+
+// SecretVersionIteratorParams defines parameters used when listing SecretVersions.
+// If IncludeSensitiveData is set to true, secret data will also be retrieved.
+type SecretVersionIteratorParams struct {
+	IncludeSensitiveData bool
+}
+
+// SecretVersionIterator iterates over secret versions.
+type SecretVersionIterator interface {
+	Next() (api.SecretVersion, error)
+}
+
+type secretVersionIterator struct {
+	iterator iterator.Iterator
+}
+
+// Next returns the next secret version or iterator.Done as an error if all of them have been returned.
+func (it *secretVersionIterator) Next() (api.SecretVersion, error) {
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.SecretVersion{}, err
+	}
+
+	return *item.(*api.SecretVersion), nil
 }
