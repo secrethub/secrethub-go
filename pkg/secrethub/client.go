@@ -17,8 +17,8 @@ import (
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
-const (
-	userAgentPrefix = "SecretHub/v1 secrethub-go/" + ClientVersion
+var (
+	userAgentPrefix = "SecretHub/1.0 secrethub-go/" + strings.TrimPrefix(ClientVersion, "v")
 )
 
 // Errors
@@ -86,7 +86,7 @@ type AppInfo struct {
 func (i AppInfo) userAgentSuffix() string {
 	res := i.Name
 	if i.Version != "" {
-		res += "/" + i.Version
+		res += "/" + strings.TrimPrefix(i.Version, "v")
 	}
 	return res
 }
