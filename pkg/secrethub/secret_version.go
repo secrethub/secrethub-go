@@ -2,6 +2,7 @@ package secrethub
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 
@@ -21,7 +22,7 @@ var (
 	ErrSecretTooBig         = errClient.Code("secret_too_big").Error(fmt.Sprintf("maximum size of a secret is %s", units.BytesSize(MaxSecretSize)))
 	ErrEmptySecret          = errClient.Code("empty_secret").Error("secret is empty")
 	ErrCannotWriteToVersion = errClient.Code("cannot_write_version").Error("cannot (over)write a specific secret version, they are append only")
-	ErrSecretNotFound       = errClient.Code("secret_not_found").ErrorPref("cannot find secret: %s, error: %v")
+	ErrSecretNotFound       = errClient.Code("secret_not_found").StatusErrorPref("cannot find secret: %s, error: %v", http.StatusNotFound)
 )
 
 // SecretVersionService handles operations on secret versions from SecretHub.
