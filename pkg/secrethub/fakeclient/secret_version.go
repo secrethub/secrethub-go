@@ -2,7 +2,10 @@
 
 package fakeclient
 
-import "github.com/secrethub/secrethub-go/internals/api"
+import (
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/pkg/secrethub"
+)
 
 // SecretVersionService can be used to mock a SecretVersionService.
 type SecretVersionService struct {
@@ -11,6 +14,7 @@ type SecretVersionService struct {
 	WithoutDataGetter WithoutDataGetter
 	WithDataLister    WithDataLister
 	WithoutDataLister WithoutDataLister
+	IteratorFunc      func(path string, params *secrethub.SecretVersionIteratorParams) secrethub.SecretVersionIterator
 }
 
 // Delete implements the SecretVersionService interface Delete function.
@@ -36,6 +40,10 @@ func (s *SecretVersionService) ListWithData(path string) ([]*api.SecretVersion, 
 // ListWithoutData implements the SecretVersionService interface ListWithoutData function.
 func (s *SecretVersionService) ListWithoutData(path string) ([]*api.SecretVersion, error) {
 	return s.WithoutDataLister.ListWithoutData(path)
+}
+
+func (s *SecretVersionService) Iterator(path string, params *secrethub.SecretVersionIteratorParams) secrethub.SecretVersionIterator {
+	return s.IteratorFunc(path, params)
 }
 
 // SecretVersionDeleter mocks the Delete function.
