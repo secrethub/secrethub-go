@@ -263,6 +263,8 @@ func CharsetByName(charsetName string) (Charset, bool) {
 		return All, true
 	case "similar":
 		return Similar, true
+	case "human-readable":
+		return Alphanumeric.Subtract(Similar), true
 	default:
 		return Charset{}, false
 	}
