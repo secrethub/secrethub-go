@@ -93,7 +93,7 @@ func (s secretVersionService) Delete(path string) error {
 func (s secretVersionService) get(path api.SecretPath, withData bool) (*api.SecretVersion, error) {
 	blindName, err := s.client.convertPathToBlindName(path)
 	if api.IsErrNotFound(err) {
-		return nil, &errSecretNotFound{path:path, err:err}
+		return nil, &errSecretNotFound{path: path, err: err}
 	} else if err != nil {
 		return nil, errio.Error(err)
 	}
