@@ -110,7 +110,7 @@ func (s secretVersionService) get(path api.SecretPath, withData bool) (*api.Secr
 
 	encVersion, err := s.client.httpClient.GetSecretVersion(blindName, versionParam, withData)
 	if api.IsErrNotFound(err) {
-		return nil, &errSecretNotFound{path:path, err:err}
+		return nil, &errSecretNotFound{path: path, err: err}
 	} else if err != nil {
 		return nil, errio.Error(err)
 	}
