@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"fmt"
@@ -104,12 +105,8 @@ var (
 
 // IsErrNotFound returns whether the given error is caused by a un-existing resource.
 func IsErrNotFound(err error) bool {
-	publicError, ok := err.(errio.PublicError)
-	if ok {
-		return publicError.Namespace == errio.Namespace("client") && publicError.Code == "secret_not_found"
-	}
-
-	publicStatusError, ok := err.(errio.PublicStatusError)
+	var publicStatusError errio.PublicStatusError
+	ok := errors.As(err, &publicStatusError)
 	if !ok {
 		return false
 	}

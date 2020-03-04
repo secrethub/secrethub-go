@@ -20,8 +20,20 @@ var (
 	ErrSecretTooBig         = errClient.Code("secret_too_big").Error(fmt.Sprintf("maximum size of a secret is %s", units.BytesSize(MaxSecretSize)))
 	ErrEmptySecret          = errClient.Code("empty_secret").Error("secret is empty")
 	ErrCannotWriteToVersion = errClient.Code("cannot_write_version").Error("cannot (over)write a specific secret version, they are append only")
-	ErrSecretNotFound       = errClient.Code("secret_not_found").ErrorPref("cannot find secret: \"%s\": %v")
 )
+
+type errSecretNotFound struct {
+	path api.SecretPath
+	err error
+}
+
+func (e *errSecretNotFound) Error() string {
+	return fmt.Sprintf("cannot find secret: \"%s\": %v", e.path, e.err)
+}
+
+func (e *errSecretNotFound) Unwrap() error {
+	return e.err
+}
 
 // SecretVersionService handles operations on secret versions from SecretHub.
 type SecretVersionService interface {
@@ -81,7 +93,7 @@ func (s secretVersionService) Delete(path string) error {
 func (s secretVersionService) get(path api.SecretPath, withData bool) (*api.SecretVersion, error) {
 	blindName, err := s.client.convertPathToBlindName(path)
 	if api.IsErrNotFound(err) {
-		return nil, ErrSecretNotFound(path, err)
+		return nil, &errSecretNotFound{path:path, err:err}
 	} else if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -98,7 +110,7 @@ func (s secretVersionService) get(path api.SecretPath, withData bool) (*api.Secr
 
 	encVersion, err := s.client.httpClient.GetSecretVersion(blindName, versionParam, withData)
 	if api.IsErrNotFound(err) {
-		return nil, ErrSecretNotFound(path, err)
+		return nil, &errSecretNotFound{path:path, err:err}
 	} else if err != nil {
 		return nil, errio.Error(err)
 	}
