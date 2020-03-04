@@ -24,7 +24,7 @@ var (
 
 type errSecretNotFound struct {
 	path api.SecretPath
-	err error
+	err  error
 }
 
 func (e *errSecretNotFound) Error() string {
