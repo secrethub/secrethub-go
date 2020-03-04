@@ -34,6 +34,8 @@ var (
 	All = Alphanumeric.Add(Symbols)
 	// Similar defines a character set containing similar looking characters.
 	Similar = NewCharset("iIlL1oO0")
+	// HumanReadable defines a character set containing all alphanumeric characters except the similar ones.
+	HumanReadable = Alphanumeric.Subtract(Similar)
 
 	// DefaultRand defines the default random generator to use. You can create
 	// your own generators using NewRand.
@@ -263,6 +265,8 @@ func CharsetByName(charsetName string) (Charset, bool) {
 		return All, true
 	case "similar":
 		return Similar, true
+	case "human-readable":
+		return HumanReadable, true
 	default:
 		return Charset{}, false
 	}
