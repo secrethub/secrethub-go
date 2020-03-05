@@ -12,8 +12,8 @@ import (
 type ServiceService struct {
 	CreateFunc func(path string, description string, credentialCreator credentials.Creator) (*api.Service, error)
 	DeleteFunc func(id string) (*api.RevokeRepoResponse, error)
-	GetFunc func(id string) (*api.Service, error)
-	ListFunc func(path string) ([]*api.Service, error)
+	GetFunc    func(id string) (*api.Service, error)
+	ListFunc   func(path string) ([]*api.Service, error)
 	AWSService *ServiceAWSService
 
 	IteratorFunc func() secrethub.ServiceIterator

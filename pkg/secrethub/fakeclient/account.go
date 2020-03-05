@@ -9,7 +9,7 @@ import (
 
 // AccountService is a mock of the AccountService interface.
 type AccountService struct {
-	GetFunc func(name string) (*api.Account, error)
+	GetFunc           func(name string) (*api.Account, error)
 	AccountKeyService secrethub.AccountKeyService
 }
 

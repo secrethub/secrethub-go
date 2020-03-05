@@ -9,9 +9,9 @@ import (
 
 // DirService is a mock of the DirService interface.
 type DirService struct {
-	CreateFunc func(path string) (*api.Dir, error)
-	ExistsFunc func(path string) (bool, error)
-	DeleteFunc func(path string) error
+	CreateFunc  func(path string) (*api.Dir, error)
+	ExistsFunc  func(path string) (bool, error)
+	DeleteFunc  func(path string) error
 	GetTreeFunc func(path string, depth int, ancestors bool) (*api.Tree, error)
 	secrethub.DirService
 }

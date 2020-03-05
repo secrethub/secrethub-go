@@ -9,14 +9,14 @@ import (
 
 // RepoService is a mock of the RepoService interface.
 type RepoService struct {
-	ListFunc func(namespace string) ([]*api.Repo, error)
-	ListAccountsFunc func(path string) ([]*api.Account, error)
-	ListEventsFunc func(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
-	ListMineFunc func() ([]*api.Repo, error)
-	CreateFunc func(path string) (*api.Repo, error)
-	DeleteFunc func(path string) error
-	GetFunc func(path string) (*api.Repo, error)
-	UserService secrethub.RepoUserService
+	ListFunc           func(namespace string) ([]*api.Repo, error)
+	ListAccountsFunc   func(path string) ([]*api.Account, error)
+	ListEventsFunc     func(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
+	ListMineFunc       func() ([]*api.Repo, error)
+	CreateFunc         func(path string) (*api.Repo, error)
+	DeleteFunc         func(path string) error
+	GetFunc            func(path string) (*api.Repo, error)
+	UserService        secrethub.RepoUserService
 	RepoServiceService secrethub.RepoServiceService
 	AuditEventIterator *AuditEventIterator
 	secrethub.RepoService

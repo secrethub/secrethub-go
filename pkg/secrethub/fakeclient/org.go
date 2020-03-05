@@ -9,12 +9,12 @@ import (
 
 // OrgService is a mock of the RepoService interface.
 type OrgService struct {
-	CreateFunc func(name string, description string) (*api.Org, error)
-	DeleteFunc func(name string) error
-	GetFunc func(name string) (*api.Org, error)
+	CreateFunc     func(name string, description string) (*api.Org, error)
+	DeleteFunc     func(name string) error
+	GetFunc        func(name string) (*api.Org, error)
 	MembersService secrethub.OrgMemberService
-	ListMineFunc func() ([]*api.Org, error)
-	IteratorFunc func(params *secrethub.OrgIteratorParams) secrethub.OrgIterator
+	ListMineFunc   func() ([]*api.Org, error)
+	IteratorFunc   func(params *secrethub.OrgIteratorParams) secrethub.OrgIterator
 }
 
 func (s *OrgService) Iterator(params *secrethub.OrgIteratorParams) secrethub.OrgIterator {

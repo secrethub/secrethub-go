@@ -9,9 +9,9 @@ import (
 
 // RepoUserService is a mock of the RepoUserService interface.
 type RepoUserService struct {
-	InviteFunc func(path string, username string) (*api.RepoMember, error)
-	ListFunc func(path string) ([]*api.User, error)
-	RevokeFunc func(path string, username string) (*api.RevokeRepoResponse, error)
+	InviteFunc   func(path string, username string) (*api.RepoMember, error)
+	ListFunc     func(path string) ([]*api.User, error)
+	RevokeFunc   func(path string, username string) (*api.RevokeRepoResponse, error)
 	IteratorFunc func() secrethub.UserIterator
 }
 

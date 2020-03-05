@@ -9,8 +9,8 @@ import (
 
 // UserService is a mock of the UserService interface.
 type UserService struct {
-	GetFunc func(username string) (*api.User, error)
-	MeFunc func() (*api.User, error)
+	GetFunc    func(username string) (*api.User, error)
+	MeFunc     func() (*api.User, error)
 	CreateFunc func(username, email, fullName string, credentialCreator credentials.Creator) (*api.User, error)
 }
 

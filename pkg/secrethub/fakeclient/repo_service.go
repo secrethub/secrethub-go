@@ -9,7 +9,7 @@ import (
 
 // RepoServiceService is a mock of the RepoServiceService interface.
 type RepoServiceService struct {
-	ListFunc func(path string) ([]*api.Service, error)
+	ListFunc     func(path string) ([]*api.Service, error)
 	IteratorFunc func() secrethub.ServiceIterator
 }
 

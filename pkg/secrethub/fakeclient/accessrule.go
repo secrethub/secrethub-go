@@ -9,11 +9,11 @@ import (
 
 // AccessRuleService is a mock of the AccessRuleService interface.
 type AccessRuleService struct {
-	DeleteFunc func(path string, accountName string) error
-	GetFunc func(path string, accountName string) (*api.AccessRule, error)
-	ListLevelsFunc func(path string) ([]*api.AccessLevel, error)
-	ListFunc func(path string, depth int, ancestors bool) ([]*api.AccessRule, error)
-	SetFunc func(path string, permission string, accountName string) (*api.AccessRule, error)
+	DeleteFunc        func(path string, accountName string) error
+	GetFunc           func(path string, accountName string) (*api.AccessRule, error)
+	ListLevelsFunc    func(path string) ([]*api.AccessLevel, error)
+	ListFunc          func(path string, depth int, ancestors bool) ([]*api.AccessRule, error)
+	SetFunc           func(path string, permission string, accountName string) (*api.AccessRule, error)
 	IteratorFunc      func() secrethub.AccessRuleIterator
 	LevelIteratorFunc func() secrethub.AccessLevelIterator
 }

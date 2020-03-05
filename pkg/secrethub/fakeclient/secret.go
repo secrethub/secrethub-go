@@ -9,11 +9,11 @@ import (
 
 // SecretService is a mock of the SecretService interface.
 type SecretService struct {
-	VersionService secrethub.SecretVersionService
-	DeleteFunc func(path string) error
-	GetFunc func(path string) (*api.Secret, error)
-	WriteFunc func(path string, data []byte) (*api.SecretVersion, error)
-	ListEventsFunc func(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
+	VersionService     secrethub.SecretVersionService
+	DeleteFunc         func(path string) error
+	GetFunc            func(path string) (*api.Secret, error)
+	WriteFunc          func(path string, data []byte) (*api.SecretVersion, error)
+	ListEventsFunc     func(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 	AuditEventIterator *AuditEventIterator
 
 	secrethub.SecretService

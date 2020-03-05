@@ -9,12 +9,12 @@ import (
 
 // SecretVersionService can be used to mock a SecretVersionService.
 type SecretVersionService struct {
-	DeleteFunc func(path string) error
-	GetWithDataFunc func(path string) (*api.SecretVersion, error)
-	GetWithoutDataFunc func(path string) (*api.SecretVersion, error)
-	ListWithDataFunc func(path string) ([]*api.SecretVersion, error)
+	DeleteFunc          func(path string) error
+	GetWithDataFunc     func(path string) (*api.SecretVersion, error)
+	GetWithoutDataFunc  func(path string) (*api.SecretVersion, error)
+	ListWithDataFunc    func(path string) ([]*api.SecretVersion, error)
 	ListWithoutDataFunc func(path string) ([]*api.SecretVersion, error)
-	IteratorFunc      func(path string, params *secrethub.SecretVersionIteratorParams) secrethub.SecretVersionIterator
+	IteratorFunc        func(path string, params *secrethub.SecretVersionIteratorParams) secrethub.SecretVersionIterator
 }
 
 // Delete implements the SecretVersionService interface Delete function.
