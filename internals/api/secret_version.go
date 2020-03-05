@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -28,7 +27,7 @@ const (
 
 // Errors
 var (
-	ErrEncryptedDataTooBig = errAPI.Code("encrypted_data_too_big").Error(fmt.Sprintf("maximum size of encrypted data is %s", units.BytesSize(MaxEncryptedSecretSize)))
+	ErrEncryptedDataTooBig = errAPI.Code("encrypted_data_too_big").Error("maximum size of encrypted data is " + units.BytesSize(MaxEncryptedSecretSize))
 )
 
 // EncryptedSecretVersion represents a version of an encrypted Secret.
@@ -100,7 +99,7 @@ func (sv *SecretVersion) Name() string {
 	if sv.Secret == nil {
 		return strconv.Itoa(sv.Version)
 	}
-	return fmt.Sprintf("%s:%d", sv.Secret.Name, sv.Version)
+	return sv.Secret.Name + ":" + strconv.Itoa(sv.Version)
 }
 
 // ToAuditSubject converts an EncryptedSecret to an AuditSubject

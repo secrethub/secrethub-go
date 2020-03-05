@@ -116,7 +116,7 @@ func newEncodedCiphertextMetadata(metadata map[string]string) encodedCiphertextM
 		if len(res) > 0 {
 			separator = ","
 		}
-		res = fmt.Sprintf("%s%s%s=%s", res, separator, k, metadata[k])
+		res = res + separator + k + "=" + metadata[k]
 	}
 
 	return encodedCiphertextMetadata(res)

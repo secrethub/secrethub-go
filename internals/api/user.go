@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"time"
 
 	"net/http"
@@ -55,7 +54,7 @@ func (u User) PrettyName() string {
 	if u.FullName == "" {
 		return u.Username
 	}
-	return fmt.Sprintf("%s (%s)", u.Username, u.FullName)
+	return u.Username + "(" + u.FullName + ")"
 }
 
 // Trim removes all non-essential fields from User for output

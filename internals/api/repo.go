@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -40,7 +39,7 @@ type Repo struct {
 
 // Path returns the full repository path.
 func (r Repo) Path() RepoPath {
-	return RepoPath(fmt.Sprintf("%s/%s", r.Owner, r.Name))
+	return RepoPath(r.Owner + "/" + r.Name)
 }
 
 // Trim removes all non-essential fields from Repo for output

@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/base64"
-	"fmt"
+	"strconv"
 	"strings"
 
 	"bitbucket.org/zombiezen/cardcpx/natsort"
@@ -155,7 +155,7 @@ func (sp SecretPath) AddVersion(version int) (SecretPath, error) {
 		return SecretPath(""), ErrPathAlreadyHasVersion
 	}
 
-	p := SecretPath(fmt.Sprintf("%s:%d", sp.String(), version))
+	p := SecretPath(sp.String() +":"+ strconv.Itoa(version))
 	err := p.Validate()
 	if err != nil {
 		return SecretPath(""), err
@@ -524,7 +524,7 @@ func blindName(key *crypto.SymmetricKey, path string) (string, error) {
 }
 
 func joinPath(path, name string) string {
-	return fmt.Sprintf("%s%s%s", path, pathSeparator, name)
+	return path + pathSeparator + name
 }
 
 // OrgName

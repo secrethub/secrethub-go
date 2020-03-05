@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -251,8 +250,7 @@ func GetFingerprint(t CredentialType, verifier []byte) string {
 		toHash = verifier
 	} else {
 		encodedVerifier := base64.RawStdEncoding.EncodeToString(verifier)
-		toHash = []byte(fmt.Sprintf("credential_type=%s;verifier=%s", t, encodedVerifier))
-
+		toHash = []byte("credential_type=" + string(t) + ";verifier=" + encodedVerifier)
 	}
 	return hex.EncodeToString(crypto.SHA256(toHash))
 }

@@ -11,8 +11,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"errors"
-	"fmt"
-
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
@@ -367,7 +365,7 @@ func (ct CiphertextRSAAES) EncodeToString() string {
 		"key":   base64.StdEncoding.EncodeToString(ct.RSA.Data),
 	})
 
-	return fmt.Sprintf("%s$%s$%s", algorithmRSAAES, data, metadata)
+	return string(algorithmRSAAES) + "$" + data + "$" + string(metadata)
 }
 
 // MarshalJSON encodes the ciphertext in JSON.
@@ -451,7 +449,7 @@ type CiphertextRSA struct {
 // EncodeToString encodes the ciphertext in a string.
 func (ct CiphertextRSA) EncodeToString() string {
 	encodedKey := base64.StdEncoding.EncodeToString(ct.Data)
-	return fmt.Sprintf("%s$%s$", algorithmRSA, encodedKey)
+	return string(algorithmRSA) + "$" + encodedKey + "$"
 }
 
 // MarshalJSON encodes the ciphertext in JSON.

@@ -1,8 +1,8 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
@@ -15,10 +15,7 @@ var (
 		http.StatusBadRequest,
 	)
 	ErrInvalidServiceDescription = errAPI.Code("invalid_service_description").StatusError(
-		fmt.Sprintf(
-			"service descriptions can at most be %d long and cannot contain any newlines or tabs",
-			serviceDescriptionMaxLength,
-		),
+		"service descriptions can at most be "+strconv.Itoa(serviceDescriptionMaxLength)+" long and cannot contain any newlines or tabs",
 		http.StatusBadRequest,
 	)
 	ErrAccessDeniedToKMSKey = errAPI.Code("access_denied").StatusError("access to KMS key is denied", http.StatusForbidden)

@@ -291,7 +291,7 @@ func (c *Client) AuditRepoPaginator(namespace, repoName string) *AuditPaginator 
 }
 
 func (c *Client) auditRepoURL(namespace, repoName string) url.URL {
-	return joinURL(c.base, fmt.Sprintf("/namespaces/%s/repos/%s/events", namespace, repoName))
+	return joinURL(c.base, "/namespaces/"+namespace+"/repos/"+repoName+"/events")
 }
 
 func newAuditPaginator(requestURL url.URL, client *Client) *AuditPaginator {
@@ -589,7 +589,7 @@ func (c *Client) AuditSecretPaginator(secretBlindName string) *AuditPaginator {
 }
 
 func (c *Client) auditSecretURL(secretBlindName string) url.URL {
-	return joinURL(c.base, fmt.Sprintf("/secrets/%s/events", secretBlindName))
+	return joinURL(c.base, "/secrets/"+secretBlindName+"/events")
 }
 
 // DeleteSecret deletes a secret.

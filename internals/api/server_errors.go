@@ -3,8 +3,6 @@ package api
 import (
 	"net/http"
 
-	"fmt"
-
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
@@ -56,8 +54,8 @@ var (
 	ErrSecretKeyNotFound     = errHub.Code("secret_key_not_found").StatusError("Key for secret not found", http.StatusNotFound)
 
 	// Secret Keys
-	ErrSecretKeyFlagged = errAPI.Code("secret_key_flagged").StatusError(fmt.Sprintf("Cannot write new secrets with a key that has status %s", StatusFlagged), http.StatusBadRequest)
-	ErrNoOKSecretKey    = errAPI.Code("no_secret_key_found_with_status_ok").StatusError(fmt.Sprintf("No secret key found with status %s", StatusOK), http.StatusNotFound)
+	ErrSecretKeyFlagged = errAPI.Code("secret_key_flagged").StatusError("Cannot write new secrets with a key that has status "+StatusFlagged, http.StatusBadRequest)
+	ErrNoOKSecretKey    = errAPI.Code("no_secret_key_found_with_status_ok").StatusError("No secret key found with status "+StatusOK, http.StatusNotFound)
 
 	// Organization
 	ErrOrgAlreadyExists         = errAPI.Code("org_already_exists").StatusError("Organization already exists, please create a different organization", http.StatusConflict)

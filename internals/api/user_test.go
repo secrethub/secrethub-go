@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -94,7 +93,7 @@ func TestCreateUserRequest_ValidateUsername_DisallowedCharacters(t *testing.T) {
 	baseName := "user1"
 
 	for _, c := range disallowedCharacters {
-		username := fmt.Sprintf("%s%s", baseName, string(c))
+		username := baseName + string(c)
 
 		err := ValidateUsername(username)
 		if err != ErrInvalidUsername {

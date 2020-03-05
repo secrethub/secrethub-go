@@ -7,7 +7,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"crypto/hmac"
@@ -151,7 +150,7 @@ func (ct CiphertextAES) EncodeToString() string {
 		"nonce": base64.StdEncoding.EncodeToString(ct.Nonce),
 	})
 
-	return fmt.Sprintf("%s$%s$%s", algorithmAES, data, metadata)
+	return string(algorithmAES) + "$" + data + "$" + string(metadata)
 }
 
 // MarshalJSON encodes the ciphertext in JSON.

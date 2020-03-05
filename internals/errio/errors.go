@@ -196,9 +196,9 @@ type PublicError struct {
 func (e PublicError) Error() string {
 	code := e.Code
 	if e.Namespace != "" {
-		code = fmt.Sprintf("%s.%s", e.Namespace, e.Code)
+		code = string(e.Namespace) + "." + e.Code
 	}
-	return fmt.Sprintf("%s (%s) ", e.Message, code)
+	return e.Message + "(" + code + ")"
 }
 
 // Append appends multiple errors to an PublicError.
@@ -206,7 +206,7 @@ func (e PublicError) Append(errs ...error) PublicError {
 	message := e.Message
 
 	for _, err := range errs {
-		message = fmt.Sprintf("%s: %s", err.Error(), message)
+		message = err.Error() + ": " + message
 	}
 
 	return PublicError{
@@ -218,7 +218,7 @@ func (e PublicError) Append(errs ...error) PublicError {
 
 // Type returns the type of the error as to be reported to Sentry.
 func (e PublicError) Type() string {
-	return fmt.Sprintf("%s.%s", e.Namespace, e.Code)
+	return string(e.Namespace) + "." + e.Code
 }
 
 // PublicStatusError represents an http error. It contains an HTTP status
@@ -243,13 +243,13 @@ func (e PublicStatusError) Append(errs ...error) PublicStatusError {
 
 // Type returns the type of the error as to be reported to Sentry.
 func (e PublicStatusError) Type() string {
-	return fmt.Sprintf("%s.%s", e.Namespace, e.Code)
+	return string(e.Namespace) + "." + e.Code
 }
 
 // Wrap wraps multiple errors with a PublicStatusError.
 func Wrap(base PublicStatusError, errs ...error) PublicStatusError {
 	for _, err := range errs {
-		base.Message = fmt.Sprintf("%s: %s", base.Message, err.Error())
+		base.Message = base.Message + ": " + err.Error()
 	}
 
 	return base

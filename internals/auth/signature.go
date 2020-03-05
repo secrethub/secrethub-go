@@ -160,7 +160,7 @@ func (s httpSigner) Authenticate(r *http.Request) error {
 func getMessage(r *http.Request) ([]byte, error) {
 	var result bytes.Buffer
 	// Method \n
-	result.WriteString(fmt.Sprintf("%s\n", r.Method))
+	result.WriteString(r.Method + "\n")
 	// Content-Hash
 	if r.ContentLength == 0 {
 		// Empty body
@@ -177,7 +177,7 @@ func getMessage(r *http.Request) ([]byte, error) {
 		sum := sha256.Sum256(body)
 		encoded := base64.StdEncoding.EncodeToString(sum[:])
 
-		result.WriteString(fmt.Sprintf("%s\n", encoded))
+		result.WriteString(encoded + "\n")
 	}
 	// Date \n
 	requestTime, err := time.Parse(time.RFC1123, r.Header.Get("Date"))
@@ -186,7 +186,7 @@ func getMessage(r *http.Request) ([]byte, error) {
 	}
 	result.WriteString(fmt.Sprintf("%s\n", requestTime))
 	// Resource \n
-	result.WriteString(fmt.Sprintf("%s;", r.URL.Path))
+	result.WriteString(r.URL.Path + ";")
 
 	return result.Bytes(), nil
 }

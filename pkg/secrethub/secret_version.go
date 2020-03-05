@@ -1,8 +1,6 @@
 package secrethub
 
 import (
-	"fmt"
-
 	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 
 	units "github.com/docker/go-units"
@@ -18,7 +16,7 @@ const (
 
 // Errors
 var (
-	ErrSecretTooBig         = errClient.Code("secret_too_big").Error(fmt.Sprintf("maximum size of a secret is %s", units.BytesSize(MaxSecretSize)))
+	ErrSecretTooBig         = errClient.Code("secret_too_big").Error("maximum size of a secret is " + units.BytesSize(MaxSecretSize))
 	ErrEmptySecret          = errClient.Code("empty_secret").Error("secret is empty")
 	ErrCannotWriteToVersion = errClient.Code("cannot_write_version").Error("cannot (over)write a specific secret version, they are append only")
 )

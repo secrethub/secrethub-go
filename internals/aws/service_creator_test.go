@@ -2,7 +2,6 @@ package aws
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/secrethub/secrethub-go/internals/api"
@@ -139,7 +138,7 @@ func TestServiceCreator_Wrap(t *testing.T) {
 
 func Test_parseRole(t *testing.T) {
 	defaultAccountID := "1234567890"
-	defaultARN := fmt.Sprintf("arn:aws:iam::%s:role/RoleName", defaultAccountID)
+	defaultARN := "arn:aws:iam::" + defaultAccountID + ":role/RoleName"
 
 	cases := map[string]struct {
 		role      string
