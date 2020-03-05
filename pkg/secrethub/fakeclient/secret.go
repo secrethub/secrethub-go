@@ -10,12 +10,10 @@ import (
 // SecretService is a mock of the SecretService interface.
 type SecretService struct {
 	VersionService secrethub.SecretVersionService
-
-	Deleter     SecretDeleter
-	Getter      SecretGetter
-	EventLister SecretEventLister
-	Writer      Writer
-
+	DeleteFunc func(path string) error
+	GetFunc func(path string) (*api.Secret, error)
+	WriteFunc func(path string, data []byte) (*api.SecretVersion, error)
+	ListEventsFunc func(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 	AuditEventIterator *AuditEventIterator
 
 	secrethub.SecretService
@@ -23,7 +21,7 @@ type SecretService struct {
 
 // Delete implements the SecretService interface Delete function.
 func (s *SecretService) Delete(path string) error {
-	return s.Deleter.Delete(path)
+	return s.DeleteFunc(path)
 }
 
 // Exists implements the SecretService interface Exists function.
@@ -33,17 +31,17 @@ func (s *SecretService) Exists(path string) (bool, error) {
 
 // Get implements the SecretService interface Get function.
 func (s *SecretService) Get(path string) (*api.Secret, error) {
-	return s.Getter.Get(path)
+	return s.GetFunc(path)
 }
 
 // Write implements the SecretService interface Write function.
 func (s *SecretService) Write(path string, data []byte) (*api.SecretVersion, error) {
-	return s.Writer.Write(path, data)
+	return s.WriteFunc(path, data)
 }
 
 // ListEvents implements the SecretService interface ListEvents function.
 func (s *SecretService) ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error) {
-	return s.EventLister.ListEvents(path, subjectTypes)
+	return s.ListEventsFunc(path, subjectTypes)
 }
 
 // EventIterator implements the SecretService interface EventIterator function.

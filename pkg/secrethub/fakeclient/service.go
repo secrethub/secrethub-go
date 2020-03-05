@@ -10,10 +10,10 @@ import (
 
 // ServiceService is a mock of the ServiceService interface.
 type ServiceService struct {
-	Creator    ServiceCreater
-	Deleter    ServiceDeleter
-	Getter     ServiceGetter
-	Lister     RepoServiceLister
+	CreateFunc func(path string, description string, credentialCreator credentials.Creator) (*api.Service, error)
+	DeleteFunc func(id string) (*api.RevokeRepoResponse, error)
+	GetFunc func(id string) (*api.Service, error)
+	ListFunc func(path string) ([]*api.Service, error)
 	AWSService *ServiceAWSService
 
 	IteratorFunc func() secrethub.ServiceIterator
@@ -25,63 +25,20 @@ func (s *ServiceService) Iterator(path string, _ *secrethub.ServiceIteratorParam
 
 // Create implements the ServiceService interface Create function.
 func (s *ServiceService) Create(path string, description string, credentialCreator credentials.Creator) (*api.Service, error) {
-	return s.Creator.Create(path, description, credentialCreator)
+	return s.CreateFunc(path, description, credentialCreator)
 }
 
 // Delete implements the ServiceService interface Delete function.
 func (s *ServiceService) Delete(id string) (*api.RevokeRepoResponse, error) {
-	return s.Deleter.Delete(id)
+	return s.DeleteFunc(id)
 }
 
 // Get implements the ServiceService interface Get function.
 func (s *ServiceService) Get(id string) (*api.Service, error) {
-	return s.Getter.Get(id)
+	return s.GetFunc(id)
 }
 
 // List implements the ServiceService interface List function.
 func (s *ServiceService) List(path string) ([]*api.Service, error) {
-	return s.Lister.List(path)
-}
-
-// ServiceCreater mocks the Create function.
-type ServiceCreater struct {
-	ArgPath              string
-	ArgDescription       string
-	ArgCredentialCreator credentials.Creator
-	ReturnsService       *api.Service
-	Err                  error
-}
-
-// Create saves the arguments it was called with and returns the mocked response.
-func (c *ServiceCreater) Create(path string, description string, credentialCreator credentials.Creator) (*api.Service, error) {
-	c.ArgPath = path
-	c.ArgDescription = description
-	c.ArgCredentialCreator = credentialCreator
-	return c.ReturnsService, c.Err
-}
-
-// ServiceDeleter mocks the Delete function.
-type ServiceDeleter struct {
-	ArgID                 string
-	ReturnsRevokeResponse *api.RevokeRepoResponse
-	Err                   error
-}
-
-// Delete saves the arguments it was called with and returns the mocked response.
-func (d *ServiceDeleter) Delete(id string) (*api.RevokeRepoResponse, error) {
-	d.ArgID = id
-	return d.ReturnsRevokeResponse, d.Err
-}
-
-// ServiceGetter mocks the Get function.
-type ServiceGetter struct {
-	ArgID          string
-	ReturnsService *api.Service
-	Err            error
-}
-
-// Get saves the arguments it was called with and returns the mocked response.
-func (g *ServiceGetter) Get(id string) (*api.Service, error) {
-	g.ArgID = id
-	return g.ReturnsService, g.Err
+	return s.ListFunc(path)
 }
