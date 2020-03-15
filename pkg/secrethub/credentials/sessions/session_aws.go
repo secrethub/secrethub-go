@@ -2,7 +2,10 @@ package sessions
 
 import (
 	"bytes"
-	"fmt"
+
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	shaws "github.com/secrethub/secrethub-go/internals/aws"
+	"github.com/secrethub/secrethub-go/internals/errio"
 
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
@@ -35,13 +38,13 @@ func (s *awsSessionCreator) Create(httpClient *http.Client) (Session, error) {
 
 	getCallerIdentityReq, err := getCallerIdentityRequest(region, s.awsConfig...)
 	if err != nil {
-		return nil, err
+		return nil, handleAWSErr(err)
 	}
 
 	req := api.NewAuthRequestAWSSTS(api.SessionTypeHMAC, region, getCallerIdentityReq)
 	resp, err := httpClient.CreateSession(req)
 	if err != nil {
-		return nil, err
+		return nil, handleAWSErr(err)
 	}
 	if resp.Type != api.SessionTypeHMAC {
 		return nil, api.ErrInvalidSessionType
@@ -61,7 +64,7 @@ func getCallerIdentityRequest(region string, awsCfg ...*aws.Config) ([]byte, err
 	cfg := aws.NewConfig().WithRegion(region).WithEndpoint("sts." + region + ".amazonaws.com")
 	awsSession, err := session.NewSession(append(awsCfg, cfg)...)
 	if err != nil {
-		return nil, fmt.Errorf("could not get AWS session: %v", err)
+		return nil, err
 	}
 
 	svc := sts.New(awsSession, cfg)
@@ -70,7 +73,7 @@ func getCallerIdentityRequest(region string, awsCfg ...*aws.Config) ([]byte, err
 	// Sign the CallerIdentityRequest with the AWS access key
 	err = identityRequest.Sign()
 	if err != nil {
-		return nil, fmt.Errorf("could not sign STS request: %v", err)
+		return nil, err
 	}
 
 	var buf bytes.Buffer
@@ -79,4 +82,15 @@ func getCallerIdentityRequest(region string, awsCfg ...*aws.Config) ([]byte, err
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+func handleAWSErr(err error) error {
+	errAWS, ok := err.(awserr.Error)
+	if ok {
+		if errAWS.Code() == "NoCredentialProviders" {
+			return shaws.ErrNoAWSCredentials
+		}
+		err = errio.Namespace("aws").Code(errAWS.Code()).Error(errAWS.Message())
+	}
+	return err
 }
