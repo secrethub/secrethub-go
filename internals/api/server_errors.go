@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"fmt"
@@ -104,9 +105,10 @@ var (
 
 // IsErrNotFound returns whether the given error is caused by a un-existing resource.
 func IsErrNotFound(err error) bool {
-	statusError, ok := err.(errio.PublicStatusError)
+	var publicStatusError errio.PublicStatusError
+	ok := errors.As(err, &publicStatusError)
 	if !ok {
 		return false
 	}
-	return statusError.StatusCode == 404
+	return publicStatusError.StatusCode == 404
 }
