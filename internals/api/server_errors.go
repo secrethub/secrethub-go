@@ -41,7 +41,7 @@ var (
 	ErrSignatureNotVerified = errHub.Code("invalid_signature").StatusError("request was not signed by a valid credential", http.StatusUnauthorized)
 
 	// Repos
-	ErrRepoNotFound      = errHub.Code("repo_not_found").StatusError("Repo not found", http.StatusNotFound)
+	ErrRepoNotFound      = errHub.Code("repo_not_found").StatusErrorPref("Repo '%s' not found", http.StatusNotFound)
 	ErrRepoAlreadyExists = errHub.Code("repo_already_exists").StatusError("Repo already exists, please create a different repo", http.StatusConflict)
 
 	// Dirs
