@@ -34,14 +34,14 @@ type CredentialCreator struct {
 func NewCredentialCreator(keyID, role string, cfgs ...*aws.Config) (*CredentialCreator, map[string]string, error) {
 	sess, err := session.NewSession(cfgs...)
 	if err != nil {
-		return nil, nil, handleError(err)
+		return nil, nil, HandleError(err)
 	}
 
 	stsSvc := sts.New(sess)
 
 	identity, err := stsSvc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 	if err != nil {
-		return nil, nil, handleError(err)
+		return nil, nil, HandleError(err)
 	}
 	accountID := aws.StringValue(identity.Account)
 
@@ -98,7 +98,7 @@ func (c CredentialCreator) Wrap(plaintext []byte) (*api.EncryptedData, error) {
 		KeyId:     aws.String(c.keyID),
 	})
 	if err != nil {
-		return nil, handleError(err)
+		return nil, HandleError(err)
 	}
 	return api.NewEncryptedDataAWSKMS(resp.CiphertextBlob, api.NewEncryptionKeyAWS(aws.StringValue(resp.KeyId))), nil
 }
@@ -112,13 +112,13 @@ func GetEncryptRequest(plaintext string, keyID string, kmsSvc kmsiface.KMSAPI) (
 
 	err := encryptReq.Sign()
 	if err != nil {
-		return nil, handleError(err)
+		return nil, HandleError(err)
 	}
 
 	var buf bytes.Buffer
 	err = encryptReq.HTTPRequest.Write(&buf)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, HandleError(err)
 	}
 	return buf.Bytes(), nil
 }

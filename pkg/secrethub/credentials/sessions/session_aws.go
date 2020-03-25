@@ -2,9 +2,9 @@ package sessions
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/secrethub/secrethub-go/internals/api"
+	shaws "github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -61,7 +61,7 @@ func getCallerIdentityRequest(region string, awsCfg ...*aws.Config) ([]byte, err
 	cfg := aws.NewConfig().WithRegion(region).WithEndpoint("sts." + region + ".amazonaws.com")
 	awsSession, err := session.NewSession(append(awsCfg, cfg)...)
 	if err != nil {
-		return nil, fmt.Errorf("could not get AWS session: %v", err)
+		return nil, shaws.HandleError(err)
 	}
 
 	svc := sts.New(awsSession, cfg)
@@ -70,7 +70,7 @@ func getCallerIdentityRequest(region string, awsCfg ...*aws.Config) ([]byte, err
 	// Sign the CallerIdentityRequest with the AWS access key
 	err = identityRequest.Sign()
 	if err != nil {
-		return nil, fmt.Errorf("could not sign STS request: %v", err)
+		return nil, shaws.HandleError(err)
 	}
 
 	var buf bytes.Buffer
