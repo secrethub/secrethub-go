@@ -3,11 +3,8 @@ package sessions
 import (
 	"bytes"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	shaws "github.com/secrethub/secrethub-go/internals/aws"
-	"github.com/secrethub/secrethub-go/internals/errio"
-
 	"github.com/secrethub/secrethub-go/internals/api"
+	shaws "github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -38,13 +35,13 @@ func (s *awsSessionCreator) Create(httpClient *http.Client) (Session, error) {
 
 	getCallerIdentityReq, err := getCallerIdentityRequest(region, s.awsConfig...)
 	if err != nil {
-		return nil, handleAWSErr(err)
+		return nil, err
 	}
 
 	req := api.NewAuthRequestAWSSTS(api.SessionTypeHMAC, region, getCallerIdentityReq)
 	resp, err := httpClient.CreateSession(req)
 	if err != nil {
-		return nil, handleAWSErr(err)
+		return nil, err
 	}
 	if resp.Type != api.SessionTypeHMAC {
 		return nil, api.ErrInvalidSessionType
@@ -64,7 +61,7 @@ func getCallerIdentityRequest(region string, awsCfg ...*aws.Config) ([]byte, err
 	cfg := aws.NewConfig().WithRegion(region).WithEndpoint("sts." + region + ".amazonaws.com")
 	awsSession, err := session.NewSession(append(awsCfg, cfg)...)
 	if err != nil {
-		return nil, err
+		return nil, shaws.HandleError(err)
 	}
 
 	svc := sts.New(awsSession, cfg)
@@ -73,7 +70,7 @@ func getCallerIdentityRequest(region string, awsCfg ...*aws.Config) ([]byte, err
 	// Sign the CallerIdentityRequest with the AWS access key
 	err = identityRequest.Sign()
 	if err != nil {
-		return nil, err
+		return nil, shaws.HandleError(err)
 	}
 
 	var buf bytes.Buffer
@@ -82,15 +79,4 @@ func getCallerIdentityRequest(region string, awsCfg ...*aws.Config) ([]byte, err
 		return nil, err
 	}
 	return buf.Bytes(), nil
-}
-
-func handleAWSErr(err error) error {
-	errAWS, ok := err.(awserr.Error)
-	if ok {
-		if errAWS.Code() == "NoCredentialProviders" {
-			return shaws.ErrNoAWSCredentials
-		}
-		err = errio.Namespace("aws").Code(errAWS.Code()).Error(errAWS.Message())
-	}
-	return err
 }
