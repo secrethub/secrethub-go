@@ -40,7 +40,7 @@ func NewCredentialCreator(keyID, role string, cfgs ...*aws.Config) (*CredentialC
 	stsSvc := sts.New(sess)
 
 	identity, err := stsSvc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
-	if err != nil{
+	if err != nil {
 		return nil, nil, HandleError(err)
 	}
 	accountID := aws.StringValue(identity.Account)
