@@ -3,6 +3,7 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 // RepoUserService handles operations on users of a repository.
@@ -12,7 +13,10 @@ type RepoUserService interface {
 	// Revoke revokes the user with given username from the repository with the given path.
 	Revoke(path string, username string) (*api.RevokeRepoResponse, error)
 	// List lists the users of the given repository.
+	// Deprecated: Use iterator function instead.
 	List(path string) ([]*api.User, error)
+	// Iterator returns an iterator that lists the users of a given repository.
+	Iterator(path string, params *UserIteratorParams) UserIterator
 }
 
 func newRepoUserService(client *Client) RepoUserService {
@@ -103,4 +107,53 @@ func (s repoUserService) Revoke(path string, username string) (*api.RevokeRepoRe
 	}
 
 	return resp, nil
+}
+
+// Iterator returns an iterator that lists the users of a given repository.
+func (s repoUserService) Iterator(path string, params *UserIteratorParams) UserIterator {
+	return &userIterator{
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					repoPath, err := api.NewRepoPath(path)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					users, err := s.client.httpClient.ListRepoUsers(repoPath.GetNamespaceAndRepoName())
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					res := make([]interface{}, len(users))
+					for i, element := range users {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
+	}
+}
+
+// UserIteratorParams defines parameters used when listing Users.
+type UserIteratorParams struct{}
+
+// UserIterator iterates over users.
+type UserIterator interface {
+	Next() (api.User, error)
+}
+
+type userIterator struct {
+	iterator iterator.Iterator
+}
+
+// Next returns the next user or iterator.Done as an error if all of them have been returned.
+func (it *userIterator) Next() (api.User, error) {
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.User{}, err
+	}
+
+	return *item.(*api.User), nil
 }

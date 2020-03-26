@@ -5,6 +5,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 // RepoService handles operations on repositories from SecretHub.
@@ -16,9 +17,15 @@ type RepoService interface {
 	// Delete removes the repo with the given path.
 	Delete(path string) error
 	// List retrieves all repositories in the given namespace.
+	// Deprecated: Use iterator function instead.
 	List(namespace string) ([]*api.Repo, error)
+	// Iterator returns a new iterator that retrieves all repos according to the specified parameters.
+	Iterator(_ *RepoIteratorParams) RepoIterator
 	// ListAccounts lists the accounts in the repository.
+	// Deprecated: Use iterator function instead.
 	ListAccounts(path string) ([]*api.Account, error)
+	// AccountIterator returns a new iterator that retrieves all accounts in the given repository.
+	AccountIterator(path string, params *AccountIteratorParams) AccountIterator
 	// EventIterator returns an iterator that retrieves all audit events for a given repo.
 	//
 	// Usage:
@@ -35,8 +42,10 @@ type RepoService interface {
 	//  }
 	EventIterator(path string, _ *AuditEventIteratorParams) AuditEventIterator
 	// ListEvents retrieves all audit events for a given repo.
+	// Deprecated: Use iterator function instead.
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 	// ListMine retrieves all repositories of the current user.
+	// Deprecated: Use iterator function instead.
 	ListMine() ([]*api.Repo, error)
 	// Users returns a RepoUserService that handles operations on users of a repository.
 	Users() RepoUserService
@@ -308,4 +317,113 @@ func (c *Client) getRepoIndexKey(repoPath api.RepoPath) (*crypto.SymmetricKey, e
 	c.repoIndexKeys[repoPath] = repoIndexKey
 
 	return repoIndexKey, nil
+}
+
+// Iterator returns a new iterator that retrieves all repos according to the specified parameters.
+func (s repoService) Iterator(params *RepoIteratorParams) RepoIterator {
+	if params == nil {
+		params = &RepoIteratorParams{}
+	}
+
+	return &repoIterator{
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					var err error
+					var repos []*api.Repo
+					if params.Namespace == nil {
+						repos, err = s.client.httpClient.ListMyRepos()
+					} else {
+						err = api.ValidateNamespace(*params.Namespace)
+						if err != nil {
+							return nil, errio.Error(err)
+						}
+						repos, err = s.client.httpClient.ListRepos(*params.Namespace)
+					}
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					res := make([]interface{}, len(repos))
+					for i, element := range repos {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
+	}
+}
+
+// AccountIterator returns a new iterator that retrieves all accounts in the given repository.
+func (s repoService) AccountIterator(path string, params *AccountIteratorParams) AccountIterator {
+	return &accountIterator{
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					repoPath, err := api.NewRepoPath(path)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					accounts, err := s.client.httpClient.ListRepoAccounts(repoPath.GetNamespaceAndRepoName())
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(accounts))
+					for i, element := range accounts {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
+	}
+}
+
+// RepoIteratorParams defines parameters used when listing repos.
+type RepoIteratorParams struct {
+	Namespace *string
+}
+
+// RepoIterator iterates over repositories.
+type RepoIterator interface {
+	Next() (api.Repo, error)
+}
+
+type repoIterator struct {
+	iterator iterator.Iterator
+}
+
+// Next returns the next repo or iterator.Done as an error if all of them have been returned.
+func (it *repoIterator) Next() (api.Repo, error) {
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.Repo{}, err
+	}
+
+	return *item.(*api.Repo), nil
+}
+
+// AccountIteratorParams defines parameters used when listing Accounts.
+type AccountIteratorParams struct{}
+
+// AccountIterator iterates over accounts.
+type AccountIterator interface {
+	Next() (api.Account, error)
+}
+
+type accountIterator struct {
+	iterator iterator.Iterator
+}
+
+// Next returns the next account or iterator.Done as an error if all of them have been returned.
+func (it *accountIterator) Next() (api.Account, error) {
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.Account{}, err
+	}
+
+	return *item.(*api.Account), nil
 }

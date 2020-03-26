@@ -4,6 +4,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 // AccessRuleService handles operations on access rules from SecretHub.
@@ -14,13 +15,20 @@ type AccessRuleService interface {
 	Set(path string, permission string, accountName string) (*api.AccessRule, error)
 	// Delete removes the accessrule for the given directory and account.
 	Delete(path string, accountName string) error
-	// List etrieves all access rules that apply to a directory, including
+	// List retrieves all access rules that apply to a directory, including
 	// rules that apply to its children up to a specified depth. When ancestors is set
 	// to true, it also includes rules for any parent directories. When the depth is
 	// set to -1, all children are retrieved without limit.
+	// Deprecated: Use iterator function instead.
 	List(path string, depth int, ancestors bool) ([]*api.AccessRule, error)
+	// Iterator returns an iterator that retrieves all access rules that apply to a
+	// directory.
+	Iterator(path string, _ *AccessRuleIteratorParams) AccessRuleIterator
 	// ListLevels lists the access levels on the given directory.
+	// Deprecated: Use iterator function instead.
 	ListLevels(path string) ([]*api.AccessLevel, error)
+	// LevelIterator returns an iterator that retrieves all access levels on the given directory.
+	LevelIterator(path string, _ *AccessLevelIteratorParams) AccessLevelIterator
 }
 
 func newAccessRuleService(client *Client) AccessRuleService {
@@ -87,7 +95,7 @@ func (s accessRuleService) Get(path string, accountName string) (*api.AccessRule
 	return accessRule, nil
 }
 
-// List etrieves all access rules that apply to a directory, including
+// List retrieves all access rules that apply to a directory, including
 // rules that apply to its children up to a specified depth. When ancestors is set
 // to true, it also includes rules for any parent directories. When the depth is
 // set to -1, all children are retrieved without limit.
@@ -285,4 +293,158 @@ func (c *Client) getAccessLevel(path api.BlindNamePath, accountName api.AccountN
 	}
 
 	return accessLevel, nil
+}
+
+// Iterator returns an iterator that retrieves all access rules that apply to a
+// directory.
+func (s accessRuleService) Iterator(path string, params *AccessRuleIteratorParams) AccessRuleIterator {
+	if params == nil {
+		params = &AccessRuleIteratorParams{}
+	}
+
+	depth := -1
+	if params.Depth != nil {
+		depth = int(*params.Depth)
+	}
+	ancestors := params.Ancestors
+
+	return &accessRuleIterator{
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					p, err := api.NewDirPath(path)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					blindName, err := s.client.convertPathToBlindName(p)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					accessRules, err := s.client.httpClient.ListAccessRules(blindName, depth, ancestors)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					res := make([]interface{}, len(accessRules))
+					for i, element := range accessRules {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
+	}
+}
+
+// LevelIterator returns an iterator that retrieves all access levels on the given directory.
+func (s accessRuleService) LevelIterator(path string, _ *AccessLevelIteratorParams) AccessLevelIterator {
+	return &accessLevelIterator{
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					p, err := api.NewDirPath(path)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					blindName, err := s.client.convertPathToBlindName(p)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					rules, err := s.client.httpClient.ListAccessRules(blindName, 0, true)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					dir, err := s.dirService.GetTree(path, 0, false)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					rights := make(map[uuid.UUID][]*api.AccessRule)
+					for _, rule := range rules {
+						list := rights[rule.AccountID]
+						rights[rule.AccountID] = append(list, rule)
+					}
+
+					accessLevels := make([]*api.AccessLevel, len(rights))
+					i := 0
+					for _, list := range rights {
+						first := list[0]
+						maxPerm := first.Permission
+						for _, rule := range list {
+							if maxPerm < rule.Permission {
+								maxPerm = rule.Permission
+							}
+						}
+
+						accessLevels[i] = &api.AccessLevel{
+							Account:    first.Account,
+							AccountID:  first.AccountID,
+							DirID:      dir.RootDir.DirID, // add this for completeness
+							Permission: maxPerm,
+						}
+
+						i++
+					}
+
+					res := make([]interface{}, len(accessLevels))
+					for i, element := range accessLevels {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
+	}
+}
+
+// AccessLevelIterator iterates over access rules.
+type AccessRuleIterator interface {
+	Next() (api.AccessRule, error)
+}
+
+type accessRuleIterator struct {
+	iterator iterator.Iterator
+}
+
+// Next returns the next access rule or iterator.Done if all of them have been returned.
+func (it *accessRuleIterator) Next() (api.AccessRule, error) {
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.AccessRule{}, err
+	}
+
+	return *item.(*api.AccessRule), nil
+}
+
+// AccessRuleIteratorParams specify parameters used when listing access rules.
+type AccessRuleIteratorParams struct {
+	Depth     *uint // Depth defines the depth of traversal for the iterator, nil means listing all subdirectories.
+	Ancestors bool  // Ancestors defines whether the iterator should also list access rules of parent directories.
+}
+
+// AccessLevelIteratorParams defines the parameters used when listing access levels.
+type AccessLevelIteratorParams struct{}
+
+// AccessLevelIterator iterates over access levels.
+type AccessLevelIterator interface {
+	Next() (api.AccessLevel, error)
+}
+
+type accessLevelIterator struct {
+	iterator iterator.Iterator
+}
+
+// Next returns the next access level or iterator.Done if all of them have been returned.
+func (it *accessLevelIterator) Next() (api.AccessLevel, error) {
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.AccessLevel{}, err
+	}
+
+	return *item.(*api.AccessLevel), nil
 }

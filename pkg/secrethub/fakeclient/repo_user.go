@@ -2,69 +2,34 @@
 
 package fakeclient
 
-import "github.com/secrethub/secrethub-go/internals/api"
+import (
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/pkg/secrethub"
+)
 
 // RepoUserService is a mock of the RepoUserService interface.
 type RepoUserService struct {
-	RepoInviter RepoInviter
-	Lister      RepoUserLister
-	Revoker     RepoRevoker
+	InviteFunc   func(path string, username string) (*api.RepoMember, error)
+	ListFunc     func(path string) ([]*api.User, error)
+	RevokeFunc   func(path string, username string) (*api.RevokeRepoResponse, error)
+	IteratorFunc func() secrethub.UserIterator
+}
+
+func (s *RepoUserService) Iterator(path string, params *secrethub.UserIteratorParams) secrethub.UserIterator {
+	return s.IteratorFunc()
 }
 
 // Invite implements the RepoUserService interface Invite function.
 func (s *RepoUserService) Invite(path string, username string) (*api.RepoMember, error) {
-	return s.RepoInviter.Invite(path, username)
+	return s.InviteFunc(path, username)
 }
 
 // List implements the RepoUserService interface List function.
 func (s *RepoUserService) List(path string) ([]*api.User, error) {
-	return s.Lister.List(path)
+	return s.ListFunc(path)
 }
 
 // Revoke implements the RepoUserService interface Revoke function.
 func (s *RepoUserService) Revoke(path string, username string) (*api.RevokeRepoResponse, error) {
-	return s.Revoker.Revoke(path, username)
-}
-
-// RepoUserLister mocks the List function.
-type RepoUserLister struct {
-	ArgPath      string
-	ReturnsUsers []*api.User
-	Err          error
-}
-
-// List saves the arguments it was called with and returns the mocked response.
-func (l *RepoUserLister) List(path string) ([]*api.User, error) {
-	l.ArgPath = path
-	return l.ReturnsUsers, l.Err
-}
-
-// RepoInviter mocks the Invite function.
-type RepoInviter struct {
-	ArgPath           string
-	ArgUsername       string
-	ReturnsRepoMember *api.RepoMember
-	Err               error
-}
-
-// Invite saves the arguments it was called with and returns the mocked response.
-func (i *RepoInviter) Invite(path string, username string) (*api.RepoMember, error) {
-	i.ArgPath = path
-	i.ArgUsername = username
-	return i.ReturnsRepoMember, i.Err
-}
-
-// RepoRevoker mocks the Revoke function.
-type RepoRevoker struct {
-	ArgPath               string
-	ArgUsername           string
-	ReturnsRevokeResponse *api.RevokeRepoResponse
-	Err                   error
-}
-
-// Revoke saves the arguments it was called with and returns the mocked response.
-func (r *RepoRevoker) Revoke(path string, username string) (*api.RevokeRepoResponse, error) {
-	r.ArgPath = path
-	r.ArgUsername = username
-	return r.ReturnsRevokeResponse, r.Err
+	return s.RevokeFunc(path, username)
 }

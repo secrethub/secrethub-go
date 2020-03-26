@@ -3,6 +3,7 @@ package secrethub
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 // OrgMemberService handles operations on organization members.
@@ -16,7 +17,10 @@ type OrgMemberService interface {
 	// Revoke removes the given user from the organization.
 	Revoke(org string, username string, opts *api.RevokeOpts) (*api.RevokeOrgResponse, error)
 	// List retrieves all members of the given organization.
+	// Deprecated: Use iterator function instead.
 	List(org string) ([]*api.OrgMember, error)
+	// Iterator returns an iterator that lists all members of a given organization.
+	Iterator(org string, _ *OrgMemberIteratorParams) OrgMemberIterator
 }
 
 func newOrgMemberService(client *Client) OrgMemberService {
@@ -111,4 +115,53 @@ func (s orgMemberService) Update(org string, username string, role string) (*api
 	}
 
 	return s.client.httpClient.UpdateOrgMember(org, username, in)
+}
+
+// Iterator returns an iterator that lists all members of a given organization.
+func (s orgMemberService) Iterator(org string, _ *OrgMemberIteratorParams) OrgMemberIterator {
+	return &orgMemberIterator{
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					err := api.ValidateOrgName(org)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					orgMembers, err := s.client.httpClient.ListOrgMembers(org)
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(orgMembers))
+					for i, element := range orgMembers {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
+	}
+}
+
+// OrgMemberIteratorParams defines parameters used when listing members of the organization.
+type OrgMemberIteratorParams struct{}
+
+// OrgMemberIterator iterates over organization members.
+type OrgMemberIterator interface {
+	Next() (api.OrgMember, error)
+}
+
+type orgMemberIterator struct {
+	iterator iterator.Iterator
+}
+
+// Next returns the next organization member or iterator.Done as an error if all of them have been returned.
+func (it *orgMemberIterator) Next() (api.OrgMember, error) {
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.OrgMember{}, err
+	}
+
+	return *item.(*api.OrgMember), nil
 }

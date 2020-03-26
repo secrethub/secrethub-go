@@ -4,6 +4,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 // ServiceService handles operations on service accounts from SecretHub.
@@ -15,7 +16,10 @@ type ServiceService interface {
 	// Delete removes a service account by name.
 	Delete(name string) (*api.RevokeRepoResponse, error)
 	// List lists all service accounts in a given repository.
+	// Deprecated: Use iterator function instead.
 	List(path string) ([]*api.Service, error)
+	// Iterator returns an iterator that lists all service accounts in a given repository.
+	Iterator(path string, _ *ServiceIteratorParams) ServiceIterator
 }
 
 func newServiceService(client *Client) ServiceService {
@@ -114,4 +118,53 @@ func (s serviceService) Get(name string) (*api.Service, error) {
 func (s serviceService) List(path string) ([]*api.Service, error) {
 	repoServiceService := newRepoServiceService(s.client)
 	return repoServiceService.List(path)
+}
+
+// Iterator returns an iterator that lists all service accounts in a given repository.
+func (s serviceService) Iterator(path string, params *ServiceIteratorParams) ServiceIterator {
+	return &serviceIterator{
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					repoPath, err := api.NewRepoPath(path)
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					services, err := s.client.httpClient.ListServices(repoPath.GetNamespaceAndRepoName())
+					if err != nil {
+						return nil, errio.Error(err)
+					}
+
+					res := make([]interface{}, len(services))
+					for i, element := range services {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
+	}
+}
+
+// ServiceIteratorParams defines parameters used when listing Services.
+type ServiceIteratorParams struct{}
+
+// ServiceIterator iterates over services.
+type ServiceIterator interface {
+	Next() (api.Service, error)
+}
+
+type serviceIterator struct {
+	iterator iterator.Iterator
+}
+
+// Next returns the next service or iterator.Done as an error if all of them have been returned.
+func (it *serviceIterator) Next() (api.Service, error) {
+	item, err := it.iterator.Next()
+	if err != nil {
+		return api.Service{}, err
+	}
+
+	return *item.(*api.Service), nil
 }

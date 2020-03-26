@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"fmt"
@@ -40,7 +41,7 @@ var (
 	ErrSignatureNotVerified = errHub.Code("invalid_signature").StatusError("request was not signed by a valid credential", http.StatusUnauthorized)
 
 	// Repos
-	ErrRepoNotFound      = errHub.Code("repo_not_found").StatusError("Repo not found", http.StatusNotFound)
+	ErrRepoNotFound      = errHub.Code("repo_not_found").StatusErrorPref("Repo '%s' not found", http.StatusNotFound)
 	ErrRepoAlreadyExists = errHub.Code("repo_already_exists").StatusError("Repo already exists, please create a different repo", http.StatusConflict)
 
 	// Dirs
@@ -104,9 +105,10 @@ var (
 
 // IsErrNotFound returns whether the given error is caused by a un-existing resource.
 func IsErrNotFound(err error) bool {
-	statusError, ok := err.(errio.PublicStatusError)
+	var publicStatusError errio.PublicStatusError
+	ok := errors.As(err, &publicStatusError)
 	if !ok {
 		return false
 	}
-	return statusError.StatusCode == 404
+	return publicStatusError.StatusCode == 404
 }

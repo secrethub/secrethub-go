@@ -1,6 +1,9 @@
 package secrethub
 
-import "github.com/secrethub/secrethub-go/internals/api"
+import (
+	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
+)
 
 // MeService handles operations on the authenticated account.
 type MeService interface {
@@ -10,7 +13,10 @@ type MeService interface {
 	// for them to prove they own that email address.
 	SendVerificationEmail() error
 	// ListRepos retrieves all repositories of the current user.
+	// Deprecated: Use iterator function instead.
 	ListRepos() ([]*api.Repo, error)
+	// RepoIterator returns an iterator that retrieves all repos of the current user.
+	RepoIterator(_ *RepoIteratorParams) RepoIterator
 }
 
 type meService struct {
@@ -41,4 +47,26 @@ func (ms meService) GetUser() (*api.User, error) {
 // for them to prove they own that email address.
 func (ms meService) SendVerificationEmail() error {
 	return ms.client.httpClient.SendVerificationEmail()
+}
+
+// RepoIterator returns an iterator that retrieves all repos of the current user.
+func (ms meService) RepoIterator(params *RepoIteratorParams) RepoIterator {
+	return &repoIterator{
+		iterator: iterator.New(
+			iterator.PaginatorFactory(
+				func() ([]interface{}, error) {
+					repos, err := ms.client.httpClient.ListMyRepos()
+					if err != nil {
+						return nil, err
+					}
+
+					res := make([]interface{}, len(repos))
+					for i, element := range repos {
+						res[i] = element
+					}
+					return res, nil
+				},
+			),
+		),
+	}
 }
