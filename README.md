@@ -9,7 +9,6 @@
 
 [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
 [![CircleCI](https://circleci.com/gh/secrethub/secrethub-go.svg?style=shield)][circle-ci]
-[![GolangCI](https://golangci.com/badges/github.com/secrethub/secrethub-go.svg)][golang-ci]
 [![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard]
 [![Version]( https://img.shields.io/github/release/secrethub/secrethub-go.svg)][latest-version]
 [![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord)][discord]
@@ -150,7 +149,6 @@ If you get stuck or just want advice, come chat with the engineers on [Discord][
 [issues]: https://github.com/secrethub/secrethub-go/issues/new
 [pulls]: https://github.com/secrethub/secrethub-go/pulls
 [godoc]: http://godoc.org/github.com/secrethub/secrethub-go
-[golang-ci]: https://golangci.com/r/github.com/secrethub/secrethub-go
 [goreportcard]: https://goreportcard.com/report/github.com/secrethub/secrethub-go
 [circle-ci]: https://circleci.com/gh/secrethub/secrethub-go
 [discord]: https://discord.gg/EQcE87s
