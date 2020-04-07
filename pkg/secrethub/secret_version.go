@@ -2,6 +2,7 @@ package secrethub
 
 import (
 	"fmt"
+
 	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 
 	units "github.com/docker/go-units"
