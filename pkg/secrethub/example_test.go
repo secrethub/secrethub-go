@@ -2,8 +2,9 @@ package secrethub_test
 
 import (
 	"fmt"
-	"github.com/secrethub/secrethub-go/pkg/secrethub"
 	"log"
+
+	"github.com/secrethub/secrethub-go/pkg/secrethub"
 
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 
