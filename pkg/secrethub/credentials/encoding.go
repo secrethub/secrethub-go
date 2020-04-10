@@ -22,9 +22,10 @@ var (
 	ErrInvalidCredentialHeaderField      = errCredentials.Code("invalid_credential_header_field").ErrorPref("invalid header field: %s")
 	ErrCannotDecodeCredentialHeader      = errCredentials.Code("invalid_credential_header").ErrorPref("cannot decode credential header: %v")
 	ErrUnsupportedCredentialType         = errCredentials.Code("unsupported_credential_type").ErrorPref("unsupported credential type: %s")
-	ErrCannotDecodeCredentialPayload     = errCredentials.Code("invalid_credential_header").ErrorPref("cannot decode credential payload: %v")
+	ErrCannotDecodeCredentialPayload     = errCredentials.Code("invalid_credential_payload").ErrorPref("cannot decode credential payload: %v")
 	ErrCannotDecodeEncryptedCredential   = errCredentials.Code("cannot_decode_encrypted_credential").Error("cannot decode an encrypted credential without a key")
 	ErrCannotDecryptCredential           = errCredentials.Code("cannot_decrypt_credential").Error("passphrase is incorrect")
+	ErrMalformedCredential               = errCredentials.Code("malformed_credential").Error("credential is malformed")
 	ErrInvalidKey                        = errCredentials.Code("invalid_key").Error("the given key is not valid for the encryption algorithm")
 )
 
@@ -226,7 +227,7 @@ type rsaPrivateKeyDecoder struct{}
 func (d rsaPrivateKeyDecoder) Decode(payload []byte) (*RSACredential, error) {
 	key, err := x509.ParsePKCS1PrivateKey(payload)
 	if err != nil {
-		return nil, err
+		return nil, ErrMalformedCredential
 	}
 
 	return &RSACredential{
