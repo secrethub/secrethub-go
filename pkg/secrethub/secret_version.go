@@ -146,12 +146,16 @@ func (s secretVersionService) GetWithoutData(path string) (*api.SecretVersion, e
 
 func (s secretVersionService) list(path api.SecretPath, withData bool) ([]*api.SecretVersion, error) {
 	blindName, err := s.client.convertPathToBlindName(path)
-	if err != nil {
+	if api.IsErrNotFound(err) {
+		return nil, &errSecretNotFound{path: path, err: err}
+	} else if err != nil {
 		return nil, errio.Error(err)
 	}
 
 	versions, err := s.client.httpClient.ListSecretVersions(blindName, withData)
-	if err != nil {
+	if api.IsErrNotFound(err) {
+		return nil, &errSecretNotFound{path: path, err: err}
+	} else if err != nil {
 		return nil, errio.Error(err)
 	}
 
