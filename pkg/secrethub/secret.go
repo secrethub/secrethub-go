@@ -111,12 +111,16 @@ func (s secretService) Get(path string) (*api.Secret, error) {
 	}
 
 	blindName, err := s.client.convertPathToBlindName(secretPath)
-	if err != nil {
+	if api.IsErrNotFound(err) {
+		return nil, &errSecretNotFound{path: secretPath, err: err}
+	} else if err != nil {
 		return nil, errio.Error(err)
 	}
 
 	encSecret, err := s.client.httpClient.GetSecret(blindName)
-	if err != nil {
+	if api.IsErrNotFound(err) {
+		return nil, &errSecretNotFound{path: secretPath, err: err}
+	} else if err != nil {
 		return nil, errio.Error(err)
 	}
 
