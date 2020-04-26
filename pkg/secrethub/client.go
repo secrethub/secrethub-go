@@ -4,6 +4,7 @@ package secrethub
 
 import (
 	"os"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -52,6 +53,13 @@ type ClientInterface interface {
 
 var (
 	errClient = errio.Namespace("client")
+
+	whitelistAppInfoName = regexp.MustCompile("^[a-zA-Z0-9_-]*$")
+)
+
+// Errors
+var (
+	ErrInvalidAppInfoName = errClient.Code("invalid_app_info_name").Error("name must be set and can only contain alphanumeric, underscore (_), and dash (-) characters")
 )
 
 // Client is a client for the SecretHub HTTP API.
@@ -91,6 +99,15 @@ func (i AppInfo) userAgentComponent() string {
 	return res
 }
 
+// ValidateName returns an error if the provided app name is not set or doesn't match alphanumeric, underscore (_), and dash (-) characters.
+func (i AppInfo) ValidateName() error {
+	if i.Name == "" || !whitelistAppInfoName.MatchString(i.Name) {
+		return ErrInvalidAppInfoName
+	}
+
+	return nil
+}
+
 // NewClient creates a new SecretHub client. Provided options are applied to the client.
 //
 // If no WithCredentials() option is provided, the client tries to find a key credential at the following locations (in order):
@@ -102,6 +119,7 @@ func NewClient(with ...ClientOption) (*Client, error) {
 	client := &Client{
 		httpClient:    http.NewClient(),
 		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
+		appInfo:       []*AppInfo{},
 	}
 	err := client.with(with...)
 	if err != nil {
@@ -136,6 +154,19 @@ func NewClient(with ...ClientOption) (*Client, error) {
 		if err != nil {
 			// TODO: log that default credential was not loaded.
 			// Do go on because we want to allow an unauthenticated client.
+		}
+	}
+
+	appName := os.Getenv("SECRETHUB_APP_INFO_NAME")
+	if appName != "" {
+		appVersion := os.Getenv("SECRETHUB_APP_INFO_VERSION")
+		topLevelAppInfo := &AppInfo{
+			Name:    appName,
+			Version: appVersion,
+		}
+		// Ignore app info from environment variable if name is invalid
+		if err = topLevelAppInfo.ValidateName(); err == nil {
+			client.appInfo = append(client.appInfo, topLevelAppInfo)
 		}
 	}
 

@@ -1,7 +1,6 @@
 package secrethub
 
 import (
-	"errors"
 	"net/http"
 	"net/url"
 	"time"
@@ -51,8 +50,8 @@ func WithTransport(transport http.RoundTripper) ClientOption {
 // WithAppInfo sets the AppInfo to be used for identifying the application that is using the SecretHub Client.
 func WithAppInfo(appInfo *AppInfo) ClientOption {
 	return func(c *Client) error {
-		if appInfo.Name == "" {
-			return errors.New("name must be set for AppInfo")
+		if err := appInfo.ValidateName(); err != nil {
+			return err
 		}
 		c.appInfo = append(c.appInfo, appInfo)
 		return nil
