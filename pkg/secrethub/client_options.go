@@ -54,7 +54,7 @@ func WithAppInfo(appInfo *AppInfo) ClientOption {
 		if appInfo.Name == "" {
 			return errors.New("name must be set for AppInfo")
 		}
-		c.appInfo = appInfo
+		c.appInfo = append(c.appInfo, appInfo)
 		return nil
 	}
 }

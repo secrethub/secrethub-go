@@ -72,7 +72,7 @@ type Client struct {
 	// These are cached
 	repoIndexKeys map[api.RepoPath]*crypto.SymmetricKey
 
-	appInfo   *AppInfo
+	appInfo   []*AppInfo
 	ConfigDir *configdir.Dir
 }
 
@@ -83,7 +83,7 @@ type AppInfo struct {
 	Version string
 }
 
-func (i AppInfo) userAgentSuffix() string {
+func (i AppInfo) userAgentComponent() string {
 	res := i.Name
 	if i.Version != "" {
 		res += "/" + strings.TrimPrefix(i.Version, "v")
@@ -235,8 +235,8 @@ func (c *Client) DefaultCredential() credentials.Reader {
 
 func (c *Client) userAgent() string {
 	userAgent := userAgentPrefix
-	if c.appInfo != nil {
-		userAgent += " " + c.appInfo.userAgentSuffix()
+	for _, info := range c.appInfo {
+		userAgent += " " + info.userAgentComponent()
 	}
 	osName, err := operatingsystem.GetOperatingSystem()
 	if err != nil {
