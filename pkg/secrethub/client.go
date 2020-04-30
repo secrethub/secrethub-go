@@ -54,12 +54,12 @@ type ClientInterface interface {
 var (
 	errClient = errio.Namespace("client")
 
-	whitelistAppInfoName = regexp.MustCompile("^[a-zA-Z0-9_-]*$")
+	whitelistAppInfoName = regexp.MustCompile("^[a-zA-Z0-9_-]{2,64}$")
 )
 
 // Errors
 var (
-	ErrInvalidAppInfoName = errClient.Code("invalid_app_info_name").Error("name must be set and can only contain alphanumeric, underscore (_), and dash (-) characters")
+	ErrInvalidAppInfoName = errClient.Code("invalid_app_info_name").Error("name must be 2-64 characters long, only alphanumeric, underscore (_), and dash (-)")
 )
 
 // Client is a client for the SecretHub HTTP API.
@@ -99,7 +99,7 @@ func (i AppInfo) userAgentComponent() string {
 	return res
 }
 
-// ValidateName returns an error if the provided app name is not set or doesn't match alphanumeric, underscore (_), and dash (-) characters.
+// ValidateName returns an error if the provided app name is not set or doesn't match alphanumeric, underscore (_), and dash (-) characters, or length of 2-64 characters.
 func (i AppInfo) ValidateName() error {
 	if i.Name == "" || !whitelistAppInfoName.MatchString(i.Name) {
 		return ErrInvalidAppInfoName
