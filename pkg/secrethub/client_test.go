@@ -24,6 +24,12 @@ func TestClient_userAgent(t *testing.T) {
 			},
 			expected: "secrethub-xgo/0.1.0 secrethub-java/0.2.0",
 		},
+		"no version number": {
+			appInfo: []*AppInfo{
+				{Name: "terraform-provider-secrethub"},
+			},
+			expected: "terraform-provider-secrethub",
+		},
 		"top level app info from environment": {
 			appInfo: []*AppInfo{
 				{Name: "secrethub-cli", Version: "0.37.0"},
