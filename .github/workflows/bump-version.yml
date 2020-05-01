@@ -1,0 +1,18 @@
+on:
+  push:
+    branches:
+      - release/v*
+
+jobs:
+  bump-version:
+    name: Bump secrethub.ClientVersion
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Bump version
+        uses: florisvdg/action-version-bump@master
+        with:
+          sed: 's/^\(const ClientVersion = "v\).*\("\)$/\1$VERSION\2/g'
+          file: pkg/secrethub/client_version.go
+          author_email: bender.github@secrethub.io
