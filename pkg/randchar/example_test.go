@@ -1,8 +1,9 @@
 package randchar_test
 
 import (
-	"github.com/secrethub/secrethub-go/pkg/randchar"
 	"log"
+
+	"github.com/secrethub/secrethub-go/pkg/randchar"
 )
 
 // Generate a random slice of 30 alphanumeric characters.

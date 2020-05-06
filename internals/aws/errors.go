@@ -15,7 +15,7 @@ var (
 	ErrAWSAccessDenied      = awsErr.Code("access_denied")
 )
 
-func handleError(err error) error {
+func HandleError(err error) error {
 	errAWS, ok := err.(awserr.Error)
 	if ok {
 		switch errAWS.Code() {
