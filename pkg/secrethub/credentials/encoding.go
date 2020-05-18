@@ -22,7 +22,7 @@ var (
 	ErrInvalidCredentialHeaderField      = errCredentials.Code("invalid_credential_header_field").ErrorPref("invalid header field: %s")
 	ErrCannotDecodeCredentialHeader      = errCredentials.Code("invalid_credential_header").ErrorPref("cannot decode credential header: %v")
 	ErrUnsupportedCredentialType         = errCredentials.Code("unsupported_credential_type").ErrorPref("unsupported credential type: %s")
-	ErrCannotDecodeCredentialPayload     = errCredentials.Code("invalid_credential_payload").ErrorPref("cannot decode credential payload: %v")
+	ErrCannotDecodeCredentialPayload     = errCredentials.Code("invalid_credential_header").ErrorPref("cannot decode credential payload: %v")
 	ErrCannotDecodeEncryptedCredential   = errCredentials.Code("cannot_decode_encrypted_credential").Error("cannot decode an encrypted credential without a key")
 	ErrCannotDecryptCredential           = errCredentials.Code("cannot_decrypt_credential").Error("passphrase is incorrect")
 	ErrMalformedCredential               = errCredentials.Code("malformed_credential").ErrorPref("credential is malformed: %v")
