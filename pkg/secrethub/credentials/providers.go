@@ -2,9 +2,11 @@ package credentials
 
 import (
 	awssdk "github.com/aws/aws-sdk-go/aws"
+	"google.golang.org/api/option"
 
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/aws"
+	"github.com/secrethub/secrethub-go/internals/gcp"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials/sessions"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
@@ -29,6 +31,17 @@ func UseAWS(awsCfg ...*awssdk.Config) Provider {
 			return nil, nil, err
 		}
 		authenticator := sessions.NewSessionRefresher(httpClient, sessions.NewAWSSessionCreator(awsCfg...))
+		return authenticator, decrypter, nil
+	})
+}
+
+func UseGCPServiceAccount(gcpOptions ...option.ClientOption) Provider {
+	return providerFunc(func(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
+		decrypter, err := gcp.NewKMSDecrypter(gcpOptions...)
+		if err != nil {
+			return nil, nil, err
+		}
+		authenticator := sessions.NewSessionRefresher(httpClient, sessions.NewGCPSessionCreator(gcpOptions...))
 		return authenticator, decrypter, nil
 	})
 }
