@@ -1,8 +1,11 @@
 package credentials
 
 import (
+	"google.golang.org/api/option"
+
 	"github.com/secrethub/secrethub-go/internals/aws"
 	"github.com/secrethub/secrethub-go/internals/crypto"
+	"github.com/secrethub/secrethub-go/internals/gcp"
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
 )
@@ -90,4 +93,44 @@ func (ac *awsCreator) Encrypter() Encrypter {
 
 func (ac *awsCreator) Metadata() map[string]string {
 	return ac.metadata
+}
+
+type gcpServiceAccountCreator struct {
+	keyResourceID       string
+	serviceAccountEmail string
+
+	gcpOptions []option.ClientOption
+
+	credentialCreator *gcp.CredentialCreator
+	metadata          map[string]string
+}
+
+func CreateGCPServiceAccount(serviceAccountEmail string, keyResourceID string, gcpOptions ...option.ClientOption) Creator {
+	return &gcpServiceAccountCreator{
+		keyResourceID:       keyResourceID,
+		serviceAccountEmail: serviceAccountEmail,
+		gcpOptions:          gcpOptions,
+	}
+}
+
+func (gc *gcpServiceAccountCreator) Create() error {
+	creator, metadata, err := gcp.NewCredentialCreator(gc.serviceAccountEmail, gc.keyResourceID, gc.gcpOptions...)
+	if err != nil {
+		return err
+	}
+	gc.metadata = metadata
+	gc.credentialCreator = creator
+	return nil
+}
+
+func (gc *gcpServiceAccountCreator) Verifier() Verifier {
+	return gc.credentialCreator
+}
+
+func (gc *gcpServiceAccountCreator) Encrypter() Encrypter {
+	return gc.credentialCreator
+}
+
+func (gc *gcpServiceAccountCreator) Metadata() map[string]string {
+	return gc.metadata
 }
