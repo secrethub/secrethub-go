@@ -39,6 +39,9 @@ var (
 const (
 	CredentialMetadataAWSKMSKey = "aws_kms_key_id"
 	CredentialMetadataAWSRole   = "aws_role"
+
+	CredentialMetadataGCPKMSKeyResourceID    = "gcp_kms_resource_id"
+	CredentialMetadataGCPServiceAccountEmail = "gcp_service_account_email"
 )
 
 const (
@@ -62,9 +65,10 @@ type CredentialType string
 
 // Credential types
 const (
-	CredentialTypeKey        CredentialType = "key"
-	CredentialTypeAWS        CredentialType = "aws"
-	CredentialTypeBackupCode CredentialType = "backup-code"
+	CredentialTypeKey               CredentialType = "key"
+	CredentialTypeAWS               CredentialType = "aws"
+	CredentialTypeBackupCode        CredentialType = "backup-code"
+	CredentialTypeGCPServiceAccount CredentialType = "gcp-service-account"
 )
 
 const (
@@ -75,9 +79,10 @@ const (
 // Validate validates whether the algorithm type is valid.
 func (a CredentialType) Validate() error {
 	var credentialTypeList = map[CredentialType]struct{}{
-		CredentialTypeKey:        {},
-		CredentialTypeAWS:        {},
-		CredentialTypeBackupCode: {},
+		CredentialTypeKey:               {},
+		CredentialTypeAWS:               {},
+		CredentialTypeGCPServiceAccount: {},
+		CredentialTypeBackupCode:        {},
 	}
 	if _, ok := credentialTypeList[a]; !ok {
 		return ErrInvalidCredentialType
@@ -117,6 +122,8 @@ func (req *CreateCredentialRequest) UnmarshalJSON(b []byte) error {
 	switch dec.Type {
 	case CredentialTypeAWS:
 		dec.Proof = &CredentialProofAWS{}
+	case CredentialTypeGCPServiceAccount:
+		dec.Proof = &CredentialProofGCPServiceAccount{}
 	case CredentialTypeKey:
 		dec.Proof = &CredentialProofKey{}
 	case CredentialTypeBackupCode:
@@ -200,9 +207,9 @@ func (req *CreateCredentialRequest) Validate() error {
 	}
 
 	for key := range req.Metadata {
-		if key != CredentialMetadataAWSKMSKey && key != CredentialMetadataAWSRole {
+		if key != CredentialMetadataAWSKMSKey && key != CredentialMetadataAWSRole && key != CredentialMetadataGCPServiceAccountEmail && key != CredentialMetadataGCPKMSKeyResourceID {
 			return ErrUnknownMetadataKey(key)
-		} else if req.Type != CredentialTypeAWS {
+		} else if req.Type != CredentialTypeAWS && req.Type != CredentialTypeGCPServiceAccount {
 			return ErrInvalidMetadataKey(key, req.Type)
 		}
 	}
@@ -226,6 +233,9 @@ func (p CredentialProofAWS) Validate() error {
 	}
 	return nil
 }
+
+// CredentialProofKey is proof for when the credential type is GCPServiceAccount.
+type CredentialProofGCPServiceAccount struct{}
 
 // CredentialProofKey is proof for when the credential type is RSA.
 type CredentialProofKey struct{}

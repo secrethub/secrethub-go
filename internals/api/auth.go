@@ -10,7 +10,8 @@ import (
 
 // AuthMethod options
 const (
-	AuthMethodAWSSTS = "aws-sts"
+	AuthMethodAWSSTS            = "aws-sts"
+	AuthMethodGCPServiceAccount = "gcp-service-account"
 )
 
 // SessionType options
@@ -84,6 +85,8 @@ func (r *AuthRequest) UnmarshalJSON(b []byte) error {
 	switch dec.Method {
 	case AuthMethodAWSSTS:
 		dec.Payload = &AuthPayloadAWSSTS{}
+	case AuthMethodGCPServiceAccount:
+		dec.Payload = &AuthPayloadGCPServiceAccount{}
 	default:
 		return ErrInvalidAuthMethod
 	}
@@ -112,6 +115,14 @@ func (r *AuthRequest) Validate() error {
 	switch r.Method {
 	case AuthMethodAWSSTS:
 		authPayload, ok := r.Payload.(*AuthPayloadAWSSTS)
+		if !ok {
+			return ErrInvalidPayload
+		}
+		if err := authPayload.Validate(); err != nil {
+			return err
+		}
+	case AuthMethodGCPServiceAccount:
+		authPayload, ok := r.Payload.(*AuthPayloadGCPServiceAccount)
 		if !ok {
 			return ErrInvalidPayload
 		}
