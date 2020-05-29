@@ -24,7 +24,7 @@ type CredentialCreator struct {
 func NewCredentialCreator(serviceAccountEmail, keyResourceID string, gcpOptions ...option.ClientOption) (*CredentialCreator, map[string]string, error) {
 	kmsClient, err := kms.NewKeyManagementClient(context.Background(), gcpOptions...)
 	if err != nil {
-		return nil, nil, fmt.Errorf("creating kms client: %v", err)
+		return nil, nil, fmt.Errorf("creating kms client: %v", gcp.HandleError(err))
 	}
 
 	return &CredentialCreator{
@@ -43,7 +43,7 @@ func (c CredentialCreator) Wrap(plaintext []byte) (*api.EncryptedData, error) {
 		Plaintext: plaintext,
 	})
 	if err != nil {
-		return nil, err
+		return nil, HandleError(err)
 	}
 	return api.NewEncryptedDatGCPKMS(resp.Ciphertext, api.NewEncryptionKeyGCP(c.keyResourceID)), nil
 }

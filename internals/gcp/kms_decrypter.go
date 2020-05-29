@@ -19,7 +19,7 @@ type KMSDecrypter struct {
 func NewKMSDecrypter(options ...option.ClientOption) (*KMSDecrypter, error) {
 	kmsClient, err := kms.NewKeyManagementClient(context.Background(), options...)
 	if err != nil {
-		return nil, err
+		return nil, HandleError(err)
 	}
 	return &KMSDecrypter{
 		kmsClient: kmsClient,
@@ -37,7 +37,7 @@ func (d KMSDecrypter) Unwrap(ciphertext *api.EncryptedData) ([]byte, error) {
 		Ciphertext: ciphertext.Ciphertext,
 	})
 	if err != nil {
-		return nil, err
+		return nil, HandleError(err)
 	}
 	return resp.Plaintext, nil
 }

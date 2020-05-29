@@ -7,6 +7,7 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/gcp"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
@@ -29,7 +30,7 @@ func (s *gcpSessionCreator) Create(httpClient *http.Client) (Session, error) {
 	}
 	idToken, err := metadata.Get("instance/service-accounts/default/identity?audience=secrethub&format=full")
 	if err != nil {
-		return nil, err
+		return nil, gcp.HandleError(err)
 	}
 
 	req := api.NewAuthRequestGCPServiceAccount(api.SessionTypeHMAC, idToken)
