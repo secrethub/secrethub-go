@@ -21,18 +21,24 @@ const (
 
 // Errors
 var (
-	ErrInvalidSessionType    = errAPI.Code("invalid_session_type").StatusError("invalid session type provided for authentication request", http.StatusBadRequest)
-	ErrInvalidPayload        = errAPI.Code("invalid_payload").StatusError("invalid payload provided for authentication request", http.StatusBadRequest)
-	ErrInvalidAuthMethod     = errAPI.Code("invalid_auth_method").StatusError("invalid auth method", http.StatusBadRequest)
-	ErrMissingField          = errAPI.Code("missing_field").StatusErrorPref("request is missing field %s", http.StatusBadRequest)
-	ErrSessionNotFound       = errAPI.Code("session_not_found").StatusError("session could not be found, it might have expired", http.StatusForbidden)
-	ErrSessionExpired        = errAPI.Code("session_expired").StatusError("session has expired", http.StatusForbidden)
-	ErrAuthFailed            = errAPI.Code("auth_failed").StatusError("authentication failed", http.StatusForbidden)
+	ErrInvalidSessionType = errAPI.Code("invalid_session_type").StatusError("invalid session type provided for authentication request", http.StatusBadRequest)
+	ErrInvalidPayload     = errAPI.Code("invalid_payload").StatusError("invalid payload provided for authentication request", http.StatusBadRequest)
+	ErrInvalidAuthMethod  = errAPI.Code("invalid_auth_method").StatusError("invalid auth method", http.StatusBadRequest)
+	ErrMissingField       = errAPI.Code("missing_field").StatusErrorPref("request is missing field %s", http.StatusBadRequest)
+	ErrSessionNotFound    = errAPI.Code("session_not_found").StatusError("session could not be found, it might have expired", http.StatusForbidden)
+	ErrSessionExpired     = errAPI.Code("session_expired").StatusError("session has expired", http.StatusForbidden)
+	ErrAuthFailed         = errAPI.Code("auth_failed").StatusError("authentication failed", http.StatusForbidden)
+
+	// AWS
 	ErrCouldNotGetEndpoint   = errAPI.Code("aws_endpoint_not_found").StatusError("could not find an AWS endpoint for the provided region", http.StatusBadRequest)
 	ErrAWSException          = errAPI.Code("aws_exception").StatusError("encountered an unexpected problem while verifying your identity on AWS. Please try again later.", http.StatusFailedDependency)
 	ErrNoServiceWithRole     = errAPI.Code("no_service_with_role").StatusErrorPref("no service account found that is linked to the IAM role '%s'", http.StatusNotFound)
 	ErrNoAWSCredentials      = errAPI.Code("missing_aws_credentials").StatusError("request was not signed with AWS credentials", http.StatusUnauthorized)
 	ErrInvalidAWSCredentials = errAPI.Code("invalid_aws_credentials").StatusError("credentials were not accepted by AWS", http.StatusUnauthorized)
+
+	// GCP
+	ErrInvalidGCPIDToken     = errAPI.Code("invalid_id_token").StatusError("provided id_token is invalid", http.StatusBadRequest)
+	ErrNoGCPServiceWithEmail = errAPI.Code("no_service_with_email").StatusErrorPref("no service account found that is linked to the GCP Service Account %s'", http.StatusUnauthorized)
 )
 
 // SessionType defines how a session can be used.
