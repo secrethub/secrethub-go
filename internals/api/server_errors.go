@@ -21,7 +21,7 @@ var (
 	ErrUnknownMethod             = errHub.Code("method_not_supported").StatusError("Method not supported", http.StatusNotImplemented)
 	ErrDomainNotFound            = errHub.Code("domain_not_found").StatusError("Domain not found", http.StatusNotFound)
 	ErrForbidden                 = errAPI.Code("forbidden").StatusError("You are not allowed to perform this action", http.StatusForbidden)
-	ErrRequestNotAuthenticated   = errAPI.Code("not_authenticated").StatusError("Request was not authenticated", http.StatusUnauthorized)
+	ErrRequestNotAuthenticated   = errAPI.Code("not_authenticated").StatusError("Request was not authenticated. Please ensure that the client has access to a credential or that an identity provider is configured correctly.", http.StatusUnauthorized)
 	ErrNoAccountKeyForCredential = errAPI.Code("no_account_key_for_credential").StatusError("Could not find account-key for credential used for authentication.", http.StatusInternalServerError)
 	ErrCannotPerformActionOnSelf = errAPI.Code("cannot_perform_action_on_self").StatusError("You cannot perform this action on yourself", http.StatusForbidden)
 	ErrYourAccountNotKeyed       = errAPI.Code("account_not_keyed").StatusError("Your account has not been fully initialized", http.StatusBadRequest)
