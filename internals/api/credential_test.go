@@ -109,7 +109,10 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 				Type:        CredentialTypeAWS,
 				Fingerprint: "81e5c41692870d5f59875aa6bbd18d0099140795cb968824a2279d3d35095907",
 				Verifier:    []byte("arn:aws:iam::123456:role/path/to/role"),
-				Proof:       &CredentialProofAWS{},
+				Proof: &CredentialProofAWS{
+					Region:  "eu-west-1",
+					Request: []byte("a request"),
+				},
 				Metadata: map[string]string{
 					CredentialMetadataAWSRole:   "arn:aws:iam::123456:role/path/to/role",
 					CredentialMetadataAWSKMSKey: "arn:aws:kms:us-east-1:123456:key/12345678-1234-1234-1234-123456789012",
@@ -167,6 +170,44 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 			},
 			err: ErrUnknownMetadataKey("foo"),
 		},
+		"success gcp": {
+			req: CreateCredentialRequest{
+				Type:        CredentialTypeGCPServiceAccount,
+				Fingerprint: "9380691f0735ac4d2df25b856d80a06a0d8d93e318dbc6b5464c0bb14c2d1668",
+				Verifier:    []byte("service-account@secrethub-test-1234567890.iam.gserviceaccount.com"),
+				Proof:       &CredentialProofGCPServiceAccount{},
+				Metadata: map[string]string{
+					CredentialMetadataGCPServiceAccountEmail: "service-account@secrethub-test-1234567890.iam.gserviceaccount.com",
+					CredentialMetadataGCPKMSKeyResourceID:    "projects/secrethub-test-1234567890.iam/locations/global/keyRings/test/cryptoKeys/test",
+				},
+			},
+			err: nil,
+		},
+		"gcp missing metadata": {
+			req: CreateCredentialRequest{
+				Type:        CredentialTypeGCPServiceAccount,
+				Fingerprint: "9380691f0735ac4d2df25b856d80a06a0d8d93e318dbc6b5464c0bb14c2d1668",
+				Verifier:    []byte("service-account@secrethub-test-1234567890.iam.gserviceaccount.com"),
+				Proof:       &CredentialProofGCPServiceAccount{},
+				Metadata: map[string]string{
+					CredentialMetadataGCPServiceAccountEmail: "service-account@secrethub-test-1234567890.iam.gserviceaccount.com",
+				},
+			},
+			err: ErrMissingMetadata(CredentialMetadataGCPKMSKeyResourceID, CredentialTypeGCPServiceAccount),
+		},
+		"gcp wrong verifier": {
+			req: CreateCredentialRequest{
+				Type:        CredentialTypeGCPServiceAccount,
+				Fingerprint: "9380691f0735ac4d2df25b856d80a06a0d8d93e318dbc6b5464c0bb14c2d1668",
+				Verifier:    []byte("another-service-account@secrethub-test-1234567890.iam.gserviceaccount.com"),
+				Proof:       &CredentialProofGCPServiceAccount{},
+				Metadata: map[string]string{
+					CredentialMetadataGCPServiceAccountEmail: "service-account@secrethub-test-1234567890.iam.gserviceaccount.com",
+					CredentialMetadataGCPKMSKeyResourceID:    "projects/secrethub-test-1234567890.iam/locations/global/keyRings/test/cryptoKeys/test",
+				},
+			},
+			err: ErrServiceAccountEmailDoesNotMatch,
+		},
 		"backup code success": {
 			req: CreateCredentialRequest{
 				Type:        CredentialTypeBackupCode,
@@ -207,7 +248,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 					CredentialMetadataAWSKMSKey: "test",
 				},
 			},
-			err: ErrInvalidMetadataKey(CredentialMetadataAWSKMSKey, CredentialTypeBackupCode),
+			err: ErrUnknownMetadataKey(CredentialMetadataAWSKMSKey),
 		},
 	}
 
