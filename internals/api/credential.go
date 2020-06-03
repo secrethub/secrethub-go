@@ -29,7 +29,7 @@ var (
 	ErrAWSKMSKeyNotFound               = errAPI.Code("aws_kms_key_not_found").StatusError("could not found the KMS key", http.StatusNotFound)
 	ErrInvalidRoleARN                  = errAPI.Code("invalid_role_arn").StatusError("provided role is not a valid ARN", http.StatusBadRequest)
 	ErrMissingMetadata                 = errAPI.Code("missing_metadata").StatusErrorPref("expecting %s metadata provided for credentials of type %s", http.StatusBadRequest)
-	ErrInvalidMetadataKey              = errAPI.Code("invalid_metadata_key").StatusErrorPref("invalid metadata key %s for credential type %s", http.StatusBadRequest)
+	ErrInvalidMetadataValue            = errAPI.Code("invalid_metadata").StatusErrorPref("invalid value for metadata %s: %s", http.StatusBadRequest)
 	ErrUnknownMetadataKey              = errAPI.Code("unknown_metadata_key").StatusErrorPref("unknown metadata key: %s", http.StatusBadRequest)
 	ErrRoleDoesNotMatch                = errAPI.Code("role_does_not_match").StatusError("role in metadata does not match the verifier", http.StatusBadRequest)
 	ErrServiceAccountEmailDoesNotMatch = errAPI.Code("service_account_email_mismatch").StatusError("service account email in metadata does not match the verifier", http.StatusBadRequest)
@@ -77,11 +77,17 @@ const (
 	CredentialProofPrefixAWS = "secrethub-allow-role="
 )
 
-var credentialTypesMetadata = map[CredentialType]map[string]struct{}{
-	CredentialTypeKey:               {},
-	CredentialTypeAWS:               {CredentialMetadataAWSRole: {}, CredentialMetadataAWSKMSKey: {}},
-	CredentialTypeGCPServiceAccount: {CredentialMetadataGCPServiceAccountEmail: {}, CredentialMetadataGCPKMSKeyResourceID: {}},
-	CredentialTypeBackupCode:        {},
+var credentialTypesMetadata = map[CredentialType]map[string]func(string) error{
+	CredentialTypeKey: {},
+	CredentialTypeAWS: {
+		CredentialMetadataAWSRole:   nil,
+		CredentialMetadataAWSKMSKey: nil,
+	},
+	CredentialTypeGCPServiceAccount: {
+		CredentialMetadataGCPServiceAccountEmail: ValidateGCPServiceAccountEmail,
+		CredentialMetadataGCPKMSKeyResourceID:    ValidateGCPKMSKeyResourceID,
+	},
+	CredentialTypeBackupCode: {},
 }
 
 // CreateCredentialRequest contains the fields to add a credential to an account.
@@ -159,9 +165,16 @@ func (req *CreateCredentialRequest) Validate() error {
 	if !validCredentialType {
 		return ErrInvalidCredentialType
 	}
-	for expectedMetadataKey := range expectedMetadata {
-		if _, ok := req.Metadata[expectedMetadataKey]; !ok {
+	for expectedMetadataKey, validator := range expectedMetadata {
+		metadataValue, ok := req.Metadata[expectedMetadataKey]
+		if !ok {
 			return ErrMissingMetadata(expectedMetadataKey, req.Type)
+		}
+		if validator != nil {
+			err := validator(metadataValue)
+			if err != nil {
+				return ErrInvalidMetadataValue(expectedMetadataKey, err)
+			}
 		}
 	}
 	for actualMetadataKey := range req.Metadata {
