@@ -16,24 +16,24 @@ import (
 
 // Errors
 var (
-	ErrInvalidFingerprint              = errAPI.Code("invalid_fingerprint").StatusError("fingerprint is invalid", http.StatusBadRequest)
-	ErrTooShortFingerprint             = errAPI.Code("too_short_fingerprint").StatusErrorf("at least %d characters of the fingerprint must be entered", http.StatusBadRequest, ShortCredentialFingerprintMinimumLength)
-	ErrCredentialFingerprintNotUnique  = errAPI.Code("fingerprint_not_unique").StatusErrorf("there are multiple credentials that start with the given fingerprint. Please use the full fingerprint", http.StatusConflict)
-	ErrInvalidVerifier                 = errAPI.Code("invalid_verifier").StatusError("verifier is invalid", http.StatusBadRequest)
-	ErrInvalidCredentialType           = errAPI.Code("invalid_credential_type").StatusError("credential type is invalid", http.StatusBadRequest)
-	ErrInvalidCredentialDescription    = errAPI.Code("invalid_credential_description").StatusError("credential description can be at most 32 characters long", http.StatusBadRequest)
-	ErrInvalidAWSEndpoint              = errAPI.Code("invalid_aws_endpoint").StatusError("invalid AWS endpoint provided", http.StatusBadRequest)
-	ErrInvalidProof                    = errAPI.Code("invalid_proof").StatusError("invalid proof provided for credential", http.StatusUnauthorized)
-	ErrAWSAccountMismatch              = errAPI.Code("aws_account_mismatch").StatusError("the AWS Account ID in the role ARN does not match the AWS Account ID of the AWS credentials used for authentication. Make sure you are using AWS credentials that correspond to the role you are trying to add.", http.StatusUnauthorized)
-	ErrAWSAuthFailed                   = errAPI.Code("aws_auth_failed").StatusError("authentication not accepted by AWS", http.StatusUnauthorized)
-	ErrAWSKMSKeyNotFound               = errAPI.Code("aws_kms_key_not_found").StatusError("could not found the KMS key", http.StatusNotFound)
-	ErrInvalidRoleARN                  = errAPI.Code("invalid_role_arn").StatusError("provided role is not a valid ARN", http.StatusBadRequest)
-	ErrMissingMetadata                 = errAPI.Code("missing_metadata").StatusErrorPref("expecting %s metadata provided for credentials of type %s", http.StatusBadRequest)
-	ErrInvalidMetadataValue            = errAPI.Code("invalid_metadata").StatusErrorPref("invalid value for metadata %s: %s", http.StatusBadRequest)
-	ErrUnknownMetadataKey              = errAPI.Code("unknown_metadata_key").StatusErrorPref("unknown metadata key: %s", http.StatusBadRequest)
-	ErrRoleDoesNotMatch                = errAPI.Code("role_does_not_match").StatusError("role in metadata does not match the verifier", http.StatusBadRequest)
-	ErrServiceAccountEmailDoesNotMatch = errAPI.Code("service_account_email_mismatch").StatusError("service account email in metadata does not match the verifier", http.StatusBadRequest)
-	ErrCannotDisableCurrentCredential  = errAPI.Code("cannot_disable_current_credential").StatusError("cannot disable the credential that is currently used on this device", http.StatusConflict)
+	ErrInvalidFingerprint                 = errAPI.Code("invalid_fingerprint").StatusError("fingerprint is invalid", http.StatusBadRequest)
+	ErrTooShortFingerprint                = errAPI.Code("too_short_fingerprint").StatusErrorf("at least %d characters of the fingerprint must be entered", http.StatusBadRequest, ShortCredentialFingerprintMinimumLength)
+	ErrCredentialFingerprintNotUnique     = errAPI.Code("fingerprint_not_unique").StatusErrorf("there are multiple credentials that start with the given fingerprint. Please use the full fingerprint", http.StatusConflict)
+	ErrInvalidVerifier                    = errAPI.Code("invalid_verifier").StatusError("verifier is invalid", http.StatusBadRequest)
+	ErrInvalidCredentialType              = errAPI.Code("invalid_credential_type").StatusError("credential type is invalid", http.StatusBadRequest)
+	ErrInvalidCredentialDescription       = errAPI.Code("invalid_credential_description").StatusError("credential description can be at most 32 characters long", http.StatusBadRequest)
+	ErrInvalidAWSEndpoint                 = errAPI.Code("invalid_aws_endpoint").StatusError("invalid AWS endpoint provided", http.StatusBadRequest)
+	ErrInvalidProof                       = errAPI.Code("invalid_proof").StatusError("invalid proof provided for credential", http.StatusUnauthorized)
+	ErrAWSAccountMismatch                 = errAPI.Code("aws_account_mismatch").StatusError("the AWS Account ID in the role ARN does not match the AWS Account ID of the AWS credentials used for authentication. Make sure you are using AWS credentials that correspond to the role you are trying to add.", http.StatusUnauthorized)
+	ErrAWSAuthFailed                      = errAPI.Code("aws_auth_failed").StatusError("authentication not accepted by AWS", http.StatusUnauthorized)
+	ErrAWSKMSKeyNotFound                  = errAPI.Code("aws_kms_key_not_found").StatusError("could not found the KMS key", http.StatusNotFound)
+	ErrInvalidRoleARN                     = errAPI.Code("invalid_role_arn").StatusError("provided role is not a valid ARN", http.StatusBadRequest)
+	ErrMissingMetadata                    = errAPI.Code("missing_metadata").StatusErrorPref("expecting %s metadata provided for credentials of type %s", http.StatusBadRequest)
+	ErrInvalidMetadataValue               = errAPI.Code("invalid_metadata").StatusErrorPref("invalid value for metadata %s: %s", http.StatusBadRequest)
+	ErrUnknownMetadataKey                 = errAPI.Code("unknown_metadata_key").StatusErrorPref("unknown metadata key: %s", http.StatusBadRequest)
+	ErrRoleDoesNotMatch                   = errAPI.Code("role_does_not_match").StatusError("role in metadata does not match the verifier", http.StatusBadRequest)
+	ErrGCPServiceAccountEmailDoesNotMatch = errAPI.Code("service_account_email_mismatch").StatusError("service account email in metadata does not match the verifier", http.StatusBadRequest)
+	ErrCannotDisableCurrentCredential     = errAPI.Code("cannot_disable_current_credential").StatusError("cannot disable the credential that is currently used on this device", http.StatusConflict)
 )
 
 // Credential metadata keys
@@ -204,7 +204,7 @@ func (req *CreateCredentialRequest) Validate() error {
 	case CredentialTypeGCPServiceAccount:
 		serviceAccountEmail := req.Metadata[CredentialMetadataGCPServiceAccountEmail]
 		if !bytes.Equal(req.Verifier, []byte(serviceAccountEmail)) {
-			return ErrServiceAccountEmailDoesNotMatch
+			return ErrGCPServiceAccountEmailDoesNotMatch
 		}
 	case CredentialTypeBackupCode:
 		decoded, err := base64.StdEncoding.DecodeString(string(req.Verifier))

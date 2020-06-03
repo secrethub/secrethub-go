@@ -206,7 +206,7 @@ func TestCreateCredentialRequest_Validate(t *testing.T) {
 					CredentialMetadataGCPKMSKeyResourceID:    "projects/secrethub-test-1234567890.iam/locations/global/keyRings/test/cryptoKeys/test",
 				},
 			},
-			err: ErrServiceAccountEmailDoesNotMatch,
+			err: ErrGCPServiceAccountEmailDoesNotMatch,
 		},
 		"backup code success": {
 			req: CreateCredentialRequest{
