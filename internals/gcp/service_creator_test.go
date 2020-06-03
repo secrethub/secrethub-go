@@ -3,7 +3,7 @@ package gcp
 import (
 	"testing"
 
-	"google.golang.org/api/cloudkms/v1"
+	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
 
 	"github.com/secrethub/secrethub-go/internals/api"
 
@@ -34,11 +34,11 @@ func TestServiceCreator_Wrap(t *testing.T) {
 			plaintext := []byte("plaintext")
 
 			sc := CredentialCreator{
-				encryptFunc: func(name string, pt string) (*cloudkms.EncryptResponse, error) {
+				encryptFunc: func(name string, pt []byte) (*kmspb.EncryptResponse, error) {
 					assert.Equal(t, name, kmsKeyID)
-					assert.Equal(t, pt, string(plaintext))
-					return &cloudkms.EncryptResponse{
-						Ciphertext: string(ciphertext),
+					assert.Equal(t, pt, plaintext)
+					return &kmspb.EncryptResponse{
+						Ciphertext: ciphertext,
 					}, tc.encryptErr
 				},
 			}

@@ -2,6 +2,7 @@ module github.com/secrethub/secrethub-go
 
 require (
 	bitbucket.org/zombiezen/cardcpx v0.0.0-20150417151802-902f68ff43ef
+	cloud.google.com/go v0.56.0
 	github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf
 	github.com/aws/aws-sdk-go v1.25.49
 	github.com/docker/docker v1.13.1
@@ -13,9 +14,9 @@ require (
 	github.com/mattn/go-shellwords v1.0.6 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
-	github.com/stretchr/testify v1.3.0 // indirect
-	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
-	golang.org/x/net v0.0.0-20190522155817-f3200d17e092 // indirect
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
+	google.golang.org/api v0.26.0
+	google.golang.org/genproto v0.0.0-20200331122359-1ee6d9798940
 )
 
 go 1.13

@@ -3,28 +3,30 @@ package gcp
 import (
 	"context"
 
-	"google.golang.org/api/cloudkms/v1"
+	kms "cloud.google.com/go/kms/apiv1"
 	"google.golang.org/api/option"
+	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
 
 	"github.com/secrethub/secrethub-go/internals/api"
 )
 
 // KMSDecrypter is an implementation of the secrethub.Decrypter interface that uses GCP KMS for decryption.
 type KMSDecrypter struct {
-	decryptFunc func(name string, ciphertext string) (*cloudkms.DecryptResponse, error)
+	decryptFunc func(name string, ciphertext []byte) (*kmspb.DecryptResponse, error)
 }
 
 // NewKMSDecrypter returns a new KMSDecrypter that uses the provided configuration to configure the GCP session.
 func NewKMSDecrypter(options ...option.ClientOption) (*KMSDecrypter, error) {
-	kmsClient, err := cloudkms.NewService(context.Background(), options...)
+	kmsClient, err := kms.NewKeyManagementClient(context.Background(), options...)
 	if err != nil {
 		return nil, HandleError(err)
 	}
 	return &KMSDecrypter{
-		decryptFunc: func(name, ciphertext string) (*cloudkms.DecryptResponse, error) {
-			return kmsClient.Projects.Locations.KeyRings.CryptoKeys.Decrypt(name, &cloudkms.DecryptRequest{
+		decryptFunc: func(name string, ciphertext []byte) (*kmspb.DecryptResponse, error) {
+			return kmsClient.Decrypt(context.Background(), &kmspb.DecryptRequest{
+				Name:       name,
 				Ciphertext: ciphertext,
-			}).Do()
+			})
 		},
 	}, nil
 }
@@ -35,9 +37,9 @@ func (d KMSDecrypter) Unwrap(ciphertext *api.EncryptedData) ([]byte, error) {
 	if !ok {
 		return nil, api.ErrInvalidKeyType
 	}
-	resp, err := d.decryptFunc(key.ID, string(ciphertext.Ciphertext))
+	resp, err := d.decryptFunc(key.ID, ciphertext.Ciphertext)
 	if err != nil {
 		return nil, HandleError(err)
 	}
-	return []byte(resp.Plaintext), nil
+	return resp.Plaintext, nil
 }
