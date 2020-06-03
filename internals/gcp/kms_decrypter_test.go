@@ -26,7 +26,7 @@ func TestGCPDecrypter_Unwrap(t *testing.T) {
 		expectedErr error
 	}{
 		"success": {
-			input:     api.NewEncryptedDatGCPKMS(defaultCiphertext, api.NewEncryptionKeyGCP(defaultKMSKey)),
+			input:     api.NewEncryptedDataGCPKMS(defaultCiphertext, api.NewEncryptionKeyGCP(defaultKMSKey)),
 			plaintext: defaultPlaintext,
 			expected:  []byte(defaultPlaintext),
 		},
@@ -35,7 +35,7 @@ func TestGCPDecrypter_Unwrap(t *testing.T) {
 			expectedErr: api.ErrInvalidKeyType,
 		},
 		"decryption error": {
-			input:       api.NewEncryptedDatGCPKMS(defaultCiphertext, api.NewEncryptionKeyGCP(defaultKMSKey)),
+			input:       api.NewEncryptedDataGCPKMS(defaultCiphertext, api.NewEncryptionKeyGCP(defaultKMSKey)),
 			decryptErr:  errTest,
 			expectedErr: errTest,
 		},

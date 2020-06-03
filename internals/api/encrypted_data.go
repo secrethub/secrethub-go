@@ -101,8 +101,8 @@ func NewEncryptedDataAWSKMS(ciphertext []byte, key *EncryptionKeyAWS) *Encrypted
 	}
 }
 
-// NewEncryptedDataAWSKMS creates a new EncryptedData with the AWS-KMS algorithm.
-func NewEncryptedDatGCPKMS(ciphertext []byte, key *EncryptionKeyGCP) *EncryptedData {
+// NewEncryptedDataAWSKMS creates a new EncryptedData with the GCP-KMS algorithm.
+func NewEncryptedDataGCPKMS(ciphertext []byte, key *EncryptionKeyGCP) *EncryptedData {
 	return &EncryptedData{
 		Algorithm:  EncryptionAlgorithmGCPKMS,
 		Key:        key,

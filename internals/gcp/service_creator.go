@@ -45,7 +45,7 @@ func (c CredentialCreator) Wrap(plaintext []byte) (*api.EncryptedData, error) {
 	if err != nil {
 		return nil, HandleError(err)
 	}
-	return api.NewEncryptedDatGCPKMS([]byte(resp.Ciphertext), api.NewEncryptionKeyGCP(c.keyResourceID)), nil
+	return api.NewEncryptedDataGCPKMS([]byte(resp.Ciphertext), api.NewEncryptionKeyGCP(c.keyResourceID)), nil
 }
 
 func (c CredentialCreator) Export() ([]byte, string, error) {

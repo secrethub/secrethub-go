@@ -21,7 +21,7 @@ func TestServiceCreator_Wrap(t *testing.T) {
 		expected    *api.EncryptedData
 	}{
 		"success": {
-			expected: api.NewEncryptedDatGCPKMS(ciphertext, api.NewEncryptionKeyGCP(kmsKeyID)),
+			expected: api.NewEncryptedDataGCPKMS(ciphertext, api.NewEncryptionKeyGCP(kmsKeyID)),
 		},
 		"encrypt error": {
 			encryptErr:  errTest,
