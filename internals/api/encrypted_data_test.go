@@ -32,6 +32,9 @@ func TestEncryptedData_MarshalUnmarshalValidate(t *testing.T) {
 		"aws kms": {
 			in: NewEncryptedDataAWSKMS([]byte("ciphertext"), NewEncryptionKeyAWS("arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab")),
 		},
+		"gcp kms": {
+			in: NewEncryptedDatGCPKMS([]byte("ciphertext"), NewEncryptionKeyGCP("projects/secrethub-test-1234567890.iam/locations/global/keyRings/test/cryptoKeys/test")),
+		},
 		"aes with scrypt": {
 			in: NewEncryptedDataAESGCM([]byte("ciphertext"), []byte("nonce"), 96, NewEncryptionKeyDerivedScrypt(256, 1, 2, 3, []byte("just-a-salt"))),
 		},
