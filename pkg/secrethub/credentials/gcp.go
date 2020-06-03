@@ -9,6 +9,16 @@ import (
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
+// UseGCPServiceAccount returns a Provider that can be used to use a GCP Service Account as a credential for SecretHub.
+// The provided gcpOptions is used to configure the GCP client.
+// If used on GCP (e.g. from a Compute Engine instance), this extra configuration is not required and the correct
+// configuration should be auto-detected by the GCP client.
+//
+// Note: this functionality currently is in private beta. It will only work on selected namespaces.
+//
+// Usage:
+//		credentials.UseGCPServiceAccount()
+//		credentials.UseGCPServiceAccount(option.WithAPIKey("a-custom-api-key"))
 func UseGCPServiceAccount(gcpOptions ...option.ClientOption) Provider {
 	return providerFunc(func(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
 		decrypter, err := gcp.NewKMSDecrypter(gcpOptions...)
@@ -20,6 +30,22 @@ func UseGCPServiceAccount(gcpOptions ...option.ClientOption) Provider {
 	})
 }
 
+// CreateGCPServiceAccount returns a Creator that creates a credential for a GCP Service Account.
+// The serviceAccountEmail is the email of the GCP Service Account that can use this SecretHub service account.
+// The kmsResourceID is the Resource ID of the key in KMS that is used to encrypt the account key.
+// The service account should have decryption permission on the provided KMS key.
+// gcpOptions can be used to optionally configure the used GCP client. For example to set a custom API key.
+// The KMS key id and service account emaail are returned in the credentials metadata.
+//
+// Note: this functionality currently is in private beta. It will only work on selected namespaces.
+func CreateGCPServiceAccount(serviceAccountEmail string, keyResourceID string, gcpOptions ...option.ClientOption) Creator {
+	return &gcpServiceAccountCreator{
+		keyResourceID:       keyResourceID,
+		serviceAccountEmail: serviceAccountEmail,
+		gcpOptions:          gcpOptions,
+	}
+}
+
 type gcpServiceAccountCreator struct {
 	keyResourceID       string
 	serviceAccountEmail string
@@ -28,14 +54,6 @@ type gcpServiceAccountCreator struct {
 
 	credentialCreator *gcp.CredentialCreator
 	metadata          map[string]string
-}
-
-func CreateGCPServiceAccount(serviceAccountEmail string, keyResourceID string, gcpOptions ...option.ClientOption) Creator {
-	return &gcpServiceAccountCreator{
-		keyResourceID:       keyResourceID,
-		serviceAccountEmail: serviceAccountEmail,
-		gcpOptions:          gcpOptions,
-	}
 }
 
 func (gc *gcpServiceAccountCreator) Create() error {

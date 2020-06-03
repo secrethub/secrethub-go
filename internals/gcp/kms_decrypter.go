@@ -9,12 +9,12 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 )
 
-// KMSDecrypter is an implementation of the secrethub.Decrypter interface that uses AWS KMS for decryption.
+// KMSDecrypter is an implementation of the secrethub.Decrypter interface that uses GCP KMS for decryption.
 type KMSDecrypter struct {
 	decryptFunc func(name string, ciphertext string) (*cloudkms.DecryptResponse, error)
 }
 
-// NewKMSDecrypter returns a new KMSDecrypter that uses the provided configuration to configure the AWS session.
+// NewKMSDecrypter returns a new KMSDecrypter that uses the provided configuration to configure the GCP session.
 func NewKMSDecrypter(options ...option.ClientOption) (*KMSDecrypter, error) {
 	kmsClient, err := cloudkms.NewService(context.Background(), options...)
 	if err != nil {
@@ -29,7 +29,7 @@ func NewKMSDecrypter(options ...option.ClientOption) (*KMSDecrypter, error) {
 	}, nil
 }
 
-// Unwrap the provided ciphertext using AWS KMS.
+// Unwrap the provided ciphertext using GCP KMS.
 func (d KMSDecrypter) Unwrap(ciphertext *api.EncryptedData) ([]byte, error) {
 	key, ok := ciphertext.Key.(*api.EncryptionKeyGCP)
 	if !ok {

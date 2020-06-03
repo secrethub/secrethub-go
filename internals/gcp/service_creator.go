@@ -10,7 +10,7 @@ import (
 )
 
 // CredentialCreator is an implementation of the secrethub.Verifier and secrethub.Encrypter interface that can be used
-// to create an AWS service account.
+// to create an GCP service account.
 type CredentialCreator struct {
 	keyResourceID       string
 	serviceAccountEmail string
@@ -18,8 +18,8 @@ type CredentialCreator struct {
 	encryptFunc func(name string, plaintext string) (*cloudkms.EncryptResponse, error)
 }
 
-// NewCredentialCreator returns a CredentialCreator that uses the provided AWS KMS key and IAM role to create a new credential.
-// The AWS credential is configured with the optionally provided aws.Config.
+// NewCredentialCreator returns a CredentialCreator that uses the provided GCP KMS key and Service Account Email to create a new credential.
+// The GCP client is configured with the optionally provided option.ClientOption.
 func NewCredentialCreator(serviceAccountEmail, keyResourceID string, gcpOptions ...option.ClientOption) (*CredentialCreator, map[string]string, error) {
 	kmsClient, err := cloudkms.NewService(context.Background(), gcpOptions...)
 	if err != nil {
