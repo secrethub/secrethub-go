@@ -1,5 +1,13 @@
 package api
 
+import "net/http"
+
+// Errors
+var (
+	ErrInvalidGCPIDToken     = errAPI.Code("invalid_id_token").StatusError("provided id_token is invalid", http.StatusBadRequest)
+	ErrNoGCPServiceWithEmail = errAPI.Code("no_service_with_email").StatusErrorPref("no service account found that is linked to the GCP Service Account %s'", http.StatusUnauthorized)
+)
+
 // AuthPayloadGCPServiceAccount is the authentication payload used for authenticating with a GCP Service Account.
 type AuthPayloadGCPServiceAccount struct {
 	IDToken string `json:"id_token"`
