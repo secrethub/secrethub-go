@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"google.golang.org/api/cloudkms/v1"
+	"google.golang.org/genproto/googleapis/cloud/kms/v1"
 
 	"github.com/secrethub/secrethub-go/internals/assert"
 
@@ -44,10 +44,10 @@ func TestGCPDecrypter_Unwrap(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			decrypter := KMSDecrypter{
-				decryptFunc: func(name string, ciphertext string) (*cloudkms.DecryptResponse, error) {
-					assert.Equal(t, ciphertext, string(defaultCiphertext))
-					return &cloudkms.DecryptResponse{
-						Plaintext: tc.plaintext,
+				decryptFunc: func(name string, ciphertext []byte) (*kms.DecryptResponse, error) {
+					assert.Equal(t, ciphertext, defaultCiphertext)
+					return &kms.DecryptResponse{
+						Plaintext: []byte(tc.plaintext),
 					}, tc.decryptErr
 				},
 			}
