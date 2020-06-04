@@ -43,6 +43,7 @@ const (
 	KeyTypeAccountKey    KeyType = "account-key"
 	KeyTypeSecretKey     KeyType = "secret-key"
 	KeyTypeAWS           KeyType = "aws"
+	KeyTypeGCP           KeyType = "gcp"
 	KeyTypeBootstrapCode KeyType = "bootstrap-code"
 )
 
@@ -373,6 +374,35 @@ func (EncryptionKeyAWS) SupportsAlgorithm(a EncryptionAlgorithm) bool {
 
 // Validate whether the EncryptionKeyAWS is valid.
 func (k EncryptionKeyAWS) Validate() error {
+	if k.ID == "" {
+		return ErrMissingField("id")
+	}
+	return nil
+}
+
+// NewEncryptionKeyGCP creates a EncryptionKeyGCP.
+func NewEncryptionKeyGCP(id string) *EncryptionKeyGCP {
+	return &EncryptionKeyGCP{
+		EncryptionKey: EncryptionKey{
+			Type: KeyTypeGCP,
+		},
+		ID: id,
+	}
+}
+
+// EncryptionKeyGCP is a key that is stored in the GCP KMS service and which can be used for encryption by calling the GCP KMS API.
+type EncryptionKeyGCP struct {
+	EncryptionKey
+	ID string `json:"id"`
+}
+
+// SupportsAlgorithm returns true when the encryption key supports the given algorithm.
+func (EncryptionKeyGCP) SupportsAlgorithm(a EncryptionAlgorithm) bool {
+	return a == EncryptionAlgorithmGCPKMS
+}
+
+// Validate whether the EncryptionKeyAWS is valid.
+func (k EncryptionKeyGCP) Validate() error {
 	if k.ID == "" {
 		return ErrMissingField("id")
 	}

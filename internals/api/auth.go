@@ -10,7 +10,8 @@ import (
 
 // AuthMethod options
 const (
-	AuthMethodAWSSTS = "aws-sts"
+	AuthMethodAWSSTS            = "aws-sts"
+	AuthMethodGCPServiceAccount = "gcp-service-account"
 )
 
 // SessionType options
@@ -20,18 +21,13 @@ const (
 
 // Errors
 var (
-	ErrInvalidSessionType    = errAPI.Code("invalid_session_type").StatusError("invalid session type provided for authentication request", http.StatusBadRequest)
-	ErrInvalidPayload        = errAPI.Code("invalid_payload").StatusError("invalid payload provided for authentication request", http.StatusBadRequest)
-	ErrInvalidAuthMethod     = errAPI.Code("invalid_auth_method").StatusError("invalid auth method", http.StatusBadRequest)
-	ErrMissingField          = errAPI.Code("missing_field").StatusErrorPref("request is missing field %s", http.StatusBadRequest)
-	ErrSessionNotFound       = errAPI.Code("session_not_found").StatusError("session could not be found, it might have expired", http.StatusForbidden)
-	ErrSessionExpired        = errAPI.Code("session_expired").StatusError("session has expired", http.StatusForbidden)
-	ErrAuthFailed            = errAPI.Code("auth_failed").StatusError("authentication failed", http.StatusForbidden)
-	ErrCouldNotGetEndpoint   = errAPI.Code("aws_endpoint_not_found").StatusError("could not find an AWS endpoint for the provided region", http.StatusBadRequest)
-	ErrAWSException          = errAPI.Code("aws_exception").StatusError("encountered an unexpected problem while verifying your identity on AWS. Please try again later.", http.StatusFailedDependency)
-	ErrNoServiceWithRole     = errAPI.Code("no_service_with_role").StatusErrorPref("no service account found that is linked to the IAM role '%s'", http.StatusNotFound)
-	ErrNoAWSCredentials      = errAPI.Code("missing_aws_credentials").StatusError("request was not signed with AWS credentials", http.StatusUnauthorized)
-	ErrInvalidAWSCredentials = errAPI.Code("invalid_aws_credentials").StatusError("credentials were not accepted by AWS", http.StatusUnauthorized)
+	ErrInvalidSessionType = errAPI.Code("invalid_session_type").StatusError("invalid session type provided for authentication request", http.StatusBadRequest)
+	ErrInvalidPayload     = errAPI.Code("invalid_payload").StatusError("invalid payload provided for authentication request", http.StatusBadRequest)
+	ErrInvalidAuthMethod  = errAPI.Code("invalid_auth_method").StatusError("invalid auth method", http.StatusBadRequest)
+	ErrMissingField       = errAPI.Code("missing_field").StatusErrorPref("request is missing field %s", http.StatusBadRequest)
+	ErrSessionNotFound    = errAPI.Code("session_not_found").StatusError("session could not be found, it might have expired", http.StatusForbidden)
+	ErrSessionExpired     = errAPI.Code("session_expired").StatusError("session has expired", http.StatusForbidden)
+	ErrAuthFailed         = errAPI.Code("auth_failed").StatusError("authentication failed", http.StatusForbidden)
 )
 
 // SessionType defines how a session can be used.
@@ -42,24 +38,6 @@ type AuthRequest struct {
 	Method      string      `json:"method"`
 	SessionType SessionType `json:"session_type"`
 	Payload     interface{} `json:"payload"`
-}
-
-// AuthPayloadAWSSTS is the authentication payload used for authenticating with AWS STS.
-type AuthPayloadAWSSTS struct {
-	Region  string `json:"region"`
-	Request []byte `json:"request"`
-}
-
-// NewAuthRequestAWSSTS returns a new AuthRequest for authentication using AWS STS.
-func NewAuthRequestAWSSTS(sessionType SessionType, region string, stsRequest []byte) AuthRequest {
-	return AuthRequest{
-		Method:      AuthMethodAWSSTS,
-		SessionType: sessionType,
-		Payload: &AuthPayloadAWSSTS{
-			Region:  region,
-			Request: stsRequest,
-		},
-	}
 }
 
 // UnmarshalJSON converts a JSON representation into a AuthRequest with the correct Payload.
@@ -84,6 +62,8 @@ func (r *AuthRequest) UnmarshalJSON(b []byte) error {
 	switch dec.Method {
 	case AuthMethodAWSSTS:
 		dec.Payload = &AuthPayloadAWSSTS{}
+	case AuthMethodGCPServiceAccount:
+		dec.Payload = &AuthPayloadGCPServiceAccount{}
 	default:
 		return ErrInvalidAuthMethod
 	}
@@ -118,19 +98,16 @@ func (r *AuthRequest) Validate() error {
 		if err := authPayload.Validate(); err != nil {
 			return err
 		}
+	case AuthMethodGCPServiceAccount:
+		authPayload, ok := r.Payload.(*AuthPayloadGCPServiceAccount)
+		if !ok {
+			return ErrInvalidPayload
+		}
+		if err := authPayload.Validate(); err != nil {
+			return err
+		}
 	default:
 		return ErrInvalidAuthMethod
-	}
-	return nil
-}
-
-// Validate whether the AuthPayloadAWSSTS is valid.
-func (pl AuthPayloadAWSSTS) Validate() error {
-	if pl.Region == "" {
-		return ErrMissingField("region")
-	}
-	if pl.Request == nil {
-		return ErrMissingField("request")
 	}
 	return nil
 }

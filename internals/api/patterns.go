@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -289,5 +291,41 @@ func ValidateShortCredentialFingerprint(fingerprint string) error {
 	if len(fingerprint) < ShortCredentialFingerprintMinimumLength {
 		return ErrTooShortFingerprint
 	}
+	return nil
+}
+
+// ValidateGCPServiceAccountEmail validates whether the given string is potentially a valid email for a GCP
+// Service Account. The function does a best-effort check. If no error is returned, this does not mean the value is
+// accepted by GCP.
+func ValidateGCPServiceAccountEmail(v string) error {
+	if !govalidator.IsEmail(v) {
+		return errors.New("invalid email")
+	}
+	if !strings.HasSuffix(v, ".gserviceaccount.com") {
+		return errors.New("not a GCP Service Account email")
+	}
+	return nil
+}
+
+// ValidateGCPKMSKeyResourceID validates whether the given string is potentially a valid resource ID for a GCP KMS key
+// The function does a best-effort check. If no error is returned, this does not mean the value is accepted by GCP.
+func ValidateGCPKMSKeyResourceID(v string) error {
+	invalidErr := errors.New("not a valid resource ID, expected: projects/PROJECT_ID/locations/LOCATION/keyRings/KEY_RING/cryptoKeys/KEY")
+	u, err := url.Parse(v)
+	if err != nil {
+		return invalidErr
+	}
+	if u.Host != "" || u.Scheme != "" || u.Hostname() != "" || len(u.Query()) != 0 {
+		return invalidErr
+	}
+
+	split := strings.Split(v, "/")
+	if len(split) != 8 {
+		return invalidErr
+	}
+	if split[0] != "projects" || split[2] != "locations" || split[4] != "keyRings" || split[6] != "cryptoKeys" {
+		return invalidErr
+	}
+
 	return nil
 }

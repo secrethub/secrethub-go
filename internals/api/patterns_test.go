@@ -464,3 +464,90 @@ func TestValidateCredentialFingerprint(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateGCPServiceAccountEmail(t *testing.T) {
+	cases := map[string]struct {
+		in        string
+		expectErr bool
+	}{
+		"user  managed service account": {
+			in: "test-service-account@secrethub-test-1234567890.iam.gserviceaccount.com",
+		},
+		"appspot service account": {
+			in: "secrethub-1234567890@appspot.gserviceaccount.com",
+		},
+		"compute service account": {
+			in: "secrethub-1234567890-compute@developer.gserviceaccount.com",
+		},
+		"google managed service account": {
+			in: "secrethub-1234567890@cloudservices.gserviceaccount.com",
+		},
+		"not an email": {
+			in:        "cloudservices.gserviceaccount.com",
+			expectErr: true,
+		},
+		"non-service account email": {
+			in:        "serviceaccount@secrethub.io",
+			expectErr: true,
+		},
+		"empty string": {
+			in:        "",
+			expectErr: true,
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			err := api.ValidateGCPServiceAccountEmail(tc.in)
+
+			assert.Equal(t, err != nil, tc.expectErr)
+		})
+	}
+}
+
+func TestValidateGCPKMSKeyResourceID(t *testing.T) {
+	cases := map[string]struct {
+		in        string
+		expectErr bool
+	}{
+		"valid": {
+			in: "projects/secrethub-test-1234567890/locations/global/keyRings/test/cryptoKeys/test",
+		},
+		"kerying only": {
+			in:        "projects/secrethub-test-1234567890/locations/global/keyRings/test",
+			expectErr: true,
+		},
+		"too many segment": {
+			in:        "projects/secrethub-test-1234567890/locations/global/keyRings/test/cryptoKeys/test/extrasegment",
+			expectErr: true,
+		},
+		"empty string": {
+			in:        "",
+			expectErr: true,
+		},
+		"missing required path segment": {
+			in:        "projects/secrethub-test-1234567890//global/keyRings/test/cryptoKeys/test",
+			expectErr: true,
+		},
+		"wrong required path segment": {
+			in:        "projects/secrethub-test-1234567890/locations/global/thingiswrong/test/cryptoKeys/test",
+			expectErr: true,
+		},
+		"leading slash": {
+			in:        "/projects/secrethub-test-1234567890/locations/global/keyRings/test/cryptoKeys/test",
+			expectErr: true,
+		},
+		"trailing slash": {
+			in:        "projects/secrethub-test-1234567890/locations/global/keyRings/test/cryptoKeys/test/",
+			expectErr: true,
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			err := api.ValidateGCPKMSKeyResourceID(tc.in)
+
+			assert.Equal(t, err != nil, tc.expectErr)
+		})
+	}
+}
