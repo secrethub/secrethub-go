@@ -25,6 +25,7 @@ var (
 	ErrCannotDecodeCredentialPayload     = errCredentials.Code("invalid_credential_header").ErrorPref("cannot decode credential payload: %v")
 	ErrCannotDecodeEncryptedCredential   = errCredentials.Code("cannot_decode_encrypted_credential").Error("cannot decode an encrypted credential without a key")
 	ErrCannotDecryptCredential           = errCredentials.Code("cannot_decrypt_credential").Error("passphrase is incorrect")
+	ErrMalformedCredential               = errCredentials.Code("malformed_credential").ErrorPref("credential is malformed: %v")
 	ErrInvalidKey                        = errCredentials.Code("invalid_key").Error("the given key is not valid for the encryption algorithm")
 )
 
@@ -226,7 +227,7 @@ type rsaPrivateKeyDecoder struct{}
 func (d rsaPrivateKeyDecoder) Decode(payload []byte) (*RSACredential, error) {
 	key, err := x509.ParsePKCS1PrivateKey(payload)
 	if err != nil {
-		return nil, err
+		return nil, ErrMalformedCredential(err)
 	}
 
 	return &RSACredential{
