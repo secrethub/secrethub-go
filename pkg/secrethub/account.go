@@ -71,10 +71,15 @@ func (c *Client) createAccountKeyRequest(encrypter credentials.Encrypter, accoun
 	}, nil
 }
 
-func (c *Client) createCredentialRequest(verifier credentials.Verifier, metadata map[string]string) (*api.CreateCredentialRequest, error) {
+func (c *Client) createCredentialRequest(encrypter credentials.Encrypter, accountKey crypto.RSAPrivateKey, verifier credentials.Verifier, metadata map[string]string) (*api.CreateCredentialRequest, error) {
 	bytes, fingerprint, err := verifier.Export()
 	if err != nil {
 		return nil, errio.Error(err)
+	}
+
+	accountKeyReq, err := c.createAccountKeyRequest(encrypter, accountKey)
+	if err != nil {
+		return nil, err
 	}
 
 	req := api.CreateCredentialRequest{
@@ -82,6 +87,7 @@ func (c *Client) createCredentialRequest(verifier credentials.Verifier, metadata
 		Verifier:    bytes,
 		Type:        verifier.Type(),
 		Metadata:    metadata,
+		AccountKey:  accountKeyReq,
 	}
 	err = verifier.AddProof(&req)
 	if err != nil {

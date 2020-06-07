@@ -54,17 +54,12 @@ func (s serviceService) Create(path string, description string, credentialCreato
 		return nil, errio.Error(err)
 	}
 
-	credentialRequest, err := s.client.createCredentialRequest(credentialCreator.Verifier(), credentialCreator.Metadata())
+	credentialRequest, err := s.client.createCredentialRequest(credentialCreator.Encrypter(), accountKey, credentialCreator.Verifier(), credentialCreator.Metadata())
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	accountKeyRequest, err := s.client.createAccountKeyRequest(credentialCreator.Encrypter(), accountKey)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	serviceRepoMemberRequest, err := s.client.createRepoMemberRequest(repoPath, accountKeyRequest.PublicKey)
+	serviceRepoMemberRequest, err := s.client.createRepoMemberRequest(repoPath, credentialRequest.AccountKey.PublicKey)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -72,7 +67,7 @@ func (s serviceService) Create(path string, description string, credentialCreato
 	in := &api.CreateServiceRequest{
 		Description: description,
 		Credential:  credentialRequest,
-		AccountKey:  accountKeyRequest,
+		AccountKey:  credentialRequest.AccountKey,
 		RepoMember:  serviceRepoMemberRequest,
 	}
 
