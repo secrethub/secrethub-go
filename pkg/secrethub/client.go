@@ -145,6 +145,8 @@ func NewClient(with ...ClientOption) (*Client, error) {
 			provider = credentials.UseKey(client.DefaultCredential())
 		case "aws":
 			provider = credentials.UseAWS()
+		case "gcp":
+			provider = credentials.UseGCPServiceAccount()
 		default:
 			return nil, ErrUnknownIdentityProvider(identityProvider)
 		}

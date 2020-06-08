@@ -47,6 +47,7 @@ const (
 	EncryptionAlgorithmAESGCM  EncryptionAlgorithm = "aes-gcm"
 	EncryptionAlgorithmRSAOEAP EncryptionAlgorithm = "rsa-oaep"
 	EncryptionAlgorithmAWSKMS  EncryptionAlgorithm = "aws-kms"
+	EncryptionAlgorithmGCPKMS  EncryptionAlgorithm = "gcp-kms"
 
 	HashingAlgorithmSHA256 HashingAlgorithm = "sha-256"
 )
@@ -100,6 +101,17 @@ func NewEncryptedDataAWSKMS(ciphertext []byte, key *EncryptionKeyAWS) *Encrypted
 	}
 }
 
+// NewEncryptedDataAWSKMS creates a new EncryptedData with the GCP-KMS algorithm.
+func NewEncryptedDataGCPKMS(ciphertext []byte, key *EncryptionKeyGCP) *EncryptedData {
+	return &EncryptedData{
+		Algorithm:  EncryptionAlgorithmGCPKMS,
+		Key:        key,
+		Metadata:   nil,
+		Parameters: nil,
+		Ciphertext: ciphertext,
+	}
+}
+
 // UnmarshalJSON populates an EncryptedData from a JSON representation.
 func (ed *EncryptedData) UnmarshalJSON(b []byte) error {
 	// Declare a private type to avoid recursion into this function.
@@ -141,6 +153,8 @@ func (ed *EncryptedData) UnmarshalJSON(b []byte) error {
 		dec.Key = &EncryptionKeySecretKey{}
 	case KeyTypeAWS:
 		dec.Key = &EncryptionKeyAWS{}
+	case KeyTypeGCP:
+		dec.Key = &EncryptionKeyGCP{}
 	default:
 		return ErrInvalidKeyType
 	}
@@ -157,6 +171,9 @@ func (ed *EncryptedData) UnmarshalJSON(b []byte) error {
 		dec.Metadata = &EncryptionMetadataAESGCM{}
 		dec.Parameters = &EncryptionParametersAESGCM{}
 	case EncryptionAlgorithmAWSKMS:
+		dec.Metadata = nil
+		dec.Parameters = nil
+	case EncryptionAlgorithmGCPKMS:
 		dec.Metadata = nil
 		dec.Parameters = nil
 	default:
@@ -188,7 +205,8 @@ type keyValidator interface {
 func (ed *EncryptedData) Validate() error {
 	if ed.Algorithm != EncryptionAlgorithmAESGCM &&
 		ed.Algorithm != EncryptionAlgorithmRSAOEAP &&
-		ed.Algorithm != EncryptionAlgorithmAWSKMS {
+		ed.Algorithm != EncryptionAlgorithmAWSKMS &&
+		ed.Algorithm != EncryptionAlgorithmGCPKMS {
 		return ErrInvalidEncryptionAlgorithm
 	}
 

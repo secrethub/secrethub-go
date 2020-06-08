@@ -16,29 +16,33 @@ import (
 
 // Errors
 var (
-	ErrInvalidFingerprint             = errAPI.Code("invalid_fingerprint").StatusError("fingerprint is invalid", http.StatusBadRequest)
-	ErrTooShortFingerprint            = errAPI.Code("too_short_fingerprint").StatusErrorf("at least %d characters of the fingerprint must be entered", http.StatusBadRequest, ShortCredentialFingerprintMinimumLength)
-	ErrCredentialFingerprintNotUnique = errAPI.Code("fingerprint_not_unique").StatusErrorf("there are multiple credentials that start with the given fingerprint. Please use the full fingerprint", http.StatusConflict)
-	ErrInvalidVerifier                = errAPI.Code("invalid_verifier").StatusError("verifier is invalid", http.StatusBadRequest)
-	ErrInvalidCredentialType          = errAPI.Code("invalid_credential_type").StatusError("credential type is invalid", http.StatusBadRequest)
-	ErrInvalidCredentialDescription   = errAPI.Code("invalid_credential_description").StatusError("credential description can be at most 32 characters long", http.StatusBadRequest)
-	ErrInvalidAWSEndpoint             = errAPI.Code("invalid_aws_endpoint").StatusError("invalid AWS endpoint provided", http.StatusBadRequest)
-	ErrInvalidProof                   = errAPI.Code("invalid_proof").StatusError("invalid proof provided for credential", http.StatusUnauthorized)
-	ErrAWSAccountMismatch             = errAPI.Code("aws_account_mismatch").StatusError("the AWS Account ID in the role ARN does not match the AWS Account ID of the AWS credentials used for authentication. Make sure you are using AWS credentials that correspond to the role you are trying to add.", http.StatusUnauthorized)
-	ErrAWSAuthFailed                  = errAPI.Code("aws_auth_failed").StatusError("authentication not accepted by AWS", http.StatusUnauthorized)
-	ErrAWSKMSKeyNotFound              = errAPI.Code("aws_kms_key_not_found").StatusError("could not found the KMS key", http.StatusNotFound)
-	ErrInvalidRoleARN                 = errAPI.Code("invalid_role_arn").StatusError("provided role is not a valid ARN", http.StatusBadRequest)
-	ErrMissingMetadata                = errAPI.Code("missing_metadata").StatusErrorPref("expecting %s metadata provided for credentials of type %s", http.StatusBadRequest)
-	ErrInvalidMetadataKey             = errAPI.Code("invalid_metadata_key").StatusErrorPref("invalid metadata key %s for credential type %s", http.StatusBadRequest)
-	ErrUnknownMetadataKey             = errAPI.Code("unknown_metadata_key").StatusErrorPref("unknown metadata key: %s", http.StatusBadRequest)
-	ErrRoleDoesNotMatch               = errAPI.Code("role_does_not_match").StatusError("role in metadata does not match the verifier", http.StatusBadRequest)
-	ErrCannotDisableCurrentCredential = errAPI.Code("cannot_disable_current_credential").StatusError("cannot disable the credential that is currently used on this device", http.StatusConflict)
+	ErrInvalidFingerprint                 = errAPI.Code("invalid_fingerprint").StatusError("fingerprint is invalid", http.StatusBadRequest)
+	ErrTooShortFingerprint                = errAPI.Code("too_short_fingerprint").StatusErrorf("at least %d characters of the fingerprint must be entered", http.StatusBadRequest, ShortCredentialFingerprintMinimumLength)
+	ErrCredentialFingerprintNotUnique     = errAPI.Code("fingerprint_not_unique").StatusErrorf("there are multiple credentials that start with the given fingerprint. Please use the full fingerprint", http.StatusConflict)
+	ErrInvalidVerifier                    = errAPI.Code("invalid_verifier").StatusError("verifier is invalid", http.StatusBadRequest)
+	ErrInvalidCredentialType              = errAPI.Code("invalid_credential_type").StatusError("credential type is invalid", http.StatusBadRequest)
+	ErrInvalidCredentialDescription       = errAPI.Code("invalid_credential_description").StatusError("credential description can be at most 32 characters long", http.StatusBadRequest)
+	ErrInvalidAWSEndpoint                 = errAPI.Code("invalid_aws_endpoint").StatusError("invalid AWS endpoint provided", http.StatusBadRequest)
+	ErrInvalidProof                       = errAPI.Code("invalid_proof").StatusError("invalid proof provided for credential", http.StatusUnauthorized)
+	ErrAWSAccountMismatch                 = errAPI.Code("aws_account_mismatch").StatusError("the AWS Account ID in the role ARN does not match the AWS Account ID of the AWS credentials used for authentication. Make sure you are using AWS credentials that correspond to the role you are trying to add.", http.StatusUnauthorized)
+	ErrAWSAuthFailed                      = errAPI.Code("aws_auth_failed").StatusError("authentication not accepted by AWS", http.StatusUnauthorized)
+	ErrAWSKMSKeyNotFound                  = errAPI.Code("aws_kms_key_not_found").StatusError("could not found the KMS key", http.StatusNotFound)
+	ErrInvalidRoleARN                     = errAPI.Code("invalid_role_arn").StatusError("provided role is not a valid ARN", http.StatusBadRequest)
+	ErrMissingMetadata                    = errAPI.Code("missing_metadata").StatusErrorPref("expecting %s metadata provided for credentials of type %s", http.StatusBadRequest)
+	ErrInvalidMetadataValue               = errAPI.Code("invalid_metadata").StatusErrorPref("invalid value for metadata %s: %s", http.StatusBadRequest)
+	ErrUnknownMetadataKey                 = errAPI.Code("unknown_metadata_key").StatusErrorPref("unknown metadata key: %s", http.StatusBadRequest)
+	ErrRoleDoesNotMatch                   = errAPI.Code("role_does_not_match").StatusError("role in metadata does not match the verifier", http.StatusBadRequest)
+	ErrGCPServiceAccountEmailDoesNotMatch = errAPI.Code("service_account_email_mismatch").StatusError("service account email in metadata does not match the verifier", http.StatusBadRequest)
+	ErrCannotDisableCurrentCredential     = errAPI.Code("cannot_disable_current_credential").StatusError("cannot disable the credential that is currently used on this device", http.StatusConflict)
 )
 
 // Credential metadata keys
 const (
 	CredentialMetadataAWSKMSKey = "aws_kms_key_id"
 	CredentialMetadataAWSRole   = "aws_role"
+
+	CredentialMetadataGCPKMSKeyResourceID    = "gcp_kms_resource_id"
+	CredentialMetadataGCPServiceAccountEmail = "gcp_service_account_email"
 )
 
 const (
@@ -62,9 +66,10 @@ type CredentialType string
 
 // Credential types
 const (
-	CredentialTypeKey        CredentialType = "key"
-	CredentialTypeAWS        CredentialType = "aws"
-	CredentialTypeBackupCode CredentialType = "backup-code"
+	CredentialTypeKey               CredentialType = "key"
+	CredentialTypeAWS               CredentialType = "aws"
+	CredentialTypeBackupCode        CredentialType = "backup-code"
+	CredentialTypeGCPServiceAccount CredentialType = "gcp-service-account"
 )
 
 const (
@@ -72,17 +77,17 @@ const (
 	CredentialProofPrefixAWS = "secrethub-allow-role="
 )
 
-// Validate validates whether the algorithm type is valid.
-func (a CredentialType) Validate() error {
-	var credentialTypeList = map[CredentialType]struct{}{
-		CredentialTypeKey:        {},
-		CredentialTypeAWS:        {},
-		CredentialTypeBackupCode: {},
-	}
-	if _, ok := credentialTypeList[a]; !ok {
-		return ErrInvalidCredentialType
-	}
-	return nil
+var credentialTypesMetadata = map[CredentialType]map[string]func(string) error{
+	CredentialTypeKey: {},
+	CredentialTypeAWS: {
+		CredentialMetadataAWSRole:   nil,
+		CredentialMetadataAWSKMSKey: nil,
+	},
+	CredentialTypeGCPServiceAccount: {
+		CredentialMetadataGCPServiceAccountEmail: ValidateGCPServiceAccountEmail,
+		CredentialMetadataGCPKMSKeyResourceID:    ValidateGCPKMSKeyResourceID,
+	},
+	CredentialTypeBackupCode: {},
 }
 
 // CreateCredentialRequest contains the fields to add a credential to an account.
@@ -117,6 +122,8 @@ func (req *CreateCredentialRequest) UnmarshalJSON(b []byte) error {
 	switch dec.Type {
 	case CredentialTypeAWS:
 		dec.Proof = &CredentialProofAWS{}
+	case CredentialTypeGCPServiceAccount:
+		dec.Proof = &CredentialProofGCPServiceAccount{}
 	case CredentialTypeKey:
 		dec.Proof = &CredentialProofKey{}
 	case CredentialTypeBackupCode:
@@ -154,9 +161,26 @@ func (req *CreateCredentialRequest) Validate() error {
 		}
 	}
 
-	err := req.Type.Validate()
-	if err != nil {
-		return err
+	expectedMetadata, validCredentialType := credentialTypesMetadata[req.Type]
+	if !validCredentialType {
+		return ErrInvalidCredentialType
+	}
+	for expectedMetadataKey, validator := range expectedMetadata {
+		metadataValue, ok := req.Metadata[expectedMetadataKey]
+		if !ok {
+			return ErrMissingMetadata(expectedMetadataKey, req.Type)
+		}
+		if validator != nil {
+			err := validator(metadataValue)
+			if err != nil {
+				return ErrInvalidMetadataValue(expectedMetadataKey, err)
+			}
+		}
+	}
+	for actualMetadataKey := range req.Metadata {
+		if _, ok := expectedMetadata[actualMetadataKey]; !ok {
+			return ErrUnknownMetadataKey(actualMetadataKey)
+		}
 	}
 
 	if req.AccountKey != nil {
@@ -165,7 +189,24 @@ func (req *CreateCredentialRequest) Validate() error {
 		}
 	}
 
-	if req.Type == CredentialTypeBackupCode {
+	if validator, ok := req.Proof.(validator); ok {
+		if err := validator.Validate(); err != nil {
+			return err
+		}
+	}
+
+	switch req.Type {
+	case CredentialTypeAWS:
+		role := req.Metadata[CredentialMetadataAWSRole]
+		if !bytes.Equal(req.Verifier, []byte(role)) {
+			return ErrRoleDoesNotMatch
+		}
+	case CredentialTypeGCPServiceAccount:
+		serviceAccountEmail := req.Metadata[CredentialMetadataGCPServiceAccountEmail]
+		if !bytes.Equal(req.Verifier, []byte(serviceAccountEmail)) {
+			return ErrGCPServiceAccountEmailDoesNotMatch
+		}
+	case CredentialTypeBackupCode:
 		decoded, err := base64.StdEncoding.DecodeString(string(req.Verifier))
 		if err != nil {
 			return ErrInvalidVerifier
@@ -175,36 +216,9 @@ func (req *CreateCredentialRequest) Validate() error {
 		}
 	}
 
-	if req.Type == CredentialTypeAWS && req.Proof == nil {
-		return ErrMissingField("proof")
-	}
-
 	fingerprint := GetFingerprint(req.Type, req.Verifier)
 	if req.Fingerprint != fingerprint {
 		return ErrInvalidFingerprint
-	}
-
-	if req.Type == CredentialTypeAWS {
-		role, ok := req.Metadata[CredentialMetadataAWSRole]
-		if !ok {
-			return ErrMissingMetadata(CredentialMetadataAWSRole, CredentialTypeAWS)
-		}
-		if !bytes.Equal(req.Verifier, []byte(role)) {
-			return ErrRoleDoesNotMatch
-		}
-
-		_, ok = req.Metadata[CredentialMetadataAWSKMSKey]
-		if !ok {
-			return ErrMissingMetadata(CredentialMetadataAWSKMSKey, CredentialTypeAWS)
-		}
-	}
-
-	for key := range req.Metadata {
-		if key != CredentialMetadataAWSKMSKey && key != CredentialMetadataAWSRole {
-			return ErrUnknownMetadataKey(key)
-		} else if req.Type != CredentialTypeAWS {
-			return ErrInvalidMetadataKey(key, req.Type)
-		}
 	}
 
 	return nil
@@ -226,6 +240,9 @@ func (p CredentialProofAWS) Validate() error {
 	}
 	return nil
 }
+
+// CredentialProofKey is proof for when the credential type is GCPServiceAccount.
+type CredentialProofGCPServiceAccount struct{}
 
 // CredentialProofKey is proof for when the credential type is RSA.
 type CredentialProofKey struct{}

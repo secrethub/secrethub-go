@@ -1,36 +1,13 @@
 package credentials
 
 import (
-	awssdk "github.com/aws/aws-sdk-go/aws"
-
 	"github.com/secrethub/secrethub-go/internals/auth"
-	"github.com/secrethub/secrethub-go/internals/aws"
-	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials/sessions"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
 // Provider provides a credential that can be used for authentication and decryption when called.
 type Provider interface {
 	Provide(*http.Client) (auth.Authenticator, Decrypter, error)
-}
-
-// UseAWS returns a Provider that can be used to use an assumed AWS role as a credential for SecretHub.
-// The provided awsCfg is used to configure the AWS client.
-// If used on AWS (e.g. from an EC2-instance), this extra configuration is not required and the correct configuration
-// should be auto-detected by the AWS client.
-//
-// Usage:
-//		credentials.UseAWS()
-//		credentials.UseAWS(&aws.Config{Region: aws.String("eu-west-1")})
-func UseAWS(awsCfg ...*awssdk.Config) Provider {
-	return providerFunc(func(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
-		decrypter, err := aws.NewKMSDecrypter(awsCfg...)
-		if err != nil {
-			return nil, nil, err
-		}
-		authenticator := sessions.NewSessionRefresher(httpClient, sessions.NewAWSSessionCreator(awsCfg...))
-		return authenticator, decrypter, nil
-	})
 }
 
 // UseKey returns a Provider that reads a key credential from credentialReader.
