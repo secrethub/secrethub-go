@@ -38,5 +38,5 @@ type expireTime time.Time
 
 // NeedsRefresh returns true when the session is about to expire and should be refreshed.
 func (t expireTime) NeedsRefresh() bool {
-	return time.Time(t).After(time.Now().Add(expirationMargin))
+	return time.Now().After(time.Time(t).Add(-expirationMargin))
 }
