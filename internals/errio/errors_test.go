@@ -3,7 +3,6 @@ package errio
 import (
 	"encoding/json"
 	go_errors "errors"
-	"net/http"
 	"reflect"
 	"testing"
 
@@ -88,29 +87,6 @@ func TestUnexpectedError(t *testing.T) {
 	}
 
 	if len(customError.Message) == 0 {
-		t.Error("returned error does not contain a message")
-	}
-}
-
-func TestUnexpectedStatusError(t *testing.T) {
-	unexpected := go_errors.New(errorMessage)
-	err := StatusError(unexpected)
-
-	if !isPublicStatusError(err) {
-		t.Error("did not return a PublicStatusError")
-	}
-
-	statusError := err.(PublicStatusError)
-
-	if statusError.Code != "unexpected" {
-		t.Errorf("did not return correct code expected: `unexpected`, actual: %s", statusError.Code)
-	}
-
-	if statusError.StatusCode != http.StatusInternalServerError {
-		t.Errorf("did not return correct StatusCode, expected: %d, actual: %d", http.StatusInternalServerError, statusError.StatusCode)
-	}
-
-	if len(statusError.Message) == 0 {
 		t.Error("returned error does not contain a message")
 	}
 }

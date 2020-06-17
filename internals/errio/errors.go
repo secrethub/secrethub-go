@@ -4,8 +4,6 @@ package errio
 
 import (
 	"fmt"
-	"net/http"
-	"runtime/debug"
 
 	"github.com/op/go-logging"
 )
@@ -91,90 +89,16 @@ func (c ErrorCode) ErrorPref(message string) func(args ...interface{}) PublicErr
 	}
 }
 
-// StatusError can be called to on any error to convert it to a PublicStatusError if it is not already.
-// If it is not yet a PublicError, an UnexpectedError is returned
-func StatusError(err error) error {
-	if err == nil {
-		return nil
-	}
-
-	if isPublicStatusError(err) {
-		return err
-	}
-
-	return UnexpectedStatusError(err)
-}
-
 // Error can be called to on any error to convert it to a PublicError if it is not already.
 // If it is not yet a PublicError, an UnexpectedError is returned
 func Error(err error) error {
 	return err
 }
 
-// IsKnown checks whether the given error is known.
-func IsKnown(err error) bool {
-	return isPublicError(err) || isPublicStatusError(err)
-}
-
 // isPublicError checks if an error is of type PublicError
 func isPublicError(err error) bool {
 	_, ok := err.(PublicError)
 	return ok
-}
-
-// isPublicStatusError checks if an error is of type PublicStatusError
-func isPublicStatusError(err error) bool {
-	_, ok := err.(PublicStatusError)
-	return ok
-}
-
-// UnexpectedError represents an error that we did not expect.
-// Unexpected errors are reported and logged.
-func UnexpectedError(err error) PublicError {
-	if isPublicStatusError(err) {
-		return err.(PublicStatusError).PublicError
-	}
-	if isPublicError(err) {
-		return err.(PublicError)
-	}
-
-	// Log the eventID and stack trace for debugging.
-	log.Debugf(
-		"An unexpected error occurred: %v\nStack Trace:%s",
-		err,
-		string(debug.Stack()),
-	)
-
-	return PublicError{
-		Code: "unexpected",
-		Message: fmt.Sprintf(
-			"an unexpected error occurred: %v\n\nTry again later or contact support@secrethub.io if the problem persists",
-			err,
-		),
-	}
-}
-
-// UnexpectedStatusError is an error we did not expect, with http.StatusInternalServerError attached to it.
-func UnexpectedStatusError(err error) PublicStatusError {
-	if isPublicStatusError(err) {
-		return err.(PublicStatusError)
-	}
-	// Log the eventID and stack trace for debugging.
-	log.Debugf(
-		"An unexpected error occurred: %v\nStack Trace:%s",
-		err,
-		string(debug.Stack()),
-	)
-
-	return PublicStatusError{
-		PublicError: PublicError{
-			Code: "unexpected",
-			Message: fmt.Sprintf(
-				"an unexpected server error occurred. Try again later or contact support@secrethub.io if the problem persists",
-			),
-		},
-		StatusCode: http.StatusInternalServerError,
-	}
 }
 
 // PublicError is a wrapper around an error code and a error message.
