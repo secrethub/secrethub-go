@@ -782,7 +782,7 @@ func (c *Client) do(rawURL string, method string, authenticate bool, expectedSta
 
 	err = decodeResponse(resp, out)
 	if err != nil {
-		return errio.StatusError(err)
+		return err
 	}
 
 	return nil

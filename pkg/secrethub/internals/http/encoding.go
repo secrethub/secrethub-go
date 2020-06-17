@@ -32,13 +32,13 @@ func encodeRequest(req *http.Request, in interface{}) error {
 	if ok {
 		err := validator.Validate()
 		if err != nil {
-			return errio.StatusError(err)
+			return err
 		}
 	}
 
 	jsonBytes, err := json.Marshal(in)
 	if err != nil {
-		return errHTTP.Code("cannot_encode_request").StatusErrorf("cannot encode request: %v", http.StatusBadRequest, err)
+		return errHTTP.Code("cannot_encode_request").Errorf("cannot encode request: %v", err)
 	}
 
 	buf := bytes.NewBuffer(jsonBytes)
@@ -65,19 +65,19 @@ func decodeResponse(resp *http.Response, out interface{}) error {
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return errio.StatusError(err)
+		return err
 	}
 
 	err = json.Unmarshal(bytes, out)
 	if err != nil {
-		return errHTTP.Code("cannot_decode_response").StatusErrorf("cannot decode response: %v", http.StatusInternalServerError, err)
+		return errHTTP.Code("cannot_decode_response").Errorf("cannot decode response: %v", err)
 	}
 
 	validator, ok := out.(validator)
 	if ok {
 		err := validator.Validate()
 		if err != nil {
-			return errio.StatusError(err)
+			return err
 		}
 	}
 	return nil
