@@ -24,6 +24,8 @@ const (
 	// REGEX builder with unit tests: https://regex101.com/r/5DPAiZ/1
 	patternFullName    = `[\p{L}\p{Mn}\p{Pd}\'\x{2019} ]`
 	patternDescription = `^[\p{L}\p{Mn}\p{Pd}\x{2019} [:punct:]0-9]{0,144}$`
+
+	gcpServiceAccountEmailSuffix = ".iam.gserviceaccount.com"
 )
 
 var (
@@ -301,10 +303,25 @@ func ValidateGCPServiceAccountEmail(v string) error {
 	if !govalidator.IsEmail(v) {
 		return errors.New("invalid email")
 	}
-	if !strings.HasSuffix(v, ".gserviceaccount.com") {
-		return errors.New("not a GCP Service Account email")
+	if !strings.HasSuffix(v, gcpServiceAccountEmailSuffix) {
+		return errors.New("not a user-managed GCP Service Account email")
 	}
 	return nil
+}
+
+// ProjectIDFromGCPEmail returns the project ID included in the email of a GCP Service Account.
+// If the input is not a valid user-managed GCP Service Account email, an error is returned.
+func ProjectIDFromGCPEmail(in string) (string, error) {
+	err := ValidateGCPServiceAccountEmail(in)
+	if err != nil {
+		return "", err
+	}
+
+	spl := strings.Split(in, "@")
+	if len(spl) != 2 {
+		return "", errors.New("no @ in email")
+	}
+	return strings.TrimSuffix(spl[1], gcpServiceAccountEmailSuffix), nil
 }
 
 // ValidateGCPKMSKeyResourceID validates whether the given string is potentially a valid resource ID for a GCP KMS key

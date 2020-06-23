@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -222,6 +223,19 @@ func (req *CreateCredentialRequest) Validate() error {
 	}
 
 	return nil
+}
+
+func (req *CreateCredentialRequest) RequiredLinkedID() (string, error) {
+	switch req.Type {
+	case CredentialTypeGCPServiceAccount:
+		serviceAccountEmail, ok := req.Metadata[CredentialMetadataGCPServiceAccountEmail]
+		if !ok {
+			return "", errors.New("missing required metadata")
+		}
+		return ProjectIDFromGCPEmail(serviceAccountEmail)
+	default:
+		return "", errors.New("credential type does not require a linked ID")
+	}
 }
 
 // CredentialProofAWS is proof for when the credential type is AWSSTS.
