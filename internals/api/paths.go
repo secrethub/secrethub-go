@@ -15,7 +15,7 @@ var (
 	ErrInvalidSecretPath       = errAPI.Code("invalid_secret_path").ErrorPref("secret path must be of the form <namespace>/<repo>[/<dir-path>]/<secret> got '%s'")
 	ErrInvalidRepoPath         = errAPI.Code("invalid_repo_path").ErrorPref("repo path must be of the form <namespace>/<repo> got '%s'")
 	ErrInvalidDirPath          = errAPI.Code("invalid_dir_path").ErrorPref("dir path must be of the form <namespace>/<repo>[/<dir-path>] got '%s'")
-	ErrInvalidNamespace        = errAPI.Code("invalid_namespace").Error("namespace must be a valid username")
+	ErrInvalidNamespace        = errAPI.Code("invalid_namespace").Error("namespace must be a valid username or organization name")
 	ErrInvalidPath             = errAPI.Code("invalid_path").Error("path is not a reference to a namespace, a repository, a directory, or a secret")
 	ErrInvalidPathType         = errAPI.Code("invalid_path_type").Error("using an unknown path type")
 	ErrPathAlreadyHasVersion   = errAPI.Code("path_already_has_version").Error("this secret path already has a version")
