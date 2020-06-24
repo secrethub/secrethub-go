@@ -225,16 +225,20 @@ func (req *CreateCredentialRequest) Validate() error {
 	return nil
 }
 
-func (req *CreateCredentialRequest) RequiredLinkedID() (string, error) {
+// RequiredIDPLink can be used if the credential requires an IDP Link to exist before creation.
+// It returns the link type and the linked ID if a link is required.
+// It returns empty strings if no link is required for the credential type.
+func (req *CreateCredentialRequest) RequiredIDPLink() (IdentityProviderLinkType, string, error) {
 	switch req.Type {
 	case CredentialTypeGCPServiceAccount:
 		serviceAccountEmail, ok := req.Metadata[CredentialMetadataGCPServiceAccountEmail]
 		if !ok {
-			return "", errors.New("missing required metadata")
+			return IdentityProviderLinkGCP, "", errors.New("missing required metadata")
 		}
-		return ProjectIDFromGCPEmail(serviceAccountEmail)
+		projectID, err := ProjectIDFromGCPEmail(serviceAccountEmail)
+		return IdentityProviderLinkGCP, projectID, err
 	default:
-		return "", errors.New("credential type does not require a linked ID")
+		return "", "", nil
 	}
 }
 
