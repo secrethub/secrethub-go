@@ -9,10 +9,11 @@ import (
 )
 
 var (
-	ErrInvalidIDPLinkType      = errAPI.Code("invalid_idP_link_type").StatusError("invalid IDP link type", http.StatusBadRequest)
-	ErrInvalidGCPProjectID     = errAPI.Code("invalid_gcp_project_id").StatusErrorPref("invalid GCP project ID: %s", http.StatusBadRequest)
-	ErrVerifyingGCPAccessProof = errAPI.Code("gcp_verification_error").StatusError("could not verify GCP authorization", http.StatusPreconditionFailed)
-	ErrGCPLinkPermissionDenied = errAPI.Code("gcp_permission_denied").StatusError("missing required projects.get permission to create link to GCP project", http.StatusPreconditionFailed)
+	ErrInvalidIDPLinkType          = errAPI.Code("invalid_idP_link_type").StatusError("invalid IDP link type", http.StatusBadRequest)
+	ErrInvalidGCPProjectID         = errAPI.Code("invalid_gcp_project_id").StatusErrorPref("invalid GCP project ID: %s", http.StatusBadRequest)
+	ErrVerifyingGCPAccessProof     = errAPI.Code("gcp_verification_error").StatusError("could not verify GCP authorization", http.StatusInternalServerError)
+	ErrInvalidGCPAuthorizationCode = errAPI.Code("invalid_authorization_code").StatusError("authorization code was not accepted by GCP", http.StatusPreconditionFailed)
+	ErrGCPLinkPermissionDenied     = errAPI.Code("gcp_permission_denied").StatusError("missing required projects.get permission to create link to GCP project", http.StatusPreconditionFailed)
 
 	gcpProjectIDPattern = regexp.MustCompile("^[a-z][a-z0-9-]*[a-z0-9]$")
 )
