@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	ErrInvalidIDPLinkType          = errAPI.Code("invalid_idP_link_type").StatusError("invalid IDP link type", http.StatusBadRequest)
+	ErrInvalidIDPLinkType          = errAPI.Code("invalid_idp_link_type").StatusError("invalid IDP link type", http.StatusBadRequest)
 	ErrInvalidGCPProjectID         = errAPI.Code("invalid_gcp_project_id").StatusErrorPref("invalid GCP project ID: %s", http.StatusBadRequest)
 	ErrVerifyingGCPAccessProof     = errAPI.Code("gcp_verification_error").StatusError("could not verify GCP authorization", http.StatusInternalServerError)
 	ErrInvalidGCPAuthorizationCode = errAPI.Code("invalid_authorization_code").StatusError("authorization code was not accepted by GCP", http.StatusPreconditionFailed)
