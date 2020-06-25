@@ -13,8 +13,12 @@ type CallbackHandler struct {
 	listener   net.Listener
 	state      string
 
-	resChan chan string
-	errChan chan error
+	resChan chan result
+}
+
+type result struct {
+	err               error
+	authorizationCode string
 }
 
 func NewCallbackHandler(authorizer Authorizer) (CallbackHandler, error) {
@@ -32,8 +36,7 @@ func NewCallbackHandler(authorizer Authorizer) (CallbackHandler, error) {
 		authorizer: authorizer,
 		listener:   l,
 		state:      string(state),
-		resChan:    make(chan string),
-		errChan:    make(chan error),
+		resChan:    make(chan result, 1),
 	}, nil
 }
 
@@ -48,28 +51,31 @@ func (s CallbackHandler) AuthorizeURL() string {
 func (s CallbackHandler) WaitForAuthorizationCode() (string, error) {
 	defer s.listener.Close()
 
+	errChan := make(chan error, 1)
 	go func() {
-		err := http.Serve(s.listener, http.HandlerFunc(s.handleRequest))
-		if err != nil && err != http.ErrServerClosed {
-			s.errChan <- err
-		}
+		errChan <- http.Serve(s.listener, http.HandlerFunc(s.handleRequest))
 	}()
 
 	select {
-	case err := <-s.errChan:
+	case err := <-errChan:
 		return "", err
 	case res := <-s.resChan:
-		return res, nil
+		return res.authorizationCode, res.err
 	}
 }
 
 func (s CallbackHandler) handleRequest(w http.ResponseWriter, r *http.Request) {
 	code, err := s.authorizer.ParseResponse(r, s.state)
 	if err != nil {
-		s.errChan <- err
 		fmt.Fprintf(w, "Error: %s", err)
 	} else {
-		s.resChan <- code
 		fmt.Fprint(w, "Authorization complete. You can now close this tab")
+	}
+	select {
+	case s.resChan <- result{
+		err:               err,
+		authorizationCode: code,
+	}:
+	default:
 	}
 }
