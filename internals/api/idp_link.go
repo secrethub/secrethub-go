@@ -49,7 +49,7 @@ func (c OAuthConfig) Authorizer() oauthorizer.Authorizer {
 func ValidateLinkedID(linkType IdentityProviderLinkType, linkedID string) error {
 	switch linkType {
 	case IdentityProviderLinkGCP:
-		return ValidateGCPServiceAccountEmail(linkedID)
+		return ValidateGCPProjectID(linkedID)
 	default:
 		return ErrInvalidIDPLinkType
 	}
