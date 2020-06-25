@@ -112,3 +112,9 @@ func IsErrNotFound(err error) bool {
 	}
 	return publicStatusError.StatusCode == 404
 }
+
+// IsKnownError returns whether the given error is a known SecretHub error.
+func IsKnownError(err error) bool {
+	var publicStatusError errio.PublicStatusError
+	return errors.As(err, &publicStatusError)
+}
