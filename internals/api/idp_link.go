@@ -29,6 +29,14 @@ const (
 	IdentityProviderLinkGCP IdentityProviderLinkType = "gcp"
 )
 
+// IdentityProviderLink is a prerequisite for creating some identity provider backed service accounts.
+// These links prove that a namespace's member has access to a resource (identified by the LinkedID) within
+// the identity provider. Once a link between a namespace and an identity provider has been created, from then on
+// service accounts can be created within the scope described by the LinkedID. For example, after creating a link
+// to a GCP Project, GCP service accounts within that project can be used for the GCP Identity Provider.
+//
+// The meaning of LinkedID depends on the type of the IdentityProviderLink in the following way:
+// - GCP: LinkedID is a GCP Project ID.
 type IdentityProviderLink struct {
 	Type      IdentityProviderLinkType `json:"type"`
 	Namespace string                   `json:"namespace"`
