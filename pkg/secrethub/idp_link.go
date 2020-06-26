@@ -27,6 +27,7 @@ type IDPLinkGCPService interface {
 	Create(namespace string, projectID string, authorizationCode string, redirectURI string) (*api.IdentityProviderLink, error)
 	List(namespace string) ([]*api.IdentityProviderLink, error)
 	Get(namespace string, projectID string) (*api.IdentityProviderLink, error)
+	Exists(namespace string, projectID string) (bool, error)
 	Delete(namespace string, projectID string) error
 	AuthorizationCodeListener() (oauthorizer.CallbackHandler, error)
 }
@@ -54,6 +55,16 @@ func (i idpLinkGCPService) List(namespace string) ([]*api.IdentityProviderLink, 
 
 func (i idpLinkGCPService) Get(namespace string, projectID string) (*api.IdentityProviderLink, error) {
 	return i.client.httpClient.GetIDPLink(namespace, api.IdentityProviderLinkGCP, projectID)
+}
+
+func (i idpLinkGCPService) Exists(namespace string, projectID string) (bool, error) {
+	_, err := i.Get(namespace, projectID)
+	if api.IsErrNotFound(err) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (i idpLinkGCPService) Delete(namespace string, projectID string) error {
