@@ -5,8 +5,6 @@ import (
 	"net/url"
 	"regexp"
 	"time"
-
-	"github.com/secrethub/secrethub-go/pkg/oauthorizer"
 )
 
 var (
@@ -50,10 +48,6 @@ type OAuthConfig struct {
 	AuthURI     string   `json:"auth_uri"`
 	Scopes      []string `json:"scopes"`
 	RedirectURL *url.URL `json:"redirect_url"`
-}
-
-func (c OAuthConfig) Authorizer() oauthorizer.Authorizer {
-	return oauthorizer.NewAuthorizer(c.AuthURI, c.ClientID, c.Scopes...)
 }
 
 // ValidateLinkedID calls the validation function corresponding to the link type and returns the corresponding result.

@@ -2,7 +2,7 @@ package secrethub
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
-	"github.com/secrethub/secrethub-go/pkg/oauthorizer"
+	"github.com/secrethub/secrethub-go/internals/oauthorizer"
 )
 
 type IDPLinkService interface {
@@ -83,5 +83,6 @@ func (i idpLinkGCPService) AuthorizationCodeListener(namespace string, projectID
 	q.Set("entity", projectID)
 	redirectURL.RawQuery = q.Encode()
 
-	return oauthorizer.NewCallbackHandler(redirectURL, oauthConfig.Authorizer())
+	authorizer := oauthorizer.NewAuthorizer(oauthConfig.AuthURI, oauthConfig.ClientID, oauthConfig.Scopes...)
+	return oauthorizer.NewCallbackHandler(redirectURL, authorizer)
 }
