@@ -67,7 +67,6 @@ func (s serviceService) Create(path string, description string, credentialCreato
 	in := &api.CreateServiceRequest{
 		Description: description,
 		Credential:  credentialRequest,
-		AccountKey:  credentialRequest.AccountKey,
 		RepoMember:  serviceRepoMemberRequest,
 	}
 
