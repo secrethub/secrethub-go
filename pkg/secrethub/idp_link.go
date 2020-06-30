@@ -29,7 +29,7 @@ type IDPLinkGCPService interface {
 	Get(namespace string, projectID string) (*api.IdentityProviderLink, error)
 	Exists(namespace string, projectID string) (bool, error)
 	Delete(namespace string, projectID string) error
-	AuthorizationCodeListener() (oauthorizer.CallbackHandler, error)
+	AuthorizationCodeListener(namespace string, projectID string) (oauthorizer.CallbackHandler, error)
 }
 
 func newIDPLinkGCPService(client *Client) IDPLinkGCPService {
@@ -71,11 +71,17 @@ func (i idpLinkGCPService) Delete(namespace string, projectID string) error {
 	return i.client.httpClient.DeleteIDPLink(namespace, api.IdentityProviderLinkGCP, projectID)
 }
 
-func (i idpLinkGCPService) AuthorizationCodeListener() (oauthorizer.CallbackHandler, error) {
+func (i idpLinkGCPService) AuthorizationCodeListener(namespace string, projectID string) (oauthorizer.CallbackHandler, error) {
 	oauthConfig, err := i.client.httpClient.GetGCPOAuthConfig()
 	if err != nil {
 		return oauthorizer.CallbackHandler{}, err
 	}
 
-	return oauthorizer.NewCallbackHandler(oauthConfig.Authorizer())
+	redirectURL := oauthConfig.RedirectURL
+	q := redirectURL.Query()
+	q.Set("namespace", namespace)
+	q.Set("entity", projectID)
+	redirectURL.RawQuery = q.Encode()
+
+	return oauthorizer.NewCallbackHandler(redirectURL, oauthConfig.Authorizer())
 }

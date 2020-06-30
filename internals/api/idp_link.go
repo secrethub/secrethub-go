@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"net/url"
 	"regexp"
 	"time"
 
@@ -45,9 +46,10 @@ type IdentityProviderLink struct {
 }
 
 type OAuthConfig struct {
-	ClientID string   `json:"client_id"`
-	AuthURI  string   `json:"auth_uri"`
-	Scopes   []string `json:"scopes"`
+	ClientID    string   `json:"client_id"`
+	AuthURI     string   `json:"auth_uri"`
+	Scopes      []string `json:"scopes"`
+	RedirectURL *url.URL `json:"redirect_url"`
 }
 
 func (c OAuthConfig) Authorizer() oauthorizer.Authorizer {
