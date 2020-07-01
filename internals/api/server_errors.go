@@ -113,6 +113,16 @@ func IsErrNotFound(err error) bool {
 	return publicStatusError.StatusCode == 404
 }
 
+// IsErrDisabled returns whether the given error is caused because the feature is disabled.
+func IsErrDisabled(err error) bool {
+	var publicStatusError errio.PublicStatusError
+	ok := errors.As(err, &publicStatusError)
+	if !ok {
+		return false
+	}
+	return publicStatusError.StatusCode == http.StatusNotImplemented
+}
+
 // IsKnownError returns whether the given error is a known SecretHub error.
 func IsKnownError(err error) bool {
 	var publicStatusError errio.PublicStatusError

@@ -59,7 +59,9 @@ func (i idpLinkGCPService) Get(namespace string, projectID string) (*api.Identit
 
 func (i idpLinkGCPService) Exists(namespace string, projectID string) (bool, error) {
 	_, err := i.Get(namespace, projectID)
-	if api.IsErrNotFound(err) {
+	if api.IsErrDisabled(err) {
+		return true, nil
+	} else if api.IsErrNotFound(err) {
 		return false, nil
 	} else if err != nil {
 		return false, err
