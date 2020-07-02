@@ -54,7 +54,7 @@ func (s CallbackHandler) AuthorizeURL() string {
 // the error is appended to the redirect url: &error=<error>.
 // The provided callback function will only be executed once, even if multiple successful callbacks arrive at the server.
 // This function returns when the callback has been executed and the user is redirected.
-func (s CallbackHandler) WithAuthorizationCode(callback func(string, error) error) error {
+func (s CallbackHandler) WithAuthorizationCode(callback func(string) error) error {
 	defer s.listener.Close()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -74,7 +74,7 @@ func (s CallbackHandler) WithAuthorizationCode(callback func(string, error) erro
 	}
 }
 
-func (s CallbackHandler) handleRequest(callback func(string, error) error, done func()) func(w http.ResponseWriter, r *http.Request) {
+func (s CallbackHandler) handleRequest(callback func(string) error, done func()) func(w http.ResponseWriter, r *http.Request) {
 	var once sync.Once
 	var redirectURL *url.URL
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +85,7 @@ func (s CallbackHandler) handleRequest(callback func(string, error) error, done 
 		}
 
 		once.Do(func() {
-			err = callback(code, err)
+			err = callback(code)
 			redirectURL = s.baseRedirectURL
 			if err != nil {
 				q := redirectURL.Query()
