@@ -111,7 +111,7 @@ func (i idpLinkGCPService) AuthorizationCodeListener(namespace string, projectID
 		return oauthorizer.CallbackHandler{}, err
 	}
 
-	redirectURL := oauthConfig.RedirectURL
+	redirectURL := oauthConfig.ResultURL
 	q := redirectURL.Query()
 	q.Set("namespace", namespace)
 	q.Set("entity", projectID)

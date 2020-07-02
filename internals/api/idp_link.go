@@ -44,10 +44,10 @@ type IdentityProviderLink struct {
 }
 
 type OAuthConfig struct {
-	ClientID    string   `json:"client_id"`
-	AuthURI     string   `json:"auth_uri"`
-	Scopes      []string `json:"scopes"`
-	RedirectURL *url.URL `json:"redirect_url"`
+	ClientID  string   `json:"client_id"`
+	AuthURI   string   `json:"auth_uri"`
+	Scopes    []string `json:"scopes"`
+	ResultURL *url.URL `json:"result_url"`
 }
 
 // ValidateLinkedID calls the validation function corresponding to the link type and returns the corresponding result.
