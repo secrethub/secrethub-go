@@ -78,15 +78,20 @@ func (s CallbackHandler) handleRequest(callback func(string) error, done func())
 	var once sync.Once
 	var redirectURL *url.URL
 	return func(w http.ResponseWriter, r *http.Request) {
-		code, err := s.authorizer.ParseResponse(r, s.state)
-		if err != nil {
-			fmt.Fprintf(w, "Error: %s", err)
-			return
-		}
-
 		once.Do(func() {
-			err = callback(code)
 			redirectURL = s.baseRedirectURL
+			err := func() error {
+				code, err := s.authorizer.ParseResponse(r, s.state)
+				if err != nil {
+					return err
+				}
+
+				err = callback(code)
+				if err != nil {
+					return err
+				}
+				return nil
+			}()
 			if err != nil {
 				q := redirectURL.Query()
 				q.Set("error", err.Error())
