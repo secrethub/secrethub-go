@@ -14,9 +14,11 @@ import (
 // If used on GCP (e.g. from a Compute Engine instance), this extra configuration is not required and the correct
 // configuration should be auto-detected by the GCP client.
 //
+// Access to the GCP metadata server is required for this function to work. In practice, this means that it can
+// only be run on GCP.
+//
 // Usage:
 //		credentials.UseGCPServiceAccount()
-//		credentials.UseGCPServiceAccount(option.WithAPIKey("a-custom-api-key"))
 func UseGCPServiceAccount(gcpOptions ...option.ClientOption) Provider {
 	return providerFunc(func(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
 		decrypter, err := gcp.NewKMSDecrypter(gcpOptions...)
