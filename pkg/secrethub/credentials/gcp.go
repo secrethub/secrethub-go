@@ -14,8 +14,6 @@ import (
 // If used on GCP (e.g. from a Compute Engine instance), this extra configuration is not required and the correct
 // configuration should be auto-detected by the GCP client.
 //
-// Note: this functionality currently is in private beta. It will only work on selected namespaces.
-//
 // Usage:
 //		credentials.UseGCPServiceAccount()
 //		credentials.UseGCPServiceAccount(option.WithAPIKey("a-custom-api-key"))
@@ -36,8 +34,6 @@ func UseGCPServiceAccount(gcpOptions ...option.ClientOption) Provider {
 // The service account should have decryption permission on the provided KMS key.
 // gcpOptions can be used to optionally configure the used GCP client. For example to set a custom API key.
 // The KMS key id and service account emaail are returned in the credentials metadata.
-//
-// Note: this functionality currently is in private beta. It will only work on selected namespaces.
 func CreateGCPServiceAccount(serviceAccountEmail string, keyResourceID string, gcpOptions ...option.ClientOption) Creator {
 	return &gcpServiceAccountCreator{
 		keyResourceID:       keyResourceID,
