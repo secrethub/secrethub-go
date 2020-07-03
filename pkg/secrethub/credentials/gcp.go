@@ -33,7 +33,7 @@ func UseGCPServiceAccount(gcpOptions ...option.ClientOption) Provider {
 // The kmsResourceID is the Resource ID of the key in KMS that is used to encrypt the account key.
 // The service account should have decryption permission on the provided KMS key.
 // gcpOptions can be used to optionally configure the used GCP client. For example to set a custom API key.
-// The KMS key id and service account emaail are returned in the credentials metadata.
+// The KMS key id and service account email are returned in the credentials metadata.
 func CreateGCPServiceAccount(serviceAccountEmail string, keyResourceID string, gcpOptions ...option.ClientOption) Creator {
 	return &gcpServiceAccountCreator{
 		keyResourceID:       keyResourceID,
