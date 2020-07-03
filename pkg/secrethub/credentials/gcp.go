@@ -14,11 +14,11 @@ import (
 // If used on GCP (e.g. from a Compute Engine instance), this extra configuration is not required and the correct
 // configuration should be auto-detected by the GCP client.
 //
-// Note: this functionality currently is in private beta. It will only work on selected namespaces.
+// Access to the GCP metadata server is required for this function to work. In practice, this means that it can
+// only be run on GCP.
 //
 // Usage:
 //		credentials.UseGCPServiceAccount()
-//		credentials.UseGCPServiceAccount(option.WithAPIKey("a-custom-api-key"))
 func UseGCPServiceAccount(gcpOptions ...option.ClientOption) Provider {
 	return providerFunc(func(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
 		decrypter, err := gcp.NewKMSDecrypter(gcpOptions...)
@@ -35,9 +35,7 @@ func UseGCPServiceAccount(gcpOptions ...option.ClientOption) Provider {
 // The kmsResourceID is the Resource ID of the key in KMS that is used to encrypt the account key.
 // The service account should have decryption permission on the provided KMS key.
 // gcpOptions can be used to optionally configure the used GCP client. For example to set a custom API key.
-// The KMS key id and service account emaail are returned in the credentials metadata.
-//
-// Note: this functionality currently is in private beta. It will only work on selected namespaces.
+// The KMS key id and service account email are returned in the credentials metadata.
 func CreateGCPServiceAccount(serviceAccountEmail string, keyResourceID string, gcpOptions ...option.ClientOption) Creator {
 	return &gcpServiceAccountCreator{
 		keyResourceID:       keyResourceID,
