@@ -24,6 +24,9 @@ const (
 	// REGEX builder with unit tests: https://regex101.com/r/5DPAiZ/1
 	patternFullName    = `[\p{L}\p{Mn}\p{Pd}\'\x{2019} ]`
 	patternDescription = `^[\p{L}\p{Mn}\p{Pd}\x{2019} [:punct:]0-9]{0,144}$`
+
+	gcpServiceAccountEmailSuffix            = ".gserviceaccount.com"
+	gcpUserManagedServiceAccountEmailSuffix = ".iam.gserviceaccount.com"
 )
 
 var (
@@ -82,6 +85,10 @@ var (
 		"credential fingerprint must consist of 64 hexadecimal characters",
 		http.StatusBadRequest,
 	)
+
+	ErrInvalidGCPServiceAccountEmail        = errAPI.Code("invalid_service_account_email").StatusError("not a valid GCP service account email", http.StatusBadRequest)
+	ErrNotUserManagerGCPServiceAccountEmail = errAPI.Code("require_user_managed_service_account").StatusError("provided GCP service account email is not for a user-manager service account", http.StatusBadRequest)
+	ErrInvalidGCPKMSResourceID              = errAPI.Code("invalid_key_resource_id").StatusError("not a valid resource ID, expected: projects/PROJECT_ID/locations/LOCATION/keyRings/KEY_RING/cryptoKeys/KEY", http.StatusBadRequest)
 )
 
 // ValidateNamespace validates a username.
@@ -299,32 +306,49 @@ func ValidateShortCredentialFingerprint(fingerprint string) error {
 // accepted by GCP.
 func ValidateGCPServiceAccountEmail(v string) error {
 	if !govalidator.IsEmail(v) {
-		return errors.New("invalid email")
+		return ErrInvalidGCPServiceAccountEmail
 	}
-	if !strings.HasSuffix(v, ".gserviceaccount.com") {
-		return errors.New("not a GCP Service Account email")
+	if !strings.HasSuffix(v, gcpServiceAccountEmailSuffix) {
+		return ErrInvalidGCPServiceAccountEmail
+	}
+	if !strings.HasSuffix(v, gcpUserManagedServiceAccountEmailSuffix) {
+		return ErrNotUserManagerGCPServiceAccountEmail
 	}
 	return nil
+}
+
+// ProjectIDFromGCPEmail returns the project ID included in the email of a GCP Service Account.
+// If the input is not a valid user-managed GCP Service Account email, an error is returned.
+func ProjectIDFromGCPEmail(in string) (string, error) {
+	err := ValidateGCPServiceAccountEmail(in)
+	if err != nil {
+		return "", err
+	}
+
+	spl := strings.Split(in, "@")
+	if len(spl) != 2 {
+		return "", errors.New("no @ in email")
+	}
+	return strings.TrimSuffix(spl[1], gcpUserManagedServiceAccountEmailSuffix), nil
 }
 
 // ValidateGCPKMSKeyResourceID validates whether the given string is potentially a valid resource ID for a GCP KMS key
 // The function does a best-effort check. If no error is returned, this does not mean the value is accepted by GCP.
 func ValidateGCPKMSKeyResourceID(v string) error {
-	invalidErr := errors.New("not a valid resource ID, expected: projects/PROJECT_ID/locations/LOCATION/keyRings/KEY_RING/cryptoKeys/KEY")
 	u, err := url.Parse(v)
 	if err != nil {
-		return invalidErr
+		return ErrInvalidGCPKMSResourceID
 	}
 	if u.Host != "" || u.Scheme != "" || u.Hostname() != "" || len(u.Query()) != 0 {
-		return invalidErr
+		return ErrInvalidGCPKMSResourceID
 	}
 
 	split := strings.Split(v, "/")
 	if len(split) != 8 {
-		return invalidErr
+		return ErrInvalidGCPKMSResourceID
 	}
 	if split[0] != "projects" || split[2] != "locations" || split[4] != "keyRings" || split[6] != "cryptoKeys" {
-		return invalidErr
+		return ErrInvalidGCPKMSResourceID
 	}
 
 	return nil

@@ -37,6 +37,8 @@ type ClientInterface interface {
 	Credentials() CredentialService
 	// Dirs returns a service used to manage directories.
 	Dirs() DirService
+	// IDPLinks returns a service used to manage links between namespaces and Identity Providers.
+	IDPLinks() IDPLinkService
 	// Me returns a service used to manage the current authenticated account.
 	Me() MeService
 	// Orgs returns a service used to manage shared organization workspaces.
@@ -211,6 +213,10 @@ func (c *Client) Credentials() CredentialService {
 // Dirs returns a service used to manage directories.
 func (c *Client) Dirs() DirService {
 	return newDirService(c)
+}
+
+func (c *Client) IDPLinks() IDPLinkService {
+	return newIDPLinkService(c)
 }
 
 // Me returns a service used to manage the current authenticated account.
