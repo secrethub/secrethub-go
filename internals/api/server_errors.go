@@ -88,7 +88,7 @@ var (
 	ErrAWSRoleAlreadyTaken = errHub.Code("aws_role_taken").StatusError("a service account coupled to that IAM role already exists. Delete the existing service account or create a new one using a different IAM role.", http.StatusConflict)
 
 	// GCP IdP
-	ErrGCPServiceAccountAlreadyTaken = errHub.Code("gcp_service_account_taken").StatusError("a SecretHub service account coupled to that Google Service Account email already exists. Delete the existing SecretHub service account or create a new one using a different Google Service Account email.", http.StatusConflict)
+	ErrGCPServiceAccountAlreadyTaken = errHub.Code("gcp_service_account_taken").StatusError("a SecretHub service account coupled to that GCP Service Account email already exists. Delete the existing SecretHub service account or create a new one using a different GCP Service Account email.", http.StatusConflict)
 
 	// Account
 	ErrAccountNotFound    = errHub.Code("account_not_found").StatusError("Account not found", http.StatusNotFound)
