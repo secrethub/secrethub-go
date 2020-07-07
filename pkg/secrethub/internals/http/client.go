@@ -84,6 +84,11 @@ const (
 	pathOrg        = "%s/orgs/%s"
 	pathOrgMembers = "%s/orgs/%s/members"
 	pathOrgMember  = "%s/orgs/%s/members/%s"
+
+	// Identity Providers
+	pathGCPOAuthConfig = "%s/identity-providers/gcp/config/oauth2"
+	pathIDPLinks       = "%s/namespaces/%s/identity-providers/%s/links"
+	pathIDPLink        = "%s/namespaces/%s/identity-providers/%s/links/%s"
 )
 
 const (
@@ -404,6 +409,45 @@ func (c *Client) ListServices(namespace, repoName string) ([]*api.Service, error
 	rawURL := fmt.Sprintf(pathServices, c.base.String(), namespace, repoName)
 	err := c.get(rawURL, true, &out)
 	return out, errio.Error(err)
+}
+
+// CreateIDPLink creates a new IDP link for a namespace.
+func (c *Client) CreateIDPLink(namespace string, t api.IdentityProviderLinkType, linkedID string, in *api.CreateIdentityProviderLinkGCPRequest) (*api.IdentityProviderLink, error) {
+	out := &api.IdentityProviderLink{}
+	rawURL := fmt.Sprintf(pathIDPLink, c.base.String(), namespace, t, linkedID)
+	err := c.put(rawURL, true, http.StatusCreated, in, out)
+	return out, err
+}
+
+// GetIDPLink return the link identified by namespace, type and linkedID..
+func (c *Client) GetIDPLink(namespace string, t api.IdentityProviderLinkType, linkedID string) (*api.IdentityProviderLink, error) {
+	out := &api.IdentityProviderLink{}
+	rawURL := fmt.Sprintf(pathIDPLink, c.base.String(), namespace, t, linkedID)
+	err := c.get(rawURL, true, &out)
+	return out, err
+}
+
+// ListIDPLinks lists all IDP links for a namespace and a given type.
+func (c *Client) ListIDPLinks(namespace string, t api.IdentityProviderLinkType) ([]*api.IdentityProviderLink, error) {
+	out := []*api.IdentityProviderLink{}
+	rawURL := fmt.Sprintf(pathIDPLinks, c.base.String(), namespace, t)
+	err := c.get(rawURL, true, &out)
+	return out, err
+}
+
+// DeleteIDPLink deletes an existing IDP link for a namespace.
+func (c *Client) DeleteIDPLink(namespace string, t api.IdentityProviderLinkType, linkedID string) error {
+	rawURL := fmt.Sprintf(pathIDPLink, c.base.String(), namespace, t, linkedID)
+	err := c.delete(rawURL, true, nil)
+	return err
+}
+
+// GetGCPOAuthConfig returns the client configuration for using OAuth with GCP.
+func (c *Client) GetGCPOAuthConfig() (*api.OAuthConfig, error) {
+	out := &api.OAuthConfig{}
+	rawURL := fmt.Sprintf(pathGCPOAuthConfig, c.base.String())
+	err := c.get(rawURL, true, out)
+	return out, err
 }
 
 // DIRS

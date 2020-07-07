@@ -474,13 +474,16 @@ func TestValidateGCPServiceAccountEmail(t *testing.T) {
 			in: "test-service-account@secrethub-test-1234567890.iam.gserviceaccount.com",
 		},
 		"appspot service account": {
-			in: "secrethub-1234567890@appspot.gserviceaccount.com",
+			in:        "secrethub-1234567890@appspot.gserviceaccount.com",
+			expectErr: true,
 		},
 		"compute service account": {
-			in: "secrethub-1234567890-compute@developer.gserviceaccount.com",
+			in:        "secrethub-1234567890-compute@developer.gserviceaccount.com",
+			expectErr: true,
 		},
 		"google managed service account": {
-			in: "secrethub-1234567890@cloudservices.gserviceaccount.com",
+			in:        "secrethub-1234567890@cloudservices.gserviceaccount.com",
+			expectErr: true,
 		},
 		"not an email": {
 			in:        "cloudservices.gserviceaccount.com",
@@ -498,9 +501,37 @@ func TestValidateGCPServiceAccountEmail(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			err := api.ValidateGCPServiceAccountEmail(tc.in)
+			err := api.ValidateGCPUserManagedServiceAccountEmail(tc.in)
 
 			assert.Equal(t, err != nil, tc.expectErr)
+		})
+	}
+}
+
+func TestProjectIDFromGCPEmail(t *testing.T) {
+	cases := map[string]struct {
+		in        string
+		expectErr bool
+		expect    string
+	}{
+		"user  managed service account": {
+			in:     "test-service-account@secrethub-test-1234567890.iam.gserviceaccount.com",
+			expect: "secrethub-test-1234567890",
+		},
+		"invalid email": {
+			in:        "secrethub-1234567890-compute@developer.gserviceaccount.com",
+			expectErr: true,
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			projectID, err := api.ProjectIDFromGCPEmail(tc.in)
+
+			assert.Equal(t, err != nil, tc.expectErr)
+			if !tc.expectErr {
+				assert.Equal(t, projectID, tc.expect)
+			}
 		})
 	}
 }
