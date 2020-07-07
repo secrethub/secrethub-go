@@ -85,7 +85,7 @@ var credentialTypesMetadata = map[CredentialType]map[string]func(string) error{
 		CredentialMetadataAWSKMSKey: nil,
 	},
 	CredentialTypeGCPServiceAccount: {
-		CredentialMetadataGCPServiceAccountEmail: ValidateGCPServiceAccountEmail,
+		CredentialMetadataGCPServiceAccountEmail: ValidateGCPUserManagedServiceAccountEmail,
 		CredentialMetadataGCPKMSKeyResourceID:    ValidateGCPKMSKeyResourceID,
 	},
 	CredentialTypeBackupCode: {},

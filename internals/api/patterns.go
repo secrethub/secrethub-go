@@ -301,10 +301,10 @@ func ValidateShortCredentialFingerprint(fingerprint string) error {
 	return nil
 }
 
-// ValidateGCPServiceAccountEmail validates whether the given string is potentially a valid email for a GCP
-// Service Account. The function does a best-effort check. If no error is returned, this does not mean the value is
-// accepted by GCP.
-func ValidateGCPServiceAccountEmail(v string) error {
+// ValidateGCPUserManagedServiceAccountEmail validates whether the given string is potentially a valid email for a
+// user-managed GCP Service Account. The function does a best-effort check. If no error is returned, this does not mean
+// the value is accepted by GCP.
+func ValidateGCPUserManagedServiceAccountEmail(v string) error {
 	if !govalidator.IsEmail(v) {
 		return ErrInvalidGCPServiceAccountEmail
 	}
@@ -320,7 +320,7 @@ func ValidateGCPServiceAccountEmail(v string) error {
 // ProjectIDFromGCPEmail returns the project ID included in the email of a GCP Service Account.
 // If the input is not a valid user-managed GCP Service Account email, an error is returned.
 func ProjectIDFromGCPEmail(in string) (string, error) {
-	err := ValidateGCPServiceAccountEmail(in)
+	err := ValidateGCPUserManagedServiceAccountEmail(in)
 	if err != nil {
 		return "", err
 	}
