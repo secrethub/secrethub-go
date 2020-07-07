@@ -501,7 +501,7 @@ func TestValidateGCPServiceAccountEmail(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			err := api.ValidateGCPServiceAccountEmail(tc.in)
+			err := api.ValidateGCPUserManagedServiceAccountEmail(tc.in)
 
 			assert.Equal(t, err != nil, tc.expectErr)
 		})
