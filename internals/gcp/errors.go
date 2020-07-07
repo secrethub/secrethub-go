@@ -28,17 +28,17 @@ func HandleError(err error) error {
 		switch errGCP.Code {
 		case http.StatusNotFound:
 			if message == "" {
-				message = "404 not found"
+				message = "Response from the Google API: 404 Not Found"
 			}
 			return ErrGCPNotFound.Error(message)
 		case http.StatusForbidden:
 			if message == "" {
-				message = "403 access denied"
+				message = "Response from the Google API: 403 Forbidden"
 			}
 			return ErrGCPAccessDenied.Error(message)
 		case http.StatusConflict:
 			if message == "" {
-				message = "409 conflict"
+				message = "Response from the Google API: 409 Conflict"
 			}
 			return ErrGCPAlreadyExists.Error(message)
 		}
