@@ -24,13 +24,23 @@ var (
 func HandleError(err error) error {
 	errGCP, ok := err.(*googleapi.Error)
 	if ok {
+		message := errGCP.Message
 		switch errGCP.Code {
 		case http.StatusNotFound:
-			return ErrGCPNotFound.Error(errGCP.Message)
+			if message == "" {
+				message = "404 not found"
+			}
+			return ErrGCPNotFound.Error(message)
 		case http.StatusForbidden:
-			return ErrGCPAccessDenied.Error(errGCP.Message)
+			if message == "" {
+				message = "403 access denied"
+			}
+			return ErrGCPAccessDenied.Error(message)
 		case http.StatusConflict:
-			return ErrGCPAlreadyExists.Error(errGCP.Message)
+			if message == "" {
+				message = "409 conflict"
+			}
+			return ErrGCPAlreadyExists.Error(message)
 		}
 		if len(errGCP.Errors) > 0 {
 			return gcpErr.Code(errGCP.Errors[0].Reason).Error(errGCP.Errors[0].Message)
