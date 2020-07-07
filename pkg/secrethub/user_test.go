@@ -51,7 +51,6 @@ func TestSignup(t *testing.T) {
 		},
 	}
 
-
 	now := time.Now().UTC()
 	expectedResponse := &api.User{
 		AccountID:   uuid.New(),
