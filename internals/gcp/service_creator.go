@@ -23,6 +23,13 @@ type CredentialCreator struct {
 // NewCredentialCreator returns a CredentialCreator that uses the provided GCP KMS key and Service Account Email to create a new credential.
 // The GCP client is configured with the optionally provided option.ClientOption.
 func NewCredentialCreator(serviceAccountEmail, keyResourceID string, gcpOptions ...option.ClientOption) (*CredentialCreator, map[string]string, error) {
+	if err := api.ValidateGCPUserManagedServiceAccountEmail(serviceAccountEmail); err != nil {
+		return nil, nil, err
+	}
+	if err := api.ValidateGCPKMSKeyResourceID(keyResourceID); err != nil {
+		return nil, nil, err
+	}
+
 	kmsClient, err := kms.NewKeyManagementClient(context.Background(), gcpOptions...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating kms client: %v", HandleError(err))

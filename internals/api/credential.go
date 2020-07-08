@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -84,7 +85,7 @@ var credentialTypesMetadata = map[CredentialType]map[string]func(string) error{
 		CredentialMetadataAWSKMSKey: nil,
 	},
 	CredentialTypeGCPServiceAccount: {
-		CredentialMetadataGCPServiceAccountEmail: ValidateGCPServiceAccountEmail,
+		CredentialMetadataGCPServiceAccountEmail: ValidateGCPUserManagedServiceAccountEmail,
 		CredentialMetadataGCPKMSKeyResourceID:    ValidateGCPKMSKeyResourceID,
 	},
 	CredentialTypeBackupCode: {},
@@ -222,6 +223,23 @@ func (req *CreateCredentialRequest) Validate() error {
 	}
 
 	return nil
+}
+
+// RequiredIDPLink can be used if the credential requires an IDP Link to exist before creation.
+// It returns the link type and the linked ID if a link is required.
+// It returns empty strings if no link is required for the credential type.
+func (req *CreateCredentialRequest) RequiredIDPLink() (IdentityProviderLinkType, string, error) {
+	switch req.Type {
+	case CredentialTypeGCPServiceAccount:
+		serviceAccountEmail, ok := req.Metadata[CredentialMetadataGCPServiceAccountEmail]
+		if !ok {
+			return IdentityProviderLinkGCP, "", errors.New("missing required metadata")
+		}
+		projectID, err := ProjectIDFromGCPEmail(serviceAccountEmail)
+		return IdentityProviderLinkGCP, projectID, err
+	default:
+		return "", "", nil
+	}
 }
 
 // CredentialProofAWS is proof for when the credential type is AWSSTS.

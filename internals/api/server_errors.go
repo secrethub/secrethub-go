@@ -84,6 +84,12 @@ var (
 	ErrNoAdminAccess        = errHub.Code("no_admin_access").StatusError("Only accounts with Admin access can perform this action", http.StatusForbidden)
 	ErrMemberAlreadyExists  = errHub.Code("member_already_exists").StatusError("The member already exists", http.StatusConflict)
 
+	// AWS IdP
+	ErrAWSRoleAlreadyTaken = errHub.Code("aws_role_taken").StatusError("a service account coupled to that IAM role already exists. Delete the existing service account or create a new one using a different IAM role.", http.StatusConflict)
+
+	// GCP IdP
+	ErrGCPServiceAccountAlreadyTaken = errHub.Code("gcp_service_account_taken").StatusError("a SecretHub service account coupled to that GCP Service Account email already exists. Delete the existing SecretHub service account or create a new one using a different GCP Service Account email.", http.StatusConflict)
+
 	// Account
 	ErrAccountNotFound    = errHub.Code("account_not_found").StatusError("Account not found", http.StatusNotFound)
 	ErrUnknownSubjectType = errHub.Code("unknown_subject_type").Error("Unknown subject type") // no status error because it is an internal error
@@ -111,4 +117,20 @@ func IsErrNotFound(err error) bool {
 		return false
 	}
 	return publicStatusError.StatusCode == 404
+}
+
+// IsErrDisabled returns whether the given error is caused because the feature is disabled.
+func IsErrDisabled(err error) bool {
+	var publicStatusError errio.PublicStatusError
+	ok := errors.As(err, &publicStatusError)
+	if !ok {
+		return false
+	}
+	return publicStatusError.StatusCode == http.StatusNotImplemented
+}
+
+// IsKnownError returns whether the given error is a known SecretHub error.
+func IsKnownError(err error) bool {
+	var publicStatusError errio.PublicStatusError
+	return errors.As(err, &publicStatusError)
 }
