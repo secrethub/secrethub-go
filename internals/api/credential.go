@@ -162,6 +162,13 @@ func (req *CreateCredentialRequest) Validate() error {
 		}
 	}
 
+	if req.AccountKey == nil {
+		return ErrMissingField("account_key")
+	}
+	if err := req.AccountKey.Validate(); err != nil {
+		return err
+	}
+
 	expectedMetadata, validCredentialType := credentialTypesMetadata[req.Type]
 	if !validCredentialType {
 		return ErrInvalidCredentialType
@@ -181,12 +188,6 @@ func (req *CreateCredentialRequest) Validate() error {
 	for actualMetadataKey := range req.Metadata {
 		if _, ok := expectedMetadata[actualMetadataKey]; !ok {
 			return ErrUnknownMetadataKey(actualMetadataKey)
-		}
-	}
-
-	if req.AccountKey != nil {
-		if err := req.AccountKey.Validate(); err != nil {
-			return err
 		}
 	}
 
