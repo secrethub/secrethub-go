@@ -82,6 +82,13 @@ func (req CreateServiceRequest) Validate() error {
 		return err
 	}
 
+	if req.Credential.AccountKey == nil{
+		return ErrMissingField("account_key")
+	}
+	if err := req.Credential.AccountKey.Validate(); err != nil {
+		return err
+	}
+
 	if req.RepoMember == nil {
 		return ErrMissingField("repo_member")
 	}
