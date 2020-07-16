@@ -82,7 +82,7 @@ func (req CreateServiceRequest) Validate() error {
 		return err
 	}
 
-	if req.Credential.AccountKey == nil{
+	if req.Credential.AccountKey == nil {
 		return ErrMissingField("account_key")
 	}
 	if err := req.Credential.AccountKey.Validate(); err != nil {
