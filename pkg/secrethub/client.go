@@ -71,7 +71,7 @@ type Client struct {
 	decrypter credentials.Decrypter
 
 	// account is the api.Account for this SecretHub account.
-	// Do not use this field directly, but use client.getMyAccount() instead.
+	// Do not use this field directly, but use client.GetMyAccount() instead.
 	account *api.Account
 
 	// accountKey is the intermediate key for this SecretHub account.

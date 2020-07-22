@@ -103,8 +103,8 @@ func (c *Client) getAccountKey() (*crypto.RSAPrivateKey, error) {
 	return c.accountKey, nil
 }
 
-// getMyAccount returns the account of the client itself.
-func (c *Client) getMyAccount() (*api.Account, error) {
+// GetMyAccount returns the account of the client itself.
+func (c *Client) GetMyAccount() (*api.Account, error) {
 	// retrieve the account from cache
 	if c.account != nil {
 		return c.account, nil
@@ -120,7 +120,7 @@ func (c *Client) getMyAccount() (*api.Account, error) {
 
 // fetchAccountDetails is a helper function that fetches the account and account key from the API.
 // These are cached in the client.
-// This function should only be called from client.getAccountKey or client.getMyAccount
+// This function should only be called from client.getAccountKey or client.GetMyAccount
 // Don't use this unless you know what you're doing. Use client.getAccountKey instead.
 func (c *Client) fetchAccountDetails() error {
 	if c.decrypter == nil {

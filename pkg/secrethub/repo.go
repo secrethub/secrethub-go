@@ -173,7 +173,7 @@ func (s repoService) Create(path string) (*api.Repo, error) {
 		return nil, errio.Error(err)
 	}
 
-	account, err := s.client.getMyAccount()
+	account, err := s.client.GetMyAccount()
 	if err != nil {
 		return nil, errio.Error(err)
 	}
