@@ -14,6 +14,8 @@ var (
 
 // AccountService handles operations on SecretHub accounts.
 type AccountService interface {
+	// Me retrieves the account of the client.
+	Me() (*api.Account, error)
 	// Get retrieves an account by name.
 	Get(name string) (*api.Account, error)
 	// Keys returns an account key service.
@@ -28,6 +30,11 @@ func newAccountService(client *Client) AccountService {
 
 type accountService struct {
 	client *Client
+}
+
+// Me retrieves the account of the client.
+func (s accountService) Me() (*api.Account, error) {
+	return s.client.getMyAccount()
 }
 
 // Get retrieves an account by name.
