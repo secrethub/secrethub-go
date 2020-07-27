@@ -6,10 +6,10 @@ import (
 )
 
 type MeService struct {
-	GetUserFunc func() (*api.User, error)
+	GetUserFunc               func() (*api.User, error)
 	SendVerificationEmailFunc func() error
-	ListReposFunc func() ([]*api.Repo, error)
-	RepoIteratorFunc func(_ *secrethub.RepoIteratorParams) secrethub.RepoIterator
+	ListReposFunc             func() ([]*api.Repo, error)
+	RepoIteratorFunc          func(_ *secrethub.RepoIteratorParams) secrethub.RepoIterator
 	secrethub.MeService
 }
 
