@@ -10,7 +10,6 @@ type CredentialService struct {
 	CreateFunc  func(credentials.Creator, string) (*api.Credential, error)
 	DisableFunc func(fingerprint string) error
 	ListFunc    func(_ *secrethub.CredentialListParams) secrethub.CredentialIterator
-	secrethub.CredentialService
 }
 
 func (c *CredentialService) Create(creator credentials.Creator, description string) (*api.Credential, error) {

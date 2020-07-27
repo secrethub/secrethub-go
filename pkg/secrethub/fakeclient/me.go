@@ -10,7 +10,6 @@ type MeService struct {
 	SendVerificationEmailFunc func() error
 	ListReposFunc             func() ([]*api.Repo, error)
 	RepoIteratorFunc          func(_ *secrethub.RepoIteratorParams) secrethub.RepoIterator
-	secrethub.MeService
 }
 
 func (m *MeService) GetUser() (*api.User, error) {
