@@ -13,6 +13,7 @@ type IDPLinkService struct {
 	ExistsFunc                    func(namespace string, projectID string) (bool, error)
 	DeleteFunc                    func(namespace string, projectID string) error
 	AuthorizationCodeListenerFunc func(namespace string, projectID string) (oauthorizer.CallbackHandler, error)
+	secrethub.IDPLinkService
 }
 
 func (i *IDPLinkService) Create(namespace string, projectID string, authorizationCode, redirectURI string) (*api.IdentityProviderLink, error) {
