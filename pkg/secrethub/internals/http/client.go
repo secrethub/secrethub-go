@@ -5,6 +5,7 @@ package http
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
@@ -807,6 +808,10 @@ func (c *Client) do(rawURL string, method string, authenticate bool, expectedSta
 
 	req.Header.Set("User-Agent", c.userAgent)
 
+	return c.tryAndRetry(method, 3, req, expectedStatus, out, time.Second)
+}
+
+func (c *Client) tryAndRetry(method string, retryCount int, req *http.Request, expectedStatus int, out interface{}, sleepTime time.Duration) error {
 	resp, err := c.client.Do(req)
 	if err != nil {
 		urlErr := err.(*url.Error)
@@ -821,6 +826,10 @@ func (c *Client) do(rawURL string, method string, authenticate bool, expectedSta
 			"Client is out of date\n" +
 				"Go to `https://secrethub.io/docs/getting-started/install` to see how to update your client.")
 	} else if resp.StatusCode != expectedStatus {
+		if isRetryable(method, expectedStatus, retryCount) {
+			time.Sleep(sleepTime + getRandomJitter(sleepTime))
+			return c.tryAndRetry(method, retryCount-1, req, expectedStatus, out, 2*sleepTime)
+		}
 		return parseError(resp)
 	}
 
@@ -830,6 +839,25 @@ func (c *Client) do(rawURL string, method string, authenticate bool, expectedSta
 	}
 
 	return nil
+}
+
+func isRetryable(_ string, expectedStatus int, retryCount int) bool {
+	if retryCount <= 0 {
+		return false
+	}
+	if expectedStatus >= 500 {
+		return true
+	}
+	return false
+}
+
+func getRandomJitter(sleepTime time.Duration) time.Duration {
+	rand.Seed(time.Now().UnixNano())
+	seconds := time.Duration(rand.Int63n(int64(sleepTime))) * time.Second
+	rand.Seed(time.Now().UnixNano())
+	milliseconds := time.Duration(rand.Int63n(int64(time.Millisecond*1000))) * time.Millisecond
+
+	return seconds + milliseconds
 }
 
 func joinURL(base url.URL, paths ...string) url.URL {
