@@ -10,7 +10,10 @@ import "github.com/secrethub/secrethub-go/pkg/secrethub"
 type Client struct {
 	AccessRuleService *AccessRuleService
 	AccountService    *AccountService
+	CredentialService *CredentialService
 	DirService        *DirService
+	IDPLinkService    *IDPLinkService
+	MeService         *MeService
 	OrgService        *OrgService
 	RepoService       *RepoService
 	SecretService     *SecretService
