@@ -7,11 +7,11 @@ import (
 )
 
 type IDPLinkService struct {
-	GCPFunc func() IDPLinkGCPService
+	GCPService secrethub.IDPLinkGCPService
 }
 
 func (i IDPLinkService) GCP() secrethub.IDPLinkGCPService {
-	return i.GCPFunc()
+	return i.GCPService
 }
 
 type IDPLinkGCPService struct {
