@@ -7,6 +7,8 @@ import (
 	"github.com/secrethub/secrethub-go/pkg/secrethub"
 )
 
+var _ secrethub.SecretService = (*SecretService)(nil)
+
 // SecretService is a mock of the SecretService interface.
 type SecretService struct {
 	VersionService     secrethub.SecretVersionService
