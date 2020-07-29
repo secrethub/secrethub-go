@@ -148,7 +148,7 @@ If you get stuck or just want advice, come chat with the engineers on [Discord][
 [latest-version]: https://github.com/secrethub/secrethub-go/releases/latest
 [issues]: https://github.com/secrethub/secrethub-go/issues/new
 [pulls]: https://github.com/secrethub/secrethub-go/pulls
-[godoc]: https://pkg.go.dev/github.com/secrethub/secrethub-go?tab=overview
+[godoc]: http://godoc.org/github.com/secrethub/secrethub-go
 [goreportcard]: https://goreportcard.com/report/github.com/secrethub/secrethub-go
 [circle-ci]: https://circleci.com/gh/secrethub/secrethub-go
 [discord]: https://discord.gg/EQcE87s

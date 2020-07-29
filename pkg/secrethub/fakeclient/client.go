@@ -6,21 +6,17 @@ package fakeclient
 
 import "github.com/secrethub/secrethub-go/pkg/secrethub"
 
-var _ secrethub.ClientInterface = (*Client)(nil)
-
 // Client implements the secrethub.Client interface.
 type Client struct {
 	AccessRuleService *AccessRuleService
 	AccountService    *AccountService
-	CredentialService *CredentialService
 	DirService        *DirService
-	IDPLinkService    *IDPLinkService
-	MeService         *MeService
 	OrgService        *OrgService
 	RepoService       *RepoService
 	SecretService     *SecretService
 	ServiceService    *ServiceService
 	UserService       *UserService
+	secrethub.ClientInterface
 }
 
 // AccessRules implements the secrethub.Client interface.
@@ -40,7 +36,7 @@ func (c Client) Dirs() secrethub.DirService {
 
 // Me implements the secrethub.Client interface.
 func (c Client) Me() secrethub.MeService {
-	return c.MeService
+	return nil
 }
 
 // Orgs implements the secrethub.Client interface.
@@ -66,12 +62,4 @@ func (c Client) Services() secrethub.ServiceService {
 // Users implements the secrethub.Client interface.
 func (c Client) Users() secrethub.UserService {
 	return c.UserService
-}
-
-func (c Client) IDPLinks() secrethub.IDPLinkService {
-	return c.IDPLinkService
-}
-
-func (c Client) Credentials() secrethub.CredentialService {
-	return c.CredentialService
 }
