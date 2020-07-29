@@ -14,7 +14,7 @@ var (
 
 // AccountService handles operations on SecretHub accounts.
 type AccountService interface {
-	// Me retrieves the account of the client.
+	// Me retrieves the authenticated account of the client.
 	Me() (*api.Account, error)
 	// Get retrieves an account by name.
 	Get(name string) (*api.Account, error)
