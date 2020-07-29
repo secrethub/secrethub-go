@@ -32,7 +32,7 @@ type accountService struct {
 	client *Client
 }
 
-// Me retrieves the account of the client.
+// Me retrieves the authenticated account of the client.
 func (s accountService) Me() (*api.Account, error) {
 	return s.client.getMyAccount()
 }
