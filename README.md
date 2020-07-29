@@ -7,7 +7,7 @@
   <i>Go Client</i>
 </h1>
 
-[![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
+[![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
 [![CircleCI](https://circleci.com/gh/secrethub/secrethub-go.svg?style=shield)][circle-ci]
 [![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard]
 [![Version]( https://img.shields.io/github/release/secrethub/secrethub-go.svg)][latest-version]
