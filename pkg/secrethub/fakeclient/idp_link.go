@@ -4,6 +4,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/oauthorizer"
 	"github.com/secrethub/secrethub-go/pkg/secrethub"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 type IDPLinkService struct {
@@ -45,4 +46,23 @@ func (i IDPLinkGCPService) Delete(namespace string, projectID string) error {
 
 func (i IDPLinkGCPService) AuthorizationCodeListener(namespace string, projectID string) (oauthorizer.CallbackHandler, error) {
 	return i.AuthorizationCodeListenerFunc(namespace, projectID)
+}
+
+type IDPLinkIterator struct {
+	IDPLinks     []*api.IdentityProviderLink
+	CurrentIndex int
+	Err          error
+}
+
+func (c *IDPLinkIterator) Next() (api.IdentityProviderLink, error) {
+	if c.Err != nil {
+		return api.IdentityProviderLink{}, c.Err
+	}
+
+	currentIndex := c.CurrentIndex
+	if currentIndex >= len(c.IDPLinks) {
+		return api.IdentityProviderLink{}, iterator.Done
+	}
+	c.CurrentIndex++
+	return *c.IDPLinks[currentIndex], nil
 }
