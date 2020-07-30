@@ -4,6 +4,7 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/pkg/secrethub"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 type CredentialService struct {
@@ -22,4 +23,23 @@ func (c *CredentialService) Disable(fingerprint string) error {
 
 func (c *CredentialService) List(credentialListParams *secrethub.CredentialListParams) secrethub.CredentialIterator {
 	return c.ListFunc(credentialListParams)
+}
+
+type CredentialIterator struct {
+	Credentials  []*api.Credential
+	CurrentIndex int
+	Err          error
+}
+
+func (c *CredentialIterator) Next() (api.Credential, error) {
+	if c.Err != nil {
+		return api.Credential{}, c.Err
+	}
+
+	currentIndex := c.CurrentIndex
+	if currentIndex >= len(c.Credentials) {
+		return api.Credential{}, iterator.Done
+	}
+	c.CurrentIndex++
+	return *c.Credentials[currentIndex], nil
 }
