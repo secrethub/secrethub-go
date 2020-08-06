@@ -2,8 +2,9 @@ package credentials
 
 import (
 	"fmt"
-	"github.com/secrethub/secrethub-go/internals/auth"
 	"net/http"
+
+	"github.com/secrethub/secrethub-go/internals/auth"
 )
 
 type SetupCode struct {
@@ -12,7 +13,7 @@ type SetupCode struct {
 
 func NewSetupCode(code string) *SetupCode {
 	return &SetupCode{
-		code:code,
+		code: code,
 	}
 }
 

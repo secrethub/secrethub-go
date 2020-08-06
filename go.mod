@@ -17,6 +17,7 @@ require (
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	google.golang.org/api v0.26.0
 	google.golang.org/genproto v0.0.0-20200331122359-1ee6d9798940
+	google.golang.org/grpc v1.28.0
 )
 
 go 1.13

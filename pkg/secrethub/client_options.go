@@ -1,10 +1,11 @@
 package secrethub
 
 import (
-	"github.com/secrethub/secrethub-go/internals/api"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/secrethub/secrethub-go/internals/api"
 
 	"github.com/secrethub/secrethub-go/pkg/secrethub/configdir"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
