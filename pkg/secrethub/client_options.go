@@ -88,6 +88,7 @@ func WithSetupCode(setupCode string) ClientOption {
 		if err != nil {
 			return err
 		}
+
 		setupCodeAuthenticator := credentials.NewSetupCode(setupCode)
 		c.httpClient.Options(httpclient.WithAuthenticator(setupCodeAuthenticator))
 		return nil
