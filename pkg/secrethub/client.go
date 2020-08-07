@@ -207,7 +207,7 @@ func (c *Client) Accounts() AccountService {
 
 // Credentials returns a service used to manage credentials.
 func (c *Client) Credentials() CredentialService {
-	return newCredentialService(c)
+	return newCredentialService(c, c.httpClient.IsAuthenticated, c.isKeyed)
 }
 
 // Dirs returns a service used to manage directories.
@@ -270,6 +270,10 @@ func (c *Client) DefaultCredential() credentials.Reader {
 	}
 
 	return c.ConfigDir.Credential()
+}
+
+func (c *Client) isKeyed() bool {
+	return c.decrypter != nil
 }
 
 func (c *Client) userAgent() string {

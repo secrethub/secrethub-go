@@ -1,6 +1,7 @@
 package secrethub
 
 import (
+	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 
 	"github.com/secrethub/secrethub-go/internals/api"
@@ -17,23 +18,39 @@ type CredentialService interface {
 	List(_ *CredentialListParams) CredentialIterator
 }
 
-func newCredentialService(client *Client) CredentialService {
+func newCredentialService(client *Client, isAuthenticated func() bool, isKeyed func() bool) CredentialService {
 	return credentialService{
-		client: client,
+		client:          client,
+		isAuthenticated: isAuthenticated,
+		isKeyed:         isKeyed,
 	}
 }
 
 type credentialService struct {
-	client *Client
+	client          *Client
+	isAuthenticated func() bool
+	isKeyed         func() bool
 }
 
 // Create a new credential from the credentials.Creator for an existing account.
-// This includes a re-encrypted copy the the account key.
+// If the account is already keyed, the key is re-encrypted for the new credential.
+// If the account is not yet keyed, a new account key is also created.
 // Description is optional and can be left empty.
 func (s credentialService) Create(creator credentials.Creator, description string) (*api.Credential, error) {
-	accountKey, err := s.client.getAccountKey()
-	if err != nil {
-		return nil, err
+	if !s.isAuthenticated() {
+		return nil, ErrNoDecryptionKey
+	}
+
+	var accountKey crypto.RSAPrivateKey
+	var err error
+	if !s.isKeyed() {
+		accountKey, err = generateAccountKey()
+	} else {
+		key, err := s.client.getAccountKey()
+		if err != nil {
+			return nil, err
+		}
+		accountKey = *key
 	}
 
 	err = creator.Create()
@@ -47,7 +64,7 @@ func (s credentialService) Create(creator credentials.Creator, description strin
 		return nil, err
 	}
 
-	accountKeyRequest, err := s.client.createAccountKeyRequest(creator.Encrypter(), *accountKey)
+	accountKeyRequest, err := s.client.createAccountKeyRequest(creator.Encrypter(), accountKey)
 	if err != nil {
 		return nil, err
 	}
