@@ -39,7 +39,7 @@ var (
 	whitelistOrgName            = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s{%d,%d})$`, patternUniformNameCharacters, uniformNameMinimumLength, uniformNameMaximumLength))
 	whitelistFullName           = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s{1,128})$`, patternFullName))
 	whitelistDescription        = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s)$`, patternDescription))
-	whitelistSetupCode          = regexp.MustCompile("su-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}")
+	whitelistSetupCode          = regexp.MustCompile("^su-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}$")
 
 	whitelistAtLeastOneAlphanumeric = regexp.MustCompile(fmt.Sprintf("%s{1,}", patternAlphanumeric))
 
