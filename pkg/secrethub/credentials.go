@@ -45,6 +45,9 @@ func (s credentialService) Create(creator credentials.Creator, description strin
 	var err error
 	if !s.isKeyed() {
 		accountKey, err = generateAccountKey()
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		key, err := s.client.getAccountKey()
 		if err != nil {
