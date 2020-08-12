@@ -138,7 +138,7 @@ func NewClient(with ...ClientOption) (*Client, error) {
 	}
 
 	// Try to use default key credentials if none provided explicitly
-	if client.decrypter == nil {
+	if !client.httpClient.IsAuthenticated() && client.decrypter == nil {
 		identityProvider := os.Getenv("SECRETHUB_IDENTITY_PROVIDER")
 
 		var provider credentials.Provider
