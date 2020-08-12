@@ -39,6 +39,7 @@ var (
 	whitelistOrgName            = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s{%d,%d})$`, patternUniformNameCharacters, uniformNameMinimumLength, uniformNameMaximumLength))
 	whitelistFullName           = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s{1,128})$`, patternFullName))
 	whitelistDescription        = regexp.MustCompile(fmt.Sprintf(`(?i)^(%s)$`, patternDescription))
+	whitelistSetupCode          = regexp.MustCompile("^su-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}$")
 
 	whitelistAtLeastOneAlphanumeric = regexp.MustCompile(fmt.Sprintf("%s{1,}", patternAlphanumeric))
 
@@ -89,6 +90,7 @@ var (
 	ErrInvalidGCPServiceAccountEmail        = errAPI.Code("invalid_service_account_email").StatusError("not a valid GCP service account email", http.StatusBadRequest)
 	ErrNotUserManagerGCPServiceAccountEmail = errAPI.Code("require_user_managed_service_account").StatusError("provided GCP service account email is not for a user-manager service account", http.StatusBadRequest)
 	ErrInvalidGCPKMSResourceID              = errAPI.Code("invalid_key_resource_id").StatusError("not a valid resource ID, expected: projects/PROJECT_ID/locations/LOCATION/keyRings/KEY_RING/cryptoKeys/KEY", http.StatusBadRequest)
+	ErrInvalidSetupCode                     = errAPI.Code("invalid_setup_code").StatusError("setup codes consist of the su- prefix followed by 4 groups of lowercase alphanumeric strings separated by dashes", http.StatusBadRequest)
 )
 
 // ValidateNamespace validates a username.
@@ -351,5 +353,13 @@ func ValidateGCPKMSKeyResourceID(v string) error {
 		return ErrInvalidGCPKMSResourceID
 	}
 
+	return nil
+}
+
+// ValidateSetupCode checks whether the given string has the format of a valid setup code.
+func ValidateSetupCode(code string) error {
+	if !whitelistSetupCode.MatchString(code) {
+		return ErrInvalidSetupCode
+	}
 	return nil
 }

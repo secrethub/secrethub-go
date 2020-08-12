@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/secrethub/secrethub-go/internals/api"
+
 	"github.com/secrethub/secrethub-go/pkg/secrethub/configdir"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 	httpclient "github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
@@ -75,6 +77,20 @@ func WithCredentials(provider credentials.Provider) ClientOption {
 		}
 		c.decrypter = decrypter
 		c.httpClient.Options(httpclient.WithAuthenticator(authenticator))
+		return nil
+	}
+}
+
+// WithSetupCode configures the client to use the provided setup code for authentication.
+func WithSetupCode(setupCode string) ClientOption {
+	return func(c *Client) error {
+		err := api.ValidateSetupCode(setupCode)
+		if err != nil {
+			return err
+		}
+
+		setupCodeAuthenticator := credentials.NewSetupCode(setupCode)
+		c.httpClient.Options(httpclient.WithAuthenticator(setupCodeAuthenticator))
 		return nil
 	}
 }
