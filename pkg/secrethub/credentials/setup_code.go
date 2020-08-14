@@ -4,11 +4,17 @@ import (
 	"fmt"
 	"net/http"
 
+	httpclient "github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
+
 	"github.com/secrethub/secrethub-go/internals/auth"
 )
 
 type SetupCode struct {
 	code string
+}
+
+func (s *SetupCode) Provide(client *httpclient.Client) (auth.Authenticator, Decrypter, error) {
+	return s, nil, nil
 }
 
 func NewSetupCode(code string) *SetupCode {
