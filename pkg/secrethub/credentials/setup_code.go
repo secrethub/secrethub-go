@@ -13,6 +13,8 @@ type SetupCode struct {
 	code string
 }
 
+// Provide implements the Provider interface for the setup code.
+// Note that no decrypter is ever returned as setup codes cannot be used to decrypt secrets.
 func (s *SetupCode) Provide(client *httpclient.Client) (auth.Authenticator, Decrypter, error) {
 	return s, nil, nil
 }
