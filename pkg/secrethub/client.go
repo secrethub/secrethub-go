@@ -2,6 +2,7 @@
 // look here to read, write and manage secrets.
 package secrethub
 
+import "C"
 import (
 	"os"
 	"regexp"
@@ -289,4 +290,35 @@ func (c *Client) userAgent() string {
 	userAgent += " (" + osName + "; " + runtime.GOARCH + ")"
 
 	return userAgent
+}
+
+// Resolve fetches the value of a secret, when the `ref` parameter has the
+// format `secrethub://<path>`. Otherwise it returns `ref` unchanged, as an array of bytes.
+func (c *Client) Resolve(ref string) ([]byte, error) {
+	bits := strings.Split(ref, "://")
+	if len(bits) == 2 && bits[0] == "secrethub" {
+		secret, err := c.Secrets().Read(bits[1])
+		if err != nil {
+			return []byte{}, err
+		}
+		return secret.Data, nil
+	}
+	return []byte(ref), nil
+}
+
+// ResolveEnv takes a map of environment variables and replaces the values of those
+// which store references of secrets in SecretHub (`secrethub://<path>`) with the value
+// of the respective secret. The other entries in the map remain untouched.
+func (c *Client) ResolveEnv() (map[string]string, error) {
+	envVars := os.Environ()
+	resolvedEnv := make(map[string]string, len(envVars))
+	for _, value := range envVars {
+		keyValue := strings.Split(value, "=")
+		secretValue, err := c.Resolve(keyValue[1])
+		if err != nil {
+			return map[string]string{}, err
+		}
+		resolvedEnv[keyValue[0]] = string(secretValue)
+	}
+	return resolvedEnv, nil
 }
