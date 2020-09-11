@@ -19,7 +19,17 @@ type SecretService struct {
 	ExistsFunc         func(path string) (bool, error)
 	WriteFunc          func(path string, data []byte) (*api.SecretVersion, error)
 	ListEventsFunc     func(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
+	ResolveFunc        func(ref string) ([]byte, error)
+	ResolveEnvFunc     func(envVars []string) (map[string]string, error)
 	AuditEventIterator *AuditEventIterator
+}
+
+func (s *SecretService) Resolve(ref string) ([]byte, error) {
+	return s.ResolveFunc(ref)
+}
+
+func (s *SecretService) ResolveEnv(envVars []string) (map[string]string, error) {
+	return s.ResolveEnvFunc(envVars)
 }
 
 // Delete implements the SecretService interface Delete function.

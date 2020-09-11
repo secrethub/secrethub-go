@@ -1,6 +1,8 @@
 package secrethub
 
 import (
+	"strings"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/errio"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
@@ -50,6 +52,13 @@ type SecretService interface {
 	ListEvents(path string, subjectTypes api.AuditSubjectTypeList) ([]*api.Audit, error)
 	// Versions returns a SecretVersionService.
 	Versions() SecretVersionService
+	// Resolve fetches the value of a secret, when the `ref` parameter has the
+	// format `secrethub://<path>`. Otherwise it returns `ref` unchanged, as an array of bytes.
+	Resolve(ref string) ([]byte, error)
+	// ResolveEnv takes a map of environment variables and replaces the values of those
+	// which store references of secrets in SecretHub (`secrethub://<path>`) with the value
+	// of the respective secret. The other entries in the map remain untouched.
+	ResolveEnv(envVars []string) (map[string]string, error)
 }
 
 func newSecretService(client *Client) SecretService {
@@ -265,4 +274,34 @@ func (c *Client) convertPathToBlindName(path api.BlindNamePath) (string, error) 
 		return "", errio.Error(err)
 	}
 	return blindName, nil
+}
+
+// Resolve fetches the value of a secret, when the `ref` parameter has the
+// format `secrethub://<path>`. Otherwise it returns `ref` unchanged, as an array of bytes.
+func (s secretService) Resolve(ref string) ([]byte, error) {
+	bits := strings.Split(ref, "://")
+	if len(bits) == 2 && strings.ToLower(bits[0]) == "secrethub" {
+		secret, err := s.Read(bits[1])
+		if err != nil {
+			return []byte{}, err
+		}
+		return secret.Data, nil
+	}
+	return []byte(ref), nil
+}
+
+// ResolveEnv takes a map of environment variables and replaces the values of those
+// which store references of secrets in SecretHub (`secrethub://<path>`) with the value
+// of the respective secret. The other entries in the map remain untouched.
+func (s secretService) ResolveEnv(envVars []string) (map[string]string, error) {
+	resolvedEnv := make(map[string]string, len(envVars))
+	for _, value := range envVars {
+		keyValue := strings.Split(value, "=")
+		secretValue, err := s.Resolve(keyValue[1])
+		if err != nil {
+			return map[string]string{}, err
+		}
+		resolvedEnv[keyValue[0]] = string(secretValue)
+	}
+	return resolvedEnv, nil
 }
