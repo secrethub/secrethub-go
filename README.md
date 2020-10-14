@@ -7,7 +7,7 @@
   <i>Go Client</i>
 </h1>
 
-[![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
+[![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)][godoc]
 [![CircleCI](https://circleci.com/gh/secrethub/secrethub-go.svg?style=shield)][circle-ci]
 [![Go Report Card](https://goreportcard.com/badge/github.com/secrethub/secrethub-go)][goreportcard]
 [![Version]( https://img.shields.io/github/release/secrethub/secrethub-go.svg)][latest-version]
@@ -15,7 +15,7 @@
 
 `secrethub-go` provides a client for various SecretHub APIs.
 
-> [SecretHub][secrethub] is an end-to-end encrypted secret management service that helps developers keep database passwords, API keys, and other secrets out of source code.
+> [SecretHub][secrethub] is a secrets management tool that works for every engineer. Securely provision passwords and keys throughout your entire stack with just a few lines of code.
 
 <img src="https://secrethub.io/img/secrethub-gopher.png" alt="Gopher" width="160px"/>
 
@@ -148,7 +148,7 @@ If you get stuck or just want advice, come chat with the engineers on [Discord][
 [latest-version]: https://github.com/secrethub/secrethub-go/releases/latest
 [issues]: https://github.com/secrethub/secrethub-go/issues/new
 [pulls]: https://github.com/secrethub/secrethub-go/pulls
-[godoc]: http://godoc.org/github.com/secrethub/secrethub-go
+[godoc]: https://pkg.go.dev/github.com/secrethub/secrethub-go?tab=overview
 [goreportcard]: https://goreportcard.com/report/github.com/secrethub/secrethub-go
 [circle-ci]: https://circleci.com/gh/secrethub/secrethub-go
 [discord]: https://discord.gg/EQcE87s

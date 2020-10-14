@@ -832,6 +832,10 @@ func (c *Client) do(rawURL string, method string, authenticate bool, expectedSta
 	return nil
 }
 
+func (c *Client) IsAuthenticated() bool {
+	return c.authenticator != nil
+}
+
 func joinURL(base url.URL, paths ...string) url.URL {
 	for _, path := range paths {
 		base.Path += "/" + strings.Trim(path, "/")
