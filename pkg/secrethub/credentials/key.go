@@ -70,7 +70,7 @@ func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
 	}
 	if encoded.IsEncrypted() {
 		if passphraseReader == nil {
-			return Key{}, errors.New("need passphrase")
+			return Key{}, ErrNeedPassphrase
 		}
 
 		// Try up to three times to get the correct passphrase.
