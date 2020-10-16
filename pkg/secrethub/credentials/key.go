@@ -2,7 +2,6 @@ package credentials
 
 import (
 	"errors"
-
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
@@ -54,6 +53,55 @@ func (k Key) Export() ([]byte, error) {
 		return EncodeEncryptedCredential(k.key, passBasedKey)
 	}
 	return EncodeCredential(k.key)
+}
+
+type KeyDecoder interface {
+	WithPassphrase(passphraseReader Reader)
+	Decode([]byte) (Key, error)
+}
+
+type credentialDecoder struct{
+	passphraseReader Reader
+}
+
+func (d credentialDecoder) Decode(bytes []byte) (Key, error) {
+	encoded, err := defaultParser.parse(bytes)
+	if err != nil {
+		return Key{}, err
+	}
+	if encoded.IsEncrypted() {
+		if d.passphraseReader == nil {
+			return Key{}, ErrNeedPassphrase
+		}
+
+		// Try up to three times to get the correct passphrase.
+		for i := 0; i < 3; i++ {
+			passphrase, err := d.passphraseReader.Read()
+			if err != nil {
+				return Key{}, err
+			}
+			if len(passphrase) == 0 {
+				continue
+			}
+
+			credential, err := decryptKey(passphrase, encoded)
+			if crypto.IsWrongKey(err) {
+				continue
+			} else if err != nil {
+				return Key{}, err
+			}
+
+			return Key{key: credential}, nil
+		}
+
+		return Key{}, ErrCannotDecryptCredential
+	}
+	credential, err := encoded.Decode()
+	if err != nil {
+		return Key{}, err
+	}
+
+	return Key{key: credential}, nil
 }
 
 // ImportKey returns a Key by loading it from the provided credentialReader.
