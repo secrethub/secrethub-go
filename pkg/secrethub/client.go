@@ -155,7 +155,7 @@ func NewClient(with ...ClientOption) (*Client, error) {
 
 		err = client.with(WithCredentials(provider))
 		// nolint: staticcheck
-		if err != configdir.ErrCredentialNotFound {
+		if err != configdir.ErrCredentialNotFound && err != nil {
 			return nil, err
 		} else if err != nil {
 			// TODO: log that default credential was not found.
