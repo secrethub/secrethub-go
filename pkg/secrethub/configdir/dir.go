@@ -5,6 +5,7 @@ package configdir
 import (
 	"errors"
 	"fmt"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -95,12 +96,16 @@ func (f *CredentialFile) Exists() bool {
 }
 
 // Read reads from the filesystem and returns the contents of the credential file.
-func (f *CredentialFile) Read() ([]byte, error) {
+func (f *CredentialFile) Read(decoder credentials.KeyDecoder) (credentials.Key, error) {
 	file, err := os.Open(f.path)
 	if os.IsNotExist(err) {
-		return nil, ErrCredentialNotFound
+		return credentials.Key{}, ErrCredentialNotFound
 	} else if err != nil {
-		return nil, err
+		return credentials.Key{}, err
 	}
-	return ioutil.ReadAll(file)
+	bytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		return credentials.Key{}, err
+	}
+	return decoder.Decode(bytes)
 }

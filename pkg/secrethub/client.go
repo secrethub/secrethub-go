@@ -144,7 +144,7 @@ func NewClient(with ...ClientOption) (*Client, error) {
 		var provider credentials.Provider
 		switch strings.ToLower(identityProvider) {
 		case "", "key":
-			provider = credentials.UseKey(client.DefaultCredential())
+			provider = credentials.UseKey(client.DefaultCredential(), credentials.DefaultKeyDecoder())
 		case "aws":
 			provider = credentials.UseAWS()
 		case "gcp":
@@ -153,7 +153,7 @@ func NewClient(with ...ClientOption) (*Client, error) {
 			return nil, ErrUnknownIdentityProvider(identityProvider)
 		}
 
-		err := client.with(WithCredentials(provider))
+		err = client.with(WithCredentials(provider))
 		// nolint: staticcheck
 		if err != configdir.ErrCredentialNotFound {
 			return nil, err
@@ -265,7 +265,7 @@ func (c *Client) with(options ...ClientOption) error {
 // DefaultCredential returns a reader pointing to the configured credential,
 // sourcing it either from the SECRETHUB_CREDENTIAL environment variable or
 // from the configuration directory.
-func (c *Client) DefaultCredential() credentials.Reader {
+func (c *Client) DefaultCredential() credentials.KeyReader {
 	envCredential := os.Getenv("SECRETHUB_CREDENTIAL")
 	if envCredential != "" {
 		return credentials.FromString(envCredential)
