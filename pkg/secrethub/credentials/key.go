@@ -56,11 +56,20 @@ func (k Key) Export() ([]byte, error) {
 }
 
 type KeyDecoder interface {
-	WithPassphrase(passphraseReader Reader)
 	Decode([]byte) (Key, error)
 }
 
-type credentialDecoder struct{
+func DefaultKeyDecoder() KeyDecoder {
+	return credentialDecoder{}
+}
+
+func KeyDecoderWithPassphrase(passphraseReader Reader) KeyDecoder {
+	return credentialDecoder{
+		passphraseReader: passphraseReader,
+	}
+}
+
+type credentialDecoder struct {
 	passphraseReader Reader
 }
 
