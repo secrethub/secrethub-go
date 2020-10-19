@@ -58,11 +58,3 @@ func (f keyReaderFunc) Read(decoder KeyDecoder) (Key, error) {
 	}
 	return decoder.Decode(keyBytes)
 }
-
-// readerFunc is a helper function to create a reader from any func() ([]byte, error).
-type readerFunc func() ([]byte, error)
-
-// Read implements the Reader interface.
-func (f readerFunc) Read() ([]byte, error) {
-	return f()
-}

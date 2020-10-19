@@ -2,6 +2,7 @@ package credentials
 
 import (
 	"errors"
+
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"

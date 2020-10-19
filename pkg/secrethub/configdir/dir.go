@@ -5,10 +5,11 @@ package configdir
 import (
 	"errors"
 	"fmt"
-	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
 
 	"github.com/mitchellh/go-homedir"
 )
