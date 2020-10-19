@@ -113,53 +113,6 @@ func (d credentialDecoder) Decode(bytes []byte) (Key, error) {
 	return Key{key: credential}, nil
 }
 
-// ImportKey returns a Key by loading it from the provided credentialReader.
-// If the key is encrypted with a passphrase, passphraseReader should be provided. This is used to read a passphrase
-// from that is used for decryption. If the passphrase is incorrect, a new passphrase will be read up to 3 times.
-func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
-	bytes, err := credentialReader.Read()
-	if err != nil {
-		return Key{}, err
-	}
-	encoded, err := defaultParser.parse(bytes)
-	if err != nil {
-		return Key{}, err
-	}
-	if encoded.IsEncrypted() {
-		if passphraseReader == nil {
-			return Key{}, ErrNeedPassphrase
-		}
-
-		// Try up to three times to get the correct passphrase.
-		for i := 0; i < 3; i++ {
-			passphrase, err := passphraseReader.Read()
-			if err != nil {
-				return Key{}, err
-			}
-			if len(passphrase) == 0 {
-				continue
-			}
-
-			credential, err := decryptKey(passphrase, encoded)
-			if crypto.IsWrongKey(err) {
-				continue
-			} else if err != nil {
-				return Key{}, err
-			}
-
-			return Key{key: credential}, nil
-		}
-
-		return Key{}, ErrCannotDecryptCredential
-	}
-	credential, err := encoded.Decode()
-	if err != nil {
-		return Key{}, err
-	}
-
-	return Key{key: credential}, nil
-}
-
 func decryptKey(passphrase []byte, encoded *encodedCredential) (*RSACredential, error) {
 	key, err := NewPassBasedKey(passphrase)
 	if err != nil {
