@@ -11,7 +11,7 @@ import (
 // Key is a credential that uses a local key for all its operations.
 type Key struct {
 	key              *RSACredential
-	exportPassphrase Reader
+	exportPassphrase PassphraseReader
 }
 
 // Verifier returns a Verifier that can be used for creating a new credential from this Key.
@@ -31,7 +31,7 @@ func (k Key) Provide(httpClient *http.Client) (auth.Authenticator, Decrypter, er
 
 // Passphrase returns a new Key that uses the provided passphraseReader to obtain a passphrase that is used for
 // encryption when Export() is called.
-func (k Key) Passphrase(passphraseReader Reader) Key {
+func (k Key) Passphrase(passphraseReader PassphraseReader) Key {
 	k.exportPassphrase = passphraseReader
 	return k
 }
@@ -64,14 +64,14 @@ func DefaultKeyDecoder() KeyDecoder {
 	return credentialDecoder{}
 }
 
-func KeyDecoderWithPassphrase(passphraseReader Reader) KeyDecoder {
+func KeyDecoderWithPassphrase(passphraseReader PassphraseReader) KeyDecoder {
 	return credentialDecoder{
 		passphraseReader: passphraseReader,
 	}
 }
 
 type credentialDecoder struct {
-	passphraseReader Reader
+	passphraseReader PassphraseReader
 }
 
 func (d credentialDecoder) Decode(bytes []byte) (Key, error) {

@@ -23,8 +23,8 @@ func UseKey(credentialReader KeyReader, decoder KeyDecoder) KeyProvider {
 	}
 }
 
-// KeyProvider is a Provider that reads a key from a Reader.
-// If the key is encrypted with a passphrase, Passphrase() should be called on the KeyProvider to set the Reader that
+// KeyProvider is a Provider that reads a key from a PassphraseReader.
+// If the key is encrypted with a passphrase, Passphrase() should be called on the KeyProvider to set the PassphraseReader that
 // provides the passphrase that can be used to decrypt the key.
 type KeyProvider struct {
 	credentialReader KeyReader

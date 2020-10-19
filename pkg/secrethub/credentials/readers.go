@@ -5,8 +5,8 @@ import (
 	"os"
 )
 
-// Reader helps with reading bytes from a configured source.
-type Reader interface {
+// PassphraseReader helps with reading bytes from a configured source.
+type PassphraseReader interface {
 	// Read reads from the reader and returns the resulting bytes.
 	Read() ([]byte, error)
 }
