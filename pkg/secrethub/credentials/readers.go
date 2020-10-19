@@ -11,6 +11,20 @@ type PassphraseReader interface {
 	Read() ([]byte, error)
 }
 
+type passphraseReader func() ([]byte, error)
+
+func (p passphraseReader) Read() ([]byte, error) {
+	return p()
+}
+
+// PassphraseFromString returns a reader that simply returns the given string as
+// a byte slice when Read() is called.
+func PassphraseFromString(passphrase string) PassphraseReader {
+	return passphraseReader(func() ([]byte, error) {
+		return []byte(passphrase), nil
+	})
+}
+
 type KeyReader interface {
 	Read(decoder KeyDecoder) (Key, error)
 }
