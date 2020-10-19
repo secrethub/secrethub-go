@@ -19,7 +19,7 @@ type Provider interface {
 func UseKey(credentialReader KeyReader, decoder KeyDecoder) KeyProvider {
 	return KeyProvider{
 		credentialReader: credentialReader,
-		decoder: decoder,
+		decoder:          decoder,
 	}
 }
 
@@ -28,7 +28,7 @@ func UseKey(credentialReader KeyReader, decoder KeyDecoder) KeyProvider {
 // provides the passphrase that can be used to decrypt the key.
 type KeyProvider struct {
 	credentialReader KeyReader
-	decoder KeyDecoder
+	decoder          KeyDecoder
 }
 
 func (k KeyProvider) Decoder(keyDecoder KeyDecoder) Provider {
