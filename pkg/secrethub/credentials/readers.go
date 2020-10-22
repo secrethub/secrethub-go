@@ -32,43 +32,43 @@ type KeyReader interface {
 // FromFile returns a reader that reads the contents of a file,
 // e.g. a credential or a passphrase.
 func FromFile(path string) KeyReader {
-	return keyReaderFunc(func() ([]byte, error) {
-		return ioutil.ReadFile(path)
+	return keyReaderFunc(func(decoder KeyDecoder) (Key, error) {
+		keyBytes, err := ioutil.ReadFile(path)
+		if err != nil {
+			return Key{}, err
+		}
+		return decoder.Decode(keyBytes)
 	})
 }
 
 // FromEnv returns a reader that reads the contents of an
 // environment variable, e.g. a credential or a passphrase.
 func FromEnv(key string) KeyReader {
-	return keyReaderFunc(func() ([]byte, error) {
-		return []byte(os.Getenv(key)), nil
+	return keyReaderFunc(func(decoder KeyDecoder) (Key, error) {
+		return decoder.Decode([]byte(os.Getenv(key)))
 	})
 }
 
 // FromBytes returns a reader that simply returns the given bytes
 // when Read() is called.
 func FromBytes(raw []byte) KeyReader {
-	return keyReaderFunc(func() ([]byte, error) {
-		return raw, nil
+	return keyReaderFunc(func(decoder KeyDecoder) (Key, error) {
+		return decoder.Decode(raw)
 	})
 }
 
 // FromString returns a reader that simply returns the given string as
 // a byte slice when Read() is called.
 func FromString(raw string) KeyReader {
-	return keyReaderFunc(func() ([]byte, error) {
-		return []byte(raw), nil
+	return keyReaderFunc(func(decoder KeyDecoder) (Key, error) {
+		return decoder.Decode([]byte(raw))
 	})
 }
 
-// keyReaderFunc is a helper function to create a reader from any func() ([]byte, error).
-type keyReaderFunc func() ([]byte, error)
+// keyReaderFunc is a helper function to create a KeyReader with a custom Read function.
+type keyReaderFunc func(decoder KeyDecoder) (Key, error)
 
 // Read implements the Reader interface.
 func (f keyReaderFunc) Read(decoder KeyDecoder) (Key, error) {
-	keyBytes, err := f()
-	if err != nil {
-		return Key{}, err
-	}
-	return decoder.Decode(keyBytes)
+	return f(decoder)
 }
