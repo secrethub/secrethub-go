@@ -1,6 +1,7 @@
 package credentials
 
 import (
+	"github.com/secrethub/secrethub-go/pkg/secrethub/configdir"
 	"io/ioutil"
 	"os"
 )
@@ -37,7 +38,14 @@ func FromFile(path string) KeyReader {
 		if err != nil {
 			return Key{}, err
 		}
-		return decoder.Decode(keyBytes)
+		key, err := decoder.Decode(keyBytes)
+		if err != nil {
+			return Key{}, configdir.ErrDecodingCredential{
+				Location: path,
+				Err:      err,
+			}
+		}
+		return key, nil
 	})
 }
 
