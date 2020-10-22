@@ -21,7 +21,7 @@ var (
 
 type ErrDecodingCredential struct {
 	Location string
-	Err     error
+	Err      error
 }
 
 func (e ErrDecodingCredential) Error() string {
