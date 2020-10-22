@@ -1,10 +1,19 @@
 package credentials
 
 import (
-	"github.com/secrethub/secrethub-go/pkg/secrethub/configdir"
+	"fmt"
 	"io/ioutil"
 	"os"
 )
+
+type ErrDecodingCredential struct {
+	Location string
+	Err      error
+}
+
+func (e ErrDecodingCredential) Error() string {
+	return fmt.Sprintf("error decoding credential loaded from '%s': %v", e.Location, e.Err)
+}
 
 // PassphraseReader helps with reading bytes from a configured source.
 type PassphraseReader interface {
@@ -40,7 +49,7 @@ func FromFile(path string) KeyReader {
 		}
 		key, err := decoder.Decode(keyBytes)
 		if err != nil {
-			return Key{}, configdir.ErrDecodingCredential{
+			return Key{}, ErrDecodingCredential{
 				Location: path,
 				Err:      err,
 			}
@@ -55,7 +64,7 @@ func FromEnv(envVarKey string) KeyReader {
 	return keyReaderFunc(func(decoder KeyDecoder) (Key, error) {
 		key, err := decoder.Decode([]byte(os.Getenv(envVarKey)))
 		if err != nil {
-			return Key{}, configdir.ErrDecodingCredential{
+			return Key{}, ErrDecodingCredential{
 				Location: "$" + envVarKey,
 				Err:      err,
 			}
