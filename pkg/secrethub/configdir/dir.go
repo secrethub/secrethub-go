@@ -19,6 +19,15 @@ var (
 	ErrCredentialNotFound = errors.New("credential not found")
 )
 
+type ErrDecodingCredential struct {
+	Location string
+	Err     error
+}
+
+func (e ErrDecodingCredential) Error() string {
+	return fmt.Sprintf("error decoding credential loaded from '%s': %v", e.Location, e.Err)
+}
+
 // Dir represents the configuration directory located at some path
 // on the file system.
 type Dir struct {
@@ -108,5 +117,12 @@ func (f *CredentialFile) Read(decoder credentials.KeyDecoder) (credentials.Key, 
 	if err != nil {
 		return credentials.Key{}, err
 	}
-	return decoder.Decode(bytes)
+	key, err := decoder.Decode(bytes)
+	if err != nil {
+		return credentials.Key{}, ErrDecodingCredential{
+			Location: f.path,
+			Err:      err,
+		}
+	}
+	return key, nil
 }
