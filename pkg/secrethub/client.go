@@ -266,9 +266,10 @@ func (c *Client) with(options ...ClientOption) error {
 // sourcing it either from the SECRETHUB_CREDENTIAL environment variable or
 // from the configuration directory.
 func (c *Client) DefaultCredential() credentials.KeyReader {
-	envCredential := os.Getenv("SECRETHUB_CREDENTIAL")
+	const credentialEnvVar = "SECRETHUB_CREDENTIAL"
+	envCredential := os.Getenv(credentialEnvVar)
 	if envCredential != "" {
-		return credentials.FromString(envCredential)
+		return credentials.FromEnv(credentialEnvVar)
 	}
 
 	return c.ConfigDir.Credential()
