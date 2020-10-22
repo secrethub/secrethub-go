@@ -51,9 +51,16 @@ func FromFile(path string) KeyReader {
 
 // FromEnv returns a reader that reads the contents of an
 // environment variable, e.g. a credential or a passphrase.
-func FromEnv(key string) KeyReader {
+func FromEnv(envVarKey string) KeyReader {
 	return keyReaderFunc(func(decoder KeyDecoder) (Key, error) {
-		return decoder.Decode([]byte(os.Getenv(key)))
+		key, err := decoder.Decode([]byte(os.Getenv(envVarKey)))
+		if err != nil {
+			return Key{}, configdir.ErrDecodingCredential{
+				Location: "$" + envVarKey,
+				Err:      err,
+			}
+		}
+		return key, nil
 	})
 }
 
