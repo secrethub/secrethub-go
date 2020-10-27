@@ -2,7 +2,6 @@ package secrethub
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -31,6 +30,12 @@ func TestSignup(t *testing.T) {
 		client: Must(NewClient(opts...)),
 	}
 
+	accountKey, err := crypto.GenerateRSAPrivateKey(512)
+	assert.OK(t, err)
+
+	publicAccountKey, err := accountKey.Public().Encode()
+	assert.OK(t, err)
+
 	expectedCreateUserRequest := api.CreateUserRequest{
 		Username: username,
 		FullName: fullName,
@@ -40,12 +45,16 @@ func TestSignup(t *testing.T) {
 			Fingerprint: cred1Fingerprint,
 			Verifier:    cred1Verifier,
 			Proof:       &api.CredentialProofKey{},
+			AccountKey: &api.CreateAccountKeyRequest{
+				PublicKey: publicAccountKey,
+			},
 		},
 	}
 
 	now := time.Now().UTC()
 	expectedResponse := &api.User{
 		AccountID:   uuid.New(),
+		PublicKey:   publicAccountKey,
 		Username:    username,
 		FullName:    fullName,
 		Email:       email,
@@ -60,30 +69,9 @@ func TestSignup(t *testing.T) {
 
 		assert.OK(t, req.Validate())
 
-		assert.Equal(t, req, expectedCreateUserRequest)
-
-		// Respond
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		_ = json.NewEncoder(w).Encode(expectedResponse)
-	})
-
-	accountKey, err := crypto.GenerateRSAPrivateKey(512)
-	assert.OK(t, err)
-
-	publicAccountKey, err := accountKey.Public().Encode()
-	assert.OK(t, err)
-
-	router.Post(fmt.Sprintf("/me/credentials/%s/key", cred1Fingerprint), func(w http.ResponseWriter, r *http.Request) {
-		// Assert
-		req := new(api.CreateAccountKeyRequest)
-		err := json.NewDecoder(r.Body).Decode(&req)
-		assert.OK(t, err)
-
-		assert.OK(t, req.Validate())
-
 		// We cannot predict the output of the encrypted key, therefore we do not test it here.
-		assert.Equal(t, req.PublicKey, publicAccountKey)
+		req.Credential.AccountKey.EncryptedPrivateKey = nil
+		assert.Equal(t, req, expectedCreateUserRequest)
 
 		// Respond
 		w.Header().Set("Content-Type", "application/json")

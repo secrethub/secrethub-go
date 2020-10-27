@@ -63,7 +63,7 @@ func (s userService) Create(username, email, fullName string, credentials creden
 }
 
 func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, verifier credentials.Verifier, encrypter credentials.Encrypter, metadata map[string]string, credentials credentials.Provider) (*api.User, error) {
-	credentialRequest, err := s.client.createCredentialRequest(verifier, metadata)
+	credentialRequest, err := s.client.createCredentialRequest(encrypter, accountKey, verifier, metadata)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
@@ -90,13 +90,6 @@ func (s userService) create(username, email, fullName string, accountKey crypto.
 	if err != nil {
 		return nil, err
 	}
-
-	accountKeyResponse, err := s.client.createAccountKey(credentialRequest.Fingerprint, accountKey, encrypter)
-	if err != nil {
-		return nil, err
-	}
-
-	user.PublicKey = accountKeyResponse.PublicKey
 
 	return user, nil
 }
