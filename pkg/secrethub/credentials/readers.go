@@ -15,6 +15,12 @@ func (e ErrDecodingCredential) Error() string {
 	return fmt.Sprintf("error decoding credential loaded from '%s': %v", e.Location, e.Err)
 }
 
+// Reader helps with reading bytes from a configured source.
+type Reader interface {
+	// Read reads from the reader and returns the resulting bytes.
+	Read() ([]byte, error)
+}
+
 // PassphraseReader helps with reading bytes from a configured source.
 type PassphraseReader interface {
 	// Read reads from the reader and returns the resulting bytes.
