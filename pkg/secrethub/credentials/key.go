@@ -89,7 +89,7 @@ func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
 			if err != nil {
 				return Key{}, err
 			}
-			return Key{key:credential}, nil
+			return Key{key: credential}, nil
 		}
 
 		// Try up to three times to get the correct passphrase.
