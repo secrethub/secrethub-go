@@ -81,15 +81,15 @@ func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
 	}
 	if encoded.IsEncrypted() {
 		envPassphrase := os.Getenv("SECRETHUB_CREDENTIAL_PASSPHRASE")
-		if passphraseReader == nil && envPassphrase == "" {
-			return Key{}, ErrNeedPassphrase
-		}
-		if passphraseReader == nil {
+		if envPassphrase != "" {
 			credential, err := decryptKey([]byte(envPassphrase), encoded)
 			if err != nil {
 				return Key{}, err
 			}
 			return Key{key: credential}, nil
+		}
+		if passphraseReader == nil {
+			return Key{}, ErrNeedPassphrase
 		}
 
 		// Try up to three times to get the correct passphrase.
