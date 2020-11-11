@@ -3,6 +3,7 @@ package credentials
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/crypto"
@@ -79,8 +80,16 @@ func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
 		return Key{}, err
 	}
 	if encoded.IsEncrypted() {
-		if passphraseReader == nil {
+		envPassphrase := os.Getenv("SECRETHUB_CREDENTIAL_PASSPHRASE")
+		if passphraseReader == nil && envPassphrase == "" {
 			return Key{}, ErrNeedPassphrase
+		}
+		if passphraseReader == nil {
+			credential, err := decryptKey([]byte(envPassphrase), encoded)
+			if err != nil {
+				return Key{}, err
+			}
+			return Key{key:credential}, nil
 		}
 
 		// Try up to three times to get the correct passphrase.
