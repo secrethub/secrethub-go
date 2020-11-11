@@ -2,11 +2,21 @@ package credentials
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
+
+type ErrLoadingCredential struct {
+	Location string
+	Err      error
+}
+
+func (e ErrLoadingCredential) Error() string {
+	return fmt.Sprintf("error loading credential loaded from '%s': %v", e.Location, e.Err)
+}
 
 // Key is a credential that uses a local key for all its operations.
 type Key struct {

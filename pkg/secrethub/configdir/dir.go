@@ -77,6 +77,11 @@ func (f *CredentialFile) Path() string {
 	return f.path
 }
 
+// Source returns the path to the credential file.
+func (f *CredentialFile) Source() string {
+	return f.path
+}
+
 // Write writes the given bytes to the credential file.
 func (f *CredentialFile) Write(data []byte) error {
 	err := os.MkdirAll(filepath.Dir(f.path), os.FileMode(0700))
