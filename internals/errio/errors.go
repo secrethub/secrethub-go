@@ -105,17 +105,10 @@ func StatusError(err error) error {
 	return UnexpectedStatusError(err)
 }
 
-// Error can be called to on any error to convert it to a PublicError if it is not already.
-// If it is not yet a PublicError, an UnexpectedError is returned
+// Error returns the inputted error.
+// Deprecated: this leads to unwanted returns of UnexpectedErrrors and should therefor not be used anymore.
 func Error(err error) error {
-	if err == nil {
-		return nil
-	}
-
-	if isPublicError(err) || isPublicStatusError(err) {
-		return err
-	}
-	return UnexpectedError(err)
+	return err
 }
 
 // IsKnown checks whether the given error is known.
