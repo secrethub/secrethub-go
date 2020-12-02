@@ -2,7 +2,6 @@ package credentials
 
 import (
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/secrethub/secrethub-go/internals/auth"
