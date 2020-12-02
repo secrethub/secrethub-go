@@ -25,7 +25,7 @@ var (
 	ErrCannotDecodeCredentialPayload     = errCredentials.Code("invalid_credential_header").ErrorPref("cannot decode credential payload: %v")
 	ErrCannotDecodeEncryptedCredential   = errCredentials.Code("cannot_decode_encrypted_credential").Error("cannot decode an encrypted credential without a key")
 	ErrCannotDecryptCredential           = errCredentials.Code("cannot_decrypt_credential").Error("passphrase is incorrect")
-	ErrNeedPassphrase                    = errCredentials.Code("credential_passphrase_required").Error("default credential is password-protected. Configure the client to use service credential by provisioning one through the SECRETHUB_CREDENTIAL environment variable")
+	ErrNeedPassphrase                    = errCredentials.Code("credential_passphrase_required").Error("credential is password-protected. Configure the client to use service credential by provisioning one through the SECRETHUB_CREDENTIAL environment variable")
 	ErrMalformedCredential               = errCredentials.Code("malformed_credential").ErrorPref("credential is malformed: %v")
 	ErrInvalidKey                        = errCredentials.Code("invalid_key").Error("the given key is not valid for the encryption algorithm")
 )
