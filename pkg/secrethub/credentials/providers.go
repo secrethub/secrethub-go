@@ -39,12 +39,13 @@ func (k KeyProvider) Passphrase(passphraseReader Reader) Provider {
 // Provide implements the Provider interface for a KeyProvider.
 func (k KeyProvider) Provide(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
 	key, err := ImportKey(k.credentialReader, k.passphraseReader)
-	if source, ok := k.credentialReader.(CredentialSource); ok && err != nil {
-		return nil, nil, ErrLoadingCredential{
-			Location: source.Source(),
-			Err:      err,
+	if err != nil {
+		if source, ok := k.credentialReader.(CredentialSource); ok {
+			return nil, nil, ErrLoadingCredential{
+				Location: source.Source(),
+				Err:      err,
+			}
 		}
-	} else if err != nil {
 		return nil, nil, err
 	}
 	return key.Provide(httpClient)
