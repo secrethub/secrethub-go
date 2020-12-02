@@ -16,7 +16,7 @@ type ErrLoadingCredential struct {
 }
 
 func (e ErrLoadingCredential) Error() string {
-	return fmt.Sprintf("error loading credential loaded from '%s': %v", e.Location, e.Err)
+	return "load credential " + e.Location + ": " + e.Err.Error()
 }
 
 // Key is a credential that uses a local key for all its operations.
