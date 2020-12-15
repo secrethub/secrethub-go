@@ -40,6 +40,12 @@ func (k KeyProvider) Passphrase(passphraseReader Reader) Provider {
 func (k KeyProvider) Provide(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
 	key, err := ImportKey(k.credentialReader, k.passphraseReader)
 	if err != nil {
+		if source, ok := k.credentialReader.(CredentialSource); ok {
+			return nil, nil, ErrLoadingCredential{
+				Location: source.Source(),
+				Err:      err,
+			}
+		}
 		return nil, nil, err
 	}
 	return key.Provide(httpClient)
@@ -51,4 +57,10 @@ type providerFunc func(*http.Client) (auth.Authenticator, Decrypter, error)
 // Provide lets providerFunc implement the Provider interface.
 func (f providerFunc) Provide(httpClient *http.Client) (auth.Authenticator, Decrypter, error) {
 	return f(httpClient)
+}
+
+// CredentialSource should be implemented by credential readers to allow returning credential reading errors
+// that include the credentials source (e.g. path to credential file, environment variable etc.).
+type CredentialSource interface {
+	Source() string
 }
