@@ -78,3 +78,12 @@ func WithCredentials(provider credentials.Provider) ClientOption {
 		return nil
 	}
 }
+
+// WithDefaultPassphraseReader sets a default passphrase reader that is used for decrypting an encrypted key credential
+// if no credential is set explicitly.
+func WithDefaultPassphraseReader(reader credentials.Reader) ClientOption {
+	return func(c *Client) error {
+		c.defaultPassphraseReader = reader
+		return nil
+	}
+}
