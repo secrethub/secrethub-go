@@ -2,6 +2,7 @@ package credentials
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/secrethub/secrethub-go/internals/auth"
@@ -79,11 +80,12 @@ func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
 		return Key{}, err
 	}
 	if encoded.IsEncrypted() {
-		envPassphrase := os.Getenv("SECRETHUB_CREDENTIAL_PASSPHRASE")
+		const credentialPassphraseEnvVar = "SECRETHUB_CREDENTIAL_PASSPHRASE"
+		envPassphrase := os.Getenv(credentialPassphraseEnvVar)
 		if envPassphrase != "" {
 			credential, err := decryptKey([]byte(envPassphrase), encoded)
 			if err != nil {
-				return Key{}, err
+				return Key{}, fmt.Errorf("decrypting credential with passphrase read from $%s: %v", credentialPassphraseEnvVar, err)
 			}
 			return Key{key: credential}, nil
 		}
