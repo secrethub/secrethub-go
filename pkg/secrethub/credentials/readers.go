@@ -22,9 +22,8 @@ func FromFile(path string) Reader {
 // FromEnv returns a reader that reads the contents of an
 // environment variable, e.g. a credential or a passphrase.
 func FromEnv(key string) Reader {
-	credential := os.Getenv(key)
 	return newReader("$"+key, func() ([]byte, error) {
-		return []byte(credential), nil
+		return []byte(os.Getenv(key)), nil
 	})
 }
 
