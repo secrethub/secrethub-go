@@ -158,6 +158,7 @@ func UnexpectedError(err error) PublicError {
 			"an unexpected error occurred: %v\n\nTry again later or contact support@secrethub.io if the problem persists",
 			err,
 		),
+		err: err,
 	}
 }
 
@@ -190,6 +191,7 @@ type PublicError struct {
 	Namespace Namespace `json:"namespace,omitempty"`
 	Code      string    `json:"code"`
 	Message   string    `json:"message"`
+	err       error
 }
 
 // PublicError implements the error interface.
@@ -219,6 +221,11 @@ func (e PublicError) Append(errs ...error) PublicError {
 // Type returns the type of the error as to be reported to Sentry.
 func (e PublicError) Type() string {
 	return fmt.Sprintf("%s.%s", e.Namespace, e.Code)
+}
+
+// Unwrap returns the wrapped error if the PublicError represents an error wrapped as an UnexpectedError.
+func (e PublicError) Unwrap() error {
+	return e.err
 }
 
 // PublicStatusError represents an http error. It contains an HTTP status
