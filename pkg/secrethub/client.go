@@ -181,6 +181,14 @@ func NewClient(with ...ClientOption) (*Client, error) {
 
 	client.httpClient.Options(http.WithUserAgent(userAgent))
 
+	apiRemote := os.Getenv("SECRETHUB_API_REMOTE")
+	if apiRemote != "" {
+		err := client.with(WithServerURL(apiRemote))
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return client, nil
 }
 
