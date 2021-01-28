@@ -2,6 +2,7 @@ package secrethub
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 )
@@ -38,37 +39,48 @@ func (c *Client) createSecretKey(secretPath api.SecretPath) (*api.SecretKey, err
 		return nil, errio.Error(err)
 	}
 
+	blindName, err := c.convertPathToBlindName(secretPath)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	encryptedKeysMap := make(map[uuid.UUID]api.EncryptedKeyRequest)
+
 	// Get all accounts that have permission to read the secret.
 	accounts, err := c.listDirAccounts(parentPath)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	encryptedFor := make([]api.EncryptedKeyRequest, len(accounts))
-	for i, account := range accounts {
-		publicKey, err := crypto.ImportRSAPublicKey(account.PublicKey)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
+	for _, account := range accounts {
+		_, ok := encryptedKeysMap[account.AccountID]
+		if !ok {
+			publicKey, err := crypto.ImportRSAPublicKey(account.PublicKey)
+			if err != nil {
+				return nil, errio.Error(err)
+			}
 
-		encryptedSecretKey, err := publicKey.Wrap(secretKey.Export())
-		if err != nil {
-			return nil, errio.Error(err)
-		}
+			encryptedSecretKey, err := publicKey.Wrap(secretKey.Export())
+			if err != nil {
+				return nil, errio.Error(err)
+			}
 
-		encryptedFor[i] = api.EncryptedKeyRequest{
-			AccountID:    account.AccountID,
-			EncryptedKey: encryptedSecretKey,
+			encryptedKeysMap[account.AccountID] = api.EncryptedKeyRequest{
+				AccountID:    account.AccountID,
+				EncryptedKey: encryptedSecretKey,
+			}
 		}
+	}
+
+	encryptedFor := make([]api.EncryptedKeyRequest, len(encryptedKeysMap))
+	i := 0
+	for _, encryptedKey := range encryptedKeysMap {
+		encryptedFor[i] = encryptedKey
+		i++
 	}
 
 	in := &api.CreateSecretKeyRequest{
 		EncryptedFor: encryptedFor,
-	}
-
-	blindName, err := c.convertPathToBlindName(secretPath)
-	if err != nil {
-		return nil, errio.Error(err)
 	}
 
 	resp, err := c.httpClient.CreateSecretKey(blindName, in)
