@@ -308,8 +308,11 @@ func (c *Client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 
 			return resp.Decrypt(accountKey)
 		}
-		if err != api.ErrNotEncryptedForAccounts || tries >= missingMemberRetries {
+		if err != api.ErrNotEncryptedForAccounts {
 			return nil, err
+		}
+		if tries >= missingMemberRetries {
+			return nil, fmt.Errorf("cannot create secret version: access rules giving access to the secret are simultaneously being created; you may try again")
 		}
 		tries++
 	}

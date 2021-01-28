@@ -1,6 +1,8 @@
 package secrethub
 
 import (
+	"fmt"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/errio"
@@ -245,8 +247,11 @@ func (s accessRuleService) create(path api.BlindNamePath, permission api.Permiss
 		}
 
 		accessRule, err := s.client.httpClient.CreateAccessRule(blindName, accountName, in)
-		if err != api.ErrNotEncryptedForAccounts || tries >= missingMemberRetries {
+		if err != api.ErrNotEncryptedForAccounts {
 			return accessRule, err
+		}
+		if tries >= missingMemberRetries {
+			return nil, fmt.Errorf("cannot create access rule: resources controlled by the access rule are simultaneously being created; you may try again")
 		}
 		tries++
 	}

@@ -1,6 +1,7 @@
 package secrethub
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/secrethub/secrethub-go/internals/api"
@@ -172,8 +173,11 @@ func (s dirService) Create(path string) (*api.Dir, error) {
 			dir, err := encryptedDir.Decrypt(accountKey)
 			return dir, errio.Error(err)
 		}
-		if err != api.ErrNotEncryptedForAccounts || tries >= missingMemberRetries {
+		if err != api.ErrNotEncryptedForAccounts {
 			return nil, err
+		}
+		if tries >= missingMemberRetries {
+			return nil, fmt.Errorf("cannot create directory: access rules giving access to the directory are simultaneously being created; you may try again")
 		}
 		tries++
 	}

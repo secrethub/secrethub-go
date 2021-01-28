@@ -1,6 +1,8 @@
 package secrethub
 
 import (
+	"fmt"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/crypto"
@@ -94,8 +96,11 @@ func (c *Client) createSecretKey(secretPath api.SecretPath) (*api.SecretKey, err
 
 			return resp.Decrypt(accountKey)
 		}
-		if err != api.ErrNotEncryptedForAccounts || tries >= missingMemberRetries {
+		if err != api.ErrNotEncryptedForAccounts {
 			return nil, err
+		}
+		if tries >= missingMemberRetries {
+			return nil, fmt.Errorf("cannot create secret key: access rules giving access to the secret (key) are simultaneously being created; you may try again")
 		}
 		tries++
 	}
