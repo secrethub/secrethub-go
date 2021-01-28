@@ -218,50 +218,97 @@ func (s accessRuleService) create(path api.BlindNamePath, permission api.Permiss
 		Permission: permission,
 	}
 
+	encrypter := newReencrypter(account, s.client)
+
 	if currentAccessLevel.Permission < api.PermissionRead {
-		encryptedTree, err := s.client.httpClient.GetTree(blindName, -1, true)
+		err = encrypter.Add(blindName)
 		if err != nil {
-			return nil, errio.Error(err)
+			return nil, err
 		}
 
-		accountKey, err := s.client.getAccountKey()
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		dirs, secrets, err := encryptedTree.DecryptContents(accountKey)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		in.EncryptedDirs = make([]api.EncryptedNameForNodeRequest, 0, len(dirs))
-		for _, dir := range dirs {
-			encryptedDirs, err := s.client.encryptDirFor(dir, account)
-			if err != nil {
-				return nil, errio.Error(err)
-			}
-			in.EncryptedDirs = append(in.EncryptedDirs, encryptedDirs...)
-		}
-
-		in.EncryptedSecrets = make([]api.SecretAccessRequest, 0, len(secrets))
-		for _, secret := range secrets {
-			encryptedSecrets, err := s.client.encryptSecretFor(secret, account)
-			if err != nil {
-				return nil, errio.Error(err)
-			}
-			in.EncryptedSecrets = append(in.EncryptedSecrets, encryptedSecrets...)
-
-		}
+		in.EncryptedDirs = encrypter.Dirs()
+		in.EncryptedSecrets = encrypter.Secrets()
 	}
-
 	err = in.Validate()
 	if err != nil {
 		return nil, err
 	}
 
 	accessRule, err := s.client.httpClient.CreateAccessRule(blindName, accountName, in)
-	return accessRule, errio.Error(err)
 
+	return accessRule, err
+
+}
+
+func newReencrypter(encryptFor *api.Account, client *Client) *reencrypter {
+	return &reencrypter{
+		dirs:       make(map[uuid.UUID]api.EncryptedNameForNodeRequest),
+		secrets:    make(map[uuid.UUID]api.SecretAccessRequest),
+		encryptFor: encryptFor,
+		client:     client,
+	}
+}
+
+type reencrypter struct {
+	dirs       map[uuid.UUID]api.EncryptedNameForNodeRequest
+	secrets    map[uuid.UUID]api.SecretAccessRequest
+	encryptFor *api.Account
+	client     *Client
+}
+
+func (re *reencrypter) Add(blindName string) error {
+	encryptedTree, err := re.client.httpClient.GetTree(blindName, -1, true)
+	if err != nil {
+		return err
+	}
+
+	accountKey, err := re.client.getAccountKey()
+	if err != nil {
+		return err
+	}
+
+	dirs, secrets, err := encryptedTree.DecryptContents(accountKey)
+	if err != nil {
+		return err
+	}
+
+	for _, dir := range dirs {
+		encryptedDirs, err := re.client.encryptDirFor(dir, re.encryptFor)
+		if err != nil {
+			return err
+		}
+		re.dirs[dir.DirID] = encryptedDirs[0]
+	}
+
+	for _, secret := range secrets {
+		encryptedSecrets, err := re.client.encryptSecretFor(secret, re.encryptFor)
+		if err != nil {
+			return err
+		}
+		re.secrets[secret.SecretID] = encryptedSecrets[0]
+	}
+
+	return nil
+}
+
+func (re *reencrypter) Secrets() []api.SecretAccessRequest {
+	res := make([]api.SecretAccessRequest, len(re.secrets))
+	i := 0
+	for _, secret := range re.secrets {
+		res[i] = secret
+		i++
+	}
+	return res
+}
+
+func (re *reencrypter) Dirs() []api.EncryptedNameForNodeRequest {
+	res := make([]api.EncryptedNameForNodeRequest, len(re.dirs))
+	i := 0
+	for _, dir := range re.dirs {
+		res[i] = dir
+		i++
+	}
+	return res
 }
 
 // UpdateAccessRule updates an AccessRule for an account with a certain permission level.
