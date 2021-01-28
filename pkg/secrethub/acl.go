@@ -290,7 +290,7 @@ func (re *reencrypter) Add(blindName string) error {
 			if err != nil {
 				return err
 			}
-			re.dirs[dir.DirID] = encrypted[0]
+			re.dirs[dir.DirID] = encrypted
 		}
 	}
 
@@ -305,7 +305,7 @@ func (re *reencrypter) Add(blindName string) error {
 			if err != nil {
 				return err
 			}
-			re.secrets[secret.SecretID] = encrypted[0]
+			re.secrets[secret.SecretID] = encrypted
 		}
 	}
 
