@@ -129,6 +129,7 @@ func (s dirService) Create(path string) (*api.Dir, error) {
 
 	dirName := p.GetDirName()
 
+	encryptedNamesMap := make(map[uuid.UUID]api.EncryptedNameRequest)
 	tries := 0
 	for {
 		accounts, err := s.client.listDirAccounts(parentPath)
@@ -136,7 +137,6 @@ func (s dirService) Create(path string) (*api.Dir, error) {
 			return nil, errio.Error(err)
 		}
 
-		encryptedNamesMap := make(map[uuid.UUID]api.EncryptedNameRequest, len(accounts))
 		for _, account := range accounts {
 			_, ok := encryptedNamesMap[account.AccountID]
 			if !ok {
