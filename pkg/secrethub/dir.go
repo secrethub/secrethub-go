@@ -117,16 +117,6 @@ func (s dirService) Create(path string) (*api.Dir, error) {
 		return nil, errio.Error(err)
 	}
 
-	accounts, err := s.client.listDirAccounts(parentPath)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	encryptedNames, err := encryptNameForAccounts(p.GetDirName(), accounts...)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
 	blindName, err := s.client.convertPathToBlindName(p)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -135,6 +125,31 @@ func (s dirService) Create(path string) (*api.Dir, error) {
 	parentBlindName, err := s.client.convertPathToBlindName(parentPath)
 	if err != nil {
 		return nil, errio.Error(err)
+	}
+
+	accounts, err := s.client.listDirAccounts(parentPath)
+	if err != nil {
+		return nil, errio.Error(err)
+	}
+
+	dirName := p.GetDirName()
+	encryptedNamesMap := make(map[uuid.UUID]api.EncryptedNameRequest, len(accounts))
+	for _, account := range accounts {
+		_, ok := encryptedNamesMap[account.AccountID]
+		if !ok {
+			encryptedName, err := encryptNameForAccount(dirName, account)
+			if err != nil {
+				return nil, err
+			}
+			encryptedNamesMap[account.AccountID] = encryptedName
+		}
+	}
+
+	encryptedNames := make([]api.EncryptedNameRequest, len(encryptedNamesMap))
+	i := 0
+	for _, encryptedName := range encryptedNamesMap {
+		encryptedNames[i] = encryptedName
+		i++
 	}
 
 	request := &api.CreateDirRequest{
