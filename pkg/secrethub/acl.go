@@ -267,25 +267,34 @@ func (re *reencrypter) Add(blindName string) error {
 		return err
 	}
 
-	dirs, secrets, err := encryptedTree.DecryptContents(accountKey)
-	if err != nil {
-		return err
+	for _, dir := range encryptedTree.Directories {
+		_, ok := re.dirs[dir.DirID]
+		if !ok {
+			decrypted, err := dir.Decrypt(accountKey)
+			if err != nil {
+				return err
+			}
+			encrypted, err := re.client.encryptDirFor(decrypted, re.encryptFor)
+			if err != nil {
+				return err
+			}
+			re.dirs[dir.DirID] = encrypted[0]
+		}
 	}
 
-	for _, dir := range dirs {
-		encryptedDirs, err := re.client.encryptDirFor(dir, re.encryptFor)
-		if err != nil {
-			return err
+	for _, secret := range encryptedTree.Secrets {
+		_, ok := re.secrets[secret.SecretID]
+		if !ok {
+			decrypted, err := secret.Decrypt(accountKey)
+			if err != nil {
+				return err
+			}
+			encrypted, err := re.client.encryptSecretFor(decrypted, re.encryptFor)
+			if err != nil {
+				return err
+			}
+			re.secrets[secret.SecretID] = encrypted[0]
 		}
-		re.dirs[dir.DirID] = encryptedDirs[0]
-	}
-
-	for _, secret := range secrets {
-		encryptedSecrets, err := re.client.encryptSecretFor(secret, re.encryptFor)
-		if err != nil {
-			return err
-		}
-		re.secrets[secret.SecretID] = encryptedSecrets[0]
 	}
 
 	return nil
