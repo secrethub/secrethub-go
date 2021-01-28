@@ -103,23 +103,31 @@ func encryptNameForNodeAccounts(nodeID uuid.UUID, name string, accounts ...*api.
 func encryptNameForAccounts(name string, accounts ...*api.Account) ([]api.EncryptedNameRequest, error) {
 	encryptedNames := make([]api.EncryptedNameRequest, len(accounts))
 	for i, account := range accounts {
-		publicKey, err := crypto.ImportRSAPublicKey(account.PublicKey)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		ciphertext, err := publicKey.Wrap([]byte(name))
+		var err error
+		encryptedNames[i], err = encryptNameForAccount(name, account)
 		if err != nil {
 			return nil, err
-		}
-
-		encryptedNames[i] = api.EncryptedNameRequest{
-			AccountID:     account.AccountID,
-			EncryptedName: ciphertext,
 		}
 	}
 
 	return encryptedNames, nil
+}
+
+func encryptNameForAccount(name string, account *api.Account) (api.EncryptedNameRequest, error) {
+	publicKey, err := crypto.ImportRSAPublicKey(account.PublicKey)
+	if err != nil {
+		return api.EncryptedNameRequest{}, err
+	}
+
+	ciphertext, err := publicKey.Wrap([]byte(name))
+	if err != nil {
+		return api.EncryptedNameRequest{}, err
+	}
+
+	return api.EncryptedNameRequest{
+		AccountID:     account.AccountID,
+		EncryptedName: ciphertext,
+	}, nil
 }
 
 // encryptKeyForAccounts encrypts the key for every account and returns a list of EncryptedKeyRequests
