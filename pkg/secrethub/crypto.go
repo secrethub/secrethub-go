@@ -4,7 +4,6 @@ import (
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/crypto"
-	"github.com/secrethub/secrethub-go/internals/errio"
 )
 
 func (c *Client) encryptDirFor(dir *api.Dir, account *api.Account) (api.EncryptedNameForNodeRequest, error) {
@@ -118,25 +117,20 @@ func encryptNameForAccount(name string, account *api.Account) (api.EncryptedName
 	}, nil
 }
 
-// encryptKeyForAccounts encrypts the key for every account and returns a list of EncryptedKeyRequests
-func encryptKeyForAccounts(key *crypto.SymmetricKey, accounts ...*api.Account) ([]api.EncryptedKeyRequest, error) {
-	encryptedKeys := make([]api.EncryptedKeyRequest, len(accounts))
-	for i, account := range accounts {
-		publicKey, err := crypto.ImportRSAPublicKey(account.PublicKey)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		encryptedSecretKey, err := publicKey.Wrap(key.Export())
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		encryptedKeys[i] = api.EncryptedKeyRequest{
-			AccountID:    account.AccountID,
-			EncryptedKey: encryptedSecretKey,
-		}
+// encryptKeyForAccount encrypts the key for the account and returns an EncryptedKeyRequest.
+func encryptKeyForAccount(key *crypto.SymmetricKey, account *api.Account) (api.EncryptedKeyRequest, error) {
+	publicKey, err := crypto.ImportRSAPublicKey(account.PublicKey)
+	if err != nil {
+		return api.EncryptedKeyRequest{}, err
 	}
 
-	return encryptedKeys, nil
+	encryptedSecretKey, err := publicKey.Wrap(key.Export())
+	if err != nil {
+		return api.EncryptedKeyRequest{}, err
+	}
+
+	return api.EncryptedKeyRequest{
+		AccountID:    account.AccountID,
+		EncryptedKey: encryptedSecretKey,
+	}, nil
 }
