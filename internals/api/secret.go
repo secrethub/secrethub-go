@@ -31,7 +31,7 @@ var (
 	ErrNoSecretMembers            = errAPI.Code("no_secret_members").StatusError("no secret members added to write request", http.StatusBadRequest)
 
 	ErrInvalidSecretKeyID              = errAPI.Code("invalid_secret_key_id").StatusError("secret_key_id is invalid", http.StatusBadRequest)
-	ErrNotEncryptedForAccounts         = errAPI.Code("not_encrypted_for_accounts").StatusError("missing data encrypted for accounts", http.StatusBadRequest)
+	ErrNotEncryptedForAccounts         = errAPI.Code("not_encrypted_for_accounts").StatusError("missing data encrypted for accounts", http.StatusConflict)
 	ErrNotUniquelyEncryptedForAccounts = errAPI.Code("not_uniquely_encrypted_for_accounts").StatusError("not uniquely encrypted for accounts", http.StatusBadRequest)
 
 	ErrCannotDeleteLastSecretVersion = errAPI.Code("cannot_delete_last_version").StatusError("Cannot delete the last version of a secret", http.StatusForbidden)
