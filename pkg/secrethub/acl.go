@@ -31,6 +31,14 @@ type AccessRuleService interface {
 	LevelIterator(path string, _ *AccessLevelIteratorParams) AccessLevelIterator
 }
 
+// missingMemberRetries is the number of times creation of access rules is retried when
+// encrypted members are missing in the request. Members to encrypt are fetched again this
+// number of times and a new access rule create request is made.
+// When creating access rules, missing members occur when secrets, secret keys, or directories
+// were added between fetching the secrets, secret keys and directories to encrypt for the
+// account for which the access rule is created and the request creating the access rule.
+const missingMemberRetries = 3
+
 func newAccessRuleService(client *Client) AccessRuleService {
 	return accessRuleService{
 		client:         client,
@@ -220,24 +228,28 @@ func (s accessRuleService) create(path api.BlindNamePath, permission api.Permiss
 
 	encrypter := newReencrypter(account, s.client)
 
-	if currentAccessLevel.Permission < api.PermissionRead {
-		err = encrypter.Add(blindName)
+	tries := 0
+	for {
+		if currentAccessLevel.Permission < api.PermissionRead {
+			err = encrypter.Add(blindName)
+			if err != nil {
+				return nil, err
+			}
+
+			in.EncryptedDirs = encrypter.Dirs()
+			in.EncryptedSecrets = encrypter.Secrets()
+		}
+		err = in.Validate()
 		if err != nil {
 			return nil, err
 		}
 
-		in.EncryptedDirs = encrypter.Dirs()
-		in.EncryptedSecrets = encrypter.Secrets()
+		accessRule, err := s.client.httpClient.CreateAccessRule(blindName, accountName, in)
+		if err != api.ErrNotEncryptedForAccounts || tries >= missingMemberRetries {
+			return accessRule, err
+		}
+		tries++
 	}
-	err = in.Validate()
-	if err != nil {
-		return nil, err
-	}
-
-	accessRule, err := s.client.httpClient.CreateAccessRule(blindName, accountName, in)
-
-	return accessRule, err
-
 }
 
 func newReencrypter(encryptFor *api.Account, client *Client) *reencrypter {
