@@ -10,7 +10,7 @@ import (
 // UserService handles operations on users from SecretHub.
 type UserService interface {
 	// Create creates a new user at SecretHub.
-	Create(username, email, fullName string, credential credentials.CreatorProvider) (*api.User, error)
+	Create(username, email, fullName string, credential credentials.CreatorProvider, acceptToS bool) (*api.User, error)
 	// Me gets the account's user if it exists.
 	Me() (*api.User, error)
 	// Get a user by their username.
@@ -33,7 +33,7 @@ func (s userService) Me() (*api.User, error) {
 }
 
 // Create creates a new user at SecretHub and authenticates the client as this user.
-func (s userService) Create(username, email, fullName string, credentials credentials.CreatorProvider) (*api.User, error) {
+func (s userService) Create(username, email, fullName string, credentials credentials.CreatorProvider, acceptToS bool) (*api.User, error) {
 	err := api.ValidateUsername(username)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -59,10 +59,10 @@ func (s userService) Create(username, email, fullName string, credentials creden
 		return nil, errio.Error(err)
 	}
 
-	return s.create(username, email, fullName, accountKey, credentials.Verifier(), credentials.Encrypter(), credentials.Metadata(), credentials)
+	return s.create(username, email, fullName, accountKey, credentials.Verifier(), credentials.Encrypter(), credentials.Metadata(), credentials, acceptToS)
 }
 
-func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, verifier credentials.Verifier, encrypter credentials.Encrypter, metadata map[string]string, credentials credentials.Provider) (*api.User, error) {
+func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, verifier credentials.Verifier, encrypter credentials.Encrypter, metadata map[string]string, credentials credentials.Provider, acceptToS bool) (*api.User, error) {
 	credentialRequest, err := s.client.createCredentialRequest(encrypter, accountKey, verifier, metadata)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -78,6 +78,7 @@ func (s userService) create(username, email, fullName string, accountKey crypto.
 		Email:      email,
 		FullName:   fullName,
 		Credential: credentialRequest,
+		AcceptToS:  acceptToS,
 	}
 
 	user, err := s.client.httpClient.SignupUser(userRequest)

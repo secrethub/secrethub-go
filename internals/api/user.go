@@ -36,6 +36,7 @@ var (
 	)
 	ErrNoPasswordNorCredential     = errAPI.Code("no_password_nor_credential").StatusError("either a password or a credential should be supplied", http.StatusBadRequest)
 	ErrTooManyVerificationRequests = errAPI.Code("too_many_verification_requests").StatusError("another verification email was requested recently, please wait a few minutes before trying again", http.StatusTooManyRequests)
+	ErrTosNotAccepted              = errAPI.Code("tos_not_accepted").StatusError("terms of service should be accepted to sign up", http.StatusBadRequest)
 )
 
 // User represents a SecretHub user.
@@ -93,6 +94,7 @@ type CreateUserRequest struct {
 	FullName   string                   `json:"full_name"`
 	Password   string                   `json:"password,omitempty"`
 	Credential *CreateCredentialRequest `json:"credential,omitempty"`
+	AcceptToS  bool
 }
 
 // Validate validates the request fields.
@@ -122,6 +124,11 @@ func (req *CreateUserRequest) Validate() error {
 	if err != nil {
 		return err
 	}
+
+	if !req.AcceptToS {
+		return ErrTosNotAccepted
+	}
+
 	return nil
 }
 

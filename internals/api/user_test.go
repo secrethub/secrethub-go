@@ -176,10 +176,11 @@ func TestCreateUserRequest_Validate(t *testing.T) {
 	}{
 		"valid using password": {
 			req: CreateUserRequest{
-				Username: "test.-_UserTestT",
-				Email:    "test-account.dev1@secrethub.io",
-				FullName: "Test Tester",
-				Password: "hello world",
+				Username:  "test.-_UserTestT",
+				Email:     "test-account.dev1@secrethub.io",
+				FullName:  "Test Tester",
+				Password:  "hello world",
+				AcceptToS: true,
 			},
 			err: nil,
 		},
@@ -193,43 +194,62 @@ func TestCreateUserRequest_Validate(t *testing.T) {
 					Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
 					Verifier:    []byte("verifier"),
 				},
+				AcceptToS: true,
 			},
 			err: nil,
 		},
 		"invalid no password nor credential": {
 			req: CreateUserRequest{
-				Username: "test.-_UserTestT",
-				Email:    "test-account.dev1@secrethub.io",
-				FullName: "Test Tester",
+				Username:  "test.-_UserTestT",
+				Email:     "test-account.dev1@secrethub.io",
+				FullName:  "Test Tester",
+				AcceptToS: true,
 			},
 			err: ErrNoPasswordNorCredential,
 		},
 		"invalid username": {
 			req: CreateUserRequest{
-				Username: "",
-				Email:    "test-account.dev1@secrethub.io",
-				FullName: "Test Tester",
-				Password: "hello world",
+				Username:  "",
+				Email:     "test-account.dev1@secrethub.io",
+				FullName:  "Test Tester",
+				Password:  "hello world",
+				AcceptToS: true,
 			},
 			err: ErrInvalidUsername,
 		},
 		"invalid email": {
 			req: CreateUserRequest{
-				Username: "test",
-				Email:    "notanemail",
-				FullName: "Test Tester",
-				Password: "hello world",
+				Username:  "test",
+				Email:     "notanemail",
+				FullName:  "Test Tester",
+				Password:  "hello world",
+				AcceptToS: true,
 			},
 			err: ErrInvalidEmail,
 		},
 		"invalid full name": {
 			req: CreateUserRequest{
-				Username: "test",
-				Email:    "test-account.dev1@secrethub.io",
-				FullName: "",
-				Password: "hello world",
+				Username:  "test",
+				Email:     "test-account.dev1@secrethub.io",
+				FullName:  "",
+				Password:  "hello world",
+				AcceptToS: true,
 			},
 			err: ErrInvalidFullName,
+		},
+		"terms of service not accepted": {
+			req: CreateUserRequest{
+				Username: "test.-_UserTestT",
+				Email:    "test-account.dev1@secrethub.io",
+				FullName: "Test Tester",
+				Credential: &CreateCredentialRequest{
+					Type:        CredentialTypeKey,
+					Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
+					Verifier:    []byte("verifier"),
+				},
+				AcceptToS: false,
+			},
+			err: ErrTosNotAccepted,
 		},
 	}
 
