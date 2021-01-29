@@ -94,7 +94,7 @@ type CreateUserRequest struct {
 	FullName   string                   `json:"full_name"`
 	Password   string                   `json:"password,omitempty"`
 	Credential *CreateCredentialRequest `json:"credential,omitempty"`
-	AcceptToS  bool
+	AcceptToS  bool                     `json:"accept_tos"`
 }
 
 // Validate validates the request fields.
