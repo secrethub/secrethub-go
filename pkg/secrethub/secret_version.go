@@ -308,7 +308,7 @@ func (c *Client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 
 			return resp.Decrypt(accountKey)
 		}
-		if err != api.ErrNotEncryptedForAccounts {
+		if !errio.EqualsAPIError(api.ErrNotEncryptedForAccounts, err) {
 			return nil, err
 		}
 		if tries >= missingMemberRetries {

@@ -250,7 +250,7 @@ func (s accessRuleService) create(path api.BlindNamePath, permission api.Permiss
 		if err == nil {
 			return accessRule, nil
 		}
-		if err != api.ErrNotEncryptedForAccounts {
+		if !errio.EqualsAPIError(api.ErrNotEncryptedForAccounts, err) {
 			return nil, err
 		}
 		if tries >= missingMemberRetries {

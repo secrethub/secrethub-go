@@ -173,7 +173,7 @@ func (s dirService) Create(path string) (*api.Dir, error) {
 			dir, err := encryptedDir.Decrypt(accountKey)
 			return dir, errio.Error(err)
 		}
-		if err != api.ErrNotEncryptedForAccounts {
+		if !errio.EqualsAPIError(api.ErrNotEncryptedForAccounts, err) {
 			return nil, err
 		}
 		if tries >= missingMemberRetries {
