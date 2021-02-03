@@ -247,8 +247,11 @@ func (s accessRuleService) create(path api.BlindNamePath, permission api.Permiss
 		}
 
 		accessRule, err := s.client.httpClient.CreateAccessRule(blindName, accountName, in)
+		if err == nil {
+			return accessRule, nil
+		}
 		if err != api.ErrNotEncryptedForAccounts {
-			return accessRule, err
+			return nil, err
 		}
 		if tries >= missingMemberRetries {
 			return nil, fmt.Errorf("cannot create access rule: resources controlled by the access rule are simultaneously being created; you may try again")
