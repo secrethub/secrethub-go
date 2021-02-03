@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"testing"
-
-	"github.com/secrethub/secrethub-go/internals/assert"
 )
 
 func TestValidateUsername(t *testing.T) {
@@ -166,80 +164,5 @@ func TestValidateFullName(t *testing.T) {
 		if err != test.expected {
 			t.Errorf("test %s: returned value is not as expected: %v (actual) != %v (expected)", test.desc, err, test.expected)
 		}
-	}
-}
-
-func TestCreateUserRequest_Validate(t *testing.T) {
-	cases := map[string]struct {
-		req CreateUserRequest
-		err error
-	}{
-		"valid using password": {
-			req: CreateUserRequest{
-				Username: "test.-_UserTestT",
-				Email:    "test-account.dev1@secrethub.io",
-				FullName: "Test Tester",
-				Password: "hello world",
-			},
-			err: nil,
-		},
-		"valid using credential": {
-			req: CreateUserRequest{
-				Username: "test.-_UserTestT",
-				Email:    "test-account.dev1@secrethub.io",
-				FullName: "Test Tester",
-				Credential: &CreateCredentialRequest{
-					Type:        CredentialTypeKey,
-					Fingerprint: "88c9eae68eb300b2971a2bec9e5a26ff4179fd661d6b7d861e4c6557b9aaee14",
-					Verifier:    []byte("verifier"),
-				},
-			},
-			err: nil,
-		},
-		"invalid no password nor credential": {
-			req: CreateUserRequest{
-				Username: "test.-_UserTestT",
-				Email:    "test-account.dev1@secrethub.io",
-				FullName: "Test Tester",
-			},
-			err: ErrNoPasswordNorCredential,
-		},
-		"invalid username": {
-			req: CreateUserRequest{
-				Username: "",
-				Email:    "test-account.dev1@secrethub.io",
-				FullName: "Test Tester",
-				Password: "hello world",
-			},
-			err: ErrInvalidUsername,
-		},
-		"invalid email": {
-			req: CreateUserRequest{
-				Username: "test",
-				Email:    "notanemail",
-				FullName: "Test Tester",
-				Password: "hello world",
-			},
-			err: ErrInvalidEmail,
-		},
-		"invalid full name": {
-			req: CreateUserRequest{
-				Username: "test",
-				Email:    "test-account.dev1@secrethub.io",
-				FullName: "",
-				Password: "hello world",
-			},
-			err: ErrInvalidFullName,
-		},
-	}
-
-	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
-			// Do
-			err := tc.req.Validate()
-
-			// Assert
-			assert.Equal(t, err, tc.err)
-		})
 	}
 }

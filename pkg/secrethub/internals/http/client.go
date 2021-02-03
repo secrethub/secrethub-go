@@ -48,8 +48,7 @@ const (
 	pathCreateAccountKey = "%s/me/credentials/%s/key"
 
 	// Users
-	pathUsers = "%s/users"
-	pathUser  = "%s/users/%s"
+	pathUser = "%s/users/%s"
 
 	// Repositories
 	pathRepos          = "%s/namespaces/%s/repos"
@@ -216,14 +215,6 @@ func (c *Client) GetAccount(name api.AccountName) (*api.Account, error) {
 }
 
 // USERS
-
-// SignupUser creates a new user at SecretHub
-func (c *Client) SignupUser(in *api.CreateUserRequest) (*api.User, error) {
-	out := &api.User{}
-	rawURL := fmt.Sprintf(pathUsers, c.base.String())
-	err := c.post(rawURL, false, http.StatusCreated, in, out)
-	return out, errio.Error(err)
-}
 
 // GetUser gets a user by its username from SecretHub
 func (c *Client) GetUser(username string) (*api.User, error) {
