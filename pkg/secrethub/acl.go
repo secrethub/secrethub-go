@@ -1,6 +1,8 @@
 package secrethub
 
 import (
+	"fmt"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/errio"
@@ -30,6 +32,14 @@ type AccessRuleService interface {
 	// LevelIterator returns an iterator that retrieves all access levels on the given directory.
 	LevelIterator(path string, _ *AccessLevelIteratorParams) AccessLevelIterator
 }
+
+// missingMemberRetries is the number of times creation of access rules is retried when
+// encrypted members are missing in the request. Members to encrypt are fetched again this
+// number of times and a new access rule create request is made.
+// When creating access rules, missing members occur when secrets, secret keys, or directories
+// were added between fetching the secrets, secret keys and directories to encrypt for the
+// account for which the access rule is created and the request creating the access rule.
+const missingMemberRetries = 3
 
 func newAccessRuleService(client *Client) AccessRuleService {
 	return accessRuleService{
@@ -218,50 +228,116 @@ func (s accessRuleService) create(path api.BlindNamePath, permission api.Permiss
 		Permission: permission,
 	}
 
-	if currentAccessLevel.Permission < api.PermissionRead {
-		encryptedTree, err := s.client.httpClient.GetTree(blindName, -1, true)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
+	encrypter := newReencrypter(account, s.client)
 
-		accountKey, err := s.client.getAccountKey()
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		dirs, secrets, err := encryptedTree.DecryptContents(accountKey)
-		if err != nil {
-			return nil, errio.Error(err)
-		}
-
-		in.EncryptedDirs = make([]api.EncryptedNameForNodeRequest, 0, len(dirs))
-		for _, dir := range dirs {
-			encryptedDirs, err := s.client.encryptDirFor(dir, account)
+	tries := 0
+	for {
+		if currentAccessLevel.Permission < api.PermissionRead {
+			err = encrypter.Add(blindName)
 			if err != nil {
-				return nil, errio.Error(err)
+				return nil, err
 			}
-			in.EncryptedDirs = append(in.EncryptedDirs, encryptedDirs...)
+
+			in.EncryptedDirs = encrypter.Dirs()
+			in.EncryptedSecrets = encrypter.Secrets()
+		}
+		err = in.Validate()
+		if err != nil {
+			return nil, err
 		}
 
-		in.EncryptedSecrets = make([]api.SecretAccessRequest, 0, len(secrets))
-		for _, secret := range secrets {
-			encryptedSecrets, err := s.client.encryptSecretFor(secret, account)
-			if err != nil {
-				return nil, errio.Error(err)
-			}
-			in.EncryptedSecrets = append(in.EncryptedSecrets, encryptedSecrets...)
-
+		accessRule, err := s.client.httpClient.CreateAccessRule(blindName, accountName, in)
+		if err == nil {
+			return accessRule, nil
 		}
+		if !errio.EqualsAPIError(api.ErrNotEncryptedForAccounts, err) {
+			return nil, err
+		}
+		if tries >= missingMemberRetries {
+			return nil, fmt.Errorf("cannot create access rule: resources controlled by the access rule are simultaneously being created; you may try again")
+		}
+		tries++
 	}
+}
 
-	err = in.Validate()
+func newReencrypter(encryptFor *api.Account, client *Client) *reencrypter {
+	return &reencrypter{
+		dirs:       make(map[uuid.UUID]api.EncryptedNameForNodeRequest),
+		secrets:    make(map[uuid.UUID]api.SecretAccessRequest),
+		encryptFor: encryptFor,
+		client:     client,
+	}
+}
+
+type reencrypter struct {
+	dirs       map[uuid.UUID]api.EncryptedNameForNodeRequest
+	secrets    map[uuid.UUID]api.SecretAccessRequest
+	encryptFor *api.Account
+	client     *Client
+}
+
+func (re *reencrypter) Add(blindName string) error {
+	encryptedTree, err := re.client.httpClient.GetTree(blindName, -1, true)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	accessRule, err := s.client.httpClient.CreateAccessRule(blindName, accountName, in)
-	return accessRule, errio.Error(err)
+	accountKey, err := re.client.getAccountKey()
+	if err != nil {
+		return err
+	}
 
+	for _, dir := range encryptedTree.Directories {
+		_, ok := re.dirs[dir.DirID]
+		if !ok {
+			decrypted, err := dir.Decrypt(accountKey)
+			if err != nil {
+				return err
+			}
+			encrypted, err := re.client.encryptDirFor(decrypted, re.encryptFor)
+			if err != nil {
+				return err
+			}
+			re.dirs[dir.DirID] = encrypted
+		}
+	}
+
+	for _, secret := range encryptedTree.Secrets {
+		_, ok := re.secrets[secret.SecretID]
+		if !ok {
+			decrypted, err := secret.Decrypt(accountKey)
+			if err != nil {
+				return err
+			}
+			encrypted, err := re.client.encryptSecretFor(decrypted, re.encryptFor)
+			if err != nil {
+				return err
+			}
+			re.secrets[secret.SecretID] = encrypted
+		}
+	}
+
+	return nil
+}
+
+func (re *reencrypter) Secrets() []api.SecretAccessRequest {
+	res := make([]api.SecretAccessRequest, len(re.secrets))
+	i := 0
+	for _, secret := range re.secrets {
+		res[i] = secret
+		i++
+	}
+	return res
+}
+
+func (re *reencrypter) Dirs() []api.EncryptedNameForNodeRequest {
+	res := make([]api.EncryptedNameForNodeRequest, len(re.dirs))
+	i := 0
+	for _, dir := range re.dirs {
+		res[i] = dir
+		i++
+	}
+	return res
 }
 
 // UpdateAccessRule updates an AccessRule for an account with a certain permission level.

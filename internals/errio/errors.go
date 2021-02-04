@@ -270,3 +270,14 @@ func Equals(a PublicError, b error) bool {
 	}
 	return a.Namespace == publicError.Namespace && a.Code == publicError.Code
 }
+
+// EqualsAPIError checks whether the given error has the namespace and code of the
+// given API error. The HTTP status code and error message aren't checked, so this
+// function is compatible with any changes to the message and HTTP status code.
+func EqualsAPIError(apiErr PublicStatusError, err error) bool {
+	publicStatusError, ok := err.(PublicStatusError)
+	if !ok {
+		return false
+	}
+	return Equals(apiErr.PublicError, publicStatusError.PublicError)
+}

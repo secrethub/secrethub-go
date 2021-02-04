@@ -3,12 +3,12 @@ package secrethub
 import (
 	"fmt"
 
-	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
-
 	units "github.com/docker/go-units"
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
+	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
 )
 
 const (
@@ -229,23 +229,6 @@ func (c *Client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 	if err != nil {
 		return nil, errio.Error(err)
 	}
-
-	// Get all accounts that have permission to read the secret.
-	accounts, err := c.listDirAccounts(parentPath)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	encryptedNames, err := encryptNameForAccounts(secretPath.GetSecret(), accounts...)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	encryptedKeys, err := encryptKeyForAccounts(secretKey, accounts...)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
 	encryptedData, err := secretKey.Encrypt(data)
 	if err != nil {
 		return nil, errio.Error(err)
@@ -256,30 +239,83 @@ func (c *Client) createSecret(secretPath api.SecretPath, data []byte) (*api.Secr
 		return nil, errio.Error(err)
 	}
 
-	in := &api.CreateSecretRequest{
-		BlindName:     blindName,
-		EncryptedData: encryptedData,
-
-		EncryptedNames: encryptedNames,
-		EncryptedKeys:  encryptedKeys,
-	}
-
 	parentBlindName, err := c.convertPathToBlindName(parentPath)
 	if err != nil {
 		return nil, errio.Error(err)
 	}
 
-	resp, err := c.httpClient.CreateSecret(secretPath.GetNamespace(), secretPath.GetRepo(), parentBlindName, in)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
+	secretName := secretPath.GetSecret()
 
-	accountKey, err := c.getAccountKey()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
+	encryptedNamesMap := make(map[uuid.UUID]api.EncryptedNameRequest)
+	encryptedKeysMap := make(map[uuid.UUID]api.EncryptedKeyRequest)
 
-	return resp.Decrypt(accountKey)
+	tries := 0
+	for {
+		// Get all accounts that have permission to read the secret.
+		accounts, err := c.listDirAccounts(parentPath)
+		if err != nil {
+			return nil, errio.Error(err)
+		}
+
+		for _, account := range accounts {
+			_, ok := encryptedNamesMap[account.AccountID]
+			if !ok {
+				encryptedName, err := encryptNameForAccount(secretName, account)
+				if err != nil {
+					return nil, err
+				}
+				encryptedNamesMap[account.AccountID] = encryptedName
+			}
+
+			_, ok = encryptedKeysMap[account.AccountID]
+			if !ok {
+				encryptedKey, err := encryptKeyForAccount(secretKey, account)
+				if err != nil {
+					return nil, err
+				}
+				encryptedKeysMap[account.AccountID] = encryptedKey
+			}
+		}
+
+		encryptedNames := make([]api.EncryptedNameRequest, len(encryptedNamesMap))
+		i := 0
+		for _, encryptedName := range encryptedNamesMap {
+			encryptedNames[i] = encryptedName
+			i++
+		}
+
+		encryptedKeys := make([]api.EncryptedKeyRequest, len(encryptedKeysMap))
+		i = 0
+		for _, encryptedKey := range encryptedKeysMap {
+			encryptedKeys[i] = encryptedKey
+			i++
+		}
+
+		in := &api.CreateSecretRequest{
+			BlindName:     blindName,
+			EncryptedData: encryptedData,
+
+			EncryptedNames: encryptedNames,
+			EncryptedKeys:  encryptedKeys,
+		}
+
+		resp, err := c.httpClient.CreateSecret(secretPath.GetNamespace(), secretPath.GetRepo(), parentBlindName, in)
+		if err == nil {
+			accountKey, err := c.getAccountKey()
+			if err != nil {
+				return nil, err
+			}
+
+			return resp.Decrypt(accountKey)
+		}
+		if !errio.EqualsAPIError(api.ErrNotEncryptedForAccounts, err) {
+			return nil, err
+		}
+		if tries >= missingMemberRetries {
+			return nil, fmt.Errorf("cannot create secret version: access rules giving access to the secret are simultaneously being created; you may try again")
+		}
+		tries++
+	}
 }
 
 // decryptSecretVersions decrypts EncryptedSecretVersions to a list of SecretVersions
