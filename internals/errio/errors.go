@@ -158,6 +158,7 @@ func UnexpectedError(err error) PublicError {
 			"an unexpected error occurred: %v\n\nTry again later or contact support@secrethub.io if the problem persists",
 			err,
 		),
+		err: err,
 	}
 }
 
@@ -190,6 +191,7 @@ type PublicError struct {
 	Namespace Namespace `json:"namespace,omitempty"`
 	Code      string    `json:"code"`
 	Message   string    `json:"message"`
+	err       error
 }
 
 // PublicError implements the error interface.
@@ -219,6 +221,11 @@ func (e PublicError) Append(errs ...error) PublicError {
 // Type returns the type of the error as to be reported to Sentry.
 func (e PublicError) Type() string {
 	return fmt.Sprintf("%s.%s", e.Namespace, e.Code)
+}
+
+// Unwrap returns the wrapped error if the PublicError represents an error wrapped as an UnexpectedError.
+func (e PublicError) Unwrap() error {
+	return e.err
 }
 
 // PublicStatusError represents an http error. It contains an HTTP status
@@ -262,4 +269,15 @@ func Equals(a PublicError, b error) bool {
 		return false
 	}
 	return a.Namespace == publicError.Namespace && a.Code == publicError.Code
+}
+
+// EqualsAPIError checks whether the given error has the namespace and code of the
+// given API error. The HTTP status code and error message aren't checked, so this
+// function is compatible with any changes to the message and HTTP status code.
+func EqualsAPIError(apiErr PublicStatusError, err error) bool {
+	publicStatusError, ok := err.(PublicStatusError)
+	if !ok {
+		return false
+	}
+	return Equals(apiErr.PublicError, publicStatusError.PublicError)
 }

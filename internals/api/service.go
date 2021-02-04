@@ -66,7 +66,6 @@ func (a Service) ToAuditActor() *AuditActor {
 type CreateServiceRequest struct {
 	Description string                   `json:"description"`
 	Credential  *CreateCredentialRequest `json:"credential"`
-	AccountKey  *CreateAccountKeyRequest `json:"account_key"`
 	RepoMember  *CreateRepoMemberRequest `json:"repo_member"`
 }
 
@@ -83,10 +82,10 @@ func (req CreateServiceRequest) Validate() error {
 		return err
 	}
 
-	if req.AccountKey == nil {
+	if req.Credential.AccountKey == nil {
 		return ErrMissingField("account_key")
 	}
-	if err := req.AccountKey.Validate(); err != nil {
+	if err := req.Credential.AccountKey.Validate(); err != nil {
 		return err
 	}
 

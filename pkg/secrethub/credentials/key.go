@@ -2,11 +2,22 @@ package credentials
 
 import (
 	"errors"
+	"fmt"
+	"os"
 
 	"github.com/secrethub/secrethub-go/internals/auth"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
+
+type ErrLoadingCredential struct {
+	Location string
+	Err      error
+}
+
+func (e ErrLoadingCredential) Error() string {
+	return "load credential " + e.Location + ": " + e.Err.Error()
+}
 
 // Key is a credential that uses a local key for all its operations.
 type Key struct {
@@ -69,8 +80,17 @@ func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
 		return Key{}, err
 	}
 	if encoded.IsEncrypted() {
+		const credentialPassphraseEnvVar = "SECRETHUB_CREDENTIAL_PASSPHRASE"
+		envPassphrase := os.Getenv(credentialPassphraseEnvVar)
+		if envPassphrase != "" {
+			credential, err := decryptKey([]byte(envPassphrase), encoded)
+			if err != nil {
+				return Key{}, fmt.Errorf("decrypting credential with passphrase read from $%s: %v", credentialPassphraseEnvVar, err)
+			}
+			return Key{key: credential}, nil
+		}
 		if passphraseReader == nil {
-			return Key{}, errors.New("need passphrase")
+			return Key{}, ErrNeedPassphrase
 		}
 
 		// Try up to three times to get the correct passphrase.

@@ -14,7 +14,7 @@ type Reader interface {
 // FromFile returns a reader that reads the contents of a file,
 // e.g. a credential or a passphrase.
 func FromFile(path string) Reader {
-	return readerFunc(func() ([]byte, error) {
+	return newReader(path, func() ([]byte, error) {
 		return ioutil.ReadFile(path)
 	})
 }
@@ -22,7 +22,7 @@ func FromFile(path string) Reader {
 // FromEnv returns a reader that reads the contents of an
 // environment variable, e.g. a credential or a passphrase.
 func FromEnv(key string) Reader {
-	return readerFunc(func() ([]byte, error) {
+	return newReader("$"+key, func() ([]byte, error) {
 		return []byte(os.Getenv(key)), nil
 	})
 }
@@ -43,10 +43,30 @@ func FromString(raw string) Reader {
 	})
 }
 
-// readerFunc is a helper function to create a reader from any func() ([]byte, error).
 type readerFunc func() ([]byte, error)
 
+func (r readerFunc) Read() ([]byte, error) {
+	return r()
+}
+
+// newReader is a helper function to create a reader with a source from any func() ([]byte, error).
+func newReader(source string, read func() ([]byte, error)) Reader {
+	return reader{
+		source:   source,
+		readFunc: read,
+	}
+}
+
+type reader struct {
+	source   string
+	readFunc func() ([]byte, error)
+}
+
+func (r reader) Source() string {
+	return r.source
+}
+
 // Read implements the Reader interface.
-func (f readerFunc) Read() ([]byte, error) {
-	return f()
+func (r reader) Read() ([]byte, error) {
+	return r.readFunc()
 }

@@ -9,8 +9,6 @@ import (
 
 // UserService handles operations on users from SecretHub.
 type UserService interface {
-	// Create creates a new user at SecretHub.
-	Create(username, email, fullName string, credential credentials.CreatorProvider) (*api.User, error)
 	// Me gets the account's user if it exists.
 	Me() (*api.User, error)
 	// Get a user by their username.
@@ -30,75 +28,6 @@ type userService struct {
 // Me gets the account's user if it exists.
 func (s userService) Me() (*api.User, error) {
 	return s.client.httpClient.GetMyUser()
-}
-
-// Create creates a new user at SecretHub and authenticates the client as this user.
-func (s userService) Create(username, email, fullName string, credentials credentials.CreatorProvider) (*api.User, error) {
-	err := api.ValidateUsername(username)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	err = api.ValidateEmail(email)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	err = api.ValidateFullName(fullName)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	err = credentials.Create()
-	if err != nil {
-		return nil, err
-	}
-
-	accountKey, err := generateAccountKey()
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	return s.create(username, email, fullName, accountKey, credentials.Verifier(), credentials.Encrypter(), credentials.Metadata(), credentials)
-}
-
-func (s userService) create(username, email, fullName string, accountKey crypto.RSAPrivateKey, verifier credentials.Verifier, encrypter credentials.Encrypter, metadata map[string]string, credentials credentials.Provider) (*api.User, error) {
-	credentialRequest, err := s.client.createCredentialRequest(verifier, metadata)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	err = credentialRequest.Validate()
-	if err != nil {
-		return nil, err
-	}
-
-	userRequest := &api.CreateUserRequest{
-		Username:   username,
-		Email:      email,
-		FullName:   fullName,
-		Credential: credentialRequest,
-	}
-
-	user, err := s.client.httpClient.SignupUser(userRequest)
-	if err != nil {
-		return nil, errio.Error(err)
-	}
-
-	// Authenticate the client with the new credential.
-	err = WithCredentials(credentials)(s.client)
-	if err != nil {
-		return nil, err
-	}
-
-	accountKeyResponse, err := s.client.createAccountKey(credentialRequest.Fingerprint, accountKey, encrypter)
-	if err != nil {
-		return nil, err
-	}
-
-	user.PublicKey = accountKeyResponse.PublicKey
-
-	return user, nil
 }
 
 // Get retrieves the user with the given username from SecretHub.
