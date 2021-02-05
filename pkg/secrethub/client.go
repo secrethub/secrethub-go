@@ -162,19 +162,7 @@ func NewClient(with ...ClientOption) (*Client, error) {
 		}
 	}
 
-	appName := os.Getenv("SECRETHUB_APP_INFO_NAME")
-	if appName != "" {
-		appVersion := os.Getenv("SECRETHUB_APP_INFO_VERSION")
-		topLevelAppInfo := &AppInfo{
-			Name:    appName,
-			Version: appVersion,
-		}
-		// Ignore app info from environment variable if name is invalid
-		if err = topLevelAppInfo.ValidateName(); err == nil {
-			client.appInfo = append(client.appInfo, topLevelAppInfo)
-		}
-	}
-
+	client.loadAppInfoFromEnv()
 	userAgent := client.userAgent()
 
 	client.httpClient.Options(http.WithUserAgent(userAgent))
@@ -284,6 +272,21 @@ func (c *Client) DefaultCredential() credentials.Reader {
 
 func (c *Client) isKeyed() bool {
 	return c.decrypter != nil
+}
+
+func (c *Client) loadAppInfoFromEnv() {
+	appName := os.Getenv("SECRETHUB_APP_INFO_NAME")
+	if appName != "" {
+		appVersion := os.Getenv("SECRETHUB_APP_INFO_VERSION")
+		topLevelAppInfo := &AppInfo{
+			Name:    appName,
+			Version: appVersion,
+		}
+		// Ignore app info from environment variable if name is invalid
+		if err := topLevelAppInfo.ValidateName(); err == nil {
+			c.appInfo = append(c.appInfo, topLevelAppInfo)
+		}
+	}
 }
 
 func (c *Client) userAgent() string {
