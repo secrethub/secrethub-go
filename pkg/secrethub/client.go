@@ -121,11 +121,11 @@ func (i AppInfo) ValidateName() error {
 // If no key credential could be found, a Client is returned that can only be used for unauthenticated routes.
 func NewClient(with ...ClientOption) (*Client, error) {
 	client := &Client{
-		httpClient:              http.NewClient(),
-		repoIndexKeys:           make(map[api.RepoPath]*crypto.SymmetricKey),
-		appInfo:                 []*AppInfo{},
-		defaultPassphraseReader: credentials.FromEnv("SECRETHUB_CREDENTIAL_PASSPHRASE"),
+		httpClient:    http.NewClient(),
+		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
+		appInfo:       []*AppInfo{},
 	}
+
 	err := client.with(with...)
 	if err != nil {
 		return nil, err
