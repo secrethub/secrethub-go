@@ -157,10 +157,8 @@ func NewClient(with ...ClientOption) (*Client, error) {
 		}
 
 		err := client.with(WithCredentials(provider))
-		// nolint: staticcheck
 		if err != nil {
-			// TODO: log that default credential was not loaded.
-			// Do go on because we want to allow an unauthenticated client.
+			return nil, err
 		}
 	}
 
