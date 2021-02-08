@@ -121,11 +121,11 @@ func (i AppInfo) ValidateName() error {
 // If no key credential could be found, a Client is returned that can only be used for unauthenticated routes.
 func NewClient(with ...ClientOption) (*Client, error) {
 	client := &Client{
-		httpClient:              http.NewClient(),
-		repoIndexKeys:           make(map[api.RepoPath]*crypto.SymmetricKey),
-		appInfo:                 []*AppInfo{},
-		defaultPassphraseReader: credentials.FromEnv("SECRETHUB_CREDENTIAL_PASSPHRASE"),
+		httpClient:    http.NewClient(),
+		repoIndexKeys: make(map[api.RepoPath]*crypto.SymmetricKey),
+		appInfo:       []*AppInfo{},
 	}
+
 	err := client.with(with...)
 	if err != nil {
 		return nil, err
@@ -157,26 +157,12 @@ func NewClient(with ...ClientOption) (*Client, error) {
 		}
 
 		err := client.with(WithCredentials(provider))
-		// nolint: staticcheck
 		if err != nil {
-			// TODO: log that default credential was not loaded.
-			// Do go on because we want to allow an unauthenticated client.
+			return nil, err
 		}
 	}
 
-	appName := os.Getenv("SECRETHUB_APP_INFO_NAME")
-	if appName != "" {
-		appVersion := os.Getenv("SECRETHUB_APP_INFO_VERSION")
-		topLevelAppInfo := &AppInfo{
-			Name:    appName,
-			Version: appVersion,
-		}
-		// Ignore app info from environment variable if name is invalid
-		if err = topLevelAppInfo.ValidateName(); err == nil {
-			client.appInfo = append(client.appInfo, topLevelAppInfo)
-		}
-	}
-
+	client.loadAppInfoFromEnv()
 	userAgent := client.userAgent()
 
 	client.httpClient.Options(http.WithUserAgent(userAgent))
@@ -286,6 +272,21 @@ func (c *Client) DefaultCredential() credentials.Reader {
 
 func (c *Client) isKeyed() bool {
 	return c.decrypter != nil
+}
+
+func (c *Client) loadAppInfoFromEnv() {
+	appName := os.Getenv("SECRETHUB_APP_INFO_NAME")
+	if appName != "" {
+		appVersion := os.Getenv("SECRETHUB_APP_INFO_VERSION")
+		topLevelAppInfo := &AppInfo{
+			Name:    appName,
+			Version: appVersion,
+		}
+		// Ignore app info from environment variable if name is invalid
+		if err := topLevelAppInfo.ValidateName(); err == nil {
+			c.appInfo = append(c.appInfo, topLevelAppInfo)
+		}
+	}
 }
 
 func (c *Client) userAgent() string {

@@ -85,6 +85,9 @@ func ImportKey(credentialReader, passphraseReader Reader) (Key, error) {
 		if envPassphrase != "" {
 			credential, err := decryptKey([]byte(envPassphrase), encoded)
 			if err != nil {
+				if crypto.IsWrongKey(err) {
+					err = ErrCannotDecryptCredential
+				}
 				return Key{}, fmt.Errorf("decrypting credential with passphrase read from $%s: %v", credentialPassphraseEnvVar, err)
 			}
 			return Key{key: credential}, nil

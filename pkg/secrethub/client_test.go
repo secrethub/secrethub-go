@@ -62,11 +62,11 @@ func TestClient_userAgent(t *testing.T) {
 			for _, info := range tc.appInfo {
 				opts = append(opts, WithAppInfo(info))
 			}
-			client, err := NewClient(opts...)
+			client := &Client{}
+			err := client.with(opts...)
 			assert.Equal(t, err, tc.err)
-			if err != nil {
-				return
-			}
+
+			client.loadAppInfoFromEnv()
 
 			userAgent := client.userAgent()
 			pattern := tc.expected + " \\(.*\\)"
