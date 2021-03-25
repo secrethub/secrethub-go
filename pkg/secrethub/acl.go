@@ -304,7 +304,6 @@ func (re *reencrypter) Add(blindName string) error {
 				}
 				re.dirs[dir.DirID] = encrypted
 			}
-
 			return nil
 		})
 	}
