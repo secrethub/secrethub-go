@@ -1,12 +1,13 @@
 package secrethub
 
 import (
+	"context"
 	"fmt"
-
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/errio"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/iterator"
+	"golang.org/x/sync/errgroup"
 )
 
 // AccessRuleService handles operations on access rules from SecretHub.
@@ -277,6 +278,8 @@ type reencrypter struct {
 }
 
 func (re *reencrypter) Add(blindName string) error {
+	errs, _ := errgroup.WithContext(context.Background())
+
 	encryptedTree, err := re.client.httpClient.GetTree(blindName, -1, true)
 	if err != nil {
 		return err
@@ -288,36 +291,43 @@ func (re *reencrypter) Add(blindName string) error {
 	}
 
 	for _, dir := range encryptedTree.Directories {
-		_, ok := re.dirs[dir.DirID]
-		if !ok {
-			decrypted, err := dir.Decrypt(accountKey)
-			if err != nil {
-				return err
+		errs.Go(func() error {
+			_, ok := re.dirs[dir.DirID]
+			if !ok {
+				decrypted, err := dir.Decrypt(accountKey)
+				if err != nil {
+					return err
+				}
+				encrypted, err := re.client.encryptDirFor(decrypted, re.encryptFor)
+				if err != nil {
+					return err
+				}
+				re.dirs[dir.DirID] = encrypted
 			}
-			encrypted, err := re.client.encryptDirFor(decrypted, re.encryptFor)
-			if err != nil {
-				return err
-			}
-			re.dirs[dir.DirID] = encrypted
-		}
+
+			return nil
+		})
 	}
 
 	for _, secret := range encryptedTree.Secrets {
-		_, ok := re.secrets[secret.SecretID]
-		if !ok {
-			decrypted, err := secret.Decrypt(accountKey)
-			if err != nil {
-				return err
+		errs.Go(func() error {
+			_, ok := re.secrets[secret.SecretID]
+			if !ok {
+				decrypted, err := secret.Decrypt(accountKey)
+				if err != nil {
+					return err
+				}
+				encrypted, err := re.client.encryptSecretFor(decrypted, re.encryptFor)
+				if err != nil {
+					return err
+				}
+				re.secrets[secret.SecretID] = encrypted
 			}
-			encrypted, err := re.client.encryptSecretFor(decrypted, re.encryptFor)
-			if err != nil {
-				return err
-			}
-			re.secrets[secret.SecretID] = encrypted
-		}
+			return nil
+		})
 	}
 
-	return nil
+	return errs.Wait()
 }
 
 func (re *reencrypter) Secrets() []api.SecretAccessRequest {
