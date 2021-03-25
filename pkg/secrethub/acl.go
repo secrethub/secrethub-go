@@ -3,6 +3,7 @@ package secrethub
 import (
 	"context"
 	"fmt"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/errio"
