@@ -2,43 +2,43 @@ package secrethub
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/assert"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
-	"testing"
-	"time"
 )
 
 type testCase struct {
 	dirs    []*api.Dir
 	secrets []*api.Secret
-	err     error
 }
 
 func TestReencypter_reencrypt(t *testing.T) {
 	fromPrivateKey, err := crypto.GenerateRSAPrivateKey(2048)
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Print(err.Error())
 	}
 
 	fromPublicKey := fromPrivateKey.Public()
 	fromEncodedPublicKey, err := fromPublicKey.Encode()
 
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Print(err.Error())
 	}
 
 	forPrivateKey, err := crypto.GenerateRSAPrivateKey(2048)
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Print(err.Error())
 	}
 	forPublicKey := forPrivateKey.Public()
 	forEncodedPublicKey, err := forPublicKey.Encode()
 
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Print(err.Error())
 	}
 
 	firstAccount := api.Account{
@@ -63,7 +63,7 @@ func TestReencypter_reencrypt(t *testing.T) {
 		accountKey: &forPrivateKey,
 	}
 
-	cases := map[string]testCase {
+	cases := map[string]testCase{
 		"no directories": {
 			dirs:    nil,
 			secrets: nil,
@@ -104,7 +104,7 @@ func TestReencypter_reencrypt(t *testing.T) {
 		},
 	}
 	for _, caseIter := range cases {
-		fakeReencrypter := reencrypter {
+		fakeReencrypter := reencrypter{
 			dirs:       make(map[uuid.UUID]api.EncryptedNameForNodeRequest),
 			secrets:    make(map[uuid.UUID]api.SecretAccessRequest),
 			encryptFor: &secondAccount,
@@ -114,7 +114,7 @@ func TestReencypter_reencrypt(t *testing.T) {
 		encryptedTree := createEncryptedTree(caseIter.dirs, caseIter.secrets, fakeReencrypter, firstAccount)
 		err = fakeReencrypter.reencrypt(&encryptedTree, &fromPrivateKey)
 		if err != nil {
-			fmt.Printf(err.Error())
+			fmt.Print(err.Error())
 		}
 
 		count := 0
@@ -122,10 +122,10 @@ func TestReencypter_reencrypt(t *testing.T) {
 			assert.Equal(t, dirTemp.AccountID, secondAccount.AccountID)
 			decryptedDir, err := encryptedTree.Directories[caseIter.dirs[count].DirID].Decrypt(&fromPrivateKey)
 			if err != nil {
-				fmt.Printf(err.Error())
+				fmt.Print(err.Error())
 			}
 			assert.Equal(t, caseIter.dirs[count].Name, decryptedDir.Name)
-			count += 1
+			count++
 		}
 
 		//TODO: In order to test for secrets encryption and decryption, a refactoring of the Client is in order, as to be able to mock the HTTP Go client.
@@ -134,10 +134,10 @@ func TestReencypter_reencrypt(t *testing.T) {
 			assert.Equal(t, secretTemp.Name.AccountID, secondAccount.AccountID)
 			decryptedSecret, err := encryptedTree.Secrets[count].Decrypt(&fromPrivateKey)
 			if err != nil {
-				fmt.Printf(err.Error())
+				fmt.Print(err.Error())
 			}
 			assert.Equal(t, caseIter.secrets[count].Name, decryptedSecret.Name)
-			count += 1
+			count++
 
 		}
 	}
@@ -151,7 +151,7 @@ func createEncryptedTree(dirs []*api.Dir, secrets []*api.Secret, reencrypter ree
 	for _, dir := range dirs {
 		request, err := reencrypter.client.encryptDirFor(dir, &account)
 		if err != nil {
-			fmt.Printf(err.Error())
+			fmt.Print(err.Error())
 		}
 		encryptedTree.Directories[dir.DirID] = &api.EncryptedDir{
 			DirID:         dir.DirID,
@@ -162,7 +162,7 @@ func createEncryptedTree(dirs []*api.Dir, secrets []*api.Secret, reencrypter ree
 	for i, secret := range secrets {
 		request, err := reencrypter.client.encryptSecretFor(secret, &account)
 		if err != nil {
-			fmt.Printf(err.Error())
+			fmt.Print(err.Error())
 		}
 		encryptedTree.Secrets[i] = &api.EncryptedSecret{
 			DirID:         secret.DirID,

@@ -3,6 +3,7 @@ package secrethub
 import (
 	"context"
 	"fmt"
+
 	"golang.org/x/sync/errgroup"
 
 	"github.com/secrethub/secrethub-go/internals/crypto"
