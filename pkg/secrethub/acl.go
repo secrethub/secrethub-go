@@ -1,7 +1,9 @@
 package secrethub
 
 import (
+	"context"
 	"fmt"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/secrethub/secrethub-go/internals/crypto"
 
@@ -293,37 +295,45 @@ func (re *reencrypter) Add(blindName string) error {
 }
 
 func (re *reencrypter) reencrypt(encryptedTree *api.EncryptedTree, accountKey *crypto.RSAPrivateKey) error {
+	errs, _ := errgroup.WithContext(context.Background())
+
 	for _, dir := range encryptedTree.Directories {
-		_, ok := re.dirs[dir.DirID]
-		if !ok {
-			decrypted, err := dir.Decrypt(accountKey)
-			if err != nil {
-				return err
+		errs.Go(func() error {
+			_, ok := re.dirs[dir.DirID]
+			if !ok {
+				decrypted, err := dir.Decrypt(accountKey)
+				if err != nil {
+					return err
+				}
+				encrypted, err := re.client.encryptDirFor(decrypted, re.encryptFor)
+				if err != nil {
+					return err
+				}
+				re.dirs[dir.DirID] = encrypted
 			}
-			encrypted, err := re.client.encryptDirFor(decrypted, re.encryptFor)
-			if err != nil {
-				return err
-			}
-			re.dirs[dir.DirID] = encrypted
-		}
+			return nil
+		})
 	}
 
 	for _, secret := range encryptedTree.Secrets {
-		_, ok := re.secrets[secret.SecretID]
-		if !ok {
-			decrypted, err := secret.Decrypt(accountKey)
-			if err != nil {
-				return err
+		errs.Go(func() error {
+			_, ok := re.secrets[secret.SecretID]
+			if !ok {
+				decrypted, err := secret.Decrypt(accountKey)
+				if err != nil {
+					return err
+				}
+				encrypted, err := re.client.encryptSecretFor(decrypted, re.encryptFor)
+				if err != nil {
+					return err
+				}
+				re.secrets[secret.SecretID] = encrypted
 			}
-			encrypted, err := re.client.encryptSecretFor(decrypted, re.encryptFor)
-			if err != nil {
-				return err
-			}
-			re.secrets[secret.SecretID] = encrypted
-		}
+			return nil
+		})
 	}
 
-	return nil
+	return errs.Wait()
 }
 
 func (re *reencrypter) Secrets() []api.SecretAccessRequest {
