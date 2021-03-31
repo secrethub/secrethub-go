@@ -10,7 +10,7 @@ import (
 
 // Errors
 var (
-	ErrNoDecryptionKey = errClient.Code("no_decryption_key").Error("client is not initialized with a method to decrypt the account key")
+	ErrNoDecryptionKey    = errClient.Code("no_decryption_key").Error("client is not initialized with a method to decrypt the account key")
 	ErrIncorrectAccountID = errClient.Code("incorrect_account_id").Error("the incorrect account ID was provided. To delete the currently authenticated account please provide its ID.")
 )
 
