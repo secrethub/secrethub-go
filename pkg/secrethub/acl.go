@@ -3,6 +3,8 @@ package secrethub
 import (
 	"fmt"
 
+	"github.com/secrethub/secrethub-go/internals/crypto"
+
 	"github.com/secrethub/secrethub-go/internals/api"
 	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/errio"
@@ -287,6 +289,10 @@ func (re *reencrypter) Add(blindName string) error {
 		return err
 	}
 
+	return re.reencrypt(encryptedTree, accountKey)
+}
+
+func (re *reencrypter) reencrypt(encryptedTree *api.EncryptedTree, accountKey *crypto.RSAPrivateKey) error {
 	for _, dir := range encryptedTree.Directories {
 		_, ok := re.dirs[dir.DirID]
 		if !ok {
