@@ -25,7 +25,6 @@ func TestReencypter_reencrypt(t *testing.T) {
 
 	fromPublicKey := fromPrivateKey.Public()
 	fromEncodedPublicKey, err := fromPublicKey.Encode()
-
 	if err != nil {
 		fmt.Print(err.Error())
 	}
@@ -34,9 +33,9 @@ func TestReencypter_reencrypt(t *testing.T) {
 	if err != nil {
 		fmt.Print(err.Error())
 	}
+
 	forPublicKey := forPrivateKey.Public()
 	forEncodedPublicKey, err := forPublicKey.Encode()
-
 	if err != nil {
 		fmt.Print(err.Error())
 	}
@@ -138,7 +137,6 @@ func TestReencypter_reencrypt(t *testing.T) {
 			}
 			assert.Equal(t, caseIter.secrets[count].Name, decryptedSecret.Name)
 			count++
-
 		}
 	}
 }
