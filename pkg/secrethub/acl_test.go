@@ -12,11 +12,6 @@ import (
 	"github.com/secrethub/secrethub-go/pkg/secrethub/internals/http"
 )
 
-type testCase struct {
-	dirs    []*api.Dir
-	secrets []*api.Secret
-}
-
 func TestReencypter_reencrypt(t *testing.T) {
 	fromPrivateKey, err := crypto.GenerateRSAPrivateKey(2048)
 	if err != nil {
@@ -62,7 +57,10 @@ func TestReencypter_reencrypt(t *testing.T) {
 		accountKey: &forPrivateKey,
 	}
 
-	cases := map[string]testCase{
+	cases := map[string]struct {
+		dirs    []*api.Dir
+		secrets []*api.Secret
+	}{
 		"no directories": {
 			dirs:    nil,
 			secrets: nil,
@@ -102,7 +100,7 @@ func TestReencypter_reencrypt(t *testing.T) {
 			secrets: nil,
 		},
 	}
-	for _, caseIter := range cases {
+	for _, tc := range cases {
 		fakeReencrypter := reencrypter{
 			dirs:       make(map[uuid.UUID]api.EncryptedNameForNodeRequest),
 			secrets:    make(map[uuid.UUID]api.SecretAccessRequest),
@@ -110,7 +108,7 @@ func TestReencypter_reencrypt(t *testing.T) {
 			client:     &fakeClient,
 		}
 
-		encryptedTree := createEncryptedTree(caseIter.dirs, caseIter.secrets, fakeReencrypter, firstAccount)
+		encryptedTree := createEncryptedTree(tc.dirs, tc.secrets, fakeReencrypter, firstAccount)
 		err = fakeReencrypter.reencrypt(&encryptedTree, &fromPrivateKey)
 		if err != nil {
 			fmt.Print(err.Error())
@@ -119,11 +117,11 @@ func TestReencypter_reencrypt(t *testing.T) {
 		count := 0
 		for _, dirTemp := range fakeReencrypter.dirs {
 			assert.Equal(t, dirTemp.AccountID, secondAccount.AccountID)
-			decryptedDir, err := encryptedTree.Directories[caseIter.dirs[count].DirID].Decrypt(&fromPrivateKey)
+			decryptedDir, err := encryptedTree.Directories[tc.dirs[count].DirID].Decrypt(&fromPrivateKey)
 			if err != nil {
 				fmt.Print(err.Error())
 			}
-			assert.Equal(t, caseIter.dirs[count].Name, decryptedDir.Name)
+			assert.Equal(t, tc.dirs[count].Name, decryptedDir.Name)
 			count++
 		}
 
@@ -135,7 +133,7 @@ func TestReencypter_reencrypt(t *testing.T) {
 			if err != nil {
 				fmt.Print(err.Error())
 			}
-			assert.Equal(t, caseIter.secrets[count].Name, decryptedSecret.Name)
+			assert.Equal(t, tc.secrets[count].Name, decryptedSecret.Name)
 			count++
 		}
 	}
