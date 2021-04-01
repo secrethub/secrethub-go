@@ -94,38 +94,40 @@ func TestReencypter_reencrypt(t *testing.T) {
 			secrets: nil,
 		},
 	}
-	for _, tc := range cases {
-		fakeReencrypter := reencrypter{
-			dirs:       make(map[uuid.UUID]api.EncryptedNameForNodeRequest),
-			secrets:    make(map[uuid.UUID]api.SecretAccessRequest),
-			encryptFor: &secondAccount,
-			client:     &fakeClient,
-		}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			fakeReencrypter := reencrypter{
+				dirs:       make(map[uuid.UUID]api.EncryptedNameForNodeRequest),
+				secrets:    make(map[uuid.UUID]api.SecretAccessRequest),
+				encryptFor: &secondAccount,
+				client:     &fakeClient,
+			}
 
-		encryptedTree := createEncryptedTree(t, tc.dirs, tc.secrets, fakeReencrypter, firstAccount)
-		err = fakeReencrypter.reencrypt(&encryptedTree, &fromPrivateKey)
-		if err != nil {
-			fmt.Print(err.Error())
-		}
+			encryptedTree := createEncryptedTree(t, tc.dirs, tc.secrets, fakeReencrypter, firstAccount)
+			err = fakeReencrypter.reencrypt(&encryptedTree, &fromPrivateKey)
+			if err != nil {
+				fmt.Print(err.Error())
+			}
 
-		count := 0
-		for _, dirTemp := range fakeReencrypter.dirs {
-			assert.Equal(t, dirTemp.AccountID, secondAccount.AccountID)
-			decryptedDir, err := encryptedTree.Directories[tc.dirs[count].DirID].Decrypt(&fromPrivateKey)
-			assert.OK(t, err)
-			assert.Equal(t, tc.dirs[count].Name, decryptedDir.Name)
-			count++
-		}
+			count := 0
+			for _, dirTemp := range fakeReencrypter.dirs {
+				assert.Equal(t, dirTemp.AccountID, secondAccount.AccountID)
+				decryptedDir, err := encryptedTree.Directories[tc.dirs[count].DirID].Decrypt(&fromPrivateKey)
+				assert.OK(t, err)
+				assert.Equal(t, tc.dirs[count].Name, decryptedDir.Name)
+				count++
+			}
 
-		//TODO: In order to test for secrets encryption and decryption, a refactoring of the Client is in order, as to be able to mock the HTTP Go client.
-		count = 0
-		for _, secretTemp := range fakeReencrypter.secrets {
-			assert.Equal(t, secretTemp.Name.AccountID, secondAccount.AccountID)
-			decryptedSecret, err := encryptedTree.Secrets[count].Decrypt(&fromPrivateKey)
-			assert.OK(t, err)
-			assert.Equal(t, tc.secrets[count].Name, decryptedSecret.Name)
-			count++
-		}
+			//TODO: In order to test for secrets encryption and decryption, a refactoring of the Client is in order, as to be able to mock the HTTP Go client.
+			count = 0
+			for _, secretTemp := range fakeReencrypter.secrets {
+				assert.Equal(t, secretTemp.Name.AccountID, secondAccount.AccountID)
+				decryptedSecret, err := encryptedTree.Secrets[count].Decrypt(&fromPrivateKey)
+				assert.OK(t, err)
+				assert.Equal(t, tc.secrets[count].Name, decryptedSecret.Name)
+				count++
+			}
+		})
 	}
 }
 
