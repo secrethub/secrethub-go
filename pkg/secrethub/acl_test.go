@@ -110,8 +110,8 @@ func TestReencypter_reencrypt(t *testing.T) {
 			}
 
 			count := 0
-			for _, dirTemp := range fakeReencrypter.dirs {
-				assert.Equal(t, dirTemp.AccountID, secondAccount.AccountID)
+			for _, dir := range fakeReencrypter.dirs {
+				assert.Equal(t, dir.AccountID, secondAccount.AccountID)
 				decryptedDir, err := encryptedTree.Directories[tc.dirs[count].DirID].Decrypt(&fromPrivateKey)
 				assert.OK(t, err)
 				assert.Equal(t, tc.dirs[count].Name, decryptedDir.Name)
@@ -120,8 +120,8 @@ func TestReencypter_reencrypt(t *testing.T) {
 
 			//TODO: In order to test for secrets encryption and decryption, a refactoring of the Client is in order, as to be able to mock the HTTP Go client.
 			count = 0
-			for _, secretTemp := range fakeReencrypter.secrets {
-				assert.Equal(t, secretTemp.Name.AccountID, secondAccount.AccountID)
+			for _, secret := range fakeReencrypter.secrets {
+				assert.Equal(t, secret.Name.AccountID, secondAccount.AccountID)
 				decryptedSecret, err := encryptedTree.Secrets[count].Decrypt(&fromPrivateKey)
 				assert.OK(t, err)
 				assert.Equal(t, tc.secrets[count].Name, decryptedSecret.Name)
