@@ -1,7 +1,6 @@
 package secrethub
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -25,9 +24,7 @@ func TestReencypter_reencrypt(t *testing.T) {
 
 	forPublicKey := forPrivateKey.Public()
 	forEncodedPublicKey, err := forPublicKey.Encode()
-	if err != nil {
-		fmt.Print(err.Error())
-	}
+	assert.OK(t, err)
 
 	firstAccount := api.Account{
 		AccountID:   uuid.New(),
@@ -105,9 +102,7 @@ func TestReencypter_reencrypt(t *testing.T) {
 
 			encryptedTree := createEncryptedTree(t, tc.dirs, tc.secrets, fakeReencrypter, firstAccount)
 			err = fakeReencrypter.reencrypt(&encryptedTree, &fromPrivateKey)
-			if err != nil {
-				fmt.Print(err.Error())
-			}
+			assert.OK(t, err)
 
 			count := 0
 			for _, dir := range fakeReencrypter.dirs {
