@@ -37,6 +37,7 @@ const (
 
 	// Current account
 	pathMeUser              = "%s/me/user"
+	pathMeAccount           = "%s/me/account"
 	pathMeRepos             = "%s/me/repos"
 	pathMeKey               = "%s/me/key?key_version=v2"
 	pathMeEmailVerification = "%s/me/user/verification-email"
@@ -171,6 +172,13 @@ func (c *Client) GetMyUser() (*api.User, error) {
 	rawURL := fmt.Sprintf(pathMeUser, c.base.String())
 	err := c.get(rawURL, true, out)
 	return out, errio.Error(err)
+}
+
+// DeleteMyAccount
+func (c *Client) DeleteMyAccount() error {
+	rawURL := fmt.Sprintf(pathMeAccount, c.base.String())
+	err := c.delete(rawURL, true, nil)
+	return errio.Error(err)
 }
 
 // CreateCredential creates a new credential for the account.
