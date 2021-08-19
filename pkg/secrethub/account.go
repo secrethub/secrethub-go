@@ -2,6 +2,7 @@ package secrethub
 
 import (
 	"github.com/secrethub/secrethub-go/internals/api"
+	"github.com/secrethub/secrethub-go/internals/api/uuid"
 	"github.com/secrethub/secrethub-go/internals/crypto"
 	"github.com/secrethub/secrethub-go/internals/errio"
 	"github.com/secrethub/secrethub-go/pkg/secrethub/credentials"
@@ -9,13 +10,17 @@ import (
 
 // Errors
 var (
-	ErrNoDecryptionKey = errClient.Code("no_decryption_key").Error("client is not initialized with a method to decrypt the account key")
+	ErrNoDecryptionKey    = errClient.Code("no_decryption_key").Error("client is not initialized with a method to decrypt the account key")
+	ErrIncorrectAccountID = errClient.Code("incorrect_account_id").Error("the incorrect account ID was provided. To delete the currently authenticated account please provide its ID.")
 )
 
 // AccountService handles operations on SecretHub accounts.
 type AccountService interface {
 	// Me retrieves the authenticated account of the client.
 	Me() (*api.Account, error)
+	// Delete deletes the authenticated account of the client if it's ID is provided as a parameter.
+	// Do not use this method. Account deletes should only be performed from the CLI.
+	Delete(accountID uuid.UUID) error
 	// Get retrieves an account by name.
 	Get(name string) (*api.Account, error)
 	// Keys returns an account key service.
@@ -35,6 +40,19 @@ type accountService struct {
 // Me retrieves the authenticated account of the client.
 func (s accountService) Me() (*api.Account, error) {
 	return s.client.getMyAccount()
+}
+
+// Delete deletes the authenticated account of the client if it's ID is provided as a parameter.
+// Do not use this method. Account deletes should only be performed from the CLI.
+func (s accountService) Delete(accountID uuid.UUID) error {
+	account, err := s.client.getMyAccount()
+	if err != nil {
+		return err
+	}
+	if accountID != account.AccountID {
+		return ErrIncorrectAccountID
+	}
+	return s.client.httpClient.DeleteMyAccount()
 }
 
 // Get retrieves an account by name.
